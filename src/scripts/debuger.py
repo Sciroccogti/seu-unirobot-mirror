@@ -8,7 +8,7 @@ if __name__ == '__main__':
         'im': 'imageMonitor',
         'is': 'imageSamples'
     }
-    print('''how to use
+    common.print_info('''how to use
     function: run debuger in local machine
     example: python exec_local.py id debuger argv
     ''')

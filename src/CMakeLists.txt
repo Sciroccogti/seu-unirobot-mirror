@@ -1,6 +1,7 @@
 include_directories(./lib)
+add_subdirectory(lib)
 add_subdirectory(actuator)
-add_subdirectory(calculator)
+add_subdirectory(computation)
 add_subdirectory(debuger)
 
 set(CMAKE_INSTALL_PREFIX "${CMAKE_SOURCE_DIR}/bin")

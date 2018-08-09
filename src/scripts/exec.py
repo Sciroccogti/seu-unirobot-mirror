@@ -6,7 +6,7 @@ import common
 import config
 
 if __name__ == '__main__':
-    print('''how to use
+    common.print_info('''how to use
     function: run command in remote machine
     example: python exec_remote.py id cmd1 cmd2 cmd3 ...
     ''')

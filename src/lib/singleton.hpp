@@ -41,6 +41,4 @@ T *singleton <T>::singleton_ = 0;
 #undef NO_ASSERT
 #endif
 #undef ASSERT
-
-
 #endif

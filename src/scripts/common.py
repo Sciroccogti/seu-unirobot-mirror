@@ -55,6 +55,9 @@ def check_argv(argv=[], num=2):
     else:
         return True
 
-def print_error(info):
-    print('\033[1;31m %s \033[0m'%info)
+def print_error(err):
+    print('\033[1;31m %s \033[0m'%err)
+
+def print_info(info):
+    print('\033[1;32m %s \033[0m'%info)
     

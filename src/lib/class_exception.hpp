@@ -10,7 +10,7 @@ class class_exception
 public:
     class_exception(std::string msg): msg_(msg)
     {
-        std::cout<<"exception: "<<msg_<<std::endl;
+        std::cout<<"\033[31mexception: "<<msg_<<"\033[0m"<<std::endl;
     }
 
     ~class_exception(){};

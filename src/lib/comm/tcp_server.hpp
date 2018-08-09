@@ -10,8 +10,7 @@
 #include <utility>
 #include <boost/asio.hpp>
 #include "tcp_packet.hpp"
-#include "thread.hpp"
-#include "singleton.hpp"
+#include "comm.hpp"
 
 namespace comm
 {
@@ -78,8 +77,8 @@ namespace comm
         public std::enable_shared_from_this<tcp_session>
     {
     public:
-        tcp_session(tcp::socket socket, tcp_pool &pool)
-            : socket_(std::move(socket)), pool_(pool)
+        tcp_session(tcp::socket socket, tcp_pool &pool, comm_callback cb)
+            : socket_(std::move(socket)), pool_(pool), cb_(std::move(cb))
         {
         }
 
@@ -141,7 +140,8 @@ namespace comm
                         data_.append(read_pkt_.tcp_cmd().data, read_pkt_.tcp_cmd().size);
                         if(!read_pkt_.is_full())
                         {
-                            std::cout<<data_<<std::endl;
+                            //std::cout<<data_<<std::endl;
+                            cb_(data_.c_str(), data_.size());
                             data_.clear();
                         }
                     }
@@ -181,7 +181,7 @@ namespace comm
         tcp_packet read_pkt_;
         tcp_packet::tcp_cmd_type cmd_type_;
         tcp_packet_queue write_pkts_;
-        
+        comm_callback cb_;
         std::string data_;
     };
     
@@ -190,8 +190,8 @@ namespace comm
     class tcp_server
     {
     public:
-        tcp_server(boost::asio::io_service &io_service, const tcp::endpoint &endpoint)
-            : acceptor_(io_service, endpoint), socket_(io_service)
+        tcp_server(boost::asio::io_service &io_service, const tcp::endpoint &endpoint, comm_callback cb)
+            : acceptor_(io_service, endpoint), socket_(io_service), cb_(std::move(cb))
         {
             do_accept();
         }
@@ -209,7 +209,7 @@ namespace comm
                 if (!ec)
                 {
                     std::cout<<"new connection"<<std::endl;
-                    std::make_shared<tcp_session>(std::move(socket_), pool_)->start();
+                    std::make_shared<tcp_session>(std::move(socket_), pool_, cb_)->start();
                 }
                 do_accept();
             });
@@ -218,58 +218,8 @@ namespace comm
         tcp::acceptor acceptor_;
         tcp::socket socket_;
         tcp_pool pool_;
+        comm_callback cb_;
     };
-    
-    class tcp_server_thread: public thread, public singleton<tcp_server_thread>
-    {
-    public:
-        void init(const int &port)
-        {
-            tcp::endpoint endpoint(tcp::v4(), port);
-            server_ = tcp_server(io_service_, endpoint);
-        }
-        
-        void write(const tcp_packet::tcp_cmd_type &type, const int size, const char *data)
-        {
-            int t_size = size;
-            tcp_packet::tcp_command cmd;
-            cmd.type = type;
-            int i=0;
-            while(t_size >= tcp_packet::max_cmd_data_length)
-            {
-                cmd.size = tcp_packet::max_cmd_data_length;
-                std::memcpy(cmd.data, data+i*tcp_packet::max_cmd_data_length, tcp_packet::max_cmd_data_length);
-                i++;
-                t_size -= tcp_packet::max_cmd_data_length;
-                server_.do_write(tcp_packet(cmd));
-                usleep(10);
-            }
-            cmd.size = t_size;
-            std::memcpy(cmd.data, data+i*tcp_packet::max_cmd_data_length, t_size);
-            server_.do_write(tcp_packet(cmd));
-        }
-        
-        void write(const tcp_packet::tcp_command &cmd)
-        {
-            server_.do_write(tcp_packet(cmd));
-        }
-        
-        void close()
-        {
-            io_service_.stop();
-        }
-        
-    protected:
-        void run()
-        {
-            io_service_.run();
-        }
-    private:
-        boost::asio::io_service io_service_;
-        tcp_server server_;
-    };
-    
-    #define TCP_SERVER tcp_server_thread::get_singleton()
 }
 
 #endif
