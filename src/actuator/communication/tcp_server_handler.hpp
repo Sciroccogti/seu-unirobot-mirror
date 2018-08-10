@@ -1,7 +1,7 @@
 #ifndef TCP_SERVER_HANDLER_HPP
 #define TCP_SERVER_HPP
 
-#include "comm/tcp/tcp_server.hpp"
+#include "comm/tcp_server.hpp"
 #include "thread.hpp"
 #include "singleton.hpp"
 

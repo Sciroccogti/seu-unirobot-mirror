@@ -1,15 +1,14 @@
 include_directories(${Qt5Widgets_INCLUDE_DIRS})
 
-set(TARGET_NAME static_action)
+set(TARGET_NAME joint_revise)
 
 add_executable(${TARGET_NAME}
                 main.cpp
-                static_action.cpp)
+                joint_revise.cpp)
 
 target_link_libraries(${TARGET_NAME}
-                ui
-                tcp_client
                 debuger_options
+                tcp_client
                 Qt5::Widgets
                 Qt5::Core
                 Qt5::Gui)

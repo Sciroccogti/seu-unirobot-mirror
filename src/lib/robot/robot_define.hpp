@@ -136,6 +136,15 @@ namespace robot
         std::string name;
         std::vector<robot_one_pos> poses;
     };
+
+    struct robot_joint_offset
+    {
+        int id;
+        float offset;
+    };
+
+    typedef std::map<std::string, robot_act> act_map;
+    typedef std::map<std::string, robot_pos> pos_map;
 }
 
 #endif

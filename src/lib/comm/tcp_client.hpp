@@ -17,20 +17,19 @@ namespace comm
     class tcp_client
     {
     public:
-        tcp_client(boost::asio::io_service &io_service,
-                    tcp::resolver::iterator endpoint_iterator)
-            : io_service_(io_service),
-            socket_(io_service)
+        tcp_client(boost::asio::io_service &io_service, const std::string &host, const int &port)
+            : io_service_(io_service), socket_(io_service), timer_(io_service), host_(host), port_(std::to_string(port))
         {
-            do_connect(endpoint_iterator);
+            connected_ = false;
+            timer_.expires_at(boost::posix_time::pos_infin);
+            do_connect(tcp::resolver(io_service_).resolve({host_.c_str(), port_.c_str()}));
         }
 
         void write(const tcp_packet::tcp_command &cmd)
         {
             write(tcp_packet(cmd));
         }
-        
-        
+
         void write(tcp_packet::tcp_cmd_type type, int size, const char *data)
         {
             tcp_packet::tcp_command cmd;
@@ -58,17 +57,31 @@ namespace comm
             });
         }
 
+        bool is_connected() const { return connected_; }
+
+        void time_out()
+        {
+            if(!connected_)
+            {
+                socket_.cancel();
+                do_connect(tcp::resolver(io_service_).resolve({host_.c_str(), port_.c_str()}));
+            }
+        }
+
     private:
         void do_connect(tcp::resolver::iterator endpoint_iterator)
         {
+            timer_.expires_from_now(boost::posix_time::seconds(1));
             boost::asio::async_connect(socket_, endpoint_iterator,
                                     [this](boost::system::error_code ec, tcp::resolver::iterator)
             {
                 if (!ec)
                 {
+                    connected_ = true;
                     do_read_header();
                 }
             });
+            timer_.async_wait(std::bind(&tcp_client::time_out, this));
         }
 
         void do_read_header()
@@ -83,6 +96,8 @@ namespace comm
                 else
                 {
                     socket_.close();
+                    connected_ = false;
+                    do_connect(tcp::resolver(io_service_).resolve({host_.c_str(), port_.c_str()}));
                 }
             });
         }
@@ -97,7 +112,7 @@ namespace comm
                     data_.append(read_pkt_.tcp_cmd().data, read_pkt_.tcp_cmd().size);
                     if(!read_pkt_.is_full())
                     {
-                        std::cout<<data_<<std::endl;
+                        //std::cout<<data_<<std::endl;
                         data_.clear();
                     }
                     //std::cout.write(read_pkt_.body()+8, read_pkt_.body_length()-8);
@@ -106,6 +121,8 @@ namespace comm
                 else
                 {
                     socket_.close();
+                    connected_ = false;
+                    do_connect(tcp::resolver(io_service_).resolve({host_.c_str(), port_.c_str()}));
                 }
             });
         }
@@ -127,6 +144,8 @@ namespace comm
                 else
                 {
                     socket_.close();
+                    connected_ = false;
+                    do_connect(tcp::resolver(io_service_).resolve({host_.c_str(), port_.c_str()}));
                 }
             });
         }
@@ -151,6 +170,9 @@ namespace comm
         tcp_packet read_pkt_;
         tcp_packet_queue write_pkts_;
         std::string data_;
+        bool connected_;
+        boost::asio::deadline_timer timer_;
+        std::string host_, port_;
     };
 }
 #endif

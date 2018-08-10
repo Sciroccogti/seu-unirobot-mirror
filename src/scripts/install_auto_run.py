@@ -1,12 +1,11 @@
 #!/usr/bin/env python
-'''
-this script is used to let the program in the robot auto run at start up
-'''
+
 import common
 import sys
 import SSHConnection
 import config
 import datetime
+
 
 if __name__ == '__main__': 
     if not common.check_argv(sys.argv):

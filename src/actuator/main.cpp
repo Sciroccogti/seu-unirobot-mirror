@@ -1,17 +1,22 @@
 #include <iostream>
-#include "configuration/configuration.hpp"
+#include "configuration.hpp"
 #include "robot/humanoid.hpp"
+#include "options/options.hpp"
 
 using namespace std;
-using namespace config;
 using namespace robot;
 
 int main(int argc, char *argv[])
 {
-    if(!CONF.init(argc, argv))
+    if(!OPTS.init(argc, argv))
+    {
+        cout<<"options init failed"<<endl;
+        exit(1);
+    }
+    if(!CONF.init(OPTS.id()))
     {
         cout<<"config init failed"<<endl;
-        return 1;
+        exit(2);
     }
     ROBOT.init(CONF.robot_file(), CONF.action_file(), CONF.offset_file());
     return 0;

@@ -2,6 +2,7 @@
 
 import paramiko
 
+
 class SSHConnection(object):
     def __init__(self, host, port, username, password):
         self._host = host
@@ -18,20 +19,20 @@ class SSHConnection(object):
         transport = paramiko.Transport((self._host, self._port))
         transport.connect(username=self._username, password=self._password)
         self._transport = transport
- 
-    #download
+
+    # download
     def download(self, remotepath, localpath):
         if self._sftp is None:
             self._sftp = paramiko.SFTPClient.from_transport(self._transport)
         self._sftp.get(remotepath, localpath)
  
-    #upload
+    # upload
     def upload(self, localpath, remotepath):
         if self._sftp is None:
             self._sftp = paramiko.SFTPClient.from_transport(self._transport)
         self._sftp.put(localpath, remotepath)
  
-    #exec_cmd
+    # exec_cmd
     def exec_command(self, command):
         if self._client is None:
             self._client = paramiko.SSHClient()

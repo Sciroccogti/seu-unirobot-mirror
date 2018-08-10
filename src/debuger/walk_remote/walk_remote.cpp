@@ -1,0 +1,181 @@
+#include <iostream>
+#include <ctime>
+#include "walk_remote.hpp"
+#include "configuration.hpp"
+
+using namespace std;
+using namespace comm;
+
+walk_remote::walk_remote(): range_(200), scale_d(10), scale_xy(5000),
+    client_(CONF.get_config_value<string>(CONF.player()+".address"), CONF.get_config_value<int>("tcp.port"))
+{
+    setMinimumHeight(300);
+    dirSlider = new QSlider(Qt::Horizontal);
+    dirSlider->setMinimumWidth(200);
+    dirSlider->setMinimum(-range_);
+    dirSlider->setMaximum(range_);
+    dirSlider->setValue(0);
+
+    xSlider = new QSlider(Qt::Vertical);
+    xSlider->setMinimumWidth(200);
+    xSlider->setMinimum(-range_);
+    xSlider->setMaximum(range_);
+    xSlider->setValue(0);
+
+    ySlider = new QSlider(Qt::Horizontal);
+    ySlider->setMinimumWidth(200);
+    ySlider->setMinimum(-range_);
+    ySlider->setMaximum(range_);
+    ySlider->setValue(0);
+    dirLab = new QLabel("d:");
+    xLab = new QLabel("x:");
+    yLab = new QLabel("y:");
+    dirLab->setFixedWidth(80);
+    xLab->setFixedWidth(80);
+    yLab->setFixedWidth(80);
+
+    hSpinBox = new QDoubleSpinBox();
+    startCheck = new QCheckBox("Start");
+    btnRand = new QRadioButton("Random");
+    btnSpot = new QRadioButton("Spot");
+    btnSpot->setMaximumWidth(100);
+
+    hSpinBox->setRange(0, 0.05);
+    hSpinBox->setDecimals(3);
+    hSpinBox->setSingleStep(0.005);
+    hSpinBox->setValue(0.03);
+
+    QHBoxLayout *midLayout = new QHBoxLayout();
+    QVBoxLayout *mlLayout = new QVBoxLayout();
+    mlLayout->addWidget(dirLab);
+    mlLayout->addWidget(xLab);
+    mlLayout->addWidget(yLab);
+    QVBoxLayout *mrLayout = new QVBoxLayout();
+    QHBoxLayout *hLayout = new QHBoxLayout();
+    hLayout->addWidget(new QLabel("Lift Height"));
+    hLayout->addWidget(hSpinBox);
+    mrLayout->addLayout(hLayout);
+    mrLayout->addWidget(startCheck);
+    mrLayout->addWidget(btnSpot);
+    mrLayout->addWidget(btnRand);
+
+    midLayout->addLayout(mlLayout);
+    midLayout->addWidget(xSlider);
+    midLayout->addLayout(mrLayout);
+
+    QVBoxLayout *mainLayout = new QVBoxLayout();
+    mainLayout->addWidget(dirSlider);
+    mainLayout->addLayout(midLayout);
+    mainLayout->addWidget(ySlider);
+
+    QWidget *mainWidget  = new QWidget();
+    mainWidget->setLayout(mainLayout);
+    this->setCentralWidget(mainWidget);
+
+    net_info = QString::fromStdString(CONF.get_config_value<string>(CONF.player()+".address"))
+               +":"+ QString::number(CONF.get_config_value<int>("tcp.port"));
+    setWindowTitle(net_info + "(offline)");
+    timer= new QTimer;
+    timer->start(1000);
+
+    connect(timer, SIGNAL(timeout()), this, SLOT(procTimer()));
+    connect(dirSlider, SIGNAL(valueChanged(int)), this, SLOT(procDSlider(int)));
+    connect(xSlider, SIGNAL(valueChanged(int)), this, SLOT(procXSlider(int)));
+    connect(ySlider, SIGNAL(valueChanged(int)), this, SLOT(procYSlider(int)));
+
+    first_connect = true;
+    _x = 0;
+    _y = 0;
+    _dir = 0;
+    _h = 0;
+    srand(int(time(0)));
+    client_.start();
+    setEnabled(false);
+}
+
+void walk_remote::procTimer()
+{
+    if(client_.is_connected())
+    {
+        if(first_connect)
+            client_.regist(tcp_packet::WALK_DATA);
+        first_connect = false;
+        setEnabled(true);
+        statusBar()->setStyleSheet("background-color:green");
+        setWindowTitle(net_info + "(online)");
+        _h = hSpinBox->value();
+        if(btnRand->isChecked())
+        {
+
+            _x = (rand()%(2*range_+1)-range_)/scale_xy;
+            _y = (rand()%(2*range_+1)-range_)/scale_xy;
+            _dir = (rand()%(2*range_+1)-range_)/scale_d;
+        }
+        else if(btnSpot->isChecked())
+        {
+            _x = 0;
+            _y = 0;
+            _dir = 0;
+        }
+        else
+        {
+            _x = xSlider->value()/scale_xy;
+            _y = ySlider->value()/scale_xy;
+            _dir = dirSlider->value()/scale_d;
+        }
+        updateLab();
+        if(!startCheck->isChecked())
+        {
+            _x = 0;
+            _y = 0;
+            _dir = 0;
+            _h = 0;
+        }
+        tcp_packet::tcp_command cmd;
+        cmd.type = tcp_packet::WALK_DATA;
+        cmd.size = sizeof(float)*4;
+        memcpy(cmd.data, (char*)(&_x), sizeof(float));
+        memcpy(cmd.data+sizeof(float), (char*)(&_y), sizeof(float));
+        memcpy(cmd.data+2*sizeof(float), (char*)(&_dir), sizeof(float));
+        memcpy(cmd.data+3*sizeof(float), (char*)(&_h), sizeof(float));
+        client_.write(cmd);
+    }
+    else
+    {
+        first_connect = true;
+        setEnabled(false);
+        statusBar()->setStyleSheet("background-color:red");
+        setWindowTitle(net_info + "(offline)");
+    }
+}
+
+void walk_remote::updateLab()
+{
+    dirLab->setText("d: "+ QString::number(_dir, 'f', 4));
+    xLab->setText("x: "+ QString::number(_x, 'f', 4));
+    yLab->setText("y: "+ QString::number(_y, 'f', 4));
+    update();
+}
+
+void walk_remote::procDSlider(int v)
+{
+    _dir = v/scale_d;
+    updateLab();
+}
+
+void walk_remote::procXSlider(int v)
+{
+    _x = v/scale_xy;
+    updateLab();
+}
+
+void walk_remote::procYSlider(int v)
+{
+    _y = v/scale_xy;
+    updateLab();
+}
+
+void walk_remote::closeEvent(QCloseEvent *event)
+{
+    client_.close();
+}

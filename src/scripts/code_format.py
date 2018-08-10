@@ -3,6 +3,7 @@
 import os
 import config
 
+
 def list_dir(dir):
     _files = []
     files = os.listdir(dir)
@@ -13,6 +14,7 @@ def list_dir(dir):
            if os.path.isfile(path):
               _files.append(path)
     return _files
+
 
 if __name__ == '__main__':
     code_dir = config.project_dir + '/src'

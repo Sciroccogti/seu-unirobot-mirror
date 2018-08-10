@@ -12,7 +12,7 @@ static GLfloat m_mat_diff_normal[] = {1.0f, 1.0f, 0.7f, 1.0f};
 using namespace std;
 using namespace robot;
 
-robot_gl::robot_gl()
+robot_gl::robot_gl(bone_ptr b, const robot::joint_map &jmap): main_bone_(b)
 {
     setMinimumSize(600,600);
     m_Rotate_X = -45.0;
@@ -26,7 +26,7 @@ robot_gl::robot_gl()
     m_mousePoint = QPoint(300,300);
     setMouseTracking(false);
     joints_deg_.clear();
-    for(auto j:ROBOT.joint_map_)
+    for(auto j:jmap)
         joints_deg_[j.first] = j.second->get_deg();
 }
 
@@ -45,7 +45,7 @@ void robot_gl::paintGL()
     setUserView();
     draw_3d_ground();
     //draw_3d_axe(NORMAL_SIZE_AXE);
-    draw_3d_bone(ROBOT.main_bone_);
+    draw_3d_bone(main_bone_);
     glFlush();
 }
 

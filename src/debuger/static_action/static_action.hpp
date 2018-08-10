@@ -3,9 +3,9 @@
 
 #include <QtWidgets>
 #include <map>
-#include "robot_gl.hpp"
+#include "module/robot_gl.hpp"
 #include "robot/humanoid.hpp"
-#include "parser/config_parser.hpp"
+#include "tcp_client/tcp_client_handler.hpp"
 
 #define SLIDER_RANGE 500
 
@@ -36,7 +36,7 @@ public:
     {
         name = new QLabel(QString::fromStdString(j_name));
         deg = new QLabel(QString::number(j_deg, 'f', 2));
-        deg->setFixedWidth(100);
+        deg->setFixedWidth(60);
         QHBoxLayout *mainLayout = new QHBoxLayout;
         mainLayout->addWidget(name);
         mainLayout->addWidget(deg);
@@ -48,18 +48,19 @@ class CKSlider: public QWidget
 {
 Q_OBJECT
 public:
-    QLabel *name;
+    QLabel *nameLab;
     QSlider *slider;
 public:
     CKSlider(const std::string &key)
     {
-        name = new QLabel(QString::fromStdString(key));
+        nameLab = new QLabel(QString::fromStdString(key));
+        nameLab->setFixedWidth(100);
         slider = new QSlider(Qt::Horizontal);
         slider->setMaximum(SLIDER_RANGE);
         slider->setMinimum(-SLIDER_RANGE);
         slider->setValue(0);
-        QVBoxLayout *mainLayout = new QVBoxLayout;
-        mainLayout->addWidget(name);
+        QHBoxLayout *mainLayout = new QHBoxLayout;
+        mainLayout->addWidget(nameLab);
         mainLayout->addWidget(slider);
         setLayout(mainLayout);
         connect(slider, SIGNAL(valueChanged(int)), this, SLOT(procValueChanged(int)));
@@ -77,9 +78,8 @@ class static_action: public QMainWindow
 {
     Q_OBJECT
 public:
-    static_action(const int &id);
+    static_action();
     void initStatusBar();
-    virtual ~static_action();
 
 private slots:
     void procX(int value);
@@ -103,35 +103,37 @@ private slots:
     void procButtonRunPos();
     void procButtonWalkRemote();
     void procButtonJointRevise();
-
     void updateSlider(int id);
+    void procTimer();
 
+protected:
+    void closeEvent(QCloseEvent *event);
 private:
     void updateJDInfo();
     void updatePosList(std::string act_name);
     void removeUnusedPos();
-    void initSlider();
-    void initRobot();
     void initActs();
     void initPoseMap();
     void initJDInfo();
     float get_deg_from_pose(const float &ps);
-    bool calculate();
-    parser::bpt::ptree config_tree_;
-    int id_;
-    std::string player_;
+    bool turn_joint();
+
     robot::robot_motion motion_;
     std::map<robot::robot_motion, robot::robot_pose> pose_map_;
     std::map<std::string, float> joint_degs_;
+    QTimer *timer;
+    tcp_client_handler client_;
+    QString net_info;
+    bool first_connect;
 
     QLabel *motionlab, *valuelab,*currposlab, *curractlab, *netstatuslab;
-    QListWidget *m_pPosListWidget, *m_pActListWidget, *m_pPoseListWidget, *m_pJDListWidget1, *m_pJDListWidget2;
+    QListWidget *m_pPosListWidget, *m_pActListWidget, *m_pJDListWidget1, *m_pJDListWidget2;
     QPushButton *mButtonInsertPosFront, *mButtonInsertPosBack, *mButtonDeletePos, *mButtonSavePos;
     QPushButton *mButtonAddAction, *mButtonDeleteAction, *mButtonSaveAction;
-    QPushButton *btnrunPos, *btnWalkRemote,*btnJointRevise;
+    QPushButton *btnrunPos, *btnWalkRemote, *btnJointRevise;
     QRadioButton *head, *body, *leftArm, *rightArm, *leftFoot, *rightFoot;
     QButtonGroup *motionBtnGroup;
-
+    QGroupBox *mSliderGroup;
     robot_gl *robot_gl_;
     std::vector<CKSlider*> mKsliders;
     std::map<std::string, CJointDegWidget*> mJDInfos;

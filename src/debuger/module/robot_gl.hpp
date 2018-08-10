@@ -13,7 +13,7 @@ class robot_gl: public QOpenGLWidget, protected QOpenGLFunctions
 {
     Q_OBJECT
 public:
-    robot_gl();
+    robot_gl(robot::bone_ptr b, const robot::joint_map &jmap);
     ~robot_gl();
     void turn_joint(const std::map<std::string, float> &degs);
 
@@ -43,6 +43,7 @@ private:
     int m_KeyState;
     QPoint m_mousePoint;
     bool m_IsPressed;
+    robot::bone_ptr main_bone_;
     GLUquadricObj   *quad_obj;
 };
 

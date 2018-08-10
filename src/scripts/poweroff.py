@@ -3,6 +3,7 @@
 import sys
 import common
 
+
 if __name__ == '__main__':
     if not common.check_argv(sys.argv):
         common.print_error('no enough arguments')

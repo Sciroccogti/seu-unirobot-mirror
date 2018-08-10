@@ -3,8 +3,8 @@
 #include "static_action.hpp"
 #include "robot/kinematics.hpp"
 #include "math/math.hpp"
-#include "joint_revise.hpp"
-#include "class_exception.hpp"
+#include "configuration.hpp"
+
 #define SCALE_K  0.001f
 #define DEG_RANGE 180.0f
 
@@ -13,6 +13,7 @@ using namespace std;
 using namespace robot;
 using namespace robot_math;
 using namespace Eigen;
+using namespace comm;
 
 CPosListWidget::CPosListWidget(const int &id, const std::string &p_name, const int &t, const std::string &a_name)
 :time_(t), pos_name_(p_name), act_name_(a_name)
@@ -33,16 +34,15 @@ CPosListWidget::CPosListWidget(const int &id, const std::string &p_name, const i
 void CPosListWidget::procNameChange()
 {
     std::string name = pos_name->text().toStdString();
-    if(ROBOT.poses_.find(name)==ROBOT.poses_.end())
+    if(ROBOT.get_pos_map().find(name)==ROBOT.get_pos_map().end())
     {
         robot_pos tempPos;
         tempPos.name = name;
-        tempPos.pose_info = ROBOT.poses_[pos_name_].pose_info;
-        tempPos.joints_deg = ROBOT.poses_[pos_name_].joints_deg;
-        ROBOT.poses_[name] = tempPos;
+        tempPos.pose_info = ROBOT.get_pos_map()[pos_name_].pose_info;
+        tempPos.joints_deg = ROBOT.get_pos_map()[pos_name_].joints_deg;
+        ROBOT.get_pos_map()[name] = tempPos;
     }
-    robot_act &act = ROBOT.acts_[act_name_];
-    for(auto &p:act.poses)
+    for(auto &p:ROBOT.get_act_map()[act_name_].poses)
     {
         if(p.pos_name==pos_name_)
         {
@@ -55,8 +55,7 @@ void CPosListWidget::procNameChange()
 
 void CPosListWidget::procTimeChange()
 {
-    robot_act &act = ROBOT.acts_[act_name_];
-    for(auto &p:act.poses)
+    for(auto &p:ROBOT.get_act_map()[act_name_].poses)
     {
         if(p.pos_name==pos_name_)
         {
@@ -66,17 +65,42 @@ void CPosListWidget::procTimeChange()
     }
 }
 
-static_action::static_action(const int &id): id_(id)
+static_action::static_action()
+    : client_(CONF.get_config_value<string>(CONF.player()+".address"), CONF.get_config_value<int>("tcp.port"))
 {
-    initRobot();
-    //setWindowFlags(Qt::WindowStaysOnTopHint);
     initStatusBar();
-    robot_gl_ = new robot_gl();
+    robot_gl_ = new robot_gl(ROBOT.get_main_bone(), ROBOT.get_joint_map());
     QVBoxLayout *leftLayout = new QVBoxLayout;
     leftLayout->addWidget(robot_gl_);
 
-    m_pPoseListWidget = new QListWidget;
-    m_pPoseListWidget->setFixedHeight(370);
+    mKsliders.clear();
+    CKSlider *slider;
+
+    slider = new CKSlider("X");
+    connect(slider, SIGNAL(valueChanged(int)), this, SLOT(procX(int)));
+    mKsliders.push_back(slider);
+    slider = new CKSlider("Y");
+    connect(slider, SIGNAL(valueChanged(int)), this, SLOT(procY(int)));
+    mKsliders.push_back(slider);
+    slider = new CKSlider("Z");
+    connect(slider, SIGNAL(valueChanged(int)), this, SLOT(procZ(int)));
+    mKsliders.push_back(slider);
+    slider = new CKSlider("Roll");
+    connect(slider, SIGNAL(valueChanged(int)), this, SLOT(procRoll(int)));
+    mKsliders.push_back(slider);
+    slider = new CKSlider("Pitch");
+    connect(slider, SIGNAL(valueChanged(int)), this, SLOT(procPitch(int)));
+    mKsliders.push_back(slider);
+    slider = new CKSlider("Yaw");
+    connect(slider, SIGNAL(valueChanged(int)), this, SLOT(procYaw(int)));
+    mKsliders.push_back(slider);
+
+    mSliderGroup = new QGroupBox();
+    QVBoxLayout *sliderLayout = new QVBoxLayout();
+    for(auto s:mKsliders)
+        sliderLayout->addWidget(s);
+    mSliderGroup->setLayout(sliderLayout);
+
     mButtonSavePos = new QPushButton(tr("Save Pos"));
     head = new QRadioButton("Head");
     body = new QRadioButton("Body");
@@ -110,10 +134,9 @@ static_action::static_action(const int &id): id_(id)
     jdLayout->addWidget(m_pJDListWidget1);
     jdLayout->addWidget(m_pJDListWidget2);
 
-
     QVBoxLayout *midLayout = new QVBoxLayout;
     midLayout->setAlignment(Qt::AlignCenter);
-    midLayout->addWidget(m_pPoseListWidget);
+    midLayout->addWidget(mSliderGroup);
     midLayout->addLayout(hbLayout);
     midLayout->addLayout(armLayout);
     midLayout->addLayout(footLayout);
@@ -153,16 +176,20 @@ static_action::static_action(const int &id): id_(id)
     mainLayout->addLayout(midLayout);
     mainLayout->addLayout(posLayout);
     mainLayout->addLayout(bactLayout);
-    
 
     QWidget *mainWidget  = new QWidget();
     mainWidget->setLayout(mainLayout);
     this->setCentralWidget(mainWidget);
 
-    initSlider();
     initActs();
     initPoseMap();
     initJDInfo();
+    net_info = QString::fromStdString(CONF.get_config_value<string>(CONF.player()+".address"))
+               +":"+ QString::number(CONF.get_config_value<int>("tcp.port"));
+    setWindowTitle(net_info + "(offline)");
+
+    timer= new QTimer;
+    timer->start(1000);
 
     connect(m_pActListWidget, SIGNAL(itemClicked(QListWidgetItem*)), this, SLOT(procActSelect(QListWidgetItem*)));
     connect(m_pPosListWidget, SIGNAL(itemClicked(QListWidgetItem*)), this, SLOT(procPosSelect(QListWidgetItem*)));
@@ -175,27 +202,40 @@ static_action::static_action(const int &id): id_(id)
     connect(mButtonSavePos, SIGNAL(clicked(bool)), this, SLOT(procButtonSavePos()));
     connect(btnrunPos, SIGNAL(clicked(bool)), this, SLOT(procButtonRunPos()));
     connect(btnWalkRemote, SIGNAL(clicked(bool)), this, SLOT(procButtonWalkRemote()));
-    connect(btnJointRevise,SIGNAL(clicked(bool)),this,SLOT(procButtonJointRevise()));
+    connect(btnJointRevise, SIGNAL(clicked(bool)), this, SLOT(procButtonJointRevise()));
     connect(motionBtnGroup, SIGNAL(buttonClicked(int)), this, SLOT(updateSlider(int)));
+    connect(timer, SIGNAL(timeout()), this, SLOT(procTimer()));
+    client_.start();
+    btnrunPos->setEnabled(false);
 }
 
-void static_action::initRobot()
+void static_action::procTimer()
 {
-    if(!config_parser::parse("data/actuator.conf", config_tree_)) 
-        throw class_exception<static_action>("get config failed");
-    player_ = "players." + to_string(id_);
-    ROBOT.init(config_tree_.get<std::string>(player_+".robot_file"), 
-                config_tree_.get<std::string>(player_+".action_file"), 
-                config_tree_.get<std::string>(player_+".offset_file"));
+    if(client_.is_connected())
+    {
+        if(first_connect)
+            client_.regist(tcp_packet::JOINT_OFFSET);
+        first_connect = false;
+        btnrunPos->setEnabled(true);
+        netstatuslab->setStyleSheet("background-color:green");
+        setWindowTitle(net_info + "(online)");
+    }
+    else
+    {
+        first_connect = true;
+        btnrunPos->setEnabled(false);
+        netstatuslab->setStyleSheet("background-color:red");
+        setWindowTitle(net_info + "(offline)");
+    }
 }
 
 void static_action::initActs()
 {
     m_pPosListWidget->clear();
     m_pActListWidget->clear();
-    for(auto act:ROBOT.acts_)
+    for(auto act:ROBOT.get_act_map())
         m_pActListWidget->addItem(QString::fromStdString(act.second.name));
-    m_pPoseListWidget->setEnabled(false);
+    mSliderGroup->setEnabled(false);
 }
 
 void static_action::initPoseMap()
@@ -204,7 +244,7 @@ void static_action::initPoseMap()
     robot_pose temp = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
     for(int i=1;i<=6;i++)
         pose_map_[static_cast<robot_motion >(i)] = temp;
-    for(auto j:ROBOT.joint_map_)
+    for(auto j:ROBOT.get_joint_map())
         joint_degs_[j.first] = j.second->get_deg();
 }
 
@@ -236,41 +276,6 @@ void static_action::initStatusBar()
     bar->addWidget(curractlab);
     bar->addWidget(currposlab);
     bar->addWidget(netstatuslab);
-}
-
-void static_action::initSlider()
-{
-    mKsliders.clear();
-    CKSlider *slider;
-
-    slider = new CKSlider("X");
-    connect(slider, SIGNAL(valueChanged(int)), this, SLOT(procX(int)));
-    mKsliders.push_back(slider);
-    slider = new CKSlider("Y");
-    connect(slider, SIGNAL(valueChanged(int)), this, SLOT(procY(int)));
-    mKsliders.push_back(slider);
-    slider = new CKSlider("Z");
-    connect(slider, SIGNAL(valueChanged(int)), this, SLOT(procZ(int)));
-    mKsliders.push_back(slider);
-    slider = new CKSlider("Roll");
-    connect(slider, SIGNAL(valueChanged(int)), this, SLOT(procRoll(int)));
-    mKsliders.push_back(slider);
-    slider = new CKSlider("Pitch");
-    connect(slider, SIGNAL(valueChanged(int)), this, SLOT(procPitch(int)));
-    mKsliders.push_back(slider);
-    slider = new CKSlider("Yaw");
-    connect(slider, SIGNAL(valueChanged(int)), this, SLOT(procYaw(int)));
-    mKsliders.push_back(slider);
-
-    QListWidgetItem *plistItem;
-    for(auto s:mKsliders)
-    {
-        plistItem = new QListWidgetItem;
-        s->show();
-        m_pPoseListWidget->addItem(plistItem);
-        m_pPoseListWidget->setItemWidget(plistItem, s);
-        plistItem->setSizeHint(QSize(s->rect().width(), s->rect().height()));
-    }
 }
 
 void static_action::initJDInfo()
@@ -308,29 +313,29 @@ void static_action::updateSlider(int id)
 
     std::vector<CKSlider*>::iterator iter = mKsliders.begin();
     (*iter)->slider->setValue(pose_map_[motion_].x / SCALE_K);
-    (*iter)->name->setText("X");
+    (*iter)->nameLab->setText("X");
     if(motion_ == MOTION_LEFT_HAND || motion_ == MOTION_RIGHT_HAND)
-        (*iter)->name->setText("Jshoulder1");
+        (*iter)->nameLab->setText("Jshoulder1");
     else if(motion_ == MOTION_HEAD)
-        (*iter)->name->setText("Head Pitch");
+        (*iter)->nameLab->setText("Head Pitch");
 
     iter++;
     (*iter)->slider->setValue(pose_map_[motion_].y / SCALE_K);
-    (*iter)->name->setText("Y");
+    (*iter)->nameLab->setText("Y");
     (*iter)->slider->setEnabled(true);
     if(motion_ == MOTION_LEFT_HAND || motion_ == MOTION_RIGHT_HAND)
     {
-        (*iter)->name->setText("Jshoulder2");
+        (*iter)->nameLab->setText("Jshoulder2");
         (*iter)->slider->setEnabled(false);
     }
     else if(motion_ == MOTION_HEAD)
-        (*iter)->name->setText("Head Yaw");
+        (*iter)->nameLab->setText("Head Yaw");
 
     iter++;
     (*iter)->slider->setValue(pose_map_[motion_].z / SCALE_K);
-    (*iter)->name->setText("Z");
+    (*iter)->nameLab->setText("Z");
     if(motion_ == MOTION_LEFT_HAND || motion_ == MOTION_RIGHT_HAND)
-        (*iter)->name->setText("Jelbow");
+        (*iter)->nameLab->setText("Jelbow");
     (*iter)->slider->setEnabled(true);
     if(motion_ == MOTION_HEAD)
         (*iter)->slider->setEnabled(false);
@@ -354,14 +359,13 @@ void static_action::updateSlider(int id)
         (*iter)->slider->setEnabled(false);
 }
 
-
 float static_action::get_deg_from_pose(const float &ps)
 {
     int value = (int)(ps/SCALE_K);
     return DEG_RANGE/SLIDER_RANGE*value;
 }
 
-bool static_action::calculate()
+bool static_action::turn_joint()
 {
     robot_pose pose = pose_map_[MOTION_LEFT_HAND];
     joint_degs_["jhead2"] = get_deg_from_pose(pose_map_[MOTION_HEAD].x);
@@ -431,6 +435,8 @@ bool static_action::calculate()
         joint_degs_["jrankle1"] = rad2deg(degs[5]);
     }else return false;
 
+    robot_gl_->turn_joint(joint_degs_);
+    updateJDInfo();
     return true;
 }
 
@@ -444,12 +450,7 @@ void static_action::procX(int value)
     if(rightArm->isChecked()) pose_map_[MOTION_RIGHT_HAND].x = v;
     if(leftFoot->isChecked()) pose_map_[MOTION_LEFT_FOOT].x = v;
     if(rightFoot->isChecked()) pose_map_[MOTION_RIGHT_FOOT].x = v;
-    if(calculate())
-    {
-        robot_gl_->turn_joint(joint_degs_);
-        updateJDInfo();
-    }
-    else pose_map_[motion_].x = old_value;
+    if(!turn_joint()) pose_map_[motion_].x = old_value;
 }
 
 void static_action::procY(int value)
@@ -460,12 +461,7 @@ void static_action::procY(int value)
     pose_map_[motion_].y = v;
     if(leftFoot->isChecked()) pose_map_[MOTION_LEFT_FOOT].y = v;
     if(rightFoot->isChecked()) pose_map_[MOTION_RIGHT_FOOT].y = v;
-    if(calculate())
-    {
-        robot_gl_->turn_joint(joint_degs_);
-        updateJDInfo();
-    }
-    else pose_map_[motion_].y = old_value;
+    if(!turn_joint()) pose_map_[motion_].y = old_value;
 }
 
 void static_action::procZ(int value)
@@ -478,12 +474,7 @@ void static_action::procZ(int value)
     if(rightArm->isChecked()) pose_map_[MOTION_RIGHT_HAND].z = v;
     if(leftFoot->isChecked()) pose_map_[MOTION_LEFT_FOOT].z = v;
     if(rightFoot->isChecked()) pose_map_[MOTION_RIGHT_FOOT].z = v;
-    if(calculate())
-    {
-        robot_gl_->turn_joint(joint_degs_);
-        updateJDInfo();
-    }
-    else pose_map_[motion_].z = old_value;
+    if(!turn_joint()) pose_map_[motion_].z = old_value;
 }
 
 void static_action::procRoll(int value)
@@ -493,12 +484,7 @@ void static_action::procRoll(int value)
     pose_map_[motion_].roll = ((float) value);
     if(leftFoot->isChecked()) pose_map_[MOTION_LEFT_FOOT].roll = ((float) value);
     if(rightFoot->isChecked()) pose_map_[MOTION_RIGHT_FOOT].roll = ((float) value);
-    if(calculate())
-    {
-        robot_gl_->turn_joint(joint_degs_);
-        updateJDInfo();
-    }
-    else pose_map_[motion_].roll = old_value;
+    if(!turn_joint()) pose_map_[motion_].roll = old_value;
 }
 
 void static_action::procPitch(int value)
@@ -508,12 +494,7 @@ void static_action::procPitch(int value)
     pose_map_[motion_].pitch = ((float) value);
     if(leftFoot->isChecked()) pose_map_[MOTION_LEFT_FOOT].pitch = ((float) value);
     if(rightFoot->isChecked()) pose_map_[MOTION_RIGHT_FOOT].pitch = ((float) value);
-    if(calculate())
-    {
-        robot_gl_->turn_joint(joint_degs_);
-        updateJDInfo();
-    }
-    else pose_map_[motion_].pitch = old_value;
+    if(!turn_joint()) pose_map_[motion_].pitch = old_value;
 }
 
 void static_action::procYaw(int value)
@@ -523,12 +504,7 @@ void static_action::procYaw(int value)
     pose_map_[motion_].yaw = ((float) value);
     if(leftFoot->isChecked()) pose_map_[MOTION_LEFT_FOOT].yaw = ((float) value);
     if(rightFoot->isChecked()) pose_map_[MOTION_RIGHT_FOOT].yaw = ((float) value);
-    if(calculate())
-    {
-        robot_gl_->turn_joint(joint_degs_);
-        updateJDInfo();
-    }
-    else pose_map_[motion_].yaw = old_value;
+    if(!turn_joint()) pose_map_[motion_].yaw = old_value;
 }
 
 void static_action::updateJDInfo()
@@ -540,7 +516,7 @@ void static_action::updateJDInfo()
 
 void static_action::updatePosList(string act_name)
 {
-    robot_act act = ROBOT.acts_[act_name];
+    robot_act act = ROBOT.get_act_map()[act_name];
     QListWidgetItem *pListItem;
     CPosListWidget *pPosWidget;
     int id = 0;
@@ -563,7 +539,7 @@ void static_action::procActSelect(QListWidgetItem* item)
     currposlab->setText("");
     string name = m_pActListWidget->currentItem()->text().toStdString();
     updatePosList(name);
-    m_pPoseListWidget->setEnabled(false);
+    mSliderGroup->setEnabled(false);
 }
 
 void static_action::procPosSelect(QListWidgetItem* item)
@@ -572,14 +548,14 @@ void static_action::procPosSelect(QListWidgetItem* item)
     string pos_name = pPosWidget->pos_name_;
     currposlab->setText(QString::fromStdString(pos_name));
     valuelab->setText("");
-    pose_map_ = ROBOT.poses_[pos_name].pose_info;
-    joint_degs_ = ROBOT.poses_[pos_name].joints_deg;
+    pose_map_ = ROBOT.get_pos_map()[pos_name].pose_info;
+    joint_degs_ = ROBOT.get_pos_map()[pos_name].joints_deg;
     for(auto jd: joint_degs_)
-        ROBOT.joint_map_[jd.first]->set_deg(jd.second);
+        ROBOT.get_joint_map()[jd.first]->set_deg(jd.second);
     updateJDInfo();
     updateSlider(static_cast<int>(motion_));
     robot_gl_->turn_joint(joint_degs_);
-    m_pPoseListWidget->setEnabled(true);
+    mSliderGroup->setEnabled(true);
 }
 
 void static_action::procButtonInsertPosFront()
@@ -602,7 +578,7 @@ void static_action::procButtonInsertPosFront()
                                         QLineEdit::Normal, nullptr, &ok).toStdString();
     if(!ok || new_pos_name.empty()) return;
     bool exist = false;
-    if(ROBOT.poses_.find(new_pos_name) != ROBOT.poses_.end())
+    if(ROBOT.get_pos_map().find(new_pos_name) != ROBOT.get_pos_map().end())
     {
         exist = true;
         QMessageBox::StandardButton reply = QMessageBox::question(this, "Warning", "pos: "+QString::fromStdString(new_pos_name)+"  exists, use it?",
@@ -617,11 +593,11 @@ void static_action::procButtonInsertPosFront()
     pos.name = new_pos_name;
     CPosListWidget *pCur_PosWidget = (CPosListWidget *) m_pPosListWidget->itemWidget(m_pPosListWidget->currentItem());
     string pos_name = pCur_PosWidget->pos_name_;
-    pos.joints_deg = ROBOT.poses_[pos_name].joints_deg;
-    pos.pose_info = ROBOT.poses_[pos_name].pose_info;
+    pos.joints_deg = ROBOT.get_pos_map()[pos_name].joints_deg;
+    pos.pose_info = ROBOT.get_pos_map()[pos_name].pose_info;
     int id = pCur_PosWidget->m_id->text().toInt();
-    ROBOT.acts_[act_name].poses.insert(ROBOT.acts_[act_name].poses.begin()+id-1, one_pos);
-    if(!exist) ROBOT.poses_[new_pos_name] = pos;
+    ROBOT.get_act_map()[act_name].poses.insert(ROBOT.get_act_map()[act_name].poses.begin()+id-1, one_pos);
+    if(!exist) ROBOT.get_pos_map()[new_pos_name] = pos;
     updatePosList(act_name);
 }
 
@@ -638,7 +614,7 @@ void static_action::procButtonInsertPosBack()
     string new_pos_name = QInputDialog::getText(this,tr("pos name"),tr("input pos name:"), QLineEdit::Normal, nullptr, &ok).toStdString();
     if(!ok || new_pos_name.empty()) return;
     bool exist = false;
-    if(ROBOT.poses_.find(new_pos_name) != ROBOT.poses_.end())
+    if(ROBOT.get_pos_map().find(new_pos_name) != ROBOT.get_pos_map().end())
     {
         exist = true;
         QMessageBox::StandardButton reply = QMessageBox::question(this, "Warning", "pos: "+QString::fromStdString(new_pos_name)+"  exists, use it?",
@@ -656,20 +632,20 @@ void static_action::procButtonInsertPosBack()
         robot_pose pose = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
         for(int i=1;i<=6;i++)
             pos.pose_info[static_cast<robot_motion >(i)] = pose;
-        for(auto j: ROBOT.joint_map_)
+        for(auto j: ROBOT.get_joint_map())
             pos.joints_deg[j.first] = 0.0;
-        ROBOT.acts_[act_name].poses.push_back(one_pos);
+        ROBOT.get_act_map()[act_name].poses.push_back(one_pos);
     }
     else
     {
         CPosListWidget *pCur_PosWidget = (CPosListWidget *) m_pPosListWidget->itemWidget(m_pPosListWidget->currentItem());
         string pos_name = pCur_PosWidget->pos_name_;
-        pos.joints_deg = ROBOT.poses_[pos_name].joints_deg;
-        pos.pose_info = ROBOT.poses_[pos_name].pose_info;
+        pos.joints_deg = ROBOT.get_pos_map()[pos_name].joints_deg;
+        pos.pose_info = ROBOT.get_pos_map()[pos_name].pose_info;
         int id = pCur_PosWidget->m_id->text().toInt();
-        ROBOT.acts_[act_name].poses.insert(ROBOT.acts_[act_name].poses.begin()+id, one_pos);
+        ROBOT.get_act_map()[act_name].poses.insert(ROBOT.get_act_map()[act_name].poses.begin()+id, one_pos);
     }
-    if(!exist) ROBOT.poses_[new_pos_name] = pos;
+    if(!exist) ROBOT.get_pos_map()[new_pos_name] = pos;
     updatePosList(act_name);
 }
 
@@ -683,7 +659,7 @@ void static_action::procButtonDeletePos()
     CPosListWidget *pCur_PosWidget = (CPosListWidget *) m_pPosListWidget->itemWidget(m_pPosListWidget->currentItem());
     int id = pCur_PosWidget->m_id->text().toInt();
     string act_name = m_pActListWidget->currentItem()->text().toStdString();
-    ROBOT.acts_[act_name].poses.erase(ROBOT.acts_[act_name].poses.begin()+id-1);
+    ROBOT.get_act_map()[act_name].poses.erase(ROBOT.get_act_map()[act_name].poses.begin()+id-1);
     removeUnusedPos();
     updatePosList(act_name);
 }
@@ -701,8 +677,8 @@ void static_action::procButtonSavePos()
             QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
     if(reply != QMessageBox::StandardButton::Yes) return;
 
-    ROBOT.poses_[pos_name].joints_deg = joint_degs_;
-    ROBOT.poses_[pos_name].pose_info = pose_map_;
+    ROBOT.get_pos_map()[pos_name].joints_deg = joint_degs_;
+    ROBOT.get_pos_map()[pos_name].pose_info = pose_map_;
 }
 
 void static_action::procButtonDeleteAction()
@@ -713,12 +689,12 @@ void static_action::procButtonDeleteAction()
         return;
     }
     string act_name = m_pActListWidget->currentItem()->text().toStdString();
-    auto iter = ROBOT.acts_.begin();
-    while (iter!=ROBOT.acts_.end())
+    auto iter = ROBOT.get_act_map().begin();
+    while (iter!=ROBOT.get_act_map().end())
     {
         if(iter->first == act_name)
         {
-            ROBOT.acts_.erase(iter);
+            ROBOT.get_act_map().erase(iter);
             break;
         }
         iter++;
@@ -732,7 +708,7 @@ void static_action::procButtonSaveAction()
     QMessageBox::StandardButton reply = QMessageBox::question(this, "Warning", "all action data will be written into file, save?",
             QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
     if(reply != QMessageBox::StandardButton::Yes) return;
-    action_parser::save(config_tree_.get<std::string>(player_+".action_file"), ROBOT.acts_, ROBOT.poses_);
+    action_parser::save(CONF.action_file(), ROBOT.get_act_map(), ROBOT.get_pos_map());
 }
 
 void static_action::procButtonAddAction()
@@ -742,14 +718,14 @@ void static_action::procButtonAddAction()
     if(name.empty()) return;
     if(ok)
     {
-        if(ROBOT.acts_.find(name) != ROBOT.acts_.end())
+        if(ROBOT.get_act_map().find(name) != ROBOT.get_act_map().end())
         {
             QMessageBox::warning(this, "Waring", "the name had been used", QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
             return;
         }
         robot_act act;
         act.name = name;
-        ROBOT.acts_[name] = act;
+        ROBOT.get_act_map()[name] = act;
         initActs();
     }
 }
@@ -757,11 +733,11 @@ void static_action::procButtonAddAction()
 void static_action::removeUnusedPos()
 {
     bool fd;
-    auto p_iter = ROBOT.poses_.begin();
-    while(p_iter!=ROBOT.poses_.end())
+    auto p_iter = ROBOT.get_pos_map().begin();
+    while(p_iter!=ROBOT.get_pos_map().end())
     {
         fd = false;
-        for(auto act:ROBOT.acts_)
+        for(auto act:ROBOT.get_act_map())
         {
             for(auto p:act.second.poses)
             {
@@ -773,7 +749,7 @@ void static_action::removeUnusedPos()
             }
             if(fd) break;
         }
-        if(!fd) p_iter = ROBOT.poses_.erase(p_iter);
+        if(!fd) p_iter = ROBOT.get_pos_map().erase(p_iter);
         else p_iter++;
     }
 }
@@ -785,15 +761,19 @@ void static_action::procButtonRunPos()
 
 void static_action::procButtonWalkRemote()
 {
-
+    QStringList strList;
+    strList<<"-p"+QString::number(CONF.id());
+    QProcess::startDetached("./walk_remote", strList);
 }
 
 void static_action::procButtonJointRevise()
 {
-    joint_revise *jr = new joint_revise();
-    jr->show();
+    QStringList strList;
+    strList<<"-p"+QString::number(CONF.id());
+    QProcess::startDetached("./joint_revise", strList);
 }
 
-static_action::~static_action()
+void static_action::closeEvent(QCloseEvent *event)
 {
+    client_.close();
 }

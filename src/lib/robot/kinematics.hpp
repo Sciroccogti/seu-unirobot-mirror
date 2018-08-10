@@ -16,10 +16,10 @@ namespace robot
     public:
         kinematics()
         {
-            D = ROBOT.bone_map_["hip"]->length_/2.0;
-            A = ROBOT.bone_map_["rthigh"]->length_;
-            B = ROBOT.bone_map_["rshank"]->length_;
-            E = ROBOT.bone_map_["rfoot1"]->length_;
+            D = ROBOT.get_bone_map()["hip"]->length_/2.0;
+            A = ROBOT.get_bone_map()["rthigh"]->length_;
+            B = ROBOT.get_bone_map()["rshank"]->length_;
+            E = ROBOT.get_bone_map()["rfoot1"]->length_;
         }
 
         robot_math::transform_matrix leg_forward_kinematics(std::vector<double> &deg, const double &sign = 1.0)

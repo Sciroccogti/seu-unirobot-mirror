@@ -1,12 +1,16 @@
 include_directories(./)
 
 add_subdirectory(communication)
-add_subdirectory(configuration)
+add_subdirectory(options)
 add_subdirectory(dynamixel)
 
-add_executable(actuator main.cpp)
+set(TARGET_NAME actuator)
 
-target_link_libraries(actuator configuration)
+add_executable(${TARGET_NAME}
+                main.cpp)
+
+target_link_libraries(${TARGET_NAME}
+                actuator_options)
 
 set(CMAKE_INSTALL_PREFIX "${CMAKE_SOURCE_DIR}/bin")
-install(TARGETS actuator RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX})
+install(TARGETS ${TARGET_NAME} RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX})

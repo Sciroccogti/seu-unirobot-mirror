@@ -1,7 +1,8 @@
 #include <QApplication>
-#include "static_action.hpp"
+#include "walk_remote.hpp"
 #include "configuration.hpp"
 #include "options/options.hpp"
+#include "robot/humanoid.hpp"
 
 using namespace std;
 using namespace robot;
@@ -18,12 +19,9 @@ int main(int argc, char **argv)
         cout<<"config init failed"<<endl;
         exit(2);
     }
-    ROBOT.init(CONF.robot_file(), CONF.action_file(), CONF.offset_file());
 
     QApplication app(argc, argv);
-    glutInit(&argc, argv);
-    static_action foo;
-    foo.showMaximized();
+    walk_remote foo;
     foo.show();
     return app.exec();
 }

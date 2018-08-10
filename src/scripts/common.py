@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 
-import os
 import subprocess
 import json
 import config
-import paramiko
+
 
 def run_cmd(cmd):
     p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
@@ -15,9 +14,11 @@ def run_cmd(cmd):
     else:
         return False
 
+
 def build_project():
     cmd = 'cd %s/build; make install'%config.project_dir
     return run_cmd(cmd)
+
 
 def check_id(id):
     with open(config.config_file_name,'r') as f:
@@ -28,7 +29,8 @@ def check_id(id):
         return False
     else:
         return True
-    
+
+
 def get_ip(id):
     with open(config.config_file_name,'r') as f:
         conf = json.load(f)
@@ -38,16 +40,19 @@ def get_ip(id):
         return player.get('address')
     except:
         return None
-    
+
+
 def compress_files():
     cmd = 'cd %s/bin; tar zcvf %s %s data'%(config.project_dir, config.compress_file_name, config.exec_file_name)
     return run_cmd(cmd)
-    
+
+
 def parse_argv(argv=[], start=2):
     args = ' -p'+argv[1]
     for i in range(start,len(argv)):
         args += (' '+argv[i])
     return args
+
 
 def check_argv(argv=[], num=2):
     if len(argv) < num:
@@ -55,9 +60,10 @@ def check_argv(argv=[], num=2):
     else:
         return True
 
+
 def print_error(err):
     print('\033[1;31m %s \033[0m'%err)
 
+
 def print_info(info):
     print('\033[1;32m %s \033[0m'%info)
-    

@@ -18,7 +18,9 @@ namespace comm
         {
             APPLY_DATA = 1,
             SUPPLY_DATA = 2,
-            TEST_DATA = 5
+            TEST_DATA = 5,
+            JOINT_OFFSET = 6,
+            WALK_DATA = 7
         };
 
         enum { max_cmd_data_length = max_body_length-sizeof(tcp_cmd_type)-sizeof(int)};

@@ -1,7 +1,8 @@
 #include <QApplication>
-#include "static_action.hpp"
+#include "joint_revise.hpp"
 #include "configuration.hpp"
 #include "options/options.hpp"
+#include "robot/humanoid.hpp"
 
 using namespace std;
 using namespace robot;
@@ -21,9 +22,7 @@ int main(int argc, char **argv)
     ROBOT.init(CONF.robot_file(), CONF.action_file(), CONF.offset_file());
 
     QApplication app(argc, argv);
-    glutInit(&argc, argv);
-    static_action foo;
-    foo.showMaximized();
+    joint_revise foo;
     foo.show();
     return app.exec();
 }

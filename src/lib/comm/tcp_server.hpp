@@ -134,6 +134,8 @@ namespace comm
                     if(cmd.type == tcp_packet::APPLY_DATA || cmd.type == tcp_packet::SUPPLY_DATA) 
                     {
                         cmd_type_ = static_cast<tcp_packet::tcp_cmd_type>(*(cmd.data));
+                        data_dir_ = cmd.type;
+                        std::cout<<(int)data_dir_<<std::endl;
                     }
                     else
                     {
@@ -179,7 +181,7 @@ namespace comm
         tcp::socket socket_;
         tcp_pool &pool_;
         tcp_packet read_pkt_;
-        tcp_packet::tcp_cmd_type cmd_type_;
+        tcp_packet::tcp_cmd_type cmd_type_, data_dir_;
         tcp_packet_queue write_pkts_;
         comm_callback cb_;
         std::string data_;
