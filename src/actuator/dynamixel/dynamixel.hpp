@@ -4,7 +4,7 @@
 #include <boost/asio.hpp>
 #include "timer.hpp"
 #include "singleton.hpp"
-#include "comm/serial_port.hpp"
+#include "communication/serial_port_handler.hpp"
 
 #define TXPACKET_MAX_LEN    (4*1024)
 #define RXPACKET_MAX_LEN    (4*1024)
@@ -20,7 +20,7 @@
 class dynamixel
 {
 public:
-    dynamixel(const std::string &dev_name="", const int &baudrate=115200, const int &recv_timeout_ms=5);
+    dynamixel(const std::string &dev_name, const int &baudrate);
     void sync_write(uint16_t start_address, uint16_t data_length, uint8_t *param, uint16_t param_length);
     bool sync_read(uint16_t start_address, uint16_t data_length, std::map<uint8_t, uint8_t*> data);
     void write(uint8_t id, uint16_t address, uint16_t length, uint8_t *data);
@@ -32,8 +32,6 @@ private:
     void tx_packet(uint8_t *txpacket);
     bool rx_packet(uint8_t *rxpacket, const int &length);
 
-    bool is_busy_;
-    boost::asio::io_service io_service_;
-    comm::serial_port serial_port_;
+    serial_port_handler serial_port_;
 };
 #endif

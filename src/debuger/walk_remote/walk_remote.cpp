@@ -95,50 +95,55 @@ walk_remote::walk_remote(): range_(200), scale_d(10), scale_xy(5000),
 
 void walk_remote::procTimer()
 {
+    if(btnRand->isChecked())
+    {
+
+        _x = (rand()%(2*range_+1)-range_)/scale_xy;
+        _y = (rand()%(2*range_+1)-range_)/scale_xy;
+        _dir = (rand()%(2*range_+1)-range_)/scale_d;
+    }
+    else if(btnSpot->isChecked())
+    {
+        _x = 0;
+        _y = 0;
+        _dir = 0;
+    }
+    else
+    {
+        _x = xSlider->value()/scale_xy;
+        _y = ySlider->value()/scale_xy;
+        _dir = dirSlider->value()/scale_d;
+    }
+    if(!startCheck->isChecked())
+    {
+        _x = 0;
+        _y = 0;
+        _dir = 0;
+        _h = 0;
+    }
+    updateLab();
     if(client_.is_connected())
     {
         if(first_connect)
-            client_.regist(tcp_packet::WALK_DATA);
-        first_connect = false;
+        {
+            client_.regist(tcp_packet::WALK_DATA, tcp_packet::DIR_SUPPLY);
+            first_connect = false;
+        }
+        else
+        {
+            tcp_packet::tcp_command cmd;
+            cmd.type = tcp_packet::WALK_DATA;
+            cmd.size = sizeof(float)*4;
+            memcpy(cmd.data, (char*)(&_x), sizeof(float));
+            memcpy(cmd.data+sizeof(float), (char*)(&_y), sizeof(float));
+            memcpy(cmd.data+2*sizeof(float), (char*)(&_dir), sizeof(float));
+            memcpy(cmd.data+3*sizeof(float), (char*)(&_h), sizeof(float));
+            client_.write(cmd);
+        }
         setEnabled(true);
         statusBar()->setStyleSheet("background-color:green");
         setWindowTitle(net_info + "(online)");
         _h = hSpinBox->value();
-        if(btnRand->isChecked())
-        {
-
-            _x = (rand()%(2*range_+1)-range_)/scale_xy;
-            _y = (rand()%(2*range_+1)-range_)/scale_xy;
-            _dir = (rand()%(2*range_+1)-range_)/scale_d;
-        }
-        else if(btnSpot->isChecked())
-        {
-            _x = 0;
-            _y = 0;
-            _dir = 0;
-        }
-        else
-        {
-            _x = xSlider->value()/scale_xy;
-            _y = ySlider->value()/scale_xy;
-            _dir = dirSlider->value()/scale_d;
-        }
-        updateLab();
-        if(!startCheck->isChecked())
-        {
-            _x = 0;
-            _y = 0;
-            _dir = 0;
-            _h = 0;
-        }
-        tcp_packet::tcp_command cmd;
-        cmd.type = tcp_packet::WALK_DATA;
-        cmd.size = sizeof(float)*4;
-        memcpy(cmd.data, (char*)(&_x), sizeof(float));
-        memcpy(cmd.data+sizeof(float), (char*)(&_y), sizeof(float));
-        memcpy(cmd.data+2*sizeof(float), (char*)(&_dir), sizeof(float));
-        memcpy(cmd.data+3*sizeof(float), (char*)(&_h), sizeof(float));
-        client_.write(cmd);
     }
     else
     {

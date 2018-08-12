@@ -214,7 +214,7 @@ void static_action::procTimer()
     if(client_.is_connected())
     {
         if(first_connect)
-            client_.regist(tcp_packet::JOINT_OFFSET);
+            client_.regist(tcp_packet::POS_DATA, tcp_packet::DIR_SUPPLY);
         first_connect = false;
         btnrunPos->setEnabled(true);
         netstatuslab->setStyleSheet("background-color:green");
@@ -245,7 +245,7 @@ void static_action::initPoseMap()
     for(int i=1;i<=6;i++)
         pose_map_[static_cast<robot_motion >(i)] = temp;
     for(auto j:ROBOT.get_joint_map())
-        joint_degs_[j.first] = j.second->get_deg();
+        joint_degs_[j.second->jid_] = j.second->get_deg();
 }
 
 void static_action::initStatusBar()
@@ -289,10 +289,10 @@ void static_action::initJDInfo()
     for(auto jd: joint_degs_)
     {
         pListItem = new QListWidgetItem;
-        pJDWidget = new CJointDegWidget(jd.first, jd.second);
+        pJDWidget = new CJointDegWidget(ROBOT.get_joint(jd.first)->name_, jd.second);
         pJDWidget->show();
-        mJDInfos[jd.first] = pJDWidget;
-        if(jd.first == "jhead2" || jd.first.find("jr") != string::npos)
+        mJDInfos[ROBOT.get_joint(jd.first)->name_] = pJDWidget;
+        if(ROBOT.get_joint(jd.first)->name_ == "jhead2" || ROBOT.get_joint(jd.first)->name_.find("jr") != string::npos)
         {
             m_pJDListWidget1->addItem(pListItem);
             m_pJDListWidget1->setItemWidget(pListItem, pJDWidget);
@@ -368,12 +368,12 @@ float static_action::get_deg_from_pose(const float &ps)
 bool static_action::turn_joint()
 {
     robot_pose pose = pose_map_[MOTION_LEFT_HAND];
-    joint_degs_["jhead2"] = get_deg_from_pose(pose_map_[MOTION_HEAD].x);
-    joint_degs_["jhead1"] = get_deg_from_pose(pose_map_[MOTION_HEAD].y);
-    joint_degs_["jrshoulder1"] = get_deg_from_pose(pose_map_[MOTION_RIGHT_HAND].x);
-    joint_degs_["jrelbow"] = get_deg_from_pose(pose_map_[MOTION_RIGHT_HAND].z);
-    joint_degs_["jlshoulder1"] = get_deg_from_pose(pose_map_[MOTION_LEFT_HAND].x);
-    joint_degs_["jlelbow"] = -get_deg_from_pose(pose_map_[MOTION_LEFT_HAND].z);
+    joint_degs_[ROBOT.get_joint("jhead2")->jid_] = get_deg_from_pose(pose_map_[MOTION_HEAD].x);
+    joint_degs_[ROBOT.get_joint("jhead1")->jid_] = get_deg_from_pose(pose_map_[MOTION_HEAD].y);
+    joint_degs_[ROBOT.get_joint("jrshoulder1")->jid_] = get_deg_from_pose(pose_map_[MOTION_RIGHT_HAND].x);
+    joint_degs_[ROBOT.get_joint("jrelbow")->jid_] = get_deg_from_pose(pose_map_[MOTION_RIGHT_HAND].z);
+    joint_degs_[ROBOT.get_joint("jlshoulder1")->jid_] = get_deg_from_pose(pose_map_[MOTION_LEFT_HAND].x);
+    joint_degs_[ROBOT.get_joint("jlelbow")->jid_] = -get_deg_from_pose(pose_map_[MOTION_LEFT_HAND].z);
 
     transform_matrix body_mat, leftfoot_mat, rightfoot_mat;
     double cx,cy,cz,sx,sy,sz;
@@ -417,22 +417,22 @@ bool static_action::turn_joint()
     vector<double> degs;
     if(RK.leg_inverse_kinematics(body_mat, leftfoot_mat, degs, 1.0))
     {
-        joint_degs_["jlhip3"] = rad2deg(degs[0]);
-        joint_degs_["jlhip2"] = rad2deg(degs[1]);
-        joint_degs_["jlhip1"] = rad2deg(degs[2]);
-        joint_degs_["jlknee"] = rad2deg(degs[3]);
-        joint_degs_["jlankle2"] = rad2deg(degs[4]);
-        joint_degs_["jlankle1"] = rad2deg(degs[5]);
+        joint_degs_[ROBOT.get_joint("jlhip3")->jid_] = rad2deg(degs[0]);
+        joint_degs_[ROBOT.get_joint("jlhip2")->jid_] = rad2deg(degs[1]);
+        joint_degs_[ROBOT.get_joint("jlhip1")->jid_] = rad2deg(degs[2]);
+        joint_degs_[ROBOT.get_joint("jlknee")->jid_] = rad2deg(degs[3]);
+        joint_degs_[ROBOT.get_joint("jlankle2")->jid_] = rad2deg(degs[4]);
+        joint_degs_[ROBOT.get_joint("jlankle1")->jid_] = rad2deg(degs[5]);
     }else return false;
 
     if(RK.leg_inverse_kinematics(body_mat, rightfoot_mat, degs, -1.0))
     {
-        joint_degs_["jrhip3"] = rad2deg(degs[0]);
-        joint_degs_["jrhip2"] = rad2deg(degs[1]);
-        joint_degs_["jrhip1"] = rad2deg(degs[2]);
-        joint_degs_["jrknee"] = rad2deg(degs[3]);
-        joint_degs_["jrankle2"] = rad2deg(degs[4]);
-        joint_degs_["jrankle1"] = rad2deg(degs[5]);
+        joint_degs_[ROBOT.get_joint("jrhip3")->jid_] = rad2deg(degs[0]);
+        joint_degs_[ROBOT.get_joint("jrhip2")->jid_] = rad2deg(degs[1]);
+        joint_degs_[ROBOT.get_joint("jrhip1")->jid_] = rad2deg(degs[2]);
+        joint_degs_[ROBOT.get_joint("jrknee")->jid_] = rad2deg(degs[3]);
+        joint_degs_[ROBOT.get_joint("jrankle2")->jid_] = rad2deg(degs[4]);
+        joint_degs_[ROBOT.get_joint("jrankle1")->jid_] = rad2deg(degs[5]);
     }else return false;
 
     robot_gl_->turn_joint(joint_degs_);
@@ -510,7 +510,7 @@ void static_action::procYaw(int value)
 void static_action::updateJDInfo()
 {
     for(auto jd: joint_degs_)
-        mJDInfos[jd.first]->deg->setText(QString::number(jd.second,'f', 2));
+        mJDInfos[ROBOT.get_joint(jd.first)->name_]->deg->setText(QString::number(jd.second,'f', 2));
     update();
 }
 
@@ -549,9 +549,11 @@ void static_action::procPosSelect(QListWidgetItem* item)
     currposlab->setText(QString::fromStdString(pos_name));
     valuelab->setText("");
     pose_map_ = ROBOT.get_pos_map()[pos_name].pose_info;
-    joint_degs_ = ROBOT.get_pos_map()[pos_name].joints_deg;
+    joint_degs_.clear();
+    for(auto jd:ROBOT.get_pos_map()[pos_name].joints_deg)
+        joint_degs_[ROBOT.get_joint(jd.first)->jid_] = jd.second;
     for(auto jd: joint_degs_)
-        ROBOT.get_joint_map()[jd.first]->set_deg(jd.second);
+        ROBOT.get_joint(jd.first)->set_deg(jd.second);
     updateJDInfo();
     updateSlider(static_cast<int>(motion_));
     robot_gl_->turn_joint(joint_degs_);
@@ -677,7 +679,9 @@ void static_action::procButtonSavePos()
             QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
     if(reply != QMessageBox::StandardButton::Yes) return;
 
-    ROBOT.get_pos_map()[pos_name].joints_deg = joint_degs_;
+    ROBOT.get_pos_map()[pos_name].joints_deg.clear();
+    for(auto jd:joint_degs_)
+        ROBOT.get_pos_map()[pos_name].joints_deg[ROBOT.get_joint(jd.first)->name_] = jd.second;
     ROBOT.get_pos_map()[pos_name].pose_info = pose_map_;
 }
 
@@ -756,7 +760,29 @@ void static_action::removeUnusedPos()
 
 void static_action::procButtonRunPos()
 {
-   
+    if(m_pPosListWidget->currentItem() == nullptr)
+    {
+        QMessageBox::warning(this, "Error", "No pos select!");
+        return;
+    }
+    CPosListWidget *pCur_PosWidget = (CPosListWidget *) m_pPosListWidget->itemWidget(m_pPosListWidget->currentItem());
+    int id = pCur_PosWidget->m_id->text().toInt();
+    string act_name = m_pActListWidget->currentItem()->text().toStdString();
+    robot_act act = ROBOT.get_act_map()[act_name];
+    robot_pos pos;
+    string data;
+    data.clear();
+    for(int i=0; i<id; i++)
+    {
+        data.append((char*)(&(act.poses[i].act_time)), sizeof(int));
+        pos = ROBOT.get_pos_map()[act.poses[i].pos_name];
+        for(auto j:pos.joints_deg)
+        {
+            data.append((char*)(&(ROBOT.get_joint(j.first)->jid_)), sizeof(int));
+            data.append((char*)(&(j.second)), sizeof(float));
+        }
+    }
+    client_.write(tcp_packet::POS_DATA, data.size(), data.c_str());
 }
 
 void static_action::procButtonWalkRemote()

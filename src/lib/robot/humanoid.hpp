@@ -29,6 +29,13 @@ namespace robot
             return nullptr;
         }
 
+        joint_ptr get_joint(const std::string &name)
+        {
+            for(auto j:joint_map_)
+                if(j.second->name_ == name) return j.second;
+            return nullptr;
+        }
+
         joint_map &get_joint_map() { return joint_map_; }
         joint_map get_joint_map() const { return joint_map_; }
         bone_map &get_bone_map() { return bone_map_; }

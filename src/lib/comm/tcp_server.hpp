@@ -26,8 +26,8 @@ namespace comm
     {
     public:
         virtual ~tcp_connection() {}
-        virtual void deliver(const tcp_packet& pkt) = 0;
-        virtual tcp_packet::tcp_cmd_type type() = 0;
+        virtual void deliver(const tcp_packet&) = 0;
+        virtual bool check_type(const tcp_packet::tcp_cmd_type &) = 0;
     };
 
     typedef std::shared_ptr<tcp_connection> tcp_connection_ptr;
@@ -60,7 +60,7 @@ namespace comm
         {  
             for (tcp_connection_ptr connection : connections_)
             {
-                if(connection->type() == cmd.type) 
+                if(connection->check_type(cmd.type))
                 {
                     connection->deliver(tcp_packet(cmd));
                 }
@@ -77,7 +77,7 @@ namespace comm
         public std::enable_shared_from_this<tcp_session>
     {
     public:
-        tcp_session(tcp::socket socket, tcp_pool &pool, comm_callback cb)
+        tcp_session(tcp::socket socket, tcp_pool &pool, tcp_comm_callback cb)
             : socket_(std::move(socket)), pool_(pool), cb_(std::move(cb))
         {
         }
@@ -99,9 +99,12 @@ namespace comm
             }
         }
 
-        tcp_packet::tcp_cmd_type type()
+        bool check_type(const tcp_packet::tcp_cmd_type &t)
         {
-            return cmd_type_;
+            for(auto c:td_map_)
+                if(c.first == t && (c.second == tcp_packet::DIR_BOTH || c.second == tcp_packet::DIR_APPLY))
+                    return true;
+            return false;
         }
 
     private:
@@ -131,19 +134,20 @@ namespace comm
                 if (!ec)
                 {
                     tcp_packet::tcp_command cmd = read_pkt_.tcp_cmd();
-                    if(cmd.type == tcp_packet::APPLY_DATA || cmd.type == tcp_packet::SUPPLY_DATA) 
+                    if(cmd.type == tcp_packet::REG_DATA)
                     {
-                        cmd_type_ = static_cast<tcp_packet::tcp_cmd_type>(*(cmd.data));
-                        data_dir_ = cmd.type;
-                        std::cout<<(int)data_dir_<<std::endl;
+                        tcp_packet::tcp_cmd_type t;
+                        tcp_packet::tcp_data_dir d;
+                        std::memcpy(&t, cmd.data, tcp_packet::tcp_cmd_type_size);
+                        std::memcpy(&d, cmd.data+tcp_packet::tcp_cmd_type_size, tcp_packet::tcp_data_dir_size);
+                        td_map_[t] = d;
                     }
                     else
                     {
                         data_.append(read_pkt_.tcp_cmd().data, read_pkt_.tcp_cmd().size);
                         if(!read_pkt_.is_full())
                         {
-                            //std::cout<<data_<<std::endl;
-                            cb_(data_.c_str(), data_.size());
+                            cb_(data_.c_str(), data_.size(), read_pkt_.tcp_cmd().type);
                             data_.clear();
                         }
                     }
@@ -165,7 +169,6 @@ namespace comm
                 if (!ec)
                 {
                     write_pkts_.pop_front();
-
                     if (!write_pkts_.empty())
                     {
                         do_write();
@@ -181,9 +184,9 @@ namespace comm
         tcp::socket socket_;
         tcp_pool &pool_;
         tcp_packet read_pkt_;
-        tcp_packet::tcp_cmd_type cmd_type_, data_dir_;
+        std::map<tcp_packet::tcp_cmd_type, tcp_packet::tcp_data_dir> td_map_;
         tcp_packet_queue write_pkts_;
-        comm_callback cb_;
+        tcp_comm_callback cb_;
         std::string data_;
     };
     
@@ -192,7 +195,7 @@ namespace comm
     class tcp_server
     {
     public:
-        tcp_server(boost::asio::io_service &io_service, const tcp::endpoint &endpoint, comm_callback cb)
+        tcp_server(boost::asio::io_service &io_service, const tcp::endpoint &endpoint, tcp_comm_callback cb)
             : acceptor_(io_service, endpoint), socket_(io_service), cb_(std::move(cb))
         {
             do_accept();
@@ -220,7 +223,7 @@ namespace comm
         tcp::acceptor acceptor_;
         tcp::socket socket_;
         tcp_pool pool_;
-        comm_callback cb_;
+        tcp_comm_callback cb_;
     };
 }
 

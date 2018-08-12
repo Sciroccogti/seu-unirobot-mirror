@@ -85,8 +85,26 @@ void joint_revise::procTimer()
     if(client_.is_connected())
     {
         if(first_connect)
-            client_.regist(tcp_packet::JOINT_OFFSET);
-        first_connect = false;
+        {
+            client_.regist(tcp_packet::JOINT_OFFSET, tcp_packet::DIR_SUPPLY);
+            first_connect = false;
+        }
+        else
+        {
+            tcp_packet::tcp_command cmd;
+            cmd.type = tcp_packet::JOINT_OFFSET;
+            cmd.size = sizeof(robot_joint_deg)*ROBOT.get_joint_map().size();
+            robot_joint_deg offset;
+            int i=0;
+            for(auto j:ROBOT.get_joint_map())
+            {
+                offset.id = j.second->jid_;
+                offset.deg = j.second->offset_;
+                memcpy(cmd.data+i* sizeof(robot_joint_deg), (char*)(&offset), sizeof(robot_joint_deg));
+                i++;
+            }
+            client_.write(cmd);
+        }
         setEnabled(true);
         statusBar()->setStyleSheet("background-color:green");
         setWindowTitle(net_info + "(online)");
@@ -117,26 +135,9 @@ void joint_revise::procBtnSave()
 void joint_revise::procValueChanged(int id, float v)
 {
     ROBOT.get_joint(id)->offset_ = v;
-    tcp_packet::tcp_command cmd;
-    cmd.type = tcp_packet::JOINT_OFFSET;
-    cmd.size = sizeof(robot_joint_offset)*ROBOT.get_joint_map().size();
-    robot_joint_offset offset;
-    int i=0;
-    for(auto j:ROBOT.get_joint_map())
-    {
-        offset.id = j.second->jid_;
-        offset.offset = j.second->offset_;
-        memcpy(cmd.data+i* sizeof(robot_joint_offset), (char*)(&offset), sizeof(robot_joint_offset));
-        i++;
-    }
-    client_.write(cmd);
 }
 
 void joint_revise::closeEvent(QCloseEvent *event)
 {
     client_.close();
-}
-
-joint_revise::~joint_revise()
-{
 }

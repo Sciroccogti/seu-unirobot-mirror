@@ -2,7 +2,6 @@
 #define SEU_UNIROBOT_DEBUGER_JOINT_REVISE_HPP
 
 #include <QtWidgets>
-#include <memory>
 #include "robot/humanoid.hpp"
 #include "tcp_client/tcp_client_handler.hpp"
 
@@ -31,7 +30,6 @@ class joint_revise: public QMainWindow
     Q_OBJECT
 public:
     joint_revise();
-    ~joint_revise();
 public slots:
     void procBtnReset();
     void procBtnSave();

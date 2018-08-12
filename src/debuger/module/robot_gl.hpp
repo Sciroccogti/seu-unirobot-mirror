@@ -15,7 +15,7 @@ class robot_gl: public QOpenGLWidget, protected QOpenGLFunctions
 public:
     robot_gl(robot::bone_ptr b, const robot::joint_map &jmap);
     ~robot_gl();
-    void turn_joint(const std::map<std::string, float> &degs);
+    void turn_joint(const std::map<int, float> &degs);
 
 protected:
     void initializeGL();
@@ -37,7 +37,7 @@ private:
     void draw_3d_bone(robot::bone_ptr b);
     void setUserView();
 
-    std::map<std::string, float> joints_deg_;
+    std::map<int, float> joints_deg_;
     float m_Rotate_X, m_Rotate_Y;
     float m_transX, m_transY, m_transZ;
     int m_KeyState;

@@ -10,6 +10,7 @@ add_executable(${TARGET_NAME}
                 main.cpp)
 
 target_link_libraries(${TARGET_NAME}
+                communication
                 actuator_options)
 
 set(CMAKE_INSTALL_PREFIX "${CMAKE_SOURCE_DIR}/bin")

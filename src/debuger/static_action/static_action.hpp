@@ -120,7 +120,7 @@ private:
 
     robot::robot_motion motion_;
     std::map<robot::robot_motion, robot::robot_pose> pose_map_;
-    std::map<std::string, float> joint_degs_;
+    std::map<int, float> joint_degs_;
     QTimer *timer;
     tcp_client_handler client_;
     QString net_info;

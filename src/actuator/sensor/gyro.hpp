@@ -3,7 +3,7 @@
 
 #include <list>
 #include <memory>
-#include "pattern/subject.hpp"
+#include "pattern/publisher.hpp"
 
 class gyro: public subject
 {
@@ -24,19 +24,6 @@ public:
     {
         observers_.remove(obs);
     }
-
-    void notify(const char* data, const int &size)
-    {
-        for(auto obs: observers_)
-            obs->updata(data, size);
-    }
-    void notify()
-    {
-        //for(auto obs: observers_)
-        //    obs->updata();
-    }
-private:
-    std::list< observer_ptr > observers_;
 };
 
 #endif

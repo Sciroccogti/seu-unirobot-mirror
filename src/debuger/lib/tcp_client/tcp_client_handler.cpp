@@ -9,14 +9,19 @@ using namespace std;
 
 boost::asio::io_service io_service_;
 
-tcp_client_handler::tcp_client_handler(const string &host, const int &port)
-    :client_(io_service_, host, port)
+tcp_client_handler::tcp_client_handler(const string &host, const int &port, tcp_comm_callback cb)
+    :client_(io_service_, host, port, std::move(cb))
 {
 }
 
 bool tcp_client_handler::write(const comm::tcp_packet::tcp_command &cmd)
 {
     client_.write(cmd);
+}
+
+void tcp_client_handler::write(const comm::tcp_packet::tcp_cmd_type &type, const int &size, const char *data)
+{
+    client_.write(type, size, data);
 }
 
 void tcp_client_handler::run()
@@ -30,11 +35,12 @@ void tcp_client_handler::close()
     io_service_.stop();
 }
 
-void tcp_client_handler::regist(comm::tcp_packet::tcp_cmd_type type, const bool &apply)
+void tcp_client_handler::regist(const comm::tcp_packet::tcp_cmd_type &type, const comm::tcp_packet::tcp_data_dir &dir)
 {
     tcp_packet::tcp_command cmd;
-    cmd.type = apply?tcp_packet::APPLY_DATA:tcp_packet::SUPPLY_DATA;
-    cmd.size = sizeof(tcp_packet::tcp_cmd_type);
-    std::memcpy(cmd.data, reinterpret_cast<char*>(&type),cmd.size);
+    cmd.type = tcp_packet::REG_DATA;
+    cmd.size = tcp_packet::tcp_cmd_type_size + tcp_packet::tcp_data_dir_size;
+    std::memcpy(cmd.data, &type, tcp_packet::tcp_cmd_type_size);
+    std::memcpy(cmd.data+tcp_packet::tcp_cmd_type_size, &dir, tcp_packet::tcp_data_dir_size);
     client_.write(cmd);
 }

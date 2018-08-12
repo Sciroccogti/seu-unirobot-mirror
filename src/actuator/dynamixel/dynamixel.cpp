@@ -1,4 +1,5 @@
 #include "dynamixel.hpp"
+#include "configuration.hpp"
 
 #define BROADCAST_ID        0xFE    // 254
 #define MAX_ID              0xFC    // 252
@@ -42,10 +43,9 @@
 
 using namespace std;
 
-dynamixel::dynamixel(const std::string &dev_name, const int &baudrate, const int &recv_timeout_ms)
-                    : serial_port_(io_service_, dev_name, baudrate, recv_timeout_ms)
+dynamixel::dynamixel(const std::string &dev_name, const int &baudrate): serial_port_(dev_name, baudrate)
 {
-    is_busy_ = false;
+    serial_port_.start();
 }
 
 unsigned short dynamixel::update_crc(uint16_t crc_accum, uint8_t *data_blk_ptr, uint16_t data_blk_size)
@@ -179,8 +179,8 @@ void dynamixel::tx_packet(uint8_t *txpacket)
 bool dynamixel::rx_packet(uint8_t *rxpacket, const int &length)
 {
     if(rxpacket == nullptr) return false;
-    serial_port_.read(rxpacket, length);
-    while(!serial_port_.read_complete() && !serial_port_.timeout());
+    bool res = serial_port_.read(rxpacket, length, 10);
+    if(!res) return false;
 
     uint16_t crc = DXL_MAKEWORD(rxpacket[length-2], rxpacket[length-1]);
     if (update_crc(0, rxpacket, length - 2) == crc)

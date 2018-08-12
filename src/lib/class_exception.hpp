@@ -8,7 +8,7 @@ template <class CLASS>
 class class_exception
 {
 public:
-    class_exception(std::string msg): msg_(msg)
+    class_exception(std::string msg, int id=0): msg_(msg), id_(id)
     {
         std::cout<<"\033[31mexception: "<<msg_<<"\033[0m"<<std::endl;
     }
@@ -20,8 +20,13 @@ public:
         return msg_.c_str();
     }
 
+    int err_no() const
+    {
+        return id_;
+    }
 private:
     std::string msg_;
+    int id_;
 };
 
 #endif

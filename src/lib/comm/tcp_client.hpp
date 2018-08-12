@@ -7,18 +7,18 @@
 #include <boost/asio.hpp>
 #include <boost/thread.hpp>
 #include "tcp_packet.hpp"
+#include "comm.hpp"
 
 namespace comm
 {
     using boost::asio::ip::tcp;
-
     typedef std::deque<tcp_packet> tcp_packet_queue;
 
     class tcp_client
     {
     public:
-        tcp_client(boost::asio::io_service &io_service, const std::string &host, const int &port)
-            : io_service_(io_service), socket_(io_service), timer_(io_service), host_(host), port_(std::to_string(port))
+        tcp_client(boost::asio::io_service &io_service, const std::string &host, const int &port, tcp_comm_callback cb=nullptr)
+            : io_service_(io_service), socket_(io_service), timer_(io_service), host_(host), port_(std::to_string(port)), cb_(std::move(cb))
         {
             connected_ = false;
             timer_.expires_at(boost::posix_time::pos_infin);
@@ -30,7 +30,7 @@ namespace comm
             write(tcp_packet(cmd));
         }
 
-        void write(tcp_packet::tcp_cmd_type type, int size, const char *data)
+        void write(const tcp_packet::tcp_cmd_type &type, int size, const char *data)
         {
             tcp_packet::tcp_command cmd;
             cmd.type = type;
@@ -112,10 +112,9 @@ namespace comm
                     data_.append(read_pkt_.tcp_cmd().data, read_pkt_.tcp_cmd().size);
                     if(!read_pkt_.is_full())
                     {
-                        //std::cout<<data_<<std::endl;
+                        if(cb_!= nullptr) cb_(data_.c_str(), data_.size(), read_pkt_.tcp_cmd().type);
                         data_.clear();
                     }
-                    //std::cout.write(read_pkt_.body()+8, read_pkt_.body_length()-8);
                     do_read_header();
                 }
                 else
@@ -173,6 +172,7 @@ namespace comm
         bool connected_;
         boost::asio::deadline_timer timer_;
         std::string host_, port_;
+        tcp_comm_callback cb_;
     };
 }
 #endif

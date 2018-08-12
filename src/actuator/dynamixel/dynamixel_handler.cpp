@@ -24,8 +24,7 @@ using namespace robot;
 using namespace config;
 
 dynamixel_handler::dynamixel_handler(): timer(CONF.get_config_value<int>("dynamixel.period")),
-    dxl_(CONF.get_config_value<string>("dynamixel.dev_name"), CONF.get_config_value<int>("dynamixel.baudrate"),
-        CONF.get_config_value<int>("dynamixel.recv_timeout"))
+    dxl_(CONF.get_config_value<string>("dynamixel.dev_name"), CONF.get_config_value<int>("dynamixel.baudrate"))
 {
     count_ = 0;
 }

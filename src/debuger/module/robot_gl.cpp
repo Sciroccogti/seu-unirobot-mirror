@@ -27,10 +27,10 @@ robot_gl::robot_gl(bone_ptr b, const robot::joint_map &jmap): main_bone_(b)
     setMouseTracking(false);
     joints_deg_.clear();
     for(auto j:jmap)
-        joints_deg_[j.first] = j.second->get_deg();
+        joints_deg_[j.second->jid_] = j.second->get_deg();
 }
 
-void robot_gl::turn_joint(const std::map<std::string, float> &degs)
+void robot_gl::turn_joint(const std::map<int, float> &degs)
 {
     for(auto d:degs)
         joints_deg_[d.first] = d.second;
@@ -97,7 +97,7 @@ void robot_gl::draw_3d_bone(bone_ptr b)
 
         if(j->can_turn_)
         {
-            glRotatef(joints_deg_[j->name_] + j->init_deg_, 0.0f, 0.0f, 1.0f);
+            glRotatef(joints_deg_[j->jid_] + j->init_deg_, 0.0f, 0.0f, 1.0f);
             glRotatef(90.0f, 1.0f, 0.0f, 0.0f);
         }
         if (j->next_bone_) draw_3d_bone(j->next_bone_);

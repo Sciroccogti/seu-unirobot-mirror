@@ -15,7 +15,7 @@ namespace comm
     {
     public:
         enum {max_data_length = 1024};
-        udp_server(boost::asio::io_service &io_service, const udp::endpoint &endpoint, comm_callback cb)
+        udp_server(boost::asio::io_service &io_service, const udp::endpoint &endpoint, tcp_comm_callback cb)
             : socket_(io_service,endpoint), cb_(std::move(cb))
         {
             do_receive();
@@ -44,7 +44,7 @@ namespace comm
         udp::socket socket_;
         udp::endpoint sender_endpoint_;
         char data_[max_data_length];
-        comm_callback cb_;
+        tcp_comm_callback cb_;
     };
 }
 

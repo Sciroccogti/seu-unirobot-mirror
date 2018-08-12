@@ -1,7 +1,7 @@
 #ifndef UDP_SERVER_HANDLER_HPP
 #define UDP_SERVER_HANDLER_HPP
 
-#include "comm/udp/udp_server.hpp"
+#include "comm/udp_server.hpp"
 #include "thread.hpp"
 
 namespace communication

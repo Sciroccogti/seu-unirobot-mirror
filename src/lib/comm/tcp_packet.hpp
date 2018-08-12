@@ -13,17 +13,28 @@ namespace comm
     public:
         enum { header_length = 5 };
         enum { max_body_length = 1024 };
-        
-        enum tcp_cmd_type
+
+        enum tcp_data_dir
         {
-            APPLY_DATA = 1,
-            SUPPLY_DATA = 2,
-            TEST_DATA = 5,
-            JOINT_OFFSET = 6,
-            WALK_DATA = 7
+            DIR_BOTH = 0,
+            DIR_APPLY = 1,
+            DIR_SUPPLY = 2
         };
 
-        enum { max_cmd_data_length = max_body_length-sizeof(tcp_cmd_type)-sizeof(int)};
+        enum tcp_cmd_type
+        {
+            REG_DATA = 0,
+            TEST_DATA = 5,
+            JOINT_OFFSET = 6,
+            WALK_DATA = 7,
+            POS_DATA = 8,
+            ACT_DATA = 9
+        };
+
+        enum {tcp_data_dir_size = sizeof(tcp_data_dir)};
+        enum {tcp_cmd_type_size = sizeof(tcp_cmd_type)};
+
+        enum { max_cmd_data_length = max_body_length-tcp_cmd_type_size-sizeof(int)};
         struct tcp_command
         {
             tcp_cmd_type type;
