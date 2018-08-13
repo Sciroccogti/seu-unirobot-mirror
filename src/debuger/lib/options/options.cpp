@@ -5,7 +5,7 @@
 
 using namespace boost::program_options;
 
-options::options()
+options::options(): opts_desc_("  Options description")
 {
     opts_desc_.add_options()
     ("help,h", "Print this message and exit.")

@@ -77,7 +77,7 @@ namespace comm
         public std::enable_shared_from_this<tcp_session>
     {
     public:
-        tcp_session(tcp::socket socket, tcp_pool &pool, tcp_comm_callback cb)
+        tcp_session(tcp::socket socket, tcp_pool &pool, net_comm_callback cb)
             : socket_(std::move(socket)), pool_(pool), cb_(std::move(cb))
         {
         }
@@ -186,7 +186,7 @@ namespace comm
         tcp_packet read_pkt_;
         std::map<tcp_packet::tcp_cmd_type, tcp_packet::tcp_data_dir> td_map_;
         tcp_packet_queue write_pkts_;
-        tcp_comm_callback cb_;
+        net_comm_callback cb_;
         std::string data_;
     };
     
@@ -195,7 +195,7 @@ namespace comm
     class tcp_server
     {
     public:
-        tcp_server(boost::asio::io_service &io_service, const tcp::endpoint &endpoint, tcp_comm_callback cb)
+        tcp_server(boost::asio::io_service &io_service, const tcp::endpoint &endpoint, net_comm_callback cb)
             : acceptor_(io_service, endpoint), socket_(io_service), cb_(std::move(cb))
         {
             do_accept();
@@ -223,7 +223,7 @@ namespace comm
         tcp::acceptor acceptor_;
         tcp::socket socket_;
         tcp_pool pool_;
-        tcp_comm_callback cb_;
+        net_comm_callback cb_;
     };
 }
 

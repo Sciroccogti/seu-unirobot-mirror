@@ -38,7 +38,7 @@ void JSlider::procSliderChanged(int v)
 }
 
 joint_revise::joint_revise()
-    :client_(CONF.get_config_value<string>(CONF.player()+".address"), CONF.get_config_value<int>("tcp.port"))
+    :client_(CONF.get_config_value<string>(CONF.player()+".address"), CONF.get_config_value<int>("net.tcp.port"))
 {
     QHBoxLayout *mainLayout = new QHBoxLayout();
     QVBoxLayout *leftLayout = new QVBoxLayout();
@@ -63,7 +63,7 @@ joint_revise::joint_revise()
     mainLayout->addLayout(leftLayout);
     mainLayout->addLayout(rightLayout);
     net_info = QString::fromStdString(CONF.get_config_value<string>(CONF.player()+".address"))
-               +":"+ QString::number(CONF.get_config_value<int>("tcp.port"));
+               +":"+ QString::number(CONF.get_config_value<int>("net.tcp.port"));
     setWindowTitle(net_info + "(offline)");
 
     timer= new QTimer;
@@ -86,13 +86,13 @@ void joint_revise::procTimer()
     {
         if(first_connect)
         {
-            client_.regist(tcp_packet::JOINT_OFFSET, tcp_packet::DIR_SUPPLY);
+            client_.regist(tcp_packet::JOINT_DATA, tcp_packet::DIR_SUPPLY);
             first_connect = false;
         }
         else
         {
             tcp_packet::tcp_command cmd;
-            cmd.type = tcp_packet::JOINT_OFFSET;
+            cmd.type = tcp_packet::JOINT_DATA;
             cmd.size = sizeof(robot_joint_deg)*ROBOT.get_joint_map().size();
             robot_joint_deg offset;
             int i=0;

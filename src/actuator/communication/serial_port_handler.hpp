@@ -1,11 +1,10 @@
 #ifndef SEU_UNIROBOT_SERIAL_PORT_HANDLER_HPP
 #define SEU_UNIROBOT_SERIAL_PORT_HANDLER_HPP
 
-#include "thread.hpp"
 #include "comm/serial_port.hpp"
 #include "class_exception.hpp"
 
-class serial_port_handler: public thread
+class serial_port_handler
 {
 public:
     serial_port_handler(const std::string &dev_name, const int &baudrate, comm::ser_comm_callback cb=nullptr);

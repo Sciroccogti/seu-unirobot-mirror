@@ -17,7 +17,7 @@ namespace comm
     class tcp_client
     {
     public:
-        tcp_client(boost::asio::io_service &io_service, const std::string &host, const int &port, tcp_comm_callback cb=nullptr)
+        tcp_client(boost::asio::io_service &io_service, const std::string &host, const int &port, net_comm_callback cb=nullptr)
             : io_service_(io_service), socket_(io_service), timer_(io_service), host_(host), port_(std::to_string(port)), cb_(std::move(cb))
         {
             connected_ = false;
@@ -172,7 +172,7 @@ namespace comm
         bool connected_;
         boost::asio::deadline_timer timer_;
         std::string host_, port_;
-        tcp_comm_callback cb_;
+        net_comm_callback cb_;
     };
 }
 #endif

@@ -16,6 +16,7 @@ public:
     bool use_camera() const { return use_camera_; }
     bool use_robot() const { return use_robot_; }
     bool use_comm() const { return use_comm_; }
+    bool use_remote() const { return use_remote_; }
 
 private:
     template<typename T> T arg(const std::string &opt) const { return var_map_[opt].as<T>(); }
@@ -27,6 +28,7 @@ private:
     bool use_camera_;
     bool use_robot_;
     bool use_comm_;
+    bool use_remote_;
 };
 
 #define OPTS options::get_singleton()

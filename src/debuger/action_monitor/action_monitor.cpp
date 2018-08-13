@@ -6,15 +6,15 @@ using namespace robot;
 using namespace comm;
 
 action_monitor::action_monitor()
-    :client_(CONF.get_config_value<string>(CONF.player()+".address"), CONF.get_config_value<int>("tcp.port"),
-            std::bind(&action_monitor::data_handler, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3))
+    :client_(CONF.get_config_value<string>(CONF.player()+".address"), CONF.get_config_value<int>("net.tcp.port"),
+            bind(&action_monitor::data_handler, this, placeholders::_1, placeholders::_2, placeholders::_3))
 {
     rgl = new robot_gl(ROBOT.get_main_bone(), ROBOT.get_joint_map());
     setCentralWidget(rgl);
 
     first_connect = true;
     net_info = QString::fromStdString(CONF.get_config_value<string>(CONF.player()+".address"))
-               +":"+ QString::number(CONF.get_config_value<int>("tcp.port"));
+               +":"+ QString::number(CONF.get_config_value<int>("net.tcp.port"));
     setWindowTitle(net_info + "(offline)");
 
     timer= new QTimer;
@@ -26,8 +26,17 @@ action_monitor::action_monitor()
 
 void action_monitor::data_handler(const char *data, const int &size, const int &type)
 {
-    if(type == tcp_packet::ACT_DATA)
+    if(type == tcp_packet::JOINT_DATA)
     {
+        robot_joint_deg jdeg;
+        std::map<int,float> jdegs;
+        for(int i=0;i<size/sizeof(robot_joint_deg);i++)
+        {
+            memcpy(&jdeg, data+i*sizeof(robot_joint_deg), sizeof(robot_joint_deg));
+            jdegs[jdeg.id] = jdeg.deg;
+        }
+        rgl->turn_joint(jdegs);
+        this->update();
     }
 }
 
@@ -36,7 +45,7 @@ void action_monitor::procTimer()
     if(client_.is_connected())
     {
         if(first_connect)
-            client_.regist(tcp_packet::ACT_DATA, tcp_packet::DIR_APPLY);
+            client_.regist(tcp_packet::JOINT_DATA, tcp_packet::DIR_APPLY);
         first_connect = false;
         statusBar()->setStyleSheet("background-color:green");
         setWindowTitle(net_info + "(online)");

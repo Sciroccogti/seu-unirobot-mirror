@@ -10,7 +10,7 @@ namespace comm
     class serial_port: public std::enable_shared_from_this<serial_port>
     {
     public:
-        serial_port(boost::asio::io_service &io_service, const std::string &dev_name, const unsigned int &baudrate,
+        serial_port(boost::asio::io_service &io_service, const std::string &dev_name, const int &baudrate,
                 ser_comm_callback cb=nullptr): serial_port_(io_service), timer_(io_service), cb_(std::move(cb))
         {
             is_open_ = false;
@@ -56,7 +56,7 @@ namespace comm
                     rd_cplt_ = true;
                 });
             timer_.expires_from_now(boost::posix_time::millisec(ms));
-            timer_.async_wait(std::bind(&serial_port::time_out, this));
+            timer_.async_wait(bind(&serial_port::time_out, this));
         }
 
         void start_read(const int &size)

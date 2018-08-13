@@ -9,9 +9,16 @@ using namespace robot;
 boost::asio::io_service tcp_io_service;
 
 tcp_server_handler::tcp_server_handler()
-    : server_(tcp_io_service, tcp::endpoint(tcp::v4(), CONF.get_config_value<int>("tcp.port")),
-            std::bind(&tcp_server_handler::data_handler, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3))
+    : server_(tcp_io_service, tcp::endpoint(tcp::v4(), CONF.get_config_value<int>("net.tcp.port")),
+            bind(&tcp_server_handler::data_handler, this, placeholders::_1, placeholders::_2, placeholders::_3))
 {
+    r_data_.id = 0;
+    r_data_.size = 0;
+}
+
+void tcp_server_handler::start()
+{
+    td_ = thread(bind(&tcp_server_handler::run, this));
 }
 
 void tcp_server_handler::data_handler(const char *data, const int &size, const int &type)
@@ -19,12 +26,14 @@ void tcp_server_handler::data_handler(const char *data, const int &size, const i
     //std::cout<<"new data, size: "<<size<<" type: "<<type<<std::endl;
     int float_size = sizeof(float);
     int int_size = sizeof(int);
+    int type_size = sizeof(tcp_packet::remote_data_type);
+    
     if(data == nullptr) return;
     switch(type)
     {
-        case tcp_packet::JOINT_OFFSET:
+        case tcp_packet::JOINT_DATA:
         {
-            if(size == ROBOT.get_joint_map().size()*sizeof(robot_joint_deg))
+            if(size%sizeof(robot_joint_deg) == 0)
             {
                 robot_joint_deg jd;
                 for(int i=0;i<ROBOT.get_joint_map().size();i++)
@@ -35,37 +44,29 @@ void tcp_server_handler::data_handler(const char *data, const int &size, const i
             }
             break;
         }
-        case tcp_packet::POS_DATA:
+        case tcp_packet::REMOTE_DATA:
         {
-            int blksz = sizeof(int)+ROBOT.get_joint_map().size()* sizeof(robot_joint_deg);
-            if(size%blksz == 0)
+            memcpy(&(r_data_.type), data, type_size);
+            //std::cout<<"recv data: "<<(int)r_data_.type<<'\n';
+            if(r_data_.type == tcp_packet::WALK_DATA)
             {
-                for(int k=0;k<size/blksz;k++)
+                if(size == 4*float_size+type_size)
                 {
-                    int act_t;
-                    memcpy(&act_t, data+k*blksz, int_size);
-                    robot_joint_deg jd;
-                    cout<<"act_time: "<<act_t<<endl;
-                    for(int i=0;i<ROBOT.get_joint_map().size();i++)
-                    {
-                        memcpy(&jd, data+k*blksz+int_size+i*sizeof(robot_joint_deg), sizeof(robot_joint_deg));
-                        cout<<jd.id<<'\t'<<jd.deg<<endl;
-                    }
+                    r_data_.data.clear();
+                    r_data_.data.assign(data+type_size, size-type_size);
                 }
             }
-            break;
-        }
-        case tcp_packet::WALK_DATA:
-        {
-            if(size == 4*float_size)
+            else if(r_data_.type == tcp_packet::ACT_DATA)
             {
-                float x,y,d,h;
-                memcpy(&x, data, float_size);
-                memcpy(&y, data+float_size, float_size);
-                memcpy(&d, data+2*float_size, float_size);
-                memcpy(&h, data+3*float_size, float_size);
-                cout<<x<<'\t'<<y<<'\t'<<d<<'\t'<<h<<'\n';
+                int blksz = sizeof(int)+ROBOT.get_joint_map().size()* sizeof(robot_joint_deg);
+                if((size-type_size)%blksz == 0)
+                {
+                    r_data_.data.clear();
+                    r_data_.data.assign(data+type_size, size-type_size);
+                }
             }
+            r_data_.size = size-type_size;
+            r_data_.id++;
             break;
         }
         default:
@@ -106,4 +107,9 @@ void tcp_server_handler::run()
 void tcp_server_handler::close()
 {
     tcp_io_service.stop();
+}
+
+tcp_server_handler::~tcp_server_handler()
+{
+    if(td_.joinable()) td_.join();
 }

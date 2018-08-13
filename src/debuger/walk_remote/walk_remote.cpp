@@ -7,7 +7,7 @@ using namespace std;
 using namespace comm;
 
 walk_remote::walk_remote(): range_(200), scale_d(10), scale_xy(5000),
-    client_(CONF.get_config_value<string>(CONF.player()+".address"), CONF.get_config_value<int>("tcp.port"))
+    client_(CONF.get_config_value<string>(CONF.player()+".address"), CONF.get_config_value<int>("net.tcp.port"))
 {
     setMinimumHeight(300);
     dirSlider = new QSlider(Qt::Horizontal);
@@ -73,7 +73,7 @@ walk_remote::walk_remote(): range_(200), scale_d(10), scale_xy(5000),
     this->setCentralWidget(mainWidget);
 
     net_info = QString::fromStdString(CONF.get_config_value<string>(CONF.player()+".address"))
-               +":"+ QString::number(CONF.get_config_value<int>("tcp.port"));
+               +":"+ QString::number(CONF.get_config_value<int>("net.tcp.port"));
     setWindowTitle(net_info + "(offline)");
     timer= new QTimer;
     timer->start(1000);
@@ -126,18 +126,23 @@ void walk_remote::procTimer()
     {
         if(first_connect)
         {
-            client_.regist(tcp_packet::WALK_DATA, tcp_packet::DIR_SUPPLY);
+            client_.regist(tcp_packet::REMOTE_DATA, tcp_packet::DIR_SUPPLY);
             first_connect = false;
         }
         else
         {
+            tcp_packet::remote_data_type rtp = tcp_packet::WALK_DATA;
             tcp_packet::tcp_command cmd;
-            cmd.type = tcp_packet::WALK_DATA;
-            cmd.size = sizeof(float)*4;
-            memcpy(cmd.data, (char*)(&_x), sizeof(float));
-            memcpy(cmd.data+sizeof(float), (char*)(&_y), sizeof(float));
-            memcpy(cmd.data+2*sizeof(float), (char*)(&_dir), sizeof(float));
-            memcpy(cmd.data+3*sizeof(float), (char*)(&_h), sizeof(float));
+            cmd.type = tcp_packet::REMOTE_DATA;
+            cmd.size = sizeof(tcp_packet::remote_data_type)+sizeof(float)*4;
+            string data_s;
+            data_s.clear();
+            data_s.append((char*)(&rtp), sizeof(tcp_packet::remote_data_type));
+            data_s.append((char*)(&_x), sizeof(float));
+            data_s.append((char*)(&_y), sizeof(float));
+            data_s.append((char*)(&_dir), sizeof(float));
+            data_s.append((char*)(&_h), sizeof(float));
+            memcpy(cmd.data, data_s.data(), cmd.size);
             client_.write(cmd);
         }
         setEnabled(true);

@@ -4,20 +4,21 @@
 #include "robot/humanoid.hpp"
 #include "options/options.hpp"
 #include "communication/tcp_server_handler.hpp"
-
+#include "player/player.hpp"
 
 using namespace std;
 using namespace robot;
 
-bool is_alive = true;
+shared_ptr<player> maxwell;
+
 void exit_handler(int sig)
 {
     if(sig == SIGINT)
     {
-        cout<<"\nGood bye!\n";
         if(OPTS.use_debug()) TCP_SERVER.close();
-        is_alive = false;
+        maxwell->kill();
     }
+    cout<<"\n\033[32m********************good bye!********************\033[0m\n";
 }
 
 int main(int argc, char *argv[])
@@ -35,7 +36,10 @@ int main(int argc, char *argv[])
     }
     ROBOT.init(CONF.robot_file(), CONF.action_file(), CONF.offset_file());
     if(OPTS.use_debug()) TCP_SERVER.start();
-    while(is_alive)
+    
+    maxwell = make_shared<player>();
+    maxwell->initialization();
+    while(maxwell->is_alive())
     {
         sleep(2);
     }

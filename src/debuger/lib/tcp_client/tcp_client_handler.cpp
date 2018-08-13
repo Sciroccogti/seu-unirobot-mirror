@@ -9,9 +9,14 @@ using namespace std;
 
 boost::asio::io_service io_service_;
 
-tcp_client_handler::tcp_client_handler(const string &host, const int &port, tcp_comm_callback cb)
+tcp_client_handler::tcp_client_handler(const string &host, const int &port, net_comm_callback cb)
     :client_(io_service_, host, port, std::move(cb))
 {
+}
+
+void tcp_client_handler::start()
+{
+    td_ = thread(bind(&tcp_client_handler::run, this));
 }
 
 bool tcp_client_handler::write(const comm::tcp_packet::tcp_command &cmd)
@@ -43,4 +48,9 @@ void tcp_client_handler::regist(const comm::tcp_packet::tcp_cmd_type &type, cons
     std::memcpy(cmd.data, &type, tcp_packet::tcp_cmd_type_size);
     std::memcpy(cmd.data+tcp_packet::tcp_cmd_type_size, &dir, tcp_packet::tcp_data_dir_size);
     client_.write(cmd);
+}
+
+tcp_client_handler::~tcp_client_handler()
+{
+    if(td_.joinable()) td_.join();
 }

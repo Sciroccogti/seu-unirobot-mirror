@@ -66,7 +66,7 @@ void CPosListWidget::procTimeChange()
 }
 
 static_action::static_action()
-    : client_(CONF.get_config_value<string>(CONF.player()+".address"), CONF.get_config_value<int>("tcp.port"))
+    : client_(CONF.get_config_value<string>(CONF.player()+".address"), CONF.get_config_value<int>("net.tcp.port"))
 {
     initStatusBar();
     robot_gl_ = new robot_gl(ROBOT.get_main_bone(), ROBOT.get_joint_map());
@@ -185,7 +185,7 @@ static_action::static_action()
     initPoseMap();
     initJDInfo();
     net_info = QString::fromStdString(CONF.get_config_value<string>(CONF.player()+".address"))
-               +":"+ QString::number(CONF.get_config_value<int>("tcp.port"));
+               +":"+ QString::number(CONF.get_config_value<int>("net.tcp.port"));
     setWindowTitle(net_info + "(offline)");
 
     timer= new QTimer;
@@ -214,7 +214,7 @@ void static_action::procTimer()
     if(client_.is_connected())
     {
         if(first_connect)
-            client_.regist(tcp_packet::POS_DATA, tcp_packet::DIR_SUPPLY);
+            client_.regist(tcp_packet::REMOTE_DATA, tcp_packet::DIR_SUPPLY);
         first_connect = false;
         btnrunPos->setEnabled(true);
         netstatuslab->setStyleSheet("background-color:green");
@@ -260,7 +260,8 @@ void static_action::initStatusBar()
     valuelab->setMinimumWidth(60);
     curractlab->setMinimumWidth(60);
     currposlab->setMinimumWidth(60);
-    netstatuslab->setMinimumWidth(60);
+    netstatuslab->setMinimumWidth(100);
+    /*
     motionlab->setFrameShape(QFrame::WinPanel);
     motionlab->setFrameShadow(QFrame::Sunken);
     valuelab->setFrameShape(QFrame::WinPanel);
@@ -271,6 +272,7 @@ void static_action::initStatusBar()
     currposlab->setFrameShadow(QFrame::Sunken);
     netstatuslab->setFrameShape(QFrame::WinPanel);
     netstatuslab->setFrameShadow(QFrame::Sunken);
+    */
     bar->addWidget(motionlab);
     bar->addWidget(valuelab);
     bar->addWidget(curractlab);
@@ -772,17 +774,23 @@ void static_action::procButtonRunPos()
     robot_pos pos;
     string data;
     data.clear();
+    tcp_packet::remote_data_type rtp = tcp_packet::ACT_DATA;
+    data.append((char*)(&rtp), sizeof(tcp_packet::remote_data_type));
+    int size = sizeof(tcp_packet::remote_data_type);
     for(int i=0; i<id; i++)
     {
         data.append((char*)(&(act.poses[i].act_time)), sizeof(int));
+        size += sizeof(int);
         pos = ROBOT.get_pos_map()[act.poses[i].pos_name];
         for(auto j:pos.joints_deg)
         {
             data.append((char*)(&(ROBOT.get_joint(j.first)->jid_)), sizeof(int));
+            size += sizeof(int);
             data.append((char*)(&(j.second)), sizeof(float));
+            size += sizeof(float);
         }
     }
-    client_.write(tcp_packet::POS_DATA, data.size(), data.c_str());
+    client_.write(tcp_packet::REMOTE_DATA, size, data.c_str());
 }
 
 void static_action::procButtonWalkRemote()

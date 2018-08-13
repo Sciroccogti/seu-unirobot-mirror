@@ -25,12 +25,18 @@ namespace comm
         {
             REG_DATA = 0,
             TEST_DATA = 5,
-            JOINT_OFFSET = 6,
-            WALK_DATA = 7,
-            POS_DATA = 8,
-            ACT_DATA = 9
+            JOINT_DATA = 6,
+            REMOTE_DATA = 7,
+            IMAGE_DATA = 8
         };
-
+        
+        enum remote_data_type
+        {
+            WALK_DATA = 1,
+            ACT_DATA = 2,
+            JOINT_OFFSET = 3
+        };
+       
         enum {tcp_data_dir_size = sizeof(tcp_data_dir)};
         enum {tcp_cmd_type_size = sizeof(tcp_cmd_type)};
 
@@ -40,6 +46,14 @@ namespace comm
             tcp_cmd_type type;
             int size;
             char data[max_cmd_data_length];
+        };
+        
+        struct remote_data
+        {
+            remote_data_type type;
+            int size;
+            std::string data;
+            unsigned long int id;
         };
 
         tcp_packet(): body_length_(0), is_full_(false)
