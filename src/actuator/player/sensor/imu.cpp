@@ -7,7 +7,7 @@ using namespace std;
 boost::asio::io_service imu_io_service;
 
 imu::imu(const sub_ptr& s)
-    : serial_(imu_io_service, CONF.get_config_value<string>("serial.imu.dev_name"), CONF.get_config_value<int>("serial.imu.baudrate"))
+    : sensor("imu"), serial_(imu_io_service, CONF.get_config_value<string>("serial.imu.dev_name"), CONF.get_config_value<int>("serial.imu.baudrate"))
 {
     attach(s);
     str_.resize(imu_data_size);
@@ -48,9 +48,10 @@ void imu::close()
     {
         serial_.close();
         imu_io_service.stop();
-        is_open_ = false;
-        is_alive_ = false;
     }
+    is_open_ = false;
+    is_alive_ = false;
+    std::cout<<"\033[32mimu closed!\033[0m\n";
 }
 
 imu::~imu()

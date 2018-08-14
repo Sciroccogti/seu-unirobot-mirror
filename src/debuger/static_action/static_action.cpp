@@ -69,7 +69,7 @@ static_action::static_action()
     : client_(CONF.get_config_value<string>(CONF.player()+".address"), CONF.get_config_value<int>("net.tcp.port"))
 {
     initStatusBar();
-    robot_gl_ = new robot_gl(ROBOT.get_main_bone(), ROBOT.get_joint_map());
+    robot_gl_ = new RobotGL(ROBOT.get_main_bone(), ROBOT.get_joint_map());
     QVBoxLayout *leftLayout = new QVBoxLayout;
     leftLayout->addWidget(robot_gl_);
 

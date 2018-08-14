@@ -3,7 +3,7 @@
 
 #include <QtWidgets>
 #include <map>
-#include "module/robot_gl.hpp"
+#include "module/RobotGL.hpp"
 #include "robot/humanoid.hpp"
 #include "tcp_client/tcp_client_handler.hpp"
 
@@ -134,7 +134,7 @@ private:
     QRadioButton *head, *body, *leftArm, *rightArm, *leftFoot, *rightFoot;
     QButtonGroup *motionBtnGroup;
     QGroupBox *mSliderGroup;
-    robot_gl *robot_gl_;
+    RobotGL *robot_gl_;
     std::vector<CKSlider*> mKsliders;
     std::map<std::string, CJointDegWidget*> mJDInfos;
 };

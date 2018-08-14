@@ -20,7 +20,7 @@ namespace parser
 
             if (!ifs) return false;
 
-            while(getline(ifs, line))
+            while(std::getline(ifs, line))
             {
                 count_of_quotatuion = 0;
                 for(auto c: line)

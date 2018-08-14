@@ -10,8 +10,7 @@ image_monitor::image_monitor()
             bind(&image_monitor::data_handler, this, placeholders::_1, placeholders::_2, placeholders::_3))
 {
     first_connect = true;
-    imageLab = new QLabel();
-    imageLab->setFixedSize(640, 480);
+    imageLab = new ImageLabel(640, 480);
     
     pitchSlider = new QSlider(Qt::Vertical);
     pitchSlider->setRange(-90, 90);
@@ -44,7 +43,7 @@ image_monitor::image_monitor()
     setWindowTitle(net_info + "(offline)");
 
     timer= new QTimer;
-    timer->start(1000);
+    timer->start(30);
 
     connect(timer, SIGNAL(timeout()), this, SLOT(procTimer()));
     connect(yawSlider, SIGNAL(valueChanged(int)), this, SLOT(procYawSlider(int)));
@@ -56,6 +55,7 @@ void image_monitor::data_handler(const char *data, const int &size, const int &t
 {
     if(type == tcp_packet::IMAGE_DATA)
     {
+        imageLab->set_image((uint8_t*)data, size);
     }
 }
 

@@ -6,7 +6,7 @@
 #define SEU_UNIROBOT_DEBUGER_ACTION_MONITOR_HPP
 
 #include <QtWidgets>
-#include "module/robot_gl.hpp"
+#include "module/RobotGL.hpp"
 #include "robot/humanoid.hpp"
 #include "tcp_client/tcp_client_handler.hpp"
 
@@ -22,7 +22,7 @@ public slots:
 protected:
     void closeEvent(QCloseEvent *event);
 private:
-    robot_gl *rgl;
+    RobotGL *rgl;
     QTimer *timer;
     tcp_client_handler client_;
     QString net_info;

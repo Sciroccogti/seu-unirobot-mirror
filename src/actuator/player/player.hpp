@@ -12,6 +12,8 @@ public:
     {
         return suber_;
     }
+protected:
+    std::list<plan_ptr> think();
 };
 
 #endif

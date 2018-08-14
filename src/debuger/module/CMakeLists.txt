@@ -1,5 +1,8 @@
+include_directories(${Qt5Widgets_INCLUDE_DIRS})
+
 add_library(ui STATIC
-            robot_gl.cpp)
+            ImageLabel.cpp
+            RobotGL.cpp)
 
 target_link_libraries(ui
                         glut

@@ -1,6 +1,6 @@
 #include <iostream>
 #include <algorithm>
-#include "robot_gl.hpp"
+#include "RobotGL.hpp"
 
 #define NORMAL_SIZE_AXE 1.0f
 #define DRAW_LIST_AXE   10
@@ -12,7 +12,7 @@ static GLfloat m_mat_diff_normal[] = {1.0f, 1.0f, 0.7f, 1.0f};
 using namespace std;
 using namespace robot;
 
-robot_gl::robot_gl(bone_ptr b, const robot::joint_map &jmap): main_bone_(b)
+RobotGL::RobotGL(bone_ptr b, const robot::joint_map &jmap): main_bone_(b)
 {
     setMinimumSize(600,600);
     m_Rotate_X = -45.0;
@@ -30,14 +30,14 @@ robot_gl::robot_gl(bone_ptr b, const robot::joint_map &jmap): main_bone_(b)
         joints_deg_[j.second->jid_] = j.second->get_deg();
 }
 
-void robot_gl::turn_joint(const std::map<int, float> &degs)
+void RobotGL::turn_joint(const std::map<int, float> &degs)
 {
     for(auto d:degs)
         joints_deg_[d.first] = d.second;
     this->update();
 }
 
-void robot_gl::paintGL()
+void RobotGL::paintGL()
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glMatrixMode (GL_PROJECTION);
@@ -49,7 +49,7 @@ void robot_gl::paintGL()
     glFlush();
 }
 
-void robot_gl::draw_3d_bone(bone_ptr b)
+void RobotGL::draw_3d_bone(bone_ptr b)
 {
     if(!b) return;
     //cout<<b->name_<<'\t'<<b->joints_.size()<<endl;
@@ -105,7 +105,7 @@ void robot_gl::draw_3d_bone(bone_ptr b)
     }
 }
 
-void robot_gl::setUserView()
+void RobotGL::setUserView()
 {
     int w, h;
     w = this->size().width();
@@ -128,7 +128,7 @@ void robot_gl::setUserView()
               0.0, 0.0, 1.0);
 }
 
-void robot_gl::initializeGL()
+void RobotGL::initializeGL()
 {
     initializeOpenGLFunctions();
     GLfloat mat_specular[] = {1.0f, 1.0f, 1.0f, 1.0f};
@@ -185,7 +185,7 @@ void robot_gl::initializeGL()
     init_3d_model();
 }
 
-void robot_gl::init_3d_model()
+void RobotGL::init_3d_model()
 {
     //init normal axe
     glNewList(DRAW_LIST_AXE, GL_COMPILE);
@@ -197,7 +197,7 @@ void robot_gl::init_3d_model()
     glEndList();
 }
 
-void robot_gl::draw_3d_cylinder(float length, float r_top, float r_button)
+void RobotGL::draw_3d_cylinder(float length, float r_top, float r_button)
 {
     glPushMatrix();
     glTranslatef(0.0f, 0.0f, -length);
@@ -210,12 +210,12 @@ void robot_gl::draw_3d_cylinder(float length, float r_top, float r_button)
     glPopMatrix();
 }
 
-void robot_gl::draw_3d_sphere(float raduis)
+void RobotGL::draw_3d_sphere(float raduis)
 {
     gluSphere(quad_obj, raduis, 20.0f, 20.0f);
 }
 
-void robot_gl::draw_3d_axe(float length)
+void RobotGL::draw_3d_axe(float length)
 {
     glPushMatrix();
     glRotatef(90, 0, 0, 1);
@@ -248,7 +248,7 @@ void robot_gl::draw_3d_axe(float length)
     glPopMatrix();
 }
 
-void robot_gl::draw_3d_ground(float width, float div)
+void RobotGL::draw_3d_ground(float width, float div)
 {
     glMaterialfv(GL_FRONT, GL_DIFFUSE, m_mat_diff_env);
     glPushAttrib(GL_CURRENT_BIT);
@@ -277,7 +277,7 @@ void robot_gl::draw_3d_ground(float width, float div)
     glMaterialfv(GL_FRONT, GL_DIFFUSE, m_mat_diff_normal);
 }
 
-void robot_gl::mousePressEvent(QMouseEvent *event)
+void RobotGL::mousePressEvent(QMouseEvent *event)
 {
     this->setFocusPolicy(Qt::StrongFocus);
     if (event ->button() == Qt::LeftButton)
@@ -287,12 +287,12 @@ void robot_gl::mousePressEvent(QMouseEvent *event)
     }
 }
 
-void robot_gl::mouseReleaseEvent(QMouseEvent *event)
+void RobotGL::mouseReleaseEvent(QMouseEvent *event)
 {
     m_IsPressed = false;
 }
 
-void robot_gl::mouseMoveEvent(QMouseEvent *event)
+void RobotGL::mouseMoveEvent(QMouseEvent *event)
 {
     QPoint p;
     if (m_IsPressed)
@@ -307,7 +307,7 @@ void robot_gl::mouseMoveEvent(QMouseEvent *event)
     }
 }
 
-void robot_gl::wheelEvent(QWheelEvent *event)
+void RobotGL::wheelEvent(QWheelEvent *event)
 {
     float speed = 0.2f;
     float rad_xy = float (3.1415927f * m_Rotate_X / 180.0f);
@@ -328,7 +328,7 @@ void robot_gl::wheelEvent(QWheelEvent *event)
     this->update();
 }
 
-void robot_gl::keyPressEvent(QKeyEvent *event)
+void RobotGL::keyPressEvent(QKeyEvent *event)
 {
     float speed = 0.1f;
     float rad_xy = float (3.1415927f * m_Rotate_X / 180.0f);
@@ -391,7 +391,7 @@ void robot_gl::keyPressEvent(QKeyEvent *event)
     this->update();
 }
 
-void robot_gl::keyReleaseEvent(QKeyEvent *event)
+void RobotGL::keyReleaseEvent(QKeyEvent *event)
 {
     switch (event->key())
     {
@@ -427,7 +427,7 @@ void robot_gl::keyReleaseEvent(QKeyEvent *event)
     QWidget::keyReleaseEvent(event);
 }
 
-robot_gl::~robot_gl()
+RobotGL::~RobotGL()
 {
 
 }

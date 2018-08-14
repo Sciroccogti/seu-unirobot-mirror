@@ -16,6 +16,7 @@ public:
         id_ = id;
         if(!parser::config_parser::parse("data/actuator.conf", config_tree_)) return false;
         player_ = "players." + std::to_string(id_);
+        //parser::config_parser::save("res.conf", config_tree_);
         return true;
     }
 

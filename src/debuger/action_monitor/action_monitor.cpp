@@ -9,7 +9,7 @@ action_monitor::action_monitor()
     :client_(CONF.get_config_value<string>(CONF.player()+".address"), CONF.get_config_value<int>("net.tcp.port"),
             bind(&action_monitor::data_handler, this, placeholders::_1, placeholders::_2, placeholders::_3))
 {
-    rgl = new robot_gl(ROBOT.get_main_bone(), ROBOT.get_joint_map());
+    rgl = new RobotGL(ROBOT.get_main_bone(), ROBOT.get_joint_map());
     setCentralWidget(rgl);
 
     first_connect = true;
@@ -26,6 +26,7 @@ action_monitor::action_monitor()
 
 void action_monitor::data_handler(const char *data, const int &size, const int &type)
 {
+    cout<<"recved\n";
     if(type == tcp_packet::JOINT_DATA)
     {
         robot_joint_deg jdeg;

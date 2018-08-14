@@ -2,6 +2,7 @@
 #define TCP_SERVER_HANDLER_HPP
 
 #include <thread>
+#include <mutex>
 #include "comm/tcp_server.hpp"
 #include "singleton.hpp"
 
@@ -18,9 +19,10 @@ public:
     
     comm::tcp_packet::remote_data r_data() const
     {
+        std::lock_guard<std::mutex> lk(tcp_mutex_);
         return r_data_;
     }
-    
+    mutable std::mutex tcp_mutex_;
 protected:
     void run();
 private:

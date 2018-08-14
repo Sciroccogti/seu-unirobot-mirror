@@ -9,12 +9,12 @@
 #include <map>
 #include "robot/humanoid.hpp"
 
-class robot_gl: public QOpenGLWidget, protected QOpenGLFunctions
+class RobotGL: public QOpenGLWidget, protected QOpenGLFunctions
 {
     Q_OBJECT
 public:
-    robot_gl(robot::bone_ptr b, const robot::joint_map &jmap);
-    ~robot_gl();
+    RobotGL(robot::bone_ptr b, const robot::joint_map &jmap);
+    ~RobotGL();
     void turn_joint(const std::map<int, float> &degs);
 
 protected:

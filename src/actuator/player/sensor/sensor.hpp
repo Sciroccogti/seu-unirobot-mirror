@@ -1,12 +1,20 @@
 #ifndef SEU_UNIROBOT_SENSOR_HPP
 #define SEU_UNIROBOT_SENSOR_HPP
 
+#include <iostream>
 #include <memory>
 #include "pattern.hpp"
 
 class sensor: public publisher
 {
 public:
+    sensor(const std::string &name):name_(name)
+    {
+    }
+    ~sensor()
+    {
+        std::cout<<"\033[32msensor: "<<name_<<" end!\033[0m\n";
+    }
     bool is_open() const
     {
         return is_open_;
@@ -25,8 +33,9 @@ public:
 protected:
     bool is_open_;
     bool is_alive_;
+    std::string name_;
 };
 
-typedef std::shared_ptr<sensor> sersor_ptr;
+typedef std::shared_ptr<sensor> sensor_ptr;
 
 #endif

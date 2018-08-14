@@ -2,8 +2,8 @@
 #define SEU_UNIROBOT_REMOTE_HPP
 
 #include <thread>
-#include "sensor/sensor.hpp"
-#include "communication/tcp_server_handler.hpp"
+#include "sensor.hpp"
+#include "tcp_server/tcp_server_handler.hpp"
 
 class remote: public sensor
 {

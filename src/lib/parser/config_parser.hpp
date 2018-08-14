@@ -15,6 +15,11 @@ namespace parser
         {
             return parse_file(cfgname, pt);
         }
+        
+        static void save(const std::string &filename, const bpt::ptree &pt)
+        {
+            write_tree_to_file(filename, pt);
+        }
     private:
         static bool add_child(bpt::ptree &oript, const std::string &key, const bpt::ptree &pt)
         {

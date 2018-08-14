@@ -29,6 +29,7 @@ void tcp_server_handler::data_handler(const char *data, const int &size, const i
     int type_size = sizeof(tcp_packet::remote_data_type);
     
     if(data == nullptr) return;
+    std::lock_guard<std::mutex> lk(tcp_mutex_);
     switch(type)
     {
         case tcp_packet::JOINT_DATA:
@@ -58,6 +59,7 @@ void tcp_server_handler::data_handler(const char *data, const int &size, const i
             }
             else if(r_data_.type == tcp_packet::ACT_DATA)
             {
+                std::cout<<"recv act data \n";
                 int blksz = sizeof(int)+ROBOT.get_joint_map().size()* sizeof(robot_joint_deg);
                 if((size-type_size)%blksz == 0)
                 {
@@ -107,6 +109,7 @@ void tcp_server_handler::run()
 void tcp_server_handler::close()
 {
     tcp_io_service.stop();
+    std::cout<<"\033[32mtcp_server closed!\033[0m\n";
 }
 
 tcp_server_handler::~tcp_server_handler()

@@ -6,29 +6,30 @@
 #include "pattern.hpp"
 #include "options/options.hpp"
 #include "configuration.hpp"
-#include "sensor/game_ctrl.hpp"
-#include "sensor/imu.hpp"
-#include "sensor/remote.hpp"
-#include "sensor/dxl.hpp"
+#include "../sensor/imu.hpp"
+#include "../sensor/remote.hpp"
+#include "../sensor/motor.hpp"
+#include "../sensor/game_ctrl.hpp"
 
 class robot_subscriber: public subscriber
 {
 public:
     robot_subscriber()
     {
+        voltage_ = MAX_VOLTAGE;
     }
     
     bool regist()
     {
         sensors_.clear();
+        sensors_["motor"] = std::make_shared<motor>(shared_from_this());
         if(OPTS.use_debug())
         {
-            if(OPTS.use_remote()) sensors_["rmt"] = std::make_shared<remote>(shared_from_this());
+            if(OPTS.use_remote()) sensors_["remote"] = std::make_shared<remote>(shared_from_this());
         }
         if(OPTS.use_robot())
         {
             sensors_["imu"] = std::make_shared<imu>(shared_from_this());
-            sensors_["dxl"] = std::make_shared<dxl>(shared_from_this());
         }
         if(OPTS.use_gc())
         {
@@ -61,6 +62,14 @@ public:
         }
     }
     
+    sensor_ptr get_sensor(const std::string &name)
+    {
+        auto iter = sensors_.find(name);
+        if(iter != sensors_.end())
+            return iter->second;
+        return nullptr;
+    }
+    
     virtual void updata(const pub_ptr &pub)
     {
         //std::cout<<"update\n";
@@ -78,12 +87,19 @@ public:
             imu_data_ = sptr->data();
             return;
         }
-        if(pub == (sensors_.find("rmt"))->second)
+        if(pub == (sensors_.find("remote"))->second)
         {
             //std::cout<<"update rmt\n";
             std::lock_guard<std::mutex> lk(rmt_mtx_);
             std::shared_ptr<remote> sptr = std::dynamic_pointer_cast<remote>(pub);
             rmt_data_ = sptr->data();
+            return;
+        }
+        if(pub == (sensors_.find("motor"))->second)
+        {
+            std::lock_guard<std::mutex> lk(dxl_mtx_);
+            std::shared_ptr<motor> sptr = std::dynamic_pointer_cast<motor>(pub);
+            voltage_ = sptr->voltage();
             return;
         }
     }
@@ -107,11 +123,12 @@ public:
     }
 
 private:
-    std::map<std::string, sersor_ptr> sensors_;
+    float voltage_;
+    std::map<std::string, sensor_ptr> sensors_;
     RoboCupGameControlData gc_data_;
     imu::imu_data imu_data_;
     comm::tcp_packet::remote_data rmt_data_;
-    mutable std::mutex gc_mtx_, imu_mtx_, rmt_mtx_;
+    mutable std::mutex gc_mtx_, imu_mtx_, rmt_mtx_, dxl_mtx_;
 };
 
 #endif //SEU_UNIROBOT_ROBOT_SUBSCRIBER_HPP

@@ -6,9 +6,9 @@
 #define SEU_UNIROBOT_DEBUGER_ACTION_MONITOR_HPP
 
 #include <QtWidgets>
-#include "module/robot_gl.hpp"
 #include "robot/humanoid.hpp"
 #include "tcp_client/tcp_client_handler.hpp"
+#include "module/ImageLabel.hpp"
 
 class image_monitor: public QMainWindow
 {
@@ -24,7 +24,7 @@ public slots:
 protected:
     void closeEvent(QCloseEvent *event);
 private:
-    QLabel *imageLab;
+    ImageLabel *imageLab;
     QLabel *yawLab, *pitchLab, *netLab;
     QSlider *pitchSlider, *yawSlider;
     QTimer *timer;

@@ -1,8 +1,7 @@
 include_directories(./)
 
-add_subdirectory(communication)
+add_subdirectory(tcp_server)
 add_subdirectory(options)
-add_subdirectory(sensor)
 add_subdirectory(player)
 add_subdirectory(dynamixel)
 
@@ -12,9 +11,8 @@ add_executable(${TARGET_NAME}
                 main.cpp)
 
 target_link_libraries(${TARGET_NAME}
-                communication
+                tcp_server
                 actuator_options
-                sensor
                 player)
 
 set(CMAKE_INSTALL_PREFIX "${CMAKE_SOURCE_DIR}/bin")

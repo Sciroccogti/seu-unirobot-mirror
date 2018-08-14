@@ -7,7 +7,7 @@ using namespace std;
 
 boost::asio::io_service gc_io_service;
 
-game_ctrl::game_ctrl(const sub_ptr &s): server_(gc_io_service, 
+game_ctrl::game_ctrl(const sub_ptr &s):sensor("game_ctrl"), server_(gc_io_service, 
 udp::endpoint(boost::asio::ip::address_v4::from_string(CONF.get_config_value<string>("net.udp.game_ctrl.addr")), CONF.get_config_value<short>("net.udp.game_ctrl.recv_port")), 
 gc_data_size, GAMECONTROLLER_STRUCT_HEADER, 4, bind(&game_ctrl::data_handler, this, placeholders::_1, placeholders::_2, placeholders::_3))
 {
@@ -31,9 +31,10 @@ void game_ctrl::close()
     {
         server_.close();
         gc_io_service.stop();
-        is_open_ = false;
-        is_alive_ = false;
     }
+    is_open_ = false;
+    is_alive_ = false;
+    std::cout<<"\033[32mgame_ctrl closed!\033[0m\n";
 }
 
 bool game_ctrl::open()

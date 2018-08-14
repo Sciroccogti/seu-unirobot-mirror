@@ -21,6 +21,12 @@ namespace robot
             parser::action_parser::parse(action_file, act_map_, pos_map_);
             parser::offset_parser::parse(offset_file, joint_map_);
         }
+        
+        void set_degs(const std::map<int, float> &jdmap)
+        {
+            for(auto j:jdmap)
+                get_joint(j.first)->set_deg(j.second);
+        }
 
         joint_ptr get_joint(const int &id)
         {
