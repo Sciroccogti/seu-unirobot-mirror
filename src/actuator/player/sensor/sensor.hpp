@@ -25,10 +25,10 @@ public:
         return is_alive_;
     }
     
+    virtual bool open() = 0;
     virtual bool start() = 0;
     virtual void run() = 0;  
-    virtual bool open() = 0;
-    virtual void close() = 0;
+    virtual void stop() = 0;
     
 protected:
     bool is_open_;

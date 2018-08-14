@@ -1,7 +1,6 @@
 #include "motor.hpp"
 #include "configuration.hpp"
 #include "options/options.hpp"
-#include "tcp_server/tcp_server_handler.hpp"
 
 #define ADDR_ID     7
 #define ADDR_TORQ   64
@@ -27,18 +26,109 @@ uint32_t float2pos(const float &deg)
     return static_cast<uint32_t>(deg/(360.0/(float)(MAX_POS-MIN_POS))+ZERO_POS);
 }
 
-motor::motor(const sub_ptr& s): timer(CONF.get_config_value<int>("serial.dxl.period")),sensor("motor"),
+motor::motor(const sub_ptr& s, sensor_ptr dbg): timer(CONF.get_config_value<int>("serial.dxl.period")), sensor("motor"),
     period_(CONF.get_config_value<int>("serial.dxl.period")), p_count_(0)
 {
+    attach(s);
     portHandler_ = PortHandler::getPortHandler(CONF.get_config_value<string>("serial.dxl.dev_name").c_str());
     packetHandler_ = PacketHandler::getPacketHandler(CONF.get_config_value<float>("serial.dxl.version"));
     ledWrite_ = make_shared<GroupSyncWrite>(portHandler_, packetHandler_, ADDR_LED, SIZE_LED);
     torqWrite_ = make_shared<GroupSyncWrite>(portHandler_, packetHandler_, ADDR_TORQ, SIZE_TORQ);
     gposWrite_ = make_shared<GroupSyncWrite>(portHandler_, packetHandler_, ADDR_GPOS, SIZE_GPOS);
+    dbg_ = std::dynamic_pointer_cast<debuger>(dbg);
     dxl_error_ = 0;
     voltage_ = static_cast<uint16_t>(MAX_VOLTAGE*10);
     joint_degs_list.clear();
 }
+
+bool motor::open()
+{
+    if(OPTS.use_robot())
+    {
+        if(!portHandler_->openPort()) return false;
+        if(!portHandler_->setBaudRate(CONF.get_config_value<int>("serial.dxl.baudrate"))) return false;
+        is_open_ = true;
+        sensor::is_alive_ = true;
+        timer::is_alive_ = true;
+        return true;
+    }
+    
+    if(OPTS.use_debug()) timer::is_alive_ = true;
+    return true;
+}
+
+bool motor::start()
+{
+    if(!this->open()) return false;
+    if(OPTS.use_robot()) set_torq(1);
+    start_timer();
+    return true;
+}
+
+void motor::run()
+{
+    lock_guard<mutex> lk(jd_mutex_);
+    std::map<int, float> jdmap;
+    if(timer::is_alive_)
+    {
+        if(!joint_degs_list.empty())
+        {
+            jdmap = joint_degs_list.front();
+            joint_degs_list.pop_front();
+            ROBOT.set_degs(jdmap);
+        }
+        
+        if(dbg_!=nullptr)
+        {
+            tcp_packet::tcp_command cmd;
+            cmd.type = tcp_packet::JOINT_DATA;
+            robot_joint_deg jd;
+            string j_data;
+            j_data.clear();
+            for(auto jm:ROBOT.get_joint_map())
+            {
+                jd.id = jm.second->jid_;
+                jd.deg = jm.second->get_deg();
+                j_data.append((char*)(&jd), sizeof(robot_joint_deg));
+                cout<<jd.id<<'\t'<<jd.deg<<endl;
+            }
+            cmd.size = ROBOT.get_joint_map().size()*sizeof(robot_joint_deg);
+            memcpy(cmd.data, j_data.c_str(), cmd.size);
+            dbg_->write(cmd);
+        }
+        
+        if(OPTS.use_robot())
+        {
+            set_gpos();
+            if((p_count_*period_%1000) == 0)
+            {
+                led_status_ = 1 - led_status_;
+                set_led(led_status_);
+            }
+            if((p_count_*period_%10000) == 0)
+            {
+                int res = packetHandler_->read2ByteTxRx(portHandler_, static_cast<uint8_t>(ROBOT.get_joint("jhead1")->jid_), 
+                                                        ADDR_VOLT, (uint16_t*)&voltage_, &dxl_error_);
+                if(res == COMM_SUCCESS) notify();
+            }
+        }
+        p_count_++;
+    }
+}
+
+void motor::stop()
+{
+    if(is_open_)
+    {
+        is_open_ = false;
+        portHandler_->closePort();
+    }
+    sensor::is_alive_ = false;
+    timer::is_alive_ = false;
+    delete_timer();
+    sleep(1);
+}
+
 
 void motor::add_joint_degs(const map<int, float>& jdmap)
 {
@@ -81,100 +171,6 @@ void motor::set_gpos()
         if(!gposWrite_->addParam(static_cast<uint8_t>(j.second->jid_), gpos_data)) return;
     }
     gposWrite_->txPacket();
-}
-
-bool motor::open()
-{
-    if(OPTS.use_robot())
-    {
-        if(portHandler_->openPort())
-        {
-            if(portHandler_->setBaudRate(CONF.get_config_value<int>("serial.dxl.baudrate")))
-            {
-                is_open_ = true;
-                sensor::is_alive_ = true;
-                timer::is_alive_ = true;
-                return true;
-            }
-        }
-    }
-    if(OPTS.use_debug())
-    {
-        timer::is_alive_ = true;
-        return true;
-    }
-    return false;
-}
-
-void motor::close()
-{
-    if(is_open_)
-    {
-        is_open_ = false;
-        portHandler_->closePort();
-    }
-    sensor::is_alive_ = false;
-    timer::is_alive_ = false;
-    delete_timer();
-    sleep(1);
-    std::cout<<"\033[32mmotor closed!\033[0m\n";
-}
-
-bool motor::start()
-{
-    //cout<<"start\n";
-    if(!this->open()) return false;
-    if(OPTS.use_robot()) set_torq(1);
-    start_timer();
-    return true;
-}
-
-void motor::run()
-{
-    lock_guard<mutex> lk(jd_mutex_);
-    std::map<int, float> jdmap;
-    if(timer::is_alive_)
-    {
-        if(!joint_degs_list.empty())
-        {
-            jdmap = joint_degs_list.front();
-            joint_degs_list.pop_front();
-            ROBOT.set_degs(jdmap);
-        }
-        if(OPTS.use_debug())
-        {
-            tcp_packet::tcp_command cmd;
-            cmd.type = tcp_packet::JOINT_DATA;
-            robot_joint_deg jd;
-            string j_data;
-            j_data.clear();
-            for(auto jm:ROBOT.get_joint_map())
-            {
-                jd.id = jm.second->jid_;
-                jd.deg = jm.second->get_deg();
-                j_data.append((char*)(&jd), sizeof(robot_joint_deg));
-            }
-            cmd.size = ROBOT.get_joint_map().size()*sizeof(robot_joint_deg);
-            memcpy(cmd.data, j_data.c_str(), cmd.size);
-            TCP_SERVER.write(cmd);
-        }
-        if(OPTS.use_robot())
-        {
-            set_gpos();
-            if((p_count_*period_%1000) == 0)
-            {
-                led_status_ = 1 - led_status_;
-                set_led(led_status_);
-            }
-            if((p_count_*period_%10000) == 0)
-            {
-                int res = packetHandler_->read2ByteTxRx(portHandler_, static_cast<uint8_t>(ROBOT.get_joint("jhead1")->jid_), 
-                                                        ADDR_VOLT, (uint16_t*)&voltage_, &dxl_error_);
-                if(res == COMM_SUCCESS) notify();
-            }
-        }
-        p_count_++;
-    }
 }
 
 motor::~motor()

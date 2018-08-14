@@ -1,4 +1,4 @@
-#include "tcp_server_handler.hpp"
+#include "debuger.hpp"
 #include "configuration.hpp"
 #include "robot/humanoid.hpp"
 
@@ -8,28 +8,49 @@ using namespace robot;
 
 boost::asio::io_service tcp_io_service;
 
-tcp_server_handler::tcp_server_handler()
-    : server_(tcp_io_service, tcp::endpoint(tcp::v4(), CONF.get_config_value<int>("net.tcp.port")),
-            bind(&tcp_server_handler::data_handler, this, placeholders::_1, placeholders::_2, placeholders::_3))
+debuger::debuger(const sub_ptr& s): sensor("debuger"),
+    server_(tcp_io_service, tcp::endpoint(tcp::v4(), CONF.get_config_value<int>("net.tcp.port")),
+            bind(&debuger::data_handler, this, placeholders::_1, placeholders::_2, placeholders::_3))
 {
-    r_data_.id = 0;
+    attach(s);
     r_data_.size = 0;
+    r_data_.type = tcp_packet::NONE_DATA;
 }
 
-void tcp_server_handler::start()
+bool debuger::open()
 {
-    td_ = thread(bind(&tcp_server_handler::run, this));
+    is_open_ = true;
+    is_alive_ = true;
+    return true;
 }
 
-void tcp_server_handler::data_handler(const char *data, const int &size, const int &type)
+bool debuger::start()
 {
-    //std::cout<<"new data, size: "<<size<<" type: "<<type<<std::endl;
+    this->open();
+    td_ = thread(bind(&debuger::run, this));
+    return true;
+}
+
+void debuger::run()
+{
+    tcp_io_service.run();
+}
+
+void debuger::stop()
+{
+    tcp_io_service.stop();
+    is_open_ = false;
+    is_alive_ = false;
+}
+
+void debuger::data_handler(const char* data, const int& size, const int& type)
+{
     int float_size = sizeof(float);
     int int_size = sizeof(int);
     int type_size = sizeof(tcp_packet::remote_data_type);
     
     if(data == nullptr) return;
-    std::lock_guard<std::mutex> lk(tcp_mutex_);
+    std::lock_guard<std::mutex> lk(dbg_mutex_);
     switch(type)
     {
         case tcp_packet::JOINT_DATA:
@@ -40,7 +61,7 @@ void tcp_server_handler::data_handler(const char *data, const int &size, const i
                 for(int i=0;i<ROBOT.get_joint_map().size();i++)
                 {
                     memcpy(&jd, data+i*sizeof(robot_joint_deg), sizeof(robot_joint_deg));
-                    cout<<jd.id<<'\t'<<jd.deg<<endl;
+                    //cout<<jd.id<<'\t'<<jd.deg<<endl;
                 }
             }
             break;
@@ -68,15 +89,20 @@ void tcp_server_handler::data_handler(const char *data, const int &size, const i
                 }
             }
             r_data_.size = size-type_size;
-            r_data_.id++;
             break;
         }
         default:
             break;
     }
+    notify();
 }
 
-void tcp_server_handler::write(const comm::tcp_packet::tcp_cmd_type &type, const int &size, const char *data)
+void debuger::write(const tcp_packet::tcp_command& cmd)
+{
+    server_.do_write(comm::tcp_packet(cmd));
+}
+
+void debuger::write(const tcp_packet::tcp_cmd_type& type, const int& size, const char* data)
 {
     int t_size = size;
     comm::tcp_packet::tcp_command cmd;
@@ -96,23 +122,9 @@ void tcp_server_handler::write(const comm::tcp_packet::tcp_cmd_type &type, const
     server_.do_write(comm::tcp_packet(cmd));
 }
 
-void tcp_server_handler::write(const comm::tcp_packet::tcp_command &cmd)
-{
-    server_.do_write(comm::tcp_packet(cmd));
-}
-
-void tcp_server_handler::run()
-{
-    tcp_io_service.run();
-}
-
-void tcp_server_handler::close()
-{
-    tcp_io_service.stop();
-    std::cout<<"\033[32mtcp_server closed!\033[0m\n";
-}
-
-tcp_server_handler::~tcp_server_handler()
+debuger::~debuger()
 {
     if(td_.joinable()) td_.join();
 }
+
+

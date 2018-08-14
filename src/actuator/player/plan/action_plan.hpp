@@ -11,7 +11,7 @@ public:
     action_plan(const std::string& act_name, sensor_ptr s)
         :plan("action_plan"), act_name_(act_name)
     {
-        if(s == nullptr) throw class_exception<action_plan>("emptr sensor ptr");
+        if(s == nullptr) throw class_exception<action_plan>("empty sensor ptr");
         motor_ = std::dynamic_pointer_cast<motor>(s);
     }
     
@@ -41,7 +41,7 @@ public:
             latest_deg = motor_->get_latest_degs();
             diff.clear();
             for(auto jd:one_pos_deg)
-                diff[jd.first] = latest_deg[jd.first]-jd.second;
+                diff[jd.first] = jd.second-latest_deg[jd.first];
             for(int i=1;i<=act_t;i++)
             {
                 jdmap.clear();

@@ -23,7 +23,7 @@ namespace comm
 
         enum tcp_cmd_type
         {
-            REG_DATA = 0,
+            REG_DATA = 1,
             TEST_DATA = 5,
             JOINT_DATA = 6,
             REMOTE_DATA = 7,
@@ -32,6 +32,7 @@ namespace comm
         
         enum remote_data_type
         {
+            NONE_DATA = 0,
             WALK_DATA = 1,
             ACT_DATA = 2,
             JOINT_OFFSET = 3
@@ -53,7 +54,6 @@ namespace comm
             remote_data_type type;
             int size;
             std::string data;
-            unsigned long int id;
         };
 
         tcp_packet(): body_length_(0), is_full_(false)

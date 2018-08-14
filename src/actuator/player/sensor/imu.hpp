@@ -18,10 +18,10 @@ public:
     imu(const sub_ptr &s);
     ~imu();
     
+    bool open();
     bool start();
     void run();
-    bool open();
-    void close();
+    void stop();
     
     void data_handler(const char* data, const int& size, const int& type=0);
     

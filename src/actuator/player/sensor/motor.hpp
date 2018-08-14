@@ -6,7 +6,7 @@
 #include <mutex>
 #include "dynamixel/dynamixel_sdk.h"
 #include "timer.hpp"
-#include "sensor.hpp"
+#include "debuger.hpp"
 #include "robot/humanoid.hpp"
 
 #define MAX_VOLTAGE 16.8
@@ -17,13 +17,14 @@
 class motor: public sensor, public timer
 {
 public:
-    motor(const sub_ptr &s);
+    motor(const sub_ptr &s, sensor_ptr dbg=nullptr);
     ~motor();
     
+    bool open();
     bool start();
     void run();
-    bool open();
-    void close();
+    void stop();
+    
     void add_joint_degs(const std::map<int, float> &jdmap);
     
     float voltage() const
@@ -56,6 +57,7 @@ private:
     std::shared_ptr<dynamixel::GroupSyncWrite> gposWrite_;
     std::shared_ptr<dynamixel::GroupSyncWrite> ledWrite_;
     
+    std::shared_ptr<debuger> dbg_;
     uint16_t voltage_;
     uint8_t dxl_error_;
     int period_;

@@ -1,11 +1,11 @@
 add_library(sensor STATIC
+            debuger.cpp
             motor.cpp
             game_ctrl.cpp
-            imu.cpp
-            remote.cpp)
+            imu.cpp)
             
 target_link_libraries(sensor
+            boost_system
             dynamixel
-            tcp_server
             rt
             pthread)

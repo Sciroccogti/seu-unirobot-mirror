@@ -7,9 +7,9 @@
 #include "options/options.hpp"
 #include "configuration.hpp"
 #include "../sensor/imu.hpp"
-#include "../sensor/remote.hpp"
 #include "../sensor/motor.hpp"
 #include "../sensor/game_ctrl.hpp"
+#include "../sensor/debuger.hpp"
 
 class robot_subscriber: public subscriber
 {
@@ -22,10 +22,9 @@ public:
     bool regist()
     {
         sensors_.clear();
-        sensors_["motor"] = std::make_shared<motor>(shared_from_this());
         if(OPTS.use_debug())
         {
-            if(OPTS.use_remote()) sensors_["remote"] = std::make_shared<remote>(shared_from_this());
+            sensors_["debug"] = std::make_shared<debuger>(shared_from_this());
         }
         if(OPTS.use_robot())
         {
@@ -42,6 +41,12 @@ public:
                 std::cout<<"\033[31m"<<e.what()<<"\033[0m\n";
             }
         }
+        
+        if(sensors_.find("debug") != sensors_.end())
+            sensors_["motor"] = std::make_shared<motor>(shared_from_this(), sensors_["debug"]);
+        else
+            sensors_["motor"] = std::make_shared<motor>(shared_from_this());
+        
         auto iter = sensors_.begin();
         while(iter!=sensors_.end())
         {
@@ -57,7 +62,7 @@ public:
         while(iter!=sensors_.end())
         {
             iter->second->detach(shared_from_this());
-            iter->second->close();
+            iter->second->stop();
             iter++;
         }
     }
@@ -72,7 +77,6 @@ public:
     
     virtual void updata(const pub_ptr &pub)
     {
-        //std::cout<<"update\n";
         if(pub == (sensors_.find("gc"))->second)
         {
             std::lock_guard<std::mutex> lk(gc_mtx_);
@@ -87,19 +91,18 @@ public:
             imu_data_ = sptr->data();
             return;
         }
-        if(pub == (sensors_.find("remote"))->second)
-        {
-            //std::cout<<"update rmt\n";
-            std::lock_guard<std::mutex> lk(rmt_mtx_);
-            std::shared_ptr<remote> sptr = std::dynamic_pointer_cast<remote>(pub);
-            rmt_data_ = sptr->data();
-            return;
-        }
         if(pub == (sensors_.find("motor"))->second)
         {
             std::lock_guard<std::mutex> lk(dxl_mtx_);
             std::shared_ptr<motor> sptr = std::dynamic_pointer_cast<motor>(pub);
             voltage_ = sptr->voltage();
+            return;
+        }
+        if(pub == (sensors_.find("debug"))->second)
+        {
+            std::lock_guard<std::mutex> lk(dxl_mtx_);
+            std::shared_ptr<debuger> sptr = std::dynamic_pointer_cast<debuger>(pub);
+            rmt_data_ = sptr->r_data();
             return;
         }
     }

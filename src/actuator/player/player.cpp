@@ -19,6 +19,6 @@ bool player::initialization()
 list< plan_ptr > player::think()
 {     
     list<plan_ptr> plist;
-    //plist.push_back(make_shared<action_plan>("ready", suber_->get_sensor("motor")));
+    plist.push_back(make_shared<action_plan>("ready", suber_->get_sensor("motor")));
     return plist;
 }

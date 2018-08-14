@@ -14,13 +14,11 @@ imu::imu(const sub_ptr& s)
     data_ = (imu_data*)(str_.data());
 }
 
-void imu::data_handler(const char* data, const int& size, const int& type)
+bool imu::open()
 {
-    if(size==imu_data_size)
-    {
-        str_.assign(data, size);
-        notify();
-    }
+    is_open_ = true;
+    is_alive_ = true;
+    return true;
 }
 
 bool imu::start()
@@ -35,14 +33,7 @@ void imu::run()
     imu_io_service.run();
 }
 
-bool imu::open()
-{
-    is_open_ = true;
-    is_alive_ = true;
-    return true;
-}
-
-void imu::close()
+void imu::stop()
 {
     if(is_open_)
     {
@@ -51,7 +42,15 @@ void imu::close()
     }
     is_open_ = false;
     is_alive_ = false;
-    std::cout<<"\033[32mimu closed!\033[0m\n";
+}
+
+void imu::data_handler(const char* data, const int& size, const int& type)
+{
+    if(size==imu_data_size)
+    {
+        str_.assign(data, size);
+        notify();
+    }
 }
 
 imu::~imu()
