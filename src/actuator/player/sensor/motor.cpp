@@ -90,7 +90,6 @@ void motor::run()
                 jd.id = jm.second->jid_;
                 jd.deg = jm.second->get_deg();
                 j_data.append((char*)(&jd), sizeof(robot_joint_deg));
-                cout<<jd.id<<'\t'<<jd.deg<<endl;
             }
             cmd.size = ROBOT.get_joint_map().size()*sizeof(robot_joint_deg);
             memcpy(cmd.data, j_data.c_str(), cmd.size);

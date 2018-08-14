@@ -40,7 +40,7 @@ public:
         if(is_alive_)
         {
             period_count_++;
-            //controller_->add_plan(think());
+            controller_->add_plan(think());
         }
     }
     

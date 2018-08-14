@@ -11,6 +11,7 @@
 #include <boost/asio.hpp>
 #include "tcp_packet.hpp"
 #include "comm.hpp"
+#include "logger.hpp"
 
 namespace comm
 {
@@ -45,7 +46,7 @@ namespace comm
         void leave(tcp_connection_ptr connection)
         {
             connections_.erase(connection);
-            std::cout<<"connection leaved"<<std::endl;
+            LOG(LOG_INFO, "connection leaved");
         }
 
         void deliver(const tcp_packet &pkt)
@@ -80,6 +81,7 @@ namespace comm
         tcp_session(tcp::socket socket, tcp_pool &pool, net_comm_callback cb)
             : socket_(std::move(socket)), pool_(pool), cb_(std::move(cb))
         {
+            LOG(LOG_INFO, "new connection");
         }
 
         void start()
@@ -213,7 +215,6 @@ namespace comm
             {
                 if (!ec)
                 {
-                    std::cout<<"new connection"<<std::endl;
                     std::make_shared<tcp_session>(std::move(socket_), pool_, cb_)->start();
                 }
                 do_accept();

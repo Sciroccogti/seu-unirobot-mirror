@@ -2,6 +2,7 @@
 // Created by lcseu on 18-8-10.
 //
 #include "options.hpp"
+#include "logger.hpp"
 
 using namespace boost::program_options;
 
@@ -20,17 +21,17 @@ bool options::init(int argc, char *argv[])
         id_ = arg<int>("player");
         if (var_map_.count("help"))
         {
-            std::cout<<"\033[31m"<< opts_desc_ <<"\033[0m"<< std::endl;
+            LOG(LOG_INFO, opts_desc_);
             return false;
         }
     }
     catch (boost::program_options::unknown_option &e)
     {
-        std::cerr<<"\033[31m"<< e.what() <<"\033[0m"<< std::endl;
+        LOG(LOG_WARN, e.what());
     }
     catch (std::exception &e)
     {
-        std::cerr<<"\033[31m"<< e.what() <<"\033[0m"<< std::endl;
+        LOG(LOG_ERROR, e.what());
         return false;
     }
     return true;

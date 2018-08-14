@@ -2,6 +2,7 @@
 #define SEU_UNIROBOT_ACTION_PLAN_HPP
 
 #include "plan.hpp"
+#include "logger.hpp"
 #include "robot/humanoid.hpp"
 #include "../sensor/motor.hpp"
 #include "class_exception.hpp"
@@ -20,7 +21,7 @@ public:
         auto aiter = robot::ROBOT.get_act_map().find(act_name_);
         if(aiter == robot::ROBOT.get_act_map().end())
         {
-            std::cout<<"\033[31mcannot find action: "<<act_name_<<"\033[0m\n";
+            LOG(LOG_ERROR, "cannot find action: "+act_name_);
             return false;
         }
         int act_t;

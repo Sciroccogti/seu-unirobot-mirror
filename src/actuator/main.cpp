@@ -4,6 +4,7 @@
 #include "robot/humanoid.hpp"
 #include "options/options.hpp"
 #include "player/player.hpp"
+#include "logger.hpp"
 
 using namespace std;
 using namespace robot;
@@ -13,9 +14,9 @@ shared_ptr<player> maxwell;
 
 void exit_handler(int sig)
 {
-    cout<<"\n\033[32m*************************************************\033[0m\n";
-    cout<<"\n\033[32m****************    Good bye!    ****************\033[0m\n";
-    cout<<"\n\033[32m*************************************************\033[0m\n";
+    LOG(LOG_INFO, "\n*************************************************");
+    LOG(LOG_INFO, "****************    Good bye!    ****************");
+    LOG(LOG_INFO, "*************************************************");
     if(sig == SIGINT)
     {
         maxwell->kill();
@@ -26,12 +27,12 @@ int main(int argc, char *argv[])
 {
     if(!OPTS.init(argc, argv))
     {
-        cout<<"options init failed"<<endl;
+        LOG(LOG_ERROR, "options init failed");
         exit(1);
     }
     if(!CONF.init(OPTS.id()))
     {
-        cout<<"config init failed"<<endl;
+        LOG(LOG_ERROR, "config init failed");
         exit(2);
     }
     ROBOT.init(CONF.robot_file(), CONF.action_file(), CONF.offset_file());

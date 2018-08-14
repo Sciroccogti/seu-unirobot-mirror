@@ -59,17 +59,13 @@ void debuger::data_handler(const char* data, const int& size, const int& type)
             {
                 robot_joint_deg jd;
                 for(int i=0;i<ROBOT.get_joint_map().size();i++)
-                {
                     memcpy(&jd, data+i*sizeof(robot_joint_deg), sizeof(robot_joint_deg));
-                    //cout<<jd.id<<'\t'<<jd.deg<<endl;
-                }
             }
             break;
         }
         case tcp_packet::REMOTE_DATA:
         {
             memcpy(&(r_data_.type), data, type_size);
-            //std::cout<<"recv data: "<<(int)r_data_.type<<'\n';
             if(r_data_.type == tcp_packet::WALK_DATA)
             {
                 if(size == 4*float_size+type_size)
@@ -80,7 +76,6 @@ void debuger::data_handler(const char* data, const int& size, const int& type)
             }
             else if(r_data_.type == tcp_packet::ACT_DATA)
             {
-                std::cout<<"recv act data \n";
                 int blksz = sizeof(int)+ROBOT.get_joint_map().size()* sizeof(robot_joint_deg);
                 if((size-type_size)%blksz == 0)
                 {

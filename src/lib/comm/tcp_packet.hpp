@@ -130,21 +130,17 @@ namespace comm
         {
             int body_len;
             std::memcpy(&body_len, data_, sizeof(int));
-            //std::cout<<"\ndecode body_len:"<<body_len<<"\n";
             if(body_len>max_body_length) return false;
             body_length_ = body_len;
             is_full_ = static_cast<bool>(*(data_+sizeof(int)));
-            //std::cout<<"\ndecode is_full:"<<(int)is_full_<<"\n";
             return true;
         }
 
         void encode_header()
         {
             int body_len = static_cast<int>(body_length_);
-            //std::cout<<"\nencode body_len:"<<body_len<<"\n";
             std::memcpy(data_, (char*)(&body_len), sizeof(int));
             *(data_+sizeof(int)) = static_cast<char>(is_full_);
-            //std::cout<<"\nencode is_full:"<<is_full_<<"\n";
         }
 
     private:

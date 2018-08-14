@@ -4,7 +4,7 @@
 #include <iostream>
 #include <memory>
 #include "pattern.hpp"
-
+#include "logger.hpp"
 class sensor: public publisher
 {
 public:
@@ -13,7 +13,7 @@ public:
     }
     ~sensor()
     {
-        std::cout<<"\033[32msensor: "<<name_<<" end!\033[0m\n";
+        LOG(LOG_INFO, "sensor: "+name_+" end!");
     }
     bool is_open() const
     {

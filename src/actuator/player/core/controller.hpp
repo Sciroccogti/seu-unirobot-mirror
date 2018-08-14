@@ -5,6 +5,7 @@
 #include <list>
 #include <thread>
 #include <mutex>
+#include "logger.hpp"
 #include "../plan/plan.hpp"
 
 class controller
@@ -48,11 +49,11 @@ public:
             if(!plan_list_.empty())
             {
                 p = plan_list_.front();
-                if(!p->perform()) std::cout<<"\033[31mplan perform error: "<<p->name()<<"\033[0m\n";
+                if(!p->perform()) LOG(LOG_WARN, "plan perform error: "+p->name());
                 plan_list_.pop_front();
             }
         }
-        std::cout<<"\033[32mcontroller end!\033[0m\n";
+        LOG(LOG_INFO, "controller end!");
     }
 private:
     std::string name_;

@@ -6,6 +6,7 @@
 #include "pattern.hpp"
 #include "options/options.hpp"
 #include "configuration.hpp"
+#include "logger.hpp"
 #include "../sensor/imu.hpp"
 #include "../sensor/motor.hpp"
 #include "../sensor/game_ctrl.hpp"
@@ -38,7 +39,7 @@ public:
             }
             catch(std::exception &e)
             {
-                std::cout<<"\033[31m"<<e.what()<<"\033[0m\n";
+                LOG(LOG_WARN, e.what());
             }
         }
         

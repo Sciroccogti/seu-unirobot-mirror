@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <exception>
+#include "logger.hpp"
 
 template <class CLASS>
 class class_exception
@@ -10,7 +11,7 @@ class class_exception
 public:
     class_exception(std::string msg, int id=0): msg_(msg), id_(id)
     {
-        std::cout<<"\033[31mexception: "<<msg_<<"\033[0m"<<std::endl;
+        LOG(LOG_ERROR, "exception: "+msg_);
     }
 
     ~class_exception(){};

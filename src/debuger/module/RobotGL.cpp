@@ -52,7 +52,6 @@ void RobotGL::paintGL()
 void RobotGL::draw_3d_bone(bone_ptr b)
 {
     if(!b) return;
-    //cout<<b->name_<<'\t'<<b->joints_.size()<<endl;
     float r_b = 0.01;
     float r_j = 0.02;
     float j_l = 0.04;

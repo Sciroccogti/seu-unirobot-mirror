@@ -29,16 +29,16 @@ namespace robot
                 get_joint(j.first)->set_deg(j.second);
         }
 
-        joint_ptr &get_joint(const int &id)
+        joint_ptr get_joint(const int &id)
         {
-            for(auto &j:joint_map_)
+            for(auto j:joint_map_)
                 if(j.second->jid_ == id) return j.second;
             throw class_exception<humanoid>("cannot find joint by id: "+std::to_string(id));
         }
 
-        joint_ptr &get_joint(const std::string &name)
+        joint_ptr get_joint(const std::string &name)
         {
-            for(auto &j:joint_map_)
+            for(auto j:joint_map_)
                 if(j.second->name_ == name) return j.second;
             throw class_exception<humanoid>("cannot find joint by name: "+name);
         }

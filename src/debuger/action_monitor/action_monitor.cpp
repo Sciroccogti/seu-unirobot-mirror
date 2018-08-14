@@ -26,7 +26,6 @@ action_monitor::action_monitor()
 
 void action_monitor::data_handler(const char *data, const int &size, const int &type)
 {
-    cout<<"recved type: "<<(int)type<<endl;
     if(type == tcp_packet::JOINT_DATA)
     {
         robot_joint_deg jdeg;
@@ -35,7 +34,6 @@ void action_monitor::data_handler(const char *data, const int &size, const int &
         {
             memcpy(&jdeg, data+i*sizeof(robot_joint_deg), sizeof(robot_joint_deg));
             jdegs[jdeg.id] = jdeg.deg;
-            cout<<jdeg.id<<'\t'<<jdeg.deg<<endl;
         }
         rgl->turn_joint(jdegs);
         this->update();

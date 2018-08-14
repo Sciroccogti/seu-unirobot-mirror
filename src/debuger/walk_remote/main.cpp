@@ -3,6 +3,7 @@
 #include "configuration.hpp"
 #include "options/options.hpp"
 #include "robot/humanoid.hpp"
+#include "logger.hpp"
 
 using namespace std;
 using namespace robot;
@@ -11,12 +12,12 @@ int main(int argc, char **argv)
 {
     if(!OPTS.init(argc, argv))
     {
-        cout<<"options init failed"<<endl;
+        LOG(LOG_ERROR, "options init failed");
         exit(1);
     }
     if(!CONF.init(OPTS.id()))
     {
-        cout<<"config init failed"<<endl;
+        LOG(LOG_ERROR, "config init failed");
         exit(2);
     }
 
