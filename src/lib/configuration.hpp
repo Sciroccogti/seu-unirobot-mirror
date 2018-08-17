@@ -1,7 +1,3 @@
-//
-// Created by lcseu on 18-8-10.
-//
-
 #ifndef SEU_UNIROBOT_CONFIGURATION_HPP
 #define SEU_UNIROBOT_CONFIGURATION_HPP
 
@@ -14,9 +10,8 @@ public:
     bool init(const int &id)
     {
         id_ = id;
-        if(!parser::config_parser::parse("data/actuator.conf", config_tree_)) return false;
+        if(!parser::config_parser::parse("data/config.conf", config_tree_)) return false;
         player_ = "players." + std::to_string(id_);
-        //parser::config_parser::save("res.conf", config_tree_);
         return true;
     }
 

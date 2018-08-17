@@ -1,5 +1,5 @@
-#ifndef SEU_UNIROBOT_GAME_CTRL_HPP
-#define SEU_UNIROBOT_GAME_CTRL_HPP
+#ifndef SEU_UNIROBOT_ACTUATOR_GAME_CTRL_HPP
+#define SEU_UNIROBOT_ACTUATOR_GAME_CTRL_HPP
 
 #include <thread>
 #include "GameCtrlData/RoboCupGameControlData.h"

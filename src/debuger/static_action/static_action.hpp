@@ -1,5 +1,5 @@
-#ifndef SEU_UNIROBOT_STATIICACTION_HPP
-#define SEU_UNIROBOT_STATIICACTION_HPP
+#ifndef SEU_UNIROBOT_DEBUGER_STATIIC_ACTION_HPP
+#define SEU_UNIROBOT_DEBUGER_STATIIC_ACTION_HPP
 
 #include <QtWidgets>
 #include <map>
@@ -16,13 +16,44 @@ public:
     QLabel *m_id;
     QLineEdit *pos_name;
     QLineEdit *pos_time;
-    std::string pos_name_, act_name_;
+    std::string pos_name_;
     int time_;
 public:
-    CPosListWidget(const int &id, const std::string &pos_name, const int &t, const std::string &act_name);
+    CPosListWidget(const int &id, const std::string &p_name, const int &t)
+        :time_(t), pos_name_(p_name)
+    {
+        m_id = new QLabel(QString::number(id));
+        pos_name = new QLineEdit(QString::fromStdString(p_name));
+        pos_time = new QLineEdit(QString::number(t));
+        pos_time->setFixedWidth(40);
+        QHBoxLayout *mainLayout = new QHBoxLayout;
+        mainLayout->addWidget(m_id);
+        mainLayout->addWidget(pos_name);
+        mainLayout->addWidget(pos_time);
+        setLayout(mainLayout);
+        connect(pos_name, &QLineEdit::editingFinished, this, &CPosListWidget::procNameChange);
+        connect(pos_time, &QLineEdit::editingFinished, this, &CPosListWidget::procTimeChange);
+    }
 private slots:
-    void procNameChange();
-    void procTimeChange();
+    void procNameChange()
+    {
+        emit nameChanged(m_id->text().toInt()); 
+    }
+    void procTimeChange()
+    {
+        int t = pos_time->text().toInt();
+        if(t == 0)
+        {
+            QMessageBox::warning(this, "Error", "Invalid time!");
+            pos_time->setText(QString::number(time_));
+            return;
+        }
+        time_ = t;
+        emit timeChanged(m_id->text().toInt());
+    }
+signals:
+    void nameChanged(int);
+    void timeChanged(int);
 };
 
 class CJointDegWidget : public QWidget
@@ -80,7 +111,8 @@ class static_action: public QMainWindow
 public:
     static_action();
     void initStatusBar();
-
+protected:
+    void closeEvent(QCloseEvent *event);
 private slots:
     void procX(int value);
     void procY(int value);
@@ -105,9 +137,9 @@ private slots:
     void procButtonJointRevise();
     void updateSlider(int id);
     void procTimer();
+    void procPosNameChanged(int id);
+    void procPosTimeChanged(int id);
 
-protected:
-    void closeEvent(QCloseEvent *event);
 private:
     void updateJDInfo();
     void updatePosList(std::string act_name);
@@ -118,13 +150,15 @@ private:
     float get_deg_from_pose(const float &ps);
     bool turn_joint();
 
-    robot::robot_motion motion_;
+    robot::robot_motion motion_, last_motion;
     std::map<robot::robot_motion, robot::robot_pose> pose_map_;
     std::map<int, float> joint_degs_;
     QTimer *timer;
     tcp_client_handler client_;
     QString net_info;
     bool first_connect;
+    bool pos_saved;
+    int last_pos_id, last_act_id;
 
     QLabel *motionlab, *valuelab,*currposlab, *curractlab, *netstatuslab;
     QListWidget *m_pPosListWidget, *m_pActListWidget, *m_pJDListWidget1, *m_pJDListWidget2;

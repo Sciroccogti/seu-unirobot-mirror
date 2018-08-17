@@ -19,7 +19,6 @@ debuger::debuger(const sub_ptr& s): sensor("debuger"),
 
 bool debuger::open()
 {
-    is_open_ = true;
     is_alive_ = true;
     return true;
 }
@@ -38,8 +37,8 @@ void debuger::run()
 
 void debuger::stop()
 {
+    server_.close();
     tcp_io_service.stop();
-    is_open_ = false;
     is_alive_ = false;
 }
 
@@ -50,7 +49,6 @@ void debuger::data_handler(const char* data, const int& size, const int& type)
     int type_size = sizeof(tcp_packet::remote_data_type);
     
     if(data == nullptr) return;
-    std::lock_guard<std::mutex> lk(dbg_mutex_);
     switch(type)
     {
         case tcp_packet::JOINT_DATA:
@@ -76,7 +74,7 @@ void debuger::data_handler(const char* data, const int& size, const int& type)
             }
             else if(r_data_.type == tcp_packet::ACT_DATA)
             {
-                int blksz = sizeof(int)+ROBOT.get_joint_map().size()* sizeof(robot_joint_deg);
+                int blksz = sizeof(int)+ROBOT.get_joint_map().size()* (int_size+float_size);
                 if((size-type_size)%blksz == 0)
                 {
                     r_data_.data.clear();

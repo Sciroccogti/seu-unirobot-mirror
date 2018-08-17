@@ -20,7 +20,7 @@ action_monitor::action_monitor()
     timer= new QTimer;
     timer->start(1000);
 
-    connect(timer, SIGNAL(timeout()), this, SLOT(procTimer()));
+    connect(timer, &QTimer::timeout, this, &action_monitor::procTimer);
     client_.start();
 }
 

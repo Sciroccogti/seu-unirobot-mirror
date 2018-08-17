@@ -45,9 +45,9 @@ image_monitor::image_monitor()
     timer= new QTimer;
     timer->start(30);
 
-    connect(timer, SIGNAL(timeout()), this, SLOT(procTimer()));
-    connect(yawSlider, SIGNAL(valueChanged(int)), this, SLOT(procYawSlider(int)));
-    connect(pitchSlider, SIGNAL(valueChanged(int)), this, SLOT(procPitchSlider(int)));
+    connect(timer, &QTimer::timeout, this, &image_monitor::procTimer);
+    connect(yawSlider, &QSlider::valueChanged, this, &image_monitor::procYawSlider);
+    connect(pitchSlider, &QSlider::valueChanged, this, &image_monitor::procPitchSlider);
     client_.start();
 }
 

@@ -10,7 +10,6 @@
 
 namespace robot_math
 {
-    #define epsilon 1E-6
 
     static double deg2rad(const double &x)
     {
@@ -24,7 +23,7 @@ namespace robot_math
 
     static bool is_zero(const double &x)
     {
-        return fabs(x)<epsilon;
+        return fabs(x)<1E-4;
     }
 
     static int sign(const double &x)
@@ -32,14 +31,14 @@ namespace robot_math
         return (x>=0)?1:-1;
     }
 
-    void bound(const double &min, const double &max, double &x)
+    static void bound(const double &min, const double &max, double &x)
     {
         if(max<min) return;
         if(x<min) x = min;
         if(x>max) x = max;
     }
 
-    Eigen::Matrix3d RotY(const double &deg)
+    static Eigen::Matrix3d RotY(const double &deg)
     {
         double x = deg2rad(deg);
         Eigen::Matrix3d m;
@@ -49,7 +48,7 @@ namespace robot_math
         return m;
     }
 
-    Eigen::Matrix3d RotX(const double &deg)
+    static Eigen::Matrix3d RotX(const double &deg)
     {
         double x = deg2rad(deg);
         Eigen::Matrix3d m;
@@ -59,7 +58,7 @@ namespace robot_math
         return m;
     }
 
-    Eigen::Matrix3d RotZ(const double &deg)
+    static Eigen::Matrix3d RotZ(const double &deg)
     {
         double x = deg2rad(deg);
         Eigen::Matrix3d m;

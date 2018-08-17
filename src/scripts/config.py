@@ -8,9 +8,9 @@ project_dir = re.findall('(.*)%s'%project_name, os.path.realpath(__file__))[0] +
 
 config_file_name = project_dir + '/src/data/config.conf'
 compress_file_name = 'run.tar.gz'
-exec_file_name = 'maxwell'
+exec_file_name = 'actuator'
 username = 'root'
-password = '123'
+password = 'nvidia'
 ssh_port = 22
 remote_dir = '/home/run/'
 local_dir = project_dir + '/bin/'

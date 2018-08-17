@@ -1,5 +1,5 @@
-#ifndef SEU_UNIROBOT_AGENT_HPP
-#define SEU_UNIROBOT_AGENT_HPP
+#ifndef SEU_UNIROBOT_ACTUATOR_AGENT_HPP
+#define SEU_UNIROBOT_ACTUATOR_AGENT_HPP
 
 #include <memory>
 #include "timer.hpp"
@@ -14,7 +14,7 @@ public:
     {
         is_alive_ = false;
         suber_ = std::make_shared<robot_subscriber>();
-        controller_ = std::make_shared<controller>(1);
+        controller_ = std::make_shared<controller>();
         period_count_ = 0;
     }
     

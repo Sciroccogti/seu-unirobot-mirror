@@ -1,7 +1,3 @@
-//
-// Created by lcseu on 18-8-3.
-//
-
 #ifndef SEU_UNIROBOT_KINEMATICS_HPP
 #define SEU_UNIROBOT_KINEMATICS_HPP
 

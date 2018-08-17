@@ -1,9 +1,8 @@
-#ifndef TCP_CLIENT_HPP
-#define TCP_CLIENT_HPP
+#ifndef SEU_UNIROBOT_TCP_CLIENT_HPP
+#define SEU_UNIROBOT_TCP_CLIENT_HPP
 
 #include <cstdlib>
 #include <deque>
-#include <iostream>
 #include <boost/asio.hpp>
 #include <boost/thread.hpp>
 #include "tcp_packet.hpp"

@@ -1,7 +1,6 @@
-#ifndef EXCEPTION_HPP
-#define EXCEPTION_HPP
+#ifndef SEU_UNIROBOT_EXCEPTION_HPP
+#define SEU_UNIROBOT_EXCEPTION_HPP
 
-#include <iostream>
 #include <exception>
 #include "logger.hpp"
 

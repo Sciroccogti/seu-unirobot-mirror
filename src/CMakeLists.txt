@@ -1,9 +1,11 @@
 include_directories(./lib)
-add_subdirectory(lib)
+
 add_subdirectory(actuator)
-#add_subdirectory(computation)
 add_subdirectory(debuger)
 
 set(CMAKE_INSTALL_PREFIX "${CMAKE_SOURCE_DIR}/bin")
 install(DIRECTORY data DESTINATION ${CMAKE_INSTALL_PREFIX})
-install(DIRECTORY scripts DESTINATION ${CMAKE_INSTALL_PREFIX})
+
+file(GLOB PY_SCRIPTS "scripts/*.py")
+install(PROGRAMS ${PY_SCRIPTS} DESTINATION ${CMAKE_INSTALL_PREFIX} 
+        PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_EXECUTE GROUP_READ GROUP_WRITE)

@@ -1,5 +1,5 @@
-#ifndef SEU_UNIROBOT_IMU_HPP
-#define SEU_UNIROBOT_IMU_HPP
+#ifndef SEU_UNIROBOT_ACTUATOR_IMU_HPP
+#define SEU_UNIROBOT_ACTUATOR_IMU_HPP
 
 #include <string>
 #include <thread>

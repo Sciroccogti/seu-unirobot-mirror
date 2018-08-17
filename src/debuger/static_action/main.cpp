@@ -24,7 +24,7 @@ int main(int argc, char **argv)
     QApplication app(argc, argv);
     glutInit(&argc, argv);
     static_action foo;
-    foo.showMaximized();
+    //foo.showMaximized();
     foo.show();
     return app.exec();
 }

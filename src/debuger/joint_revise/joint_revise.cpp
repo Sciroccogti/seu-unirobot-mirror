@@ -5,38 +5,6 @@ using namespace robot;
 using namespace std;
 using namespace comm;
 
-JSlider::JSlider(joint_ptr j): name_(j->name_), id_(j->jid_), range_(100), scale_(10.0)
-{
-    nameLab = new QLabel(QString::fromStdString(name_));
-    nameLab->setFixedWidth(100);
-    slider = new QSlider(Qt::Horizontal);
-    slider->setMinimumWidth(200);
-    slider->setMaximum(range_);
-    slider->setMinimum(-range_);
-    slider->setValue(static_cast<int>(scale_*j->offset_));
-    dataLab = new QLabel(QString::number(j->offset_, 'f', 1));
-    dataLab->setFixedWidth(40);
-    QHBoxLayout *mainLayout = new QHBoxLayout;
-    mainLayout->addWidget(nameLab);
-    mainLayout->addWidget(slider);
-    mainLayout->addWidget(dataLab);
-    setLayout(mainLayout);
-    connect(slider, SIGNAL(valueChanged(int)), this, SLOT(procSliderChanged(int)));
-}
-
-void JSlider::reset()
-{
-    slider->setValue(0);
-    procSliderChanged(0);
-}
-
-void JSlider::procSliderChanged(int v)
-{
-    float offset = v/scale_;
-    dataLab->setText(QString::number(offset, 'f', 1));
-    emit valueChanged(id_, offset);
-}
-
 joint_revise::joint_revise()
     :client_(CONF.get_config_value<string>(CONF.player()+".address"), CONF.get_config_value<int>("net.tcp.port"))
 {
@@ -49,7 +17,7 @@ joint_revise::joint_revise()
     for(auto jo:ROBOT.get_joint_map())
     {
         slider = new JSlider(jo.second);
-        connect(slider, SIGNAL(valueChanged(int, float)), this, SLOT(procValueChanged(int, float)));
+        connect(slider, &JSlider::valueChanged, this, &joint_revise::procValueChanged);
         if(jo.first == "jhead2" || jo.first.find("jr") != string::npos)
             rightLayout->addWidget(slider);
         else leftLayout->addWidget(slider);
@@ -73,9 +41,9 @@ joint_revise::joint_revise()
     mainWidget->setLayout(mainLayout);
     this->setCentralWidget(mainWidget);
 
-    connect(btnReset, SIGNAL(clicked(bool)), this, SLOT(procBtnReset()));
-    connect(btnSave, SIGNAL(clicked(bool)), this, SLOT(procBtnSave()));
-    connect(timer, SIGNAL(timeout()), this, SLOT(procTimer()));
+    connect(btnReset, &QPushButton::clicked, this, &joint_revise::procBtnReset);
+    connect(btnSave, &QPushButton::clicked, this, &joint_revise::procBtnSave);
+    connect(timer, &QTimer::timeout, this, &joint_revise::procTimer);
     client_.start();
     setEnabled(false);
 }

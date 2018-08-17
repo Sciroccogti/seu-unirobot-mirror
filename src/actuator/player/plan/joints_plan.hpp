@@ -1,5 +1,5 @@
-#ifndef SEU_UNIROBOT_ACTUATOR_ACTION_PLAN_HPP
-#define SEU_UNIROBOT_ACTUATOR_ACTION_PLAN_HPP
+#ifndef SEU_UNIROBOT_ACTUATOR_JOINTS_PLAN_HPP
+#define SEU_UNIROBOT_ACTUATOR_JOINTS_PLAN_HPP
 
 #include "plan.hpp"
 #include "logger.hpp"
@@ -8,20 +8,11 @@
 #include "class_exception.hpp"
 #include "math/math.hpp"
 
-class action_plan: public plan
+class joints_plan: public plan
 {
 public:
-    action_plan(const std::string& act_name, sensor_ptr s)
-        :plan("action_plan", "body"), act_name_(act_name)
-    {
-        if(s == nullptr) throw class_exception<action_plan>("empty sensor ptr");
-        motor_ = std::dynamic_pointer_cast<motor>(s);
-        poses_.clear();
-        pos_times_.clear();
-    }
-
-    action_plan(const std::vector< std::map<int, float> > &poses, const std::vector<int> &pos_times, sensor_ptr s)
-        :plan("action_plan", "body")
+    joints_plan(const std::map<int, float> &jdmap, const int &act_time, sensor_ptr s)
+            :plan("action_plan", "body")
     {
         if(s == nullptr) throw class_exception<action_plan>("empty sensor ptr");
         motor_ = std::dynamic_pointer_cast<motor>(s);

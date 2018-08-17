@@ -1,5 +1,5 @@
-#ifndef SINGLETON_HPP
-#define SINGLETON_HPP
+#ifndef SEU_UNIROBOT_SINGLETON_HPP
+#define SEU_UNIROBOT_SINGLETON_HPP
 
 #include <cassert>
 

@@ -1,7 +1,3 @@
-//
-// Created by lcseu on 18-8-10.
-//
-
 #ifndef SEU_UNIROBOT_DEBUGER_OPTIONS_HPP
 #define SEU_UNIROBOT_DEBUGER_OPTIONS_HPP
 

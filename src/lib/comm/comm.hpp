@@ -1,5 +1,5 @@
-#ifndef COMM_HPP
-#define COMM_HPP
+#ifndef SEU_UNIROBOT_COMM_HPP
+#define SEU_UNIROBOT_COMM_HPP
 
 #include <functional>
 

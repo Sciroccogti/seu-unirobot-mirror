@@ -1,5 +1,5 @@
 include_directories(./)
-
+include_directories(./player)
 add_subdirectory(options)
 add_subdirectory(player)
 add_subdirectory(dynamixel)

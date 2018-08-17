@@ -8,8 +8,8 @@ using namespace std;
 boost::asio::io_service gc_io_service;
 
 game_ctrl::game_ctrl(const sub_ptr &s):sensor("game_ctrl"), server_(gc_io_service, 
-udp::endpoint(boost::asio::ip::address_v4::from_string(CONF.get_config_value<string>("net.udp.game_ctrl.addr")), CONF.get_config_value<short>("net.udp.game_ctrl.recv_port")), 
-gc_data_size, GAMECONTROLLER_STRUCT_HEADER, 4, bind(&game_ctrl::data_handler, this, placeholders::_1, placeholders::_2, placeholders::_3))
+udp::endpoint(boost::asio::ip::address_v4::from_string(CONF.get_config_value<string>("net.udp.addr")), CONF.get_config_value<short>("net.udp.game_ctrl.recv_port")), 
+gc_data_size, GAMECONTROLLER_STRUCT_HEADER, bind(&game_ctrl::data_handler, this, placeholders::_1, placeholders::_2, placeholders::_3))
 {
     attach(s);
     str_.resize(gc_data_size);
@@ -18,7 +18,6 @@ gc_data_size, GAMECONTROLLER_STRUCT_HEADER, 4, bind(&game_ctrl::data_handler, th
 
 bool game_ctrl::open()
 {
-    is_open_ = true;
     is_alive_ = true;
     return true;
 }
@@ -37,12 +36,8 @@ void game_ctrl::run()
 
 void game_ctrl::stop()
 {
-    if(is_open_)
-    {
-        server_.close();
-        gc_io_service.stop();
-    }
-    is_open_ = false;
+    server_.close();
+    gc_io_service.stop();
     is_alive_ = false;
 }
 

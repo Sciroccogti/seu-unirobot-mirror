@@ -1,4 +1,3 @@
-#include <iostream>
 #include <csignal>
 #include "configuration.hpp"
 #include "robot/humanoid.hpp"
@@ -40,8 +39,10 @@ int main(int argc, char *argv[])
     
     maxwell = make_shared<player>();
     maxwell->initialization();
+
     while(maxwell->is_alive())
     {
+        
         sleep(2);
     }
     return 0;

@@ -1,7 +1,7 @@
 #include "player.hpp"
 #include "configuration.hpp"
 #include "plan/action_plan.hpp"
-#include "plan/test_plan.hpp"
+#include "plan/lookat_plan.hpp"
 
 using namespace std;
 
@@ -17,8 +17,14 @@ bool player::initialization()
 }
 
 list< plan_ptr > player::think()
-{     
+{
+    //LOG(LOG_INFO, "Thinking...");
     list<plan_ptr> plist;
-    plist.push_back(make_shared<action_plan>("ready", suber_->get_sensor("motor")));
+    if(OPTS.use_remote())
+    {
+        return play_with_remote();
+    }
+    //plist.push_back(make_shared<action_plan>("ready", suber_->get_sensor("motor")));
+    //plist.push_back(make_shared<lookat_plan>(90,90,suber_->get_sensor("motor"), 100));
     return plist;
 }

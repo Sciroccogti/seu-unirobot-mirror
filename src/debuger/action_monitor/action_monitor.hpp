@@ -1,7 +1,3 @@
-//
-// Created by lcseu on 18-8-11.
-//
-
 #ifndef SEU_UNIROBOT_DEBUGER_ACTION_MONITOR_HPP
 #define SEU_UNIROBOT_DEBUGER_ACTION_MONITOR_HPP
 

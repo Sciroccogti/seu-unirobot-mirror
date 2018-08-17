@@ -14,6 +14,9 @@ public:
     }
 protected:
     std::list<plan_ptr> think();
+
+private:
+    std::list<plan_ptr> play_with_remote();
 };
 
 #endif

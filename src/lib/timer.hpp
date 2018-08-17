@@ -1,7 +1,6 @@
 #ifndef SEU_UNIROBOT_TIMER_HPP
 #define SEU_UNIROBOT_TIMER_HPP
 
-#include <iostream>
 #include <stdio.h>
 #include <time.h>
 #include <stdlib.h>

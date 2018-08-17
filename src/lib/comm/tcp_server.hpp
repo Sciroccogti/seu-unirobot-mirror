@@ -1,9 +1,8 @@
-#ifndef TCP_SERVER_HPP
-#define TCP_SERVER_HPP
+#ifndef SEU_UNIROBOT_TCP_SERVER_HPP
+#define SEU_UNIROBOT_TCP_SERVER_HPP
 
 #include <cstdlib>
 #include <deque>
-#include <iostream>
 #include <list>
 #include <memory>
 #include <set>
@@ -29,6 +28,7 @@ namespace comm
         virtual ~tcp_connection() {}
         virtual void deliver(const tcp_packet&) = 0;
         virtual bool check_type(const tcp_packet::tcp_cmd_type &) = 0;
+        virtual void stop()=0;
     };
 
     typedef std::shared_ptr<tcp_connection> tcp_connection_ptr;
@@ -47,6 +47,14 @@ namespace comm
         {
             connections_.erase(connection);
             LOG(LOG_INFO, "connection leaved");
+        }
+
+        void close()
+        {
+            for (auto connection : connections_)
+            {
+                connection->stop();
+            }
         }
 
         void deliver(const tcp_packet &pkt)
@@ -88,6 +96,11 @@ namespace comm
         {
             pool_.join(shared_from_this());
             do_read_header();
+        }
+
+        void stop()
+        {
+            socket_.close();
         }
 
         void deliver(const tcp_packet &pkt)
@@ -201,6 +214,11 @@ namespace comm
             : acceptor_(io_service, endpoint), socket_(io_service), cb_(std::move(cb))
         {
             do_accept();
+        }
+
+        void close()
+        {
+            pool_.close();
         }
 
         void do_write(const tcp_packet &pkt)

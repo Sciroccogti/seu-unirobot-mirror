@@ -1,5 +1,5 @@
-#ifndef TCP_PACKET_HPP
-#define TCP_PACKET_HPP
+#ifndef SEU_UNIROBOT_TCP_PACKET_HPP
+#define SEU_UNIROBOT_TCP_PACKET_HPP
 
 #include <cstdio>
 #include <cstdlib>

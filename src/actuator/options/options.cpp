@@ -1,7 +1,3 @@
-//
-// Created by lcseu on 18-8-10.
-//
-#include <iostream>
 #include "options.hpp"
 #include "logger.hpp"
 

@@ -1,7 +1,6 @@
-#ifndef SEU_UNIROBOT_TEST_PLAN_HPP
-#define SEU_UNIROBOT_TEST_PLAN_HPP
+#ifndef SEU_UNIROBOT_ACTUATOR_TEST_PLAN_HPP
+#define SEU_UNIROBOT_ACTUATOR_TEST_PLAN_HPP
 
-#include <iostream>
 #include "plan.hpp"
 
 class test_plan: public plan

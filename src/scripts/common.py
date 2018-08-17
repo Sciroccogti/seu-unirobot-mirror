@@ -4,6 +4,18 @@ import subprocess
 import json
 import config
 
+def get_json_from_conf(confname=''):
+    json_data = ''
+    for line in open(confname): 
+        count_of_quotatuion = 0
+        for c in line:
+            if c == '\'' or c == '\"':
+                count_of_quotatuion += 1
+            if c == '#' and count_of_quotatuion%2 == 0:
+                break
+            json_data += c
+    return json_data
+
 
 def run_cmd(cmd):
     p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
@@ -21,8 +33,7 @@ def build_project():
 
 
 def check_id(id):
-    with open(config.config_file_name,'r') as f:
-        conf = json.load(f)
+    conf = json.loads(get_json_from_conf(config.config_file_name))
     players =  conf.get('players')
     player = players.get(id)
     if player is None:
@@ -32,8 +43,7 @@ def check_id(id):
 
 
 def get_ip(id):
-    with open(config.config_file_name,'r') as f:
-        conf = json.load(f)
+    conf = json.loads(get_json_from_conf(config.config_file_name))
     try:
         players =  conf.get('players')
         player = players.get(id)

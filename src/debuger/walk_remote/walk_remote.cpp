@@ -1,4 +1,3 @@
-#include <iostream>
 #include <ctime>
 #include "walk_remote.hpp"
 #include "configuration.hpp"
@@ -78,10 +77,10 @@ walk_remote::walk_remote(): range_(200), scale_d(10), scale_xy(5000),
     timer= new QTimer;
     timer->start(1000);
 
-    connect(timer, SIGNAL(timeout()), this, SLOT(procTimer()));
-    connect(dirSlider, SIGNAL(valueChanged(int)), this, SLOT(procDSlider(int)));
-    connect(xSlider, SIGNAL(valueChanged(int)), this, SLOT(procXSlider(int)));
-    connect(ySlider, SIGNAL(valueChanged(int)), this, SLOT(procYSlider(int)));
+    connect(timer, &QTimer::timeout, this, &walk_remote::procTimer);
+    connect(dirSlider, &QSlider::valueChanged, this, &walk_remote::procDSlider);
+    connect(xSlider, &QSlider::valueChanged, this, &walk_remote::procXSlider);
+    connect(ySlider, &QSlider::valueChanged, this, &walk_remote::procYSlider);
 
     first_connect = true;
     _x = 0;

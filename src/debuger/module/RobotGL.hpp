@@ -1,5 +1,5 @@
-#ifndef SEU_UNIROBOT_ROBOT_GL_HPP
-#define SEU_UNIROBOT_ROBOT_GL_HPP
+#ifndef SEU_UNIROBOT_DEBUGER_ROBOTGL_HPP
+#define SEU_UNIROBOT_DEBUGER_ROBOTGL_HPP
 
 #include <QtWidgets>
 #include <QOpenGLWidget>

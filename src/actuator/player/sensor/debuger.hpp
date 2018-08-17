@@ -1,5 +1,5 @@
-#ifndef SEU_UNIROBOT_DEBUGER_HPP
-#define SEU_UNIROBOT_DEBUGER_HPP
+#ifndef SEU_UNIROBOT_ACTUATOR_DEBUGER_HPP
+#define SEU_UNIROBOT_ACTUATOR_DEBUGER_HPP
 
 #include <thread>
 #include <mutex>
@@ -23,11 +23,9 @@ public:
     
     comm::tcp_packet::remote_data r_data() const
     {
-        std::lock_guard<std::mutex> lk(dbg_mutex_);
         return r_data_;
     }
-    
-    mutable std::mutex dbg_mutex_;
+
 private:
     comm::tcp_server server_;
     std::thread td_;
