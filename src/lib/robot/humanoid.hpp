@@ -2,6 +2,7 @@
 #define SEU_UNIROBOT_HUMANOID_HPP
 
 #include <string>
+#include <mutex>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
 #include "robot_define.hpp"
@@ -104,8 +105,14 @@ namespace robot
         double C() const { return C_; }
         double D() const { return D_; }
 
-        joint_map &get_joint_map() { return joint_map_; }
-        joint_map get_joint_map() const { return joint_map_; }
+        joint_map &get_joint_map()
+        {
+            return joint_map_;
+        }
+        joint_map get_joint_map() const
+        {
+            return joint_map_;
+        }
         bone_map &get_bone_map() { return bone_map_; }
         bone_map get_bone_map() const { return bone_map_; }
         act_map &get_act_map() { return act_map_; }

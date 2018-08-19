@@ -5,9 +5,10 @@
 
 enum log_level
 {
-    LOG_ERROR = 0,
-    LOG_WARN = 1,
-    LOG_INFO = 2
+    LOG_DEFAULT = 0,
+    LOG_ERROR = 1,
+    LOG_WARN = 2,
+    LOG_INFO = 3
 };
     
 static std::string get_color(const log_level &ll)
@@ -25,12 +26,12 @@ static std::string get_color(const log_level &ll)
             str = "\033[32m";
             break;
         default:
-            str = "\033[40;37m";
+            str = "\033[0m";
             break;
     }
     return str;
 }
 
-#define LOG(ll, value) std::cout<<get_color(ll)<<value<<"\033[0m"<<std::endl;
+#define LOG(level, value) std::cout<<get_color(level)<<value<<"\033[0m"<<std::endl;
 
 #endif

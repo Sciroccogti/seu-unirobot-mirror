@@ -10,7 +10,7 @@ public:
     {
     }
     
-    bool perform()
+    bool perform(sensor_ptr s)
     {
         std::cout<<"test plan\n";
         return true;

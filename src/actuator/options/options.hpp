@@ -7,6 +7,13 @@
 class options: public singleton<options>
 {
 public:
+    enum robot_choice
+    {
+        ROBOT_NONE = 0,
+        ROBOT_REAL = 1,
+        ROBOT_VIRTUAL = 2
+    };
+
     options();
 
     bool init(int argc, char *argv[]);
@@ -14,7 +21,7 @@ public:
     bool use_debug() const { return use_debug_; }
     bool use_gc() const { return use_gc_; }
     bool use_camera() const { return use_camera_; }
-    bool use_robot() const { return use_robot_; }
+    robot_choice use_robot() const { return robot_choice_; }
     bool use_comm() const { return use_comm_; }
     bool use_remote() const { return use_remote_; }
 
@@ -26,7 +33,7 @@ private:
     bool use_debug_;
     bool use_gc_;
     bool use_camera_;
-    bool use_robot_;
+    robot_choice robot_choice_;
     bool use_comm_;
     bool use_remote_;
 };

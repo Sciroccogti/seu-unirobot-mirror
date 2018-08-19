@@ -7,7 +7,8 @@ using namespace std;
 boost::asio::io_service imu_io_service;
 unsigned char imu_header[] = {0x5A, 0xA5};
 imu::imu(const sub_ptr& s)
-    : sensor("imu"), serial_(imu_io_service, CONF.get_config_value<string>("serial.imu.dev_name"), CONF.get_config_value<int>("serial.imu.baudrate"), 16, imu_header, 2)
+    : sensor("imu"), serial_(imu_io_service, CONF.get_config_value<string>("hardware.imu.dev_name"), 
+                             CONF.get_config_value<int>("hardware.imu.baudrate"), 16, imu_header, 2)
 {
     attach(s);
     str_.resize(imu_data_size);

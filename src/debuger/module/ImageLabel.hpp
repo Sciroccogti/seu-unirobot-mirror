@@ -10,8 +10,6 @@ public:
     ImageLabel(const int &w=640, const int &h=480);
     void set_image(unsigned char *src, const int &size);
     
-protected:
-    void paintEvent(QPaintEvent *event);
 private:
     QImage image_;
 };

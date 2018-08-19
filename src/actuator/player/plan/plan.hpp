@@ -12,7 +12,7 @@ public:
     {
     }
     
-    virtual bool perform()
+    virtual bool perform(sensor_ptr s)
     {
         return true;
     }

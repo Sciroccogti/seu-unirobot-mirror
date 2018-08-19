@@ -42,8 +42,9 @@ list<plan_ptr> player::play_with_remote()
             pos_times.push_back(act_t);
             poses.push_back(jdmap);
         }
-        plist.push_back(make_shared<action_plan>(poses, pos_times, suber_->get_sensor("motor")));
+        plist.push_back(make_shared<action_plan>(poses, pos_times));
     }
+    suber_->reset_rmt_data();
     return plist;
 }
 

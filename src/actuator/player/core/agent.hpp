@@ -14,13 +14,13 @@ public:
     {
         is_alive_ = false;
         suber_ = std::make_shared<robot_subscriber>();
-        controller_ = std::make_shared<controller>();
         period_count_ = 0;
     }
     
     bool init()
     {
         if(!suber_->regist()) return false;
+        controller_ = std::make_shared<controller>(suber_);
         is_alive_ = true;
         controller_->start();
         return true;
@@ -28,11 +28,11 @@ public:
     
     void kill()
     {
+        if(controller_!= nullptr) controller_->stop();
+        if(is_alive_) delete_timer();
         is_alive_ = false;
-        delete_timer();
-        sleep(1);
+        sleep(2);
         suber_->unregist();
-        controller_->stop();
     }
     
     void run()

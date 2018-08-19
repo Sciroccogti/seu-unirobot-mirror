@@ -4,8 +4,8 @@
 using namespace std;
 using namespace robot;
 
-motor::motor(): timer(CONF.get_config_value<int>("serial.dxl.period")), sensor("motor"),
-    period_(CONF.get_config_value<int>("serial.dxl.period")), p_count_(0)
+motor::motor(): timer(CONF.get_config_value<int>("hardware.motor.period")), sensor("motor"),
+    period_(CONF.get_config_value<int>("hardware.motor.period")), p_count_(0)
 {
 }
 
@@ -23,24 +23,23 @@ void motor::run()
     std::map<int, float> jdmap;
     if(timer::is_alive_)
     {
+        bd_mutex_.lock();
+        if(!body_degs_list.empty())
         {
-            lock_guard<mutex> lk(bd_mutex_);
-            if(!body_degs_list.empty())
-            {
-                jdmap = body_degs_list.front();
-                body_degs_list.pop_front();
-                ROBOT.set_degs(jdmap);
-            }
+            jdmap = body_degs_list.front();
+            body_degs_list.pop_front();
+            ROBOT.set_degs(jdmap);
         }
+        bd_mutex_.unlock();
+
+        hd_mutex_.lock();
+        if(!head_degs_list.empty())
         {
-            lock_guard<mutex> lk(hd_mutex_);
-            if(!head_degs_list.empty())
-            {
-                jdmap = head_degs_list.front();
-                head_degs_list.pop_front();
-                ROBOT.set_degs(jdmap);
-            }
+            jdmap = head_degs_list.front();
+            head_degs_list.pop_front();
+            ROBOT.set_degs(jdmap);
         }
+        hd_mutex_.unlock();
         act();
         p_count_++;
     }
@@ -61,16 +60,18 @@ void motor::stop()
 bool motor::add_body_degs(const map<int, float>& jdmap)
 {
     if(!sensor::is_alive_) return false;
-    lock_guard<mutex> lk(bd_mutex_);
+    bd_mutex_.lock();
     body_degs_list.push_back(jdmap);
+    bd_mutex_.unlock();
     return true;
 }
 
 bool motor::add_head_degs(const map<int, float>& jdmap)
 {
     if(!sensor::is_alive_) return false;
-    lock_guard<mutex> lk(hd_mutex_);
+    hd_mutex_.lock();
     head_degs_list.push_back(jdmap);
+    hd_mutex_.unlock();
     return true;
 }
 

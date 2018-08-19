@@ -24,7 +24,7 @@ list< plan_ptr > player::think()
     {
         return play_with_remote();
     }
-    //plist.push_back(make_shared<action_plan>("ready", suber_->get_sensor("motor")));
-    //plist.push_back(make_shared<lookat_plan>(90,90,suber_->get_sensor("motor"), 100));
+    //plist.push_back(make_shared<action_plan>("ready"));
+    //plist.push_back(make_shared<lookat_plan>(0,45,100));
     return plist;
 }

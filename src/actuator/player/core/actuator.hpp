@@ -6,23 +6,26 @@
 #include <list>
 #include "logger.hpp"
 #include "plan/plan.hpp"
+#include "sensor/sensor.hpp"
 
 class actuator
 {
 public:
-    actuator(const std::string &name, const int &max_len=1)
+    actuator(sensor_ptr s, const std::string &name, const int &max_len=1)
     :name_(name), max_len_(max_len)
     {
+        s_ = s;
         is_alive_ = false;
     }
 
     void add_plan(plan_ptr p)
     {
         if(!is_alive_) return;
-        std::lock_guard<std::mutex> lk(plist_mutex_);
+        plist_mutex_.lock();
         if(plist_.size()>=max_len_)
             plist_.pop_front();
         plist_.push_back(p);
+        plist_mutex_.unlock();
     }
 
     void start()
@@ -49,14 +52,15 @@ protected:
         plan_ptr p;
         while(is_alive_)
         {
-            std::lock_guard<std::mutex> lk(plist_mutex_);
+            plist_mutex_.lock();
             p.reset();
             if(!plist_.empty())
             {
                 p = plist_.front();
                 plist_.pop_front();
-                if(!p->perform()) LOG(LOG_WARN, "plan: "+p->plan_name()+" perform failed.");
+                if(!p->perform(s_)) LOG(LOG_WARN, "plan: "+p->plan_name()+" perform failed.");
             }
+            plist_mutex_.unlock();
         }
     }
 private:
@@ -65,8 +69,9 @@ private:
     std::thread td_;
     bool is_alive_;
     std::list<plan_ptr> plist_;
+    sensor_ptr s_;
 };
 
 typedef std::shared_ptr<actuator> actuator_ptr;
 
-#endif //SEU_UNIROBOT_ACTUATOR_HPP
+#endif

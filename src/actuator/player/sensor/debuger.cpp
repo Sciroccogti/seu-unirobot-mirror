@@ -92,11 +92,13 @@ void debuger::data_handler(const char* data, const int& size, const int& type)
 
 void debuger::write(const tcp_packet::tcp_command& cmd)
 {
+    if(!is_alive_) return;
     server_.do_write(comm::tcp_packet(cmd));
 }
 
 void debuger::write(const tcp_packet::tcp_cmd_type& type, const int& size, const char* data)
 {
+    if(!is_alive_) return;
     int t_size = size;
     comm::tcp_packet::tcp_command cmd;
     cmd.type = type;

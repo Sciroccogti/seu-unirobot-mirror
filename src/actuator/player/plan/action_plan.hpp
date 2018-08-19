@@ -7,67 +7,26 @@
 #include "sensor/motor.hpp"
 #include "class_exception.hpp"
 #include "math/math.hpp"
+#include "joints_plan.hpp"
 
 class action_plan: public plan
 {
 public:
-    action_plan(const std::string& act_name, sensor_ptr s)
+    action_plan(const std::string& act_name)
         :plan("action_plan", "body"), act_name_(act_name)
     {
-        if(s == nullptr) throw class_exception<action_plan>("empty sensor ptr");
-        motor_ = std::dynamic_pointer_cast<motor>(s);
         poses_.clear();
         pos_times_.clear();
     }
 
-    action_plan(const std::vector< std::map<int, float> > &poses, const std::vector<int> &pos_times, sensor_ptr s)
+    action_plan(const std::vector< std::map<int, float> > &poses, const std::vector<int> &pos_times)
         :plan("action_plan", "body")
     {
-        if(s == nullptr) throw class_exception<action_plan>("empty sensor ptr");
-        motor_ = std::dynamic_pointer_cast<motor>(s);
         poses_ =  poses;
         pos_times_ = pos_times;
     }
 
-    bool set_joints(const std::map<int, float> &pos_deg, const int &act_t)
-    {
-        std::map<int, float> one_pos_deg, body_latest_deg, head_latest_deg, diffb, diffh, jdmap;
-        one_pos_deg = pos_deg;
-        body_latest_deg = motor_->get_body_degs();
-        head_latest_deg = motor_->get_head_degs();
-        int zero_n=0;
-        diffb.clear();
-        for(auto jdb:body_latest_deg)
-        {
-            diffb[jdb.first] = one_pos_deg[jdb.first] - body_latest_deg[jdb.first];
-        }
-        /*
-        diffh.clear();
-        for(auto jdb:head_latest_deg)
-        {
-            diffh[jdb.first] = one_pos_deg[jdb.first] - head_latest_deg[jdb.first];
-            if(robot_math::is_zero(diffh[jdb.first])) zero_n++;
-        }
-        if(zero_n == robot::ROBOT.get_joint_map().size()) return;
-         */
-        for(int i=1;i<=act_t;i++)
-        {
-            jdmap.clear();
-            for(auto db:diffb)
-                jdmap[db.first] = body_latest_deg[db.first]+i*db.second/(float)act_t;
-            if(!motor_->add_body_degs(jdmap)) return false;
-            while (!motor_->body_empty());
-            /*
-            jdmap.clear();
-            for(auto db:diffh)
-                jdmap[db.first] = head_latest_deg[db.first]+i*db.second/(float)act_t;
-            motor_->add_head_degs(jdmap);
-             */
-        }
-        return true;
-    }
-
-    bool perform()
+    bool perform(sensor_ptr s)
     {
         int act_t;
         std::map<int, float> one_pos_deg;
@@ -90,7 +49,8 @@ public:
                 one_pos_deg.clear();
                 for(auto j:jdegs)
                     one_pos_deg[robot::ROBOT.get_joint(j.first)->jid_] = j.second;
-                if(!set_joints(one_pos_deg, act_t)) return false;
+                joints_plan jp(one_pos_deg, act_t, "body");
+                if(!jp.perform(s)) return false;
             }
         }
         else
@@ -99,14 +59,14 @@ public:
             {
                 act_t = pos_times_[i];
                 one_pos_deg = poses_[i];
-                if(!set_joints(one_pos_deg, act_t)) return false;
+                joints_plan jp(one_pos_deg, act_t, "body");
+                if(!jp.perform(s)) return false;
             }
         }
         return true;
     }
 private:
     std::string act_name_;
-    std::shared_ptr<motor> motor_;
     std::vector< std::map<int, float> > poses_;
     std::vector<int> pos_times_;
 };

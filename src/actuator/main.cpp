@@ -1,4 +1,5 @@
 #include <csignal>
+#include <cstdlib>
 #include "configuration.hpp"
 #include "robot/humanoid.hpp"
 #include "options/options.hpp"
@@ -27,18 +28,22 @@ int main(int argc, char *argv[])
     if(!OPTS.init(argc, argv))
     {
         LOG(LOG_ERROR, "options init failed");
-        exit(1);
+        return 1;
     }
     if(!CONF.init(OPTS.id()))
     {
         LOG(LOG_ERROR, "config init failed");
-        exit(2);
+        return 2;
     }
     ROBOT.init(CONF.robot_file(), CONF.action_file(), CONF.offset_file());
     signal(SIGINT, exit_handler);
-    
+
     maxwell = make_shared<player>();
-    maxwell->initialization();
+    if(!maxwell->initialization())
+    {
+        LOG(LOG_ERROR, "robot init failed");
+        return 3;
+    }
 
     while(maxwell->is_alive())
     {

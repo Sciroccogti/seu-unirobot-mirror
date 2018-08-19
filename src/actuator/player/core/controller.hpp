@@ -5,15 +5,20 @@
 #include <map>
 #include "actuator.hpp"
 #include "plan/plan.hpp"
+#include "robot_subscriber.hpp"
 #include "logger.hpp"
+#include "options/options.hpp"
 
 class controller
 {
 public:
-    controller()
+    controller(std::shared_ptr<robot_subscriber> suber)
     {
-        actuators_["body"] = std::make_shared<actuator>("body");
-        actuators_["head"] = std::make_shared<actuator>("head");
+        if(OPTS.use_robot() != options::ROBOT_NONE)
+        {
+            actuators_["body"] = std::make_shared<actuator>(suber->get_sensor("motor"), "body");
+            actuators_["head"] = std::make_shared<actuator>(suber->get_sensor("motor"), "head");
+        }
     }
     
     void add_plan(std::list<plan_ptr> plist)

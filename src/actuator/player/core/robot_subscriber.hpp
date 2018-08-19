@@ -12,6 +12,7 @@
 #include "sensor/vmotor.hpp"
 #include "sensor/game_ctrl.hpp"
 #include "sensor/debuger.hpp"
+#include "sensor/capture.hpp"
 
 class robot_subscriber: public subscriber
 {
@@ -24,23 +25,33 @@ public:
     bool regist()
     {
         sensors_.clear();
+        if(OPTS.use_camera())
+        {
+            sensors_["capture"] = std::make_shared<capture>(shared_from_this());
+            if(!sensors_["capture"]->start()) return false;
+        }
         if(OPTS.use_debug())
         {
             sensors_["debug"] = std::make_shared<debuger>(shared_from_this());
             if(!sensors_["debug"]->start()) return false;
         }
-        if(OPTS.use_robot())
+        if(OPTS.use_robot() == options::ROBOT_REAL)
         {
             sensors_["imu"] = std::make_shared<imu>(shared_from_this());
             if(!sensors_["imu"]->start()) return false;
             sensors_["motor"] = std::make_shared<rmotor>(shared_from_this());
         }
-        else
+        else if(OPTS.use_robot() == options::ROBOT_VIRTUAL)
         {
             if(OPTS.use_debug())
             {
                 sensors_["motor"] = std::make_shared<vmotor>(shared_from_this(), sensors_["debug"]);
                 if(!sensors_["motor"]->start()) return false;
+            }
+            else
+            {
+                LOG(LOG_ERROR, "If you want to use virtual robot, you must run with -d1 -r2");
+                return false;
             }
         }
         if(OPTS.use_gc())
@@ -60,6 +71,11 @@ public:
     
     void unregist()
     {
+        if(sensors_.find("capture") != sensors_.end())
+        {
+            sensors_["capture"]->detach(shared_from_this());
+            sensors_["capture"]->stop();
+        }
         if(sensors_.find("gc") != sensors_.end())
         {
             sensors_["gc"]->detach(shared_from_this());
@@ -95,57 +111,68 @@ public:
     {
         if(pub == (sensors_.find("gc"))->second)
         {
-            std::lock_guard<std::mutex> lk(gc_mtx_);
+            gc_mtx_.lock();
             std::shared_ptr<game_ctrl> sptr = std::dynamic_pointer_cast<game_ctrl>(pub);
             gc_data_ = sptr->data();
+            gc_mtx_.unlock();
             return;
         }
         if(pub == (sensors_.find("imu"))->second)
         {
-            std::lock_guard<std::mutex> lk(imu_mtx_);
+            imu_mtx_.lock();
             std::shared_ptr<imu> sptr = std::dynamic_pointer_cast<imu>(pub);
             imu_data_ = sptr->data();
+            imu_mtx_.unlock();
             return;
         }
         if(pub == (sensors_.find("motor"))->second)
         {
-            std::lock_guard<std::mutex> lk(dxl_mtx_);
+            dxl_mtx_.lock();
             std::shared_ptr<rmotor> sptr = std::dynamic_pointer_cast<rmotor>(pub);
             voltage_ = sptr->voltage();
+            dxl_mtx_.unlock();
             return;
         }
         if(pub == (sensors_.find("debug"))->second)
         {
-            std::lock_guard<std::mutex> lk(rmt_mtx_);
+            rmt_mtx_.lock();
             std::shared_ptr<debuger> sptr = std::dynamic_pointer_cast<debuger>(pub);
             rmt_data_ = sptr->r_data();
+            rmt_mtx_.unlock();
             return;
         }
     }
     
     RoboCupGameControlData gc_data() const 
     {
-        std::lock_guard<std::mutex> lk(gc_mtx_);
-        return gc_data_; 
+        gc_mtx_.lock();
+        RoboCupGameControlData res = gc_data_;
+        gc_mtx_.unlock();
+        return res;
     }
     
     imu::imu_data imu_data() const 
     { 
-        std::lock_guard<std::mutex> lk(imu_mtx_);
-        return imu_data_; 
+        imu_mtx_.lock();
+        imu::imu_data res = imu_data_;
+        imu_mtx_.unlock();
+        return res;
     }
     
     comm::tcp_packet::remote_data rmt_data() const
     {
-        std::lock_guard<std::mutex> lk(rmt_mtx_);
-        return rmt_data_;
+        rmt_mtx_.lock();
+        comm::tcp_packet::remote_data res = rmt_data_;
+        rmt_mtx_.unlock();
+        return res;
     }
 
     void reset_rmt_data()
     {
-        std::lock_guard<std::mutex> lk(rmt_mtx_);
+        rmt_mtx_.lock();
         rmt_data_.type = comm::tcp_packet::NONE_DATA;
         rmt_data_.size = 0;
+        rmt_mtx_.unlock();
     }
 
 private:

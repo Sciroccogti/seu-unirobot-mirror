@@ -42,13 +42,30 @@ image_monitor::image_monitor()
                +":"+ QString::number(CONF.get_config_value<int>("net.tcp.port"));
     setWindowTitle(net_info + "(offline)");
 
-    timer= new QTimer;
-    timer->start(30);
+    cdevice = new CameraDevice();
+    cthread = new QThread(this);
+    cdevice->moveToThread(cthread);
+    cthread->start();
+    cthread->setPriority(QThread::HighPriority);
 
-    connect(timer, &QTimer::timeout, this, &image_monitor::procTimer);
+
+    timer= new QTimer;
+    //timer->start(1000);
+
+    //connect(timer, &QTimer::timeout, this, &image_monitor::procTimer);
     connect(yawSlider, &QSlider::valueChanged, this, &image_monitor::procYawSlider);
     connect(pitchSlider, &QSlider::valueChanged, this, &image_monitor::procPitchSlider);
-    client_.start();
+    connect(cdevice, &CameraDevice::imageReady, this, &image_monitor::srcImageReady);
+    //client_.start();
+}
+
+void image_monitor::srcImageReady(Mat src)
+{
+    imwrite("test.jpg", src);
+    Mat dst;
+    cvtColor(src, dst, CV_BGR2RGB);
+    QImage disImage = QImage((const unsigned char*)(dst.data),dst.cols,dst.rows,QImage::Format_RGB888);
+    imageLab->setPixmap(QPixmap::fromImage(disImage.scaled(imageLab->size(), Qt::KeepAspectRatio)));
 }
 
 void image_monitor::data_handler(const char *data, const int &size, const int &type)

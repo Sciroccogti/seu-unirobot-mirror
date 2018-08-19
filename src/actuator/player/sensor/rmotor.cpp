@@ -27,8 +27,8 @@ uint32_t float2pos(const float &deg)
 rmotor::rmotor(const sub_ptr& s)
 {
     attach(s);
-    portHandler_ = PortHandler::getPortHandler(CONF.get_config_value<string>("serial.dxl.dev_name").c_str());
-    packetHandler_ = PacketHandler::getPacketHandler(CONF.get_config_value<float>("serial.dxl.version"));
+    portHandler_ = PortHandler::getPortHandler(CONF.get_config_value<string>("hardware.motor.dev_name").c_str());
+    packetHandler_ = PacketHandler::getPacketHandler(CONF.get_config_value<float>("hardware.motor.version"));
     ledWrite_ = make_shared<GroupSyncWrite>(portHandler_, packetHandler_, ADDR_LED, SIZE_LED);
     torqWrite_ = make_shared<GroupSyncWrite>(portHandler_, packetHandler_, ADDR_TORQ, SIZE_TORQ);
     gposWrite_ = make_shared<GroupSyncWrite>(portHandler_, packetHandler_, ADDR_GPOS, SIZE_GPOS);
@@ -40,7 +40,7 @@ rmotor::rmotor(const sub_ptr& s)
 bool rmotor::open()
 {
     if(!portHandler_->openPort()) return false;
-    if(!portHandler_->setBaudRate(CONF.get_config_value<int>("serial.dxl.baudrate"))) return false;
+    if(!portHandler_->setBaudRate(CONF.get_config_value<int>("hardware.motor.baudrate"))) return false;
     is_open_ = true;
     return true;
 }

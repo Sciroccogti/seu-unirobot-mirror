@@ -37,45 +37,43 @@ public:
     
     std::map<int, float> get_body_degs()
     {
-        std::lock_guard<std::mutex> lk(bd_mutex_);
-        if(!body_degs_list.empty()) return body_degs_list.back();
-        else
+        bd_mutex_.lock();
+        std::map<int, float> res;
+        for(auto j:robot::ROBOT.get_joint_map())
         {
-            std::map<int, float> res;
-            for(auto j:robot::ROBOT.get_joint_map())
-            {
-                if(j.second->name_.find("head") == std::string::npos)
-                    res[j.second->jid_] = j.second->get_deg();
-            }
-            return res;
+            if(j.second->name_.find("head") == std::string::npos)
+                res[j.second->jid_] = j.second->get_deg();
         }
+        bd_mutex_.unlock();
+        return res;
     }
     
     std::map<int, float> get_head_degs()
     {
-        std::lock_guard<std::mutex> lk(hd_mutex_);
-        if(!head_degs_list.empty()) return head_degs_list.back();
-        else
-        {
-            std::map<int, float> res;
-            robot::joint_ptr j = robot::ROBOT.get_joint("jhead1");
-            res[j->jid_] = j->get_deg();
-            j = robot::ROBOT.get_joint("jhead2");
-            res[j->jid_] = j->get_deg();
-            return res;
-        }
+        hd_mutex_.lock();
+        std::map<int, float> res;
+        robot::joint_ptr j = robot::ROBOT.get_joint("jhead1");
+        res[j->jid_] = j->get_deg();
+        j = robot::ROBOT.get_joint("jhead2");
+        res[j->jid_] = j->get_deg();
+        hd_mutex_.unlock();
+        return res;
     }
 
     bool body_empty() const
     {
-        std::lock_guard<std::mutex> lk(bd_mutex_);
-        return body_degs_list.empty();
+        bd_mutex_.lock();
+        bool res = body_degs_list.empty();
+        bd_mutex_.unlock();
+        return res;
     }
 
     bool head_empty() const
     {
-        std::lock_guard<std::mutex> lk(hd_mutex_);
-        return head_degs_list.empty();
+        hd_mutex_.lock();
+        bool res = head_degs_list.empty();
+        hd_mutex_.unlock();
+        return res;
     }
 
     mutable std::mutex bd_mutex_, hd_mutex_;
