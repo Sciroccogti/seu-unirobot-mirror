@@ -6,7 +6,7 @@
 #include "sensor.hpp"
 #include "comm/udp_server.hpp"
 
-class game_ctrl: public sensor
+class gamectrl: public sensor
 {
 public:
     enum RobocupGameState
@@ -48,8 +48,8 @@ public:
         FK_EXECUTE
     };
     
-    game_ctrl(const sub_ptr &s);
-    ~game_ctrl();
+    gamectrl(const sub_ptr &s);
+    ~gamectrl();
     
     bool open();
     bool start();

@@ -97,7 +97,7 @@ void rmotor::set_gpos()
     uint32_t gpos;
     for(auto j:ROBOT.get_joint_map())
     {
-        gpos = float2pos(j.second->get_deg());
+        gpos = float2pos(j.second->get_deg()+j.second->offset_);
         gpos_data[0] = DXL_LOBYTE(DXL_LOWORD(gpos));
         gpos_data[1] = DXL_HIBYTE(DXL_LOWORD(gpos));
         gpos_data[2] = DXL_LOBYTE(DXL_HIWORD(gpos));

@@ -5,7 +5,7 @@
 
 using namespace std;
 
-player::player(): agent(CONF.get_config_value<int>("period"))
+player::player(): agent(CONF.get_config_value<int>("think_period"))
 {
 }
 

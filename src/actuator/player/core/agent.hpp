@@ -6,6 +6,7 @@
 #include "controller.hpp"
 #include "robot_subscriber.hpp"
 #include "robot/humanoid.hpp"
+#include "vision/vision.hpp"
 
 class agent: public timer
 {
@@ -13,26 +14,31 @@ public:
     agent(const int& ms): timer(ms)
     {
         is_alive_ = false;
-        suber_ = std::make_shared<robot_subscriber>();
         period_count_ = 0;
     }
-    
+
     bool init()
     {
-        if(!suber_->regist()) return false;
+        suber_ = std::make_shared<robot_subscriber>();
+        if(!suber_->start()) return false;
         controller_ = std::make_shared<controller>(suber_);
-        is_alive_ = true;
         controller_->start();
+        
+        is_alive_ = true;
+        vision_ = std::make_shared<vision>(suber_->get_sensor("server"));
+        if(OPTS.use_camera())
+            if(!vision_->start()) return false;
         return true;
     }
     
     void kill()
     {
+        if(OPTS.use_camera()) vision_->stop();
         if(controller_!= nullptr) controller_->stop();
         if(is_alive_) delete_timer();
         is_alive_ = false;
-        sleep(2);
-        suber_->unregist();
+        sleep(1);
+        suber_->stop();
     }
     
     void run()
@@ -44,15 +50,17 @@ public:
         }
     }
     
-    virtual std::list<plan_ptr> think()=0;
     bool is_alive() const
     {
         return is_alive_;
     }
+    
+    virtual std::list<plan_ptr> think()=0;
 
 protected:
     bool is_alive_;
     unsigned long period_count_;
+    std::shared_ptr<vision> vision_;
     std::shared_ptr<robot_subscriber> suber_;
     std::shared_ptr<controller> controller_;
 };

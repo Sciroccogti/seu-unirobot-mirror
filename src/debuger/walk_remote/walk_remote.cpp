@@ -35,9 +35,11 @@ walk_remote::walk_remote(): range_(200), scale_d(10), scale_xy(5000),
 
     hSpinBox = new QDoubleSpinBox();
     startCheck = new QCheckBox("Start");
+    btnMan = new QRadioButton("Manual");
     btnRand = new QRadioButton("Random");
-    btnSpot = new QRadioButton("Spot");
+    btnSpot = new QRadioButton("Mark Time");
     btnSpot->setMaximumWidth(100);
+    btnMan->setChecked(true);
 
     hSpinBox->setRange(0, 0.05);
     hSpinBox->setDecimals(3);
@@ -55,6 +57,7 @@ walk_remote::walk_remote(): range_(200), scale_d(10), scale_xy(5000),
     hLayout->addWidget(hSpinBox);
     mrLayout->addLayout(hLayout);
     mrLayout->addWidget(startCheck);
+    mrLayout->addWidget(btnMan);
     mrLayout->addWidget(btnSpot);
     mrLayout->addWidget(btnRand);
 
@@ -107,19 +110,13 @@ void walk_remote::procTimer()
         _y = 0;
         _dir = 0;
     }
-    else
+    else if(btnMan->isChecked())
     {
         _x = xSlider->value()/scale_xy;
         _y = ySlider->value()/scale_xy;
         _dir = dirSlider->value()/scale_d;
     }
-    if(!startCheck->isChecked())
-    {
-        _x = 0;
-        _y = 0;
-        _dir = 0;
-        _h = 0;
-    }
+    _h = hSpinBox->value();
     updateLab();
     if(client_.is_connected())
     {
@@ -130,24 +127,26 @@ void walk_remote::procTimer()
         }
         else
         {
-            tcp_packet::remote_data_type rtp = tcp_packet::WALK_DATA;
-            tcp_packet::tcp_command cmd;
-            cmd.type = tcp_packet::REMOTE_DATA;
-            cmd.size = sizeof(tcp_packet::remote_data_type)+sizeof(float)*4;
-            string data_s;
-            data_s.clear();
-            data_s.append((char*)(&rtp), sizeof(tcp_packet::remote_data_type));
-            data_s.append((char*)(&_x), sizeof(float));
-            data_s.append((char*)(&_y), sizeof(float));
-            data_s.append((char*)(&_dir), sizeof(float));
-            data_s.append((char*)(&_h), sizeof(float));
-            memcpy(cmd.data, data_s.data(), cmd.size);
-            client_.write(cmd);
+            if(startCheck->isChecked())
+            {
+                tcp_packet::remote_data_type rtp = tcp_packet::WALK_DATA;
+                tcp_packet::tcp_command cmd;
+                cmd.type = tcp_packet::REMOTE_DATA;
+                cmd.size = sizeof(tcp_packet::remote_data_type)+sizeof(float)*4;
+                string data_s;
+                data_s.clear();
+                data_s.append((char*)(&rtp), sizeof(tcp_packet::remote_data_type));
+                data_s.append((char*)(&_x), sizeof(float));
+                data_s.append((char*)(&_y), sizeof(float));
+                data_s.append((char*)(&_dir), sizeof(float));
+                data_s.append((char*)(&_h), sizeof(float));
+                memcpy(cmd.data, data_s.data(), cmd.size);
+                client_.write(cmd);
+            }
         }
         setEnabled(true);
         statusBar()->setStyleSheet("background-color:green");
         setWindowTitle(net_info + "(online)");
-        _h = hSpinBox->value();
     }
     else
     {

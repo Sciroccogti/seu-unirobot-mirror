@@ -10,6 +10,7 @@ add_executable(${TARGET_NAME}
                 main.cpp)
 
 target_link_libraries(${TARGET_NAME}
+                v4l2
                 actuator_options
                 player)
 

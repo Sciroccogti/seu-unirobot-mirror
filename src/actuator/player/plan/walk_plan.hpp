@@ -11,9 +11,9 @@ public:
 
     }
 
-    bool perform(sensor_ptr s)
+    int perform(sensor_ptr s)
     {
-        
+        return 0;
     }
 };
 

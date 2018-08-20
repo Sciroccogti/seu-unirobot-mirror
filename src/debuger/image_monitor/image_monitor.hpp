@@ -5,7 +5,6 @@
 #include "robot/humanoid.hpp"
 #include "tcp_client/tcp_client_handler.hpp"
 #include "module/ImageLabel.hpp"
-#include "camera.hpp"
 
 class image_monitor: public QMainWindow
 {
@@ -17,7 +16,6 @@ public slots:
     void procTimer();
     void procYawSlider(int v);
     void procPitchSlider(int v);
-    void srcImageReady(Mat);
 
 protected:
     void closeEvent(QCloseEvent *event);
@@ -29,8 +27,6 @@ private:
     tcp_client_handler client_;
     QString net_info;
     bool first_connect;
-    CameraDevice *cdevice;
-    QThread *cthread;
 };
 
 #endif //SEU_UNIROBOT_ACTION_MONITOR_HPP

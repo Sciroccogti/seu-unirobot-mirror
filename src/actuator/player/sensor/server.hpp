@@ -4,13 +4,13 @@
 #include <thread>
 #include <mutex>
 #include "comm/tcp_server.hpp"
-#include "sensor.hpp"
+#include "sensor/sensor.hpp"
 
-class debuger: public sensor
+class server: public sensor
 {
 public:
-    debuger(const sub_ptr& s);
-    ~debuger();
+    server(const sub_ptr& s);
+    ~server();
     void data_handler(const char *data, const int &size, const int &type);
     
     void write(const comm::tcp_packet::tcp_cmd_type &type, const int &size, const char *data);

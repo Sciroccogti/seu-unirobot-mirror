@@ -16,24 +16,6 @@ public:
     {
         is_alive_ = false;
         period_ms_ = ms;
-
-        if (ms > 0)
-        {
-            is_alive_ = true;
-
-            memset(&se_, 0, sizeof(struct sigevent));
-
-            se_.sigev_value.sival_ptr = (void *)this;
-            se_.sigev_notify = SIGEV_THREAD;
-            se_.sigev_notify_function = timer_thread;
-
-            int sec = ms / 1000;
-            int msc = ms % 1000;
-            it_.it_interval.tv_sec = sec;
-            it_.it_interval.tv_nsec = msc * 1000000;
-            it_.it_value.tv_sec = sec;
-            it_.it_value.tv_nsec = msc * 1000000;
-        }
     }
 
     static void timer_thread(union sigval v)
@@ -50,6 +32,21 @@ public:
     {
         if (period_ms_ > 0)
         {
+            is_alive_ = true;
+
+            memset(&se_, 0, sizeof(struct sigevent));
+
+            se_.sigev_value.sival_ptr = (void *)this;
+            se_.sigev_notify = SIGEV_THREAD;
+            se_.sigev_notify_function = timer_thread;
+
+            int sec = period_ms_ / 1000;
+            int msc = period_ms_ % 1000;
+            it_.it_interval.tv_sec = sec;
+            it_.it_interval.tv_nsec = msc * 1000000;
+            it_.it_value.tv_sec = sec;
+            it_.it_value.tv_nsec = msc * 1000000;
+
             if (timer_create(CLOCK_REALTIME, &se_, &t_) < 0)
                 throw class_exception<timer>("Timer create failed.");
             if (timer_settime(t_, 0, &it_, 0) < 0)

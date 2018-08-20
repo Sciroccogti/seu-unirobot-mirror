@@ -5,9 +5,10 @@ add_library(ui STATIC
             RobotGL.cpp)
 
 target_link_libraries(ui
-                        glut
-                        GLU
-                        GL
-                        Qt5::Widgets
-                        Qt5::Core
-                        Qt5::Gui)
+            ${OpenCV_LIBS}
+            glut
+            GLU
+            GL
+            Qt5::Widgets
+            Qt5::Core
+            Qt5::Gui)

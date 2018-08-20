@@ -6,7 +6,6 @@ set(TARGET_NAME image_monitor)
 
 add_executable(${TARGET_NAME}
         main.cpp
-        camera.cpp
         image_monitor.cpp)
 
 target_link_libraries(${TARGET_NAME}

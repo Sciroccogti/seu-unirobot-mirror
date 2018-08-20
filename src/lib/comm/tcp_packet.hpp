@@ -12,7 +12,7 @@ namespace comm
     {
     public:
         enum { header_length = 5 };
-        enum { max_body_length = 1024 };
+        enum { max_body_length = 512 };
 
         enum tcp_data_dir
         {

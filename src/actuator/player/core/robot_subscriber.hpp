@@ -8,11 +8,10 @@
 #include "configuration.hpp"
 #include "logger.hpp"
 #include "sensor/imu.hpp"
-#include "sensor/rmotor.hpp"
-#include "sensor/vmotor.hpp"
-#include "sensor/game_ctrl.hpp"
-#include "sensor/debuger.hpp"
-#include "sensor/capture.hpp"
+#include "motor/rmotor.hpp"
+#include "motor/vmotor.hpp"
+#include "sensor/gamectrl.hpp"
+#include "sensor/server.hpp"
 
 class robot_subscriber: public subscriber
 {
@@ -22,18 +21,14 @@ public:
         voltage_ = MAX_VOLTAGE;
     }
     
-    bool regist()
+    bool start()
     {
         sensors_.clear();
-        if(OPTS.use_camera())
-        {
-            sensors_["capture"] = std::make_shared<capture>(shared_from_this());
-            if(!sensors_["capture"]->start()) return false;
-        }
+        
         if(OPTS.use_debug())
         {
-            sensors_["debug"] = std::make_shared<debuger>(shared_from_this());
-            if(!sensors_["debug"]->start()) return false;
+            sensors_["server"] = std::make_shared<server>(shared_from_this());
+            if(!sensors_["server"]->start()) return false;
         }
         if(OPTS.use_robot() == options::ROBOT_REAL)
         {
@@ -45,7 +40,7 @@ public:
         {
             if(OPTS.use_debug())
             {
-                sensors_["motor"] = std::make_shared<vmotor>(shared_from_this(), sensors_["debug"]);
+                sensors_["motor"] = std::make_shared<vmotor>(sensors_["server"]);
                 if(!sensors_["motor"]->start()) return false;
             }
             else
@@ -58,7 +53,7 @@ public:
         {
             try
             {
-                sensors_["gc"] = std::make_shared<game_ctrl>(shared_from_this());
+                sensors_["gc"] = std::make_shared<gamectrl>(shared_from_this());
                 if(!sensors_["gc"]->start()) return false;
             }
             catch(std::exception &e)
@@ -69,13 +64,8 @@ public:
         return true;
     }
     
-    void unregist()
+    void stop()
     {
-        if(sensors_.find("capture") != sensors_.end())
-        {
-            sensors_["capture"]->detach(shared_from_this());
-            sensors_["capture"]->stop();
-        }
         if(sensors_.find("gc") != sensors_.end())
         {
             sensors_["gc"]->detach(shared_from_this());
@@ -90,12 +80,11 @@ public:
         {
             sensors_["motor"]->detach(shared_from_this());
             sensors_["motor"]->stop();
-            //sensors_["motor"]
         }
-        if(sensors_.find("debug") != sensors_.end())
+        if(sensors_.find("server") != sensors_.end())
         {
-            sensors_["debug"]->detach(shared_from_this());
-            sensors_["debug"]->stop();
+            sensors_["server"]->detach(shared_from_this());
+            sensors_["server"]->stop();
         }
     }
     
@@ -112,7 +101,7 @@ public:
         if(pub == (sensors_.find("gc"))->second)
         {
             gc_mtx_.lock();
-            std::shared_ptr<game_ctrl> sptr = std::dynamic_pointer_cast<game_ctrl>(pub);
+            std::shared_ptr<gamectrl> sptr = std::dynamic_pointer_cast<gamectrl>(pub);
             gc_data_ = sptr->data();
             gc_mtx_.unlock();
             return;
@@ -133,10 +122,10 @@ public:
             dxl_mtx_.unlock();
             return;
         }
-        if(pub == (sensors_.find("debug"))->second)
+        if(pub == (sensors_.find("server"))->second)
         {
             rmt_mtx_.lock();
-            std::shared_ptr<debuger> sptr = std::dynamic_pointer_cast<debuger>(pub);
+            std::shared_ptr<server> sptr = std::dynamic_pointer_cast<server>(pub);
             rmt_data_ = sptr->r_data();
             rmt_mtx_.unlock();
             return;

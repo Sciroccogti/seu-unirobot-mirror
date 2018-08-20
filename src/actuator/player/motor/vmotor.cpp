@@ -4,10 +4,9 @@ using namespace std;
 using namespace comm;
 using namespace robot;
 
-vmotor::vmotor(const sub_ptr &s, sensor_ptr dbg)
+vmotor::vmotor(sensor_ptr dbg)
 {
-    attach(s);
-    dbg_ = std::dynamic_pointer_cast<debuger>(dbg);
+    dbg_ = std::dynamic_pointer_cast<server>(dbg);
 }
 
 void vmotor::act()

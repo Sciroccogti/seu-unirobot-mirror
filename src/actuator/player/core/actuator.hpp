@@ -58,7 +58,7 @@ protected:
             {
                 p = plist_.front();
                 plist_.pop_front();
-                if(!p->perform(s_)) LOG(LOG_WARN, "plan: "+p->plan_name()+" perform failed.");
+                if(p->perform(s_) == -1) LOG(LOG_WARN, "plan: "+p->plan_name()+" perform failed.");
             }
             plist_mutex_.unlock();
         }

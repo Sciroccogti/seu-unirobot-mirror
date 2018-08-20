@@ -4,7 +4,6 @@
 #include "plan.hpp"
 #include "logger.hpp"
 #include "robot/humanoid.hpp"
-#include "sensor/motor.hpp"
 #include "joints_plan.hpp"
 #include "class_exception.hpp"
 
@@ -16,7 +15,7 @@ public:
     {
     }
     
-    bool perform(sensor_ptr s)
+    int perform(sensor_ptr s)
     {
         std::shared_ptr<motor> motor_ = std::dynamic_pointer_cast<motor>(s);
         std::map<int, float> jdmap;

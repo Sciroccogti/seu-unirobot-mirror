@@ -34,7 +34,7 @@ public:
                 subs_.erase(iter);
                 break;
             }
-            return;
+            iter++;
         }
     }
     

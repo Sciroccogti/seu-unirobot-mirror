@@ -1,5 +1,5 @@
 include_directories(./lib)
-
+find_package(OpenCV REQUIRED)
 add_subdirectory(actuator)
 add_subdirectory(debuger)
 

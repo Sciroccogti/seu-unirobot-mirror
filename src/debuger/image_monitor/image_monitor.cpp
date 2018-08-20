@@ -1,6 +1,8 @@
 #include "image_monitor.hpp"
 #include "configuration.hpp"
+#include <opencv2/opencv.hpp>
 
+using namespace cv;
 using namespace std;
 using namespace robot;
 using namespace comm;
@@ -42,37 +44,31 @@ image_monitor::image_monitor()
                +":"+ QString::number(CONF.get_config_value<int>("net.tcp.port"));
     setWindowTitle(net_info + "(offline)");
 
-    cdevice = new CameraDevice();
-    cthread = new QThread(this);
-    cdevice->moveToThread(cthread);
-    cthread->start();
-    cthread->setPriority(QThread::HighPriority);
-
-
     timer= new QTimer;
-    //timer->start(1000);
+    timer->start(1000);
 
-    //connect(timer, &QTimer::timeout, this, &image_monitor::procTimer);
+    connect(timer, &QTimer::timeout, this, &image_monitor::procTimer);
     connect(yawSlider, &QSlider::valueChanged, this, &image_monitor::procYawSlider);
-    connect(pitchSlider, &QSlider::valueChanged, this, &image_monitor::procPitchSlider);
-    connect(cdevice, &CameraDevice::imageReady, this, &image_monitor::srcImageReady);
-    //client_.start();
-}
-
-void image_monitor::srcImageReady(Mat src)
-{
-    imwrite("test.jpg", src);
-    Mat dst;
-    cvtColor(src, dst, CV_BGR2RGB);
-    QImage disImage = QImage((const unsigned char*)(dst.data),dst.cols,dst.rows,QImage::Format_RGB888);
-    imageLab->setPixmap(QPixmap::fromImage(disImage.scaled(imageLab->size(), Qt::KeepAspectRatio)));
+    connect(pitchSlider, &QSlider::valueChanged, this, &image_monitor::procPitchSlider);;
+    client_.start();
 }
 
 void image_monitor::data_handler(const char *data, const int &size, const int &type)
 {
+    static int count=0;
+    cout<<"recv: "<<++count<<endl;
     if(type == tcp_packet::IMAGE_DATA)
     {
-        imageLab->set_image((uint8_t*)data, size);
+        vector<unsigned char> buf(size);
+        memcpy(&buf[0], data, size);
+        Mat bgr = imdecode(buf, cv::IMREAD_COLOR);
+        Mat dst;
+        cvtColor(bgr, dst, CV_BGR2RGB);
+        //QImage *disImage = new QImage((const unsigned char*)(dst.data),dst.cols,dst.rows,QImage::Format_RGB888);
+        //imageLab->setPixmap(QPixmap::fromImage(disImage->scaled(imageLab->size(), Qt::KeepAspectRatio)));
+        //delete disImage;
+        bgr.release();
+        dst.release();
     }
 }
 

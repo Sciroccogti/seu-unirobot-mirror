@@ -21,7 +21,7 @@ protected:
 private:
     QDoubleSpinBox *hSpinBox;
     QCheckBox *startCheck;
-    QRadioButton *btnSpot, *btnRand;
+    QRadioButton *btnSpot, *btnRand, *btnMan;
     QSlider *dirSlider, *xSlider, *ySlider;
     QLabel *dirLab, *xLab, *yLab;
     float _x, _y, _dir, _h;

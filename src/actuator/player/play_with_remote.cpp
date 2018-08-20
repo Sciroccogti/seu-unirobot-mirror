@@ -1,3 +1,4 @@
+#include <list>
 #include "player.hpp"
 #include "plan/action_plan.hpp"
 
@@ -10,6 +11,7 @@ list<plan_ptr> player::play_with_remote()
     list<plan_ptr> plist;
     int size_float = sizeof(float), size_int = sizeof(int);
     tcp_packet::remote_data rdata = suber_->rmt_data();
+    //LOG(LOG_INFO, "TYPE: "<<(int)rdata.type);
     if(rdata.type == tcp_packet::WALK_DATA)
     {
         float x,y,d,h;

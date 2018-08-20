@@ -12,10 +12,7 @@ public:
     {
     }
     
-    virtual bool perform(sensor_ptr s)
-    {
-        return true;
-    }
+    virtual int perform(sensor_ptr s) = 0;
     
     std::string plan_name() const
     {

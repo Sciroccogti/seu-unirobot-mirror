@@ -1,12 +1,7 @@
-#include <cstdio>
-#include <cstdlib>
-#include <string.h>
-#include <unistd.h>
-#include <fcntl.h>
+#include <libv4l2.h>
 #include <sys/mman.h>
 #include <errno.h>
-#include <libv4l2.h>
-#include <time.h>
+#include <functional>
 #include "capture.hpp"
 #include "configuration.hpp"
 #include "class_exception.hpp"
@@ -29,14 +24,14 @@ capture::capture(const sub_ptr& s): sensor("capture")
 
 bool capture::start()
 {
+    if(!open()) return false;
+    if(!init()) return false;
     td_ = thread(bind(&capture::run, this));
     return true;
 }
 
 void capture::run()
 {
-    if(!open()) return;
-    if(!init()) return;
     is_alive_ = true;
     buf_.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     buf_.memory = V4L2_MEMORY_MMAP;
@@ -66,6 +61,7 @@ void capture::run()
 void capture::stop()
 {
     is_alive_ = false;
+    sleep(1);
     close();
     is_open_ = false;
 }
@@ -88,10 +84,10 @@ void capture::close()
             for (num_bufs_ = 0; num_bufs_ < cfg_.buff_num; num_bufs_++)
             {
                 munmap((void *)(buffers_[num_bufs_].start), buffers_[num_bufs_].length);
-                buffers_[num_bufs_].start = NULL;
+                buffers_[num_bufs_].start = nullptr;
             }
             free(buffers_);
-            buffers_ = NULL;
+            buffers_ = nullptr;
         }
         v4l2_close(fd_);      
     }
@@ -99,20 +95,17 @@ void capture::close()
 
 bool capture::open()
 {
-    is_alive_ = true;
-    do
+
+    fd_ = v4l2_open(cfg_.dev_name.c_str(), O_RDWR,0);
+    if(fd_<0)
     {
-        fd_ = v4l2_open(cfg_.dev_name.c_str(), O_RDWR,0);
-        if(fd_<0)
-        {
-            LOG(LOG_WARN, "open camera: "+cfg_.dev_name+" failed");
-            sleep(1);
-        }
-    }while(fd_<0 && is_alive_);
-    if(fd_<0) return false;
-    
+        LOG(LOG_ERROR, "open camera: "+cfg_.dev_name+" failed");
+        return false;
+    }
+
     /*
     v4l2_capability vc;
+    memset(&vc, 0, sizeof(v4l2_capability));
     if(v4l2_ioctl(fd_, VIDIOC_QUERYCAP, &vc) !=-1)
     {
         LOG(LOG_INFO, "driver:\t"<<vc.driver);
@@ -120,7 +113,7 @@ bool capture::open()
         LOG(LOG_INFO, "bus_info:\t"<<vc.bus_info);
         LOG(LOG_INFO, "version:\t"<<vc.version);
     }
-    */
+    
     v4l2_fmtdesc fmtdesc;
     fmtdesc.index = 0;
     fmtdesc.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
@@ -130,6 +123,7 @@ bool capture::open()
         LOG(LOG_INFO, '\t'<<fmtdesc.index<< ". " << fmtdesc.description);
         fmtdesc.index++;
     }
+    */
     cap_opened_ = true;
     return true;
 }
@@ -158,26 +152,20 @@ bool capture::init()
         LOG(LOG_ERROR, "get format failed");
         return false;
     }
-    else
-    {
-        cfg_.width = fmt.fmt.pix.width;
-        cfg_.height = fmt.fmt.pix.height;
-    }
-
-    LOG(LOG_INFO, "Image format:");
+    
+    LOG(LOG_INFO, "Capture Image Info:");
     LOG(LOG_INFO, "\tformat:\t"<<(char)(fmt.fmt.pix.pixelformat & 0xFF)<<(char)((fmt.fmt.pix.pixelformat >> 8) & 0xFF)
                 <<(char)((fmt.fmt.pix.pixelformat >> 16) & 0xFF)<<(char)((fmt.fmt.pix.pixelformat >> 24) & 0xFF));
     LOG(LOG_INFO, "\twidth:\t"<< fmt.fmt.pix.width);
     LOG(LOG_INFO, "\theight:\t"<< fmt.fmt.pix.height);
 
-    frame_info_.width = fmt.fmt.pix.width;
-    frame_info_.height = fmt.fmt.pix.height;
-    frame_info_.size = fmt.fmt.pix.sizeimage;
-    frame_info_.format_des.append((char*)(&(fmt.fmt.pix.pixelformat)), sizeof(unsigned int));
+    buffer_info_.width = fmt.fmt.pix.width;
+    buffer_info_.height = fmt.fmt.pix.height;
+    buffer_info_.size = fmt.fmt.pix.sizeimage;
+    buffer_info_.format = fmt.fmt.pix.pixelformat;
 
     v4l2_requestbuffers req;
     req.count = cfg_.buff_num;
-    LOG(LOG_INFO, "buf_num: "<<cfg_.buff_num);
     req.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     req.memory = V4L2_MEMORY_MMAP;
 

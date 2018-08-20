@@ -4,7 +4,7 @@
 #include "plan.hpp"
 #include "logger.hpp"
 #include "robot/humanoid.hpp"
-#include "sensor/motor.hpp"
+#include "motor/motor.hpp"
 #include "class_exception.hpp"
 #include "math/math.hpp"
 
@@ -18,7 +18,7 @@ public:
         act_time_ = act_time;
     }
 
-    bool perform(sensor_ptr s)
+    int perform(sensor_ptr s)
     {
         std::shared_ptr<motor> motor_ = std::dynamic_pointer_cast<motor>(s);
         std::map<int, float> latest_deg, diff, jdmap;
@@ -36,16 +36,16 @@ public:
                 jdmap[jd.first] = latest_deg[jd.first]+i*jd.second/(float)act_time_;
             if(actuator_name_ == "body")
             {
-                if(!motor_->add_body_degs(jdmap)) return false;
-                while (!motor_->body_empty());
+                if(!motor_->add_body_degs(jdmap)) return -1;
+                //while (!motor_->body_empty());
             }
             else if(actuator_name_ == "head")
             {
-                if(!motor_->add_head_degs(jdmap)) return false;
-                while (!motor_->head_empty());
+                if(!motor_->add_head_degs(jdmap)) return -1;
+                //while (!motor_->head_empty());
             }
         }
-        return true;
+        return 0;
     }
 private:
     std::map<int, float> jdegs_;

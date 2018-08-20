@@ -90,6 +90,7 @@ namespace comm
             {
                 if (!ec && read_pkt_.decode_header())
                 {
+                    std::cout<<read_pkt_.body_length()<<std::endl;
                     do_read_body();
                 }
                 else

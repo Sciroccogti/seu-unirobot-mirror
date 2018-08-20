@@ -4,7 +4,7 @@
 #include <memory>
 #include <list>
 #include <mutex>
-#include "debuger.hpp"
+#include "sensor/server.hpp"
 #include "motor.hpp"
 #include "robot/humanoid.hpp"
 
@@ -12,13 +12,13 @@
 class vmotor: public motor
 {
 public:
-    vmotor(const sub_ptr &s, sensor_ptr dbg=nullptr);
+    vmotor(sensor_ptr dbg=nullptr);
     ~vmotor();
 
     void act();
 
 private:
-    std::shared_ptr<debuger> dbg_;
+    std::shared_ptr<server> dbg_;
 };
 
 #endif

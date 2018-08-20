@@ -4,7 +4,6 @@
 #include "plan.hpp"
 #include "logger.hpp"
 #include "robot/humanoid.hpp"
-#include "sensor/motor.hpp"
 #include "class_exception.hpp"
 #include "math/math.hpp"
 #include "joints_plan.hpp"
@@ -26,8 +25,10 @@ public:
         pos_times_ = pos_times;
     }
 
-    bool perform(sensor_ptr s)
+    int perform(sensor_ptr s)
     {
+        std::shared_ptr<motor> motor_ = std::dynamic_pointer_cast<motor>(s);
+        if(! motor_->body_empty()) return 1;
         int act_t;
         std::map<int, float> one_pos_deg;
         if(poses_.empty()&&pos_times_.empty())
@@ -36,7 +37,7 @@ public:
             if(aiter == robot::ROBOT.get_act_map().end())
             {
                 LOG(LOG_ERROR, "cannot find action: "+act_name_);
-                return false;
+                return -1;
             }
             std::string pos_name;
             std::map<std::string, float> jdegs;
@@ -50,7 +51,7 @@ public:
                 for(auto j:jdegs)
                     one_pos_deg[robot::ROBOT.get_joint(j.first)->jid_] = j.second;
                 joints_plan jp(one_pos_deg, act_t, "body");
-                if(!jp.perform(s)) return false;
+                if(jp.perform(s) == -1) return -1;
             }
         }
         else
@@ -60,10 +61,10 @@ public:
                 act_t = pos_times_[i];
                 one_pos_deg = poses_[i];
                 joints_plan jp(one_pos_deg, act_t, "body");
-                if(!jp.perform(s)) return false;
+                if(jp.perform(s)==-1) return -1;
             }
         }
-        return true;
+        return 0;
     }
 private:
     std::string act_name_;

@@ -6,7 +6,7 @@
 #include <mutex>
 #include <map>
 #include "timer.hpp"
-#include "sensor.hpp"
+#include "sensor/sensor.hpp"
 #include "robot/humanoid.hpp"
 
 class motor: public sensor, public timer
@@ -39,10 +39,15 @@ public:
     {
         bd_mutex_.lock();
         std::map<int, float> res;
-        for(auto j:robot::ROBOT.get_joint_map())
+        if(!body_degs_list.empty())
+            res = body_degs_list.back();
+        else
         {
-            if(j.second->name_.find("head") == std::string::npos)
-                res[j.second->jid_] = j.second->get_deg();
+            for(auto j:robot::ROBOT.get_joint_map())
+            {
+                if(j.second->name_.find("head") == std::string::npos)
+                    res[j.second->jid_] = j.second->get_deg();
+            }
         }
         bd_mutex_.unlock();
         return res;
@@ -52,10 +57,15 @@ public:
     {
         hd_mutex_.lock();
         std::map<int, float> res;
-        robot::joint_ptr j = robot::ROBOT.get_joint("jhead1");
-        res[j->jid_] = j->get_deg();
-        j = robot::ROBOT.get_joint("jhead2");
-        res[j->jid_] = j->get_deg();
+        if(!head_degs_list.empty())
+            res = head_degs_list.back();
+        else
+        {
+            robot::joint_ptr j = robot::ROBOT.get_joint("jhead1");
+            res[j->jid_] = j->get_deg();
+            j = robot::ROBOT.get_joint("jhead2");
+            res[j->jid_] = j->get_deg();
+        }
         hd_mutex_.unlock();
         return res;
     }
