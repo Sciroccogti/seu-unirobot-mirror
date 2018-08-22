@@ -3,9 +3,9 @@
 
 #include <QtWidgets>
 #include <map>
-#include "module/RobotGL.hpp"
+#include "ui/RobotGL.hpp"
 #include "robot/humanoid.hpp"
-#include "tcp_client/tcp_client_handler.hpp"
+#include "tcp_client/tcp_client.hpp"
 
 #define SLIDER_RANGE 500
 
@@ -154,7 +154,7 @@ private:
     std::map<robot::robot_motion, robot::robot_pose> pose_map_;
     std::map<int, float> joint_degs_;
     QTimer *timer;
-    tcp_client_handler client_;
+    tcp_client client_;
     QString net_info;
     bool first_connect;
     bool pos_saved;

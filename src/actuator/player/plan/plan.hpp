@@ -12,7 +12,7 @@ public:
     {
     }
     
-    virtual int perform(sensor_ptr s) = 0;
+    virtual int perform(sensor_ptr s=nullptr) = 0;
     
     std::string plan_name() const
     {

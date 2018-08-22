@@ -12,12 +12,12 @@ int main(int argc, char **argv)
 {
     if(!OPTS.init(argc, argv))
     {
-        LOG(LOG_ERROR, "options init failed");
+        LOG<<LOG_ERROR<<"options init failed"<<"\n";
         exit(1);
     }
     if(!CONF.init(OPTS.id()))
     {
-        LOG(LOG_ERROR, "config init failed");
+        LOG<<LOG_ERROR<<"config init failed"<<"\n";
         exit(2);
     }
     ROBOT.init(CONF.robot_file(), CONF.action_file(), CONF.offset_file());

@@ -2,16 +2,16 @@
 #define SEU_UNIROBOT_DEBUGER_ACTION_MONITOR_HPP
 
 #include <QtWidgets>
-#include "module/RobotGL.hpp"
+#include "ui/RobotGL.hpp"
 #include "robot/humanoid.hpp"
-#include "tcp_client/tcp_client_handler.hpp"
+#include "tcp_client/tcp_client.hpp"
 
 class action_monitor: public QMainWindow
 {
     Q_OBJECT
 public:
     action_monitor();
-    void data_handler(const char *data, const int &size, const int &type);
+    void data_handler(const tcp_command cmd);
 public slots:
     void procTimer();
 
@@ -20,7 +20,7 @@ protected:
 private:
     RobotGL *rgl;
     QTimer *timer;
-    tcp_client_handler client_;
+    tcp_client client_;
     QString net_info;
     bool first_connect;
 };

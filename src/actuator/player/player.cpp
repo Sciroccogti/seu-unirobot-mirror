@@ -18,13 +18,13 @@ bool player::initialization()
 
 list< plan_ptr > player::think()
 {
-    //LOG(LOG_INFO, "Thinking...");
+    LOG<<LOG_DEBUG<<"Thinking..."<<"\n";
     list<plan_ptr> plist;
     if(OPTS.use_remote())
     {
         return play_with_remote();
     }
-    //plist.push_back(make_shared<action_plan>("ready"));
-    //plist.push_back(make_shared<lookat_plan>(0,45,100));
+    plist.push_back(make_shared<action_plan>("ready"));
+    plist.push_back(make_shared<lookat_plan>(0,45,100));
     return plist;
 }

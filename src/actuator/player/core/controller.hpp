@@ -16,8 +16,9 @@ public:
     {
         if(OPTS.use_robot() != options::ROBOT_NONE)
         {
-            actuators_["body"] = std::make_shared<actuator>(suber->get_sensor("motor"), "body");
-            actuators_["head"] = std::make_shared<actuator>(suber->get_sensor("motor"), "head");
+            actuators_["body"] = std::make_shared<actuator>("body", suber->get_sensor("motor"));
+            actuators_["head"] = std::make_shared<actuator>("head", suber->get_sensor("motor"));
+            actuators_["udp"] = std::make_shared<actuator>("udp");
         }
     }
     
@@ -32,7 +33,7 @@ public:
             }
             else
             {
-                LOG(LOG_WARN, "cannot find actuator: "+p->actuator_name());
+                LOG<<LOG_WARN<<"cannot find actuator: "+p->actuator_name()<<"\n";
             }
         }
     }

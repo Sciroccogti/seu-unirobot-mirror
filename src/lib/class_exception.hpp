@@ -10,7 +10,7 @@ class class_exception
 public:
     class_exception(std::string msg, int id=0): msg_(msg), id_(id)
     {
-        LOG(LOG_ERROR, "exception: "+msg_);
+        LOG<<LOG_ERROR<<"exception: "+msg_<<"\n";
     }
 
     ~class_exception(){};

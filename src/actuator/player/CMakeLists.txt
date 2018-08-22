@@ -9,6 +9,7 @@ add_library(player STATIC
             player.cpp)
             
 target_link_libraries(player
+            boost_system
             sensor
             motor
             vision

@@ -36,7 +36,7 @@ public:
             auto aiter = robot::ROBOT.get_act_map().find(act_name_);
             if(aiter == robot::ROBOT.get_act_map().end())
             {
-                LOG(LOG_ERROR, "cannot find action: "+act_name_);
+                LOG<<LOG_ERROR<<"cannot find action: "+act_name_<<"\n";
                 return -1;
             }
             std::string pos_name;

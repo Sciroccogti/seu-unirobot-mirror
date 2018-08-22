@@ -1,5 +1,5 @@
 add_library(sensor STATIC
-            server.cpp
+            tcp_server.cpp
             gamectrl.cpp
             imu.cpp)
             

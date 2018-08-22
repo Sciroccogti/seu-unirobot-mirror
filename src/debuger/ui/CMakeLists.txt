@@ -1,6 +1,8 @@
 include_directories(${Qt5Widgets_INCLUDE_DIRS})
 
 add_library(ui STATIC
+            joint_revise.cpp
+            walk_remote.cpp
             ImageLabel.cpp
             RobotGL.cpp)
 

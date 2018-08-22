@@ -2,13 +2,13 @@
 #define SEU_UNIROBOT_DEBUGER_WALK_REMOTE_HPP
 
 #include <QtWidgets>
-#include "tcp_client/tcp_client_handler.hpp"
+#include "tcp_client/tcp_client.hpp"
 
 class walk_remote : public QMainWindow
 {
     Q_OBJECT
 public:
-    walk_remote();
+    walk_remote(tcp_client &client, QString netinfo);
     void updateLab();
 public slots:
     void procTimer();
@@ -16,8 +16,6 @@ public slots:
     void procYSlider(int v);
     void procDSlider(int v);
 
-protected:
-    void closeEvent(QCloseEvent *event);
 private:
     QDoubleSpinBox *hSpinBox;
     QCheckBox *startCheck;
@@ -29,8 +27,8 @@ private:
     float scale_d;
     float scale_xy;
     QTimer *timer;
-    tcp_client_handler client_;
-    QString net_info;
+    QString netinfo_;
+    tcp_client &client_;
     bool first_connect;
 };
 

@@ -1,12 +1,14 @@
 #ifndef SEU_UNIROBOT_ACTUATOR_GAME_CTRL_HPP
 #define SEU_UNIROBOT_ACTUATOR_GAME_CTRL_HPP
 
+#include <boost/asio.hpp>
+#include <memory>
 #include <thread>
 #include "GameCtrlData/RoboCupGameControlData.h"
 #include "sensor.hpp"
-#include "comm/udp_server.hpp"
+#include "timer.hpp"
 
-class gamectrl: public sensor
+class gamectrl: public sensor, public timer
 {
 public:
     enum RobocupGameState
@@ -51,23 +53,24 @@ public:
     gamectrl(const sub_ptr &s);
     ~gamectrl();
     
-    bool open();
     bool start();
-    void run();
     void stop();
-    
-    void data_handler(const char* data, const int& size, const int& type);
     
     RoboCupGameControlData data() const
     {
         return *data_;
     }
 private:
+    bool open();
+    void run();
     enum {gc_data_size = sizeof(RoboCupGameControlData)};
     RoboCupGameControlData *data_;
+    RoboCupGameControlReturnData ret_data_;
     std::string str_;
     std::thread td_;
-    comm::udp_server server_;
+    std::shared_ptr<boost::asio::ip::udp::socket> socket_;
+    std::shared_ptr<boost::asio::ip::udp::socket> ret_socket_;
+    boost::asio::ip::udp::endpoint ret_point_;
 };
 
 #endif

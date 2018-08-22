@@ -24,7 +24,7 @@ namespace parser
         {
             robot::bone_ptr b = std::make_shared<robot::bone>();
             b->name_ = pt.get<std::string>("name");
-            //std::cout<<b->name_<<std::endl;
+            //std::cout<<b->name_<<"\n";
             b->length_ = pt.get<float>("length");
             bpt::ptree c_pt = pt.get_child("cp");
             std::vector<float> temp;
@@ -58,7 +58,7 @@ namespace parser
             robot::joint_ptr j = std::make_shared<robot::joint>();
             robot::bone_ptr b = std::make_shared<robot::bone>();
             bpt::ptree cb;
-            //std::cout<<j_name<<std::endl;
+            //std::cout<<j_name<<"\n";
             j->name_ = j_name;
             j->can_turn_ = pt.get<bool>("ct");
 
@@ -94,7 +94,7 @@ namespace parser
             }
             catch (bpt::ptree_error &e)
             {
-                LOG(LOG_WARN, e.what());
+                LOG<<LOG_WARN<<e.what()<<"\n";
             }
             return j;
         }

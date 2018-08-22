@@ -40,17 +40,17 @@ bool options::init(int argc, char **argv)
         use_remote_ = arg<bool>("mote");
         if (var_map_.count("help"))
         {
-            LOG(LOG_INFO, opts_desc_);
+            LOG<<LOG_INFO<<opts_desc_<<"\n";
             return false;
         }
     }
     catch (boost::program_options::unknown_option &e)
     {
-        LOG(LOG_WARN, e.what());
+        LOG<<LOG_WARN<<e.what()<<"\n";
     }
     catch (std::exception &e)
     {
-        LOG(LOG_ERROR, e.what());
+        LOG<<LOG_ERROR<<e.what()<<"\n";
         return false;
     }
     return true;

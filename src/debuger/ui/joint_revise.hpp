@@ -3,7 +3,7 @@
 
 #include <QtWidgets>
 #include "robot/humanoid.hpp"
-#include "tcp_client/tcp_client_handler.hpp"
+#include "tcp_client/tcp_client.hpp"
 
 class JSlider:public QWidget
 {
@@ -57,20 +57,18 @@ class joint_revise: public QMainWindow
 {
     Q_OBJECT
 public:
-    joint_revise();
+    joint_revise(tcp_client &client, QString netinfo);
 public slots:
     void procBtnReset();
     void procBtnSave();
     void procValueChanged(int id, float v);
     void procTimer();
 
-protected:
-    void closeEvent(QCloseEvent *event);
 private:
     std::map<std::string, JSlider*> j_sliders_;
     QPushButton *btnReset, *btnSave;
     QTimer *timer;
-    tcp_client_handler client_;
+    tcp_client &client_;
     QString net_info;
     bool first_connect;
 };

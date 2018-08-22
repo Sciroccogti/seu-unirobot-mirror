@@ -3,11 +3,11 @@
 #include "configuration.hpp"
 
 using namespace std;
-using namespace comm;
 
-walk_remote::walk_remote(): range_(200), scale_d(10), scale_xy(5000),
-    client_(CONF.get_config_value<string>(CONF.player()+".address"), CONF.get_config_value<int>("net.tcp.port"))
+walk_remote::walk_remote(tcp_client &client, QString netinfo): range_(200), scale_d(10), scale_xy(5000),
+    client_(client), netinfo_(netinfo)
 {
+    setAttribute(Qt::WA_DeleteOnClose);
     setMinimumHeight(300);
     dirSlider = new QSlider(Qt::Horizontal);
     dirSlider->setMinimumWidth(200);
@@ -73,10 +73,7 @@ walk_remote::walk_remote(): range_(200), scale_d(10), scale_xy(5000),
     QWidget *mainWidget  = new QWidget();
     mainWidget->setLayout(mainLayout);
     this->setCentralWidget(mainWidget);
-
-    net_info = QString::fromStdString(CONF.get_config_value<string>(CONF.player()+".address"))
-               +":"+ QString::number(CONF.get_config_value<int>("net.tcp.port"));
-    setWindowTitle(net_info + "(offline)");
+    setWindowTitle(netinfo_);
     timer= new QTimer;
     timer->start(1000);
 
@@ -91,7 +88,6 @@ walk_remote::walk_remote(): range_(200), scale_d(10), scale_xy(5000),
     _dir = 0;
     _h = 0;
     srand(int(time(0)));
-    client_.start();
     setEnabled(false);
 }
 
@@ -122,38 +118,34 @@ void walk_remote::procTimer()
     {
         if(first_connect)
         {
-            client_.regist(tcp_packet::REMOTE_DATA, tcp_packet::DIR_SUPPLY);
+            client_.regist(REMOTE_DATA, DIR_SUPPLY);
             first_connect = false;
         }
         else
         {
             if(startCheck->isChecked())
             {
-                tcp_packet::remote_data_type rtp = tcp_packet::WALK_DATA;
-                tcp_packet::tcp_command cmd;
-                cmd.type = tcp_packet::REMOTE_DATA;
-                cmd.size = sizeof(tcp_packet::remote_data_type)+sizeof(float)*4;
-                string data_s;
-                data_s.clear();
-                data_s.append((char*)(&rtp), sizeof(tcp_packet::remote_data_type));
-                data_s.append((char*)(&_x), sizeof(float));
-                data_s.append((char*)(&_y), sizeof(float));
-                data_s.append((char*)(&_dir), sizeof(float));
-                data_s.append((char*)(&_h), sizeof(float));
-                memcpy(cmd.data, data_s.data(), cmd.size);
+                remote_data_type rtp = WALK_DATA;
+                tcp_command cmd;
+                cmd.type = REMOTE_DATA;
+                cmd.size = rmt_type_size + float_size*4;
+                cmd.data.clear();
+                cmd.data.append((char*)(&rtp), rmt_type_size);
+                cmd.data.append((char*)(&_x), float_size);
+                cmd.data.append((char*)(&_y), float_size);
+                cmd.data.append((char*)(&_dir), float_size);
+                cmd.data.append((char*)(&_h), float_size);
                 client_.write(cmd);
             }
         }
         setEnabled(true);
         statusBar()->setStyleSheet("background-color:green");
-        setWindowTitle(net_info + "(online)");
     }
     else
     {
         first_connect = true;
         setEnabled(false);
         statusBar()->setStyleSheet("background-color:red");
-        setWindowTitle(net_info + "(offline)");
     }
 }
 
@@ -181,9 +173,4 @@ void walk_remote::procYSlider(int v)
 {
     _y = v/scale_xy;
     updateLab();
-}
-
-void walk_remote::closeEvent(QCloseEvent *event)
-{
-    client_.close();
 }

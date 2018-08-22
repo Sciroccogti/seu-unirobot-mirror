@@ -1,5 +1,7 @@
 #include <fstream>
 #include "static_action.hpp"
+#include "ui/walk_remote.hpp"
+#include "ui/joint_revise.hpp"
 #include "math/math.hpp"
 #include "configuration.hpp"
 
@@ -12,7 +14,6 @@ using namespace std;
 using namespace robot;
 using namespace robot_math;
 using namespace Eigen;
-using namespace comm;
 
 static_action::static_action()
     : client_(CONF.get_config_value<string>(CONF.player()+".address"), CONF.get_config_value<int>("net.tcp.port"))
@@ -137,7 +138,7 @@ static_action::static_action()
     initJDInfo();
     net_info = QString::fromStdString(CONF.get_config_value<string>(CONF.player()+".address"))
                +":"+ QString::number(CONF.get_config_value<int>("net.tcp.port"));
-    setWindowTitle(net_info + "(offline)");
+    setWindowTitle(net_info);
 
     timer= new QTimer;
     timer->start(1000);
@@ -198,18 +199,16 @@ void static_action::procTimer()
     if(client_.is_connected())
     {
         if(first_connect)
-            client_.regist(tcp_packet::REMOTE_DATA, tcp_packet::DIR_SUPPLY);
+            client_.regist(REMOTE_DATA, DIR_SUPPLY);
         first_connect = false;
         btnrunPos->setEnabled(true);
         netstatuslab->setStyleSheet("background-color:green");
-        setWindowTitle(net_info + "(online)");
     }
     else
     {
         first_connect = true;
         btnrunPos->setEnabled(false);
         netstatuslab->setStyleSheet("background-color:red");
-        setWindowTitle(net_info + "(offline)");
     }
 }
 
@@ -792,32 +791,33 @@ void static_action::procButtonRunPos()
     string act_name = m_pActListWidget->currentItem()->text().toStdString();
     robot_act act = ROBOT.get_act_map()[act_name];
     robot_pos pos;
-    string data;
-    data.clear();
-    tcp_packet::remote_data_type rtp = tcp_packet::ACT_DATA;
-    data.append((char*)(&rtp), sizeof(tcp_packet::remote_data_type));
-    int size = sizeof(tcp_packet::remote_data_type);
+    tcp_command cmd;
+    cmd.type = REMOTE_DATA;
+    cmd.data.clear();
+    remote_data_type rtp = ACT_DATA;
+    cmd.data.append((char*)(&rtp), rmt_type_size);
+    unsigned int size = rmt_type_size;
     for(int i=0; i<id; i++)
     {
-        data.append((char*)(&(act.poses[i].act_time)), sizeof(int));
-        size += sizeof(int);
+        cmd.data.append((char*)(&(act.poses[i].act_time)), int_size);
+        size += int_size;
         pos = ROBOT.get_pos_map()[act.poses[i].pos_name];
         for(auto j:pos.joints_deg)
         {
-            data.append((char*)(&(ROBOT.get_joint(j.first)->jid_)), sizeof(int));
-            size += sizeof(int);
-            data.append((char*)(&(j.second)), sizeof(float));
-            size += sizeof(float);
+            cmd.data.append((char*)(&(ROBOT.get_joint(j.first)->jid_)), int_size);
+            size += int_size;
+            cmd.data.append((char*)(&(j.second)), float_size);
+            size += float_size;
         }
     }
-    client_.write(tcp_packet::REMOTE_DATA, size, data.c_str());
+    cmd.size = size;
+    client_.write(cmd);
 }
 
 void static_action::procButtonWalkRemote()
 {
-    QStringList strList;
-    strList<<"-p"+QString::number(CONF.id());
-    QProcess::startDetached("./walk_remote", strList);
+    walk_remote *wr = new walk_remote(client_, net_info);
+    wr->show();
 }
 
 void static_action::procButtonJointRevise()
@@ -835,5 +835,5 @@ void static_action::closeEvent(QCloseEvent *event)
     {
         action_parser::save(CONF.action_file(), ROBOT.get_act_map(), ROBOT.get_pos_map());
     }
-    client_.close();
+    client_.stop();
 }

@@ -3,11 +3,10 @@
 
 using namespace std;
 using namespace robot;
-using namespace comm;
 
 action_monitor::action_monitor()
     :client_(CONF.get_config_value<string>(CONF.player()+".address"), CONF.get_config_value<int>("net.tcp.port"),
-            bind(&action_monitor::data_handler, this, placeholders::_1, placeholders::_2, placeholders::_3))
+            bind(&action_monitor::data_handler, this, placeholders::_1))
 {
     rgl = new RobotGL(ROBOT.get_main_bone(), ROBOT.get_joint_map());
     setCentralWidget(rgl);
@@ -24,15 +23,16 @@ action_monitor::action_monitor()
     client_.start();
 }
 
-void action_monitor::data_handler(const char *data, const int &size, const int &type)
+void action_monitor::data_handler(const tcp_command cmd)
 {
-    if(type == tcp_packet::JOINT_DATA)
+    unsigned int size = cmd.size;
+    if(cmd.type == JOINT_DATA)
     {
         robot_joint_deg jdeg;
         std::map<int,float> jdegs;
         for(int i=0;i<size/sizeof(robot_joint_deg);i++)
         {
-            memcpy(&jdeg, data+i*sizeof(robot_joint_deg), sizeof(robot_joint_deg));
+            memcpy(&jdeg, cmd.data.c_str()+i*sizeof(robot_joint_deg), sizeof(robot_joint_deg));
             jdegs[jdeg.id] = jdeg.deg;
         }
         rgl->turn_joint(jdegs);
@@ -45,7 +45,7 @@ void action_monitor::procTimer()
     if(client_.is_connected())
     {
         if(first_connect)
-            client_.regist(tcp_packet::JOINT_DATA, tcp_packet::DIR_APPLY);
+            client_.regist(JOINT_DATA, DIR_APPLY);
         first_connect = false;
         statusBar()->setStyleSheet("background-color:green");
         setWindowTitle(net_info + "(online)");
@@ -60,5 +60,5 @@ void action_monitor::procTimer()
 
 void action_monitor::closeEvent(QCloseEvent *event)
 {
-    client_.close();
+    client_.stop();
 }

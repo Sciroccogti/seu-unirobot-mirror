@@ -3,11 +3,11 @@
 
 using namespace robot;
 using namespace std;
-using namespace comm;
 
-joint_revise::joint_revise()
-    :client_(CONF.get_config_value<string>(CONF.player()+".address"), CONF.get_config_value<int>("net.tcp.port"))
+joint_revise::joint_revise(tcp_client &client, QString netinfo)
+    :client_(client), net_info(netinfo)
 {
+    setAttribute(Qt::WA_DeleteOnClose);
     QHBoxLayout *mainLayout = new QHBoxLayout();
     QVBoxLayout *leftLayout = new QVBoxLayout();
     QVBoxLayout *rightLayout = new QVBoxLayout();
@@ -30,9 +30,7 @@ joint_revise::joint_revise()
     rightLayout->addWidget(btnSave);
     mainLayout->addLayout(leftLayout);
     mainLayout->addLayout(rightLayout);
-    net_info = QString::fromStdString(CONF.get_config_value<string>(CONF.player()+".address"))
-               +":"+ QString::number(CONF.get_config_value<int>("net.tcp.port"));
-    setWindowTitle(net_info + "(offline)");
+    setWindowTitle(net_info);
 
     timer= new QTimer;
     timer->start(1000);
@@ -44,7 +42,6 @@ joint_revise::joint_revise()
     connect(btnReset, &QPushButton::clicked, this, &joint_revise::procBtnReset);
     connect(btnSave, &QPushButton::clicked, this, &joint_revise::procBtnSave);
     connect(timer, &QTimer::timeout, this, &joint_revise::procTimer);
-    client_.start();
     setEnabled(false);
 }
 
@@ -54,35 +51,32 @@ void joint_revise::procTimer()
     {
         if(first_connect)
         {
-            client_.regist(tcp_packet::JOINT_DATA, tcp_packet::DIR_SUPPLY);
+            client_.regist(JOINT_DATA, DIR_SUPPLY);
             first_connect = false;
         }
         else
         {
-            tcp_packet::tcp_command cmd;
-            cmd.type = tcp_packet::JOINT_DATA;
+            tcp_command cmd;
+            cmd.data.clear();
+            cmd.type = JOINT_DATA;
             cmd.size = sizeof(robot_joint_deg)*ROBOT.get_joint_map().size();
             robot_joint_deg offset;
-            int i=0;
             for(auto j:ROBOT.get_joint_map())
             {
                 offset.id = j.second->jid_;
                 offset.deg = j.second->offset_;
-                memcpy(cmd.data+i* sizeof(robot_joint_deg), (char*)(&offset), sizeof(robot_joint_deg));
-                i++;
+                cmd.data.append((char*)(&offset), sizeof(robot_joint_deg));
             }
             client_.write(cmd);
         }
         setEnabled(true);
         statusBar()->setStyleSheet("background-color:green");
-        setWindowTitle(net_info + "(online)");
     }
     else
     {
         first_connect = true;
         setEnabled(false);
         statusBar()->setStyleSheet("background-color:red");
-        setWindowTitle(net_info + "(offline)");
     }
 }
 
@@ -103,9 +97,4 @@ void joint_revise::procBtnSave()
 void joint_revise::procValueChanged(int id, float v)
 {
     ROBOT.get_joint(id)->offset_ = v;
-}
-
-void joint_revise::closeEvent(QCloseEvent *event)
-{
-    client_.close();
 }

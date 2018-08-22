@@ -4,7 +4,7 @@
 #include <memory>
 #include <list>
 #include <mutex>
-#include "sensor/server.hpp"
+#include "sensor/tcp_server.hpp"
 #include "motor.hpp"
 #include "robot/humanoid.hpp"
 
@@ -18,7 +18,7 @@ public:
     void act();
 
 private:
-    std::shared_ptr<server> dbg_;
+    std::shared_ptr<tcp_server> dbg_;
 };
 
 #endif

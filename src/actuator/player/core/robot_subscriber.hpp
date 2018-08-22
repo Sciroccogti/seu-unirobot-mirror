@@ -11,7 +11,7 @@
 #include "motor/rmotor.hpp"
 #include "motor/vmotor.hpp"
 #include "sensor/gamectrl.hpp"
-#include "sensor/server.hpp"
+#include "sensor/tcp_server.hpp"
 
 class robot_subscriber: public subscriber
 {
@@ -19,6 +19,8 @@ public:
     robot_subscriber()
     {
         voltage_ = MAX_VOLTAGE;
+        rmt_data_.type = NON_DATA;
+        rmt_data_.size = 0;
     }
     
     bool start()
@@ -27,8 +29,8 @@ public:
         
         if(OPTS.use_debug())
         {
-            sensors_["server"] = std::make_shared<server>(shared_from_this());
-            if(!sensors_["server"]->start()) return false;
+            sensors_["server"] = std::make_shared<tcp_server>(shared_from_this());
+            sensors_["server"]->start();
         }
         if(OPTS.use_robot() == options::ROBOT_REAL)
         {
@@ -45,7 +47,7 @@ public:
             }
             else
             {
-                LOG(LOG_ERROR, "If you want to use virtual robot, you must run with -d1 -r2");
+                LOG<<LOG_ERROR<<"If you want to use virtual robot, you must run with -d1 -r2"<<"\n";
                 return false;
             }
         }
@@ -58,7 +60,7 @@ public:
             }
             catch(std::exception &e)
             {
-                LOG(LOG_WARN, e.what());
+                LOG<<LOG_WARN<<e.what()<<"\n";
             }
         }
         return true;
@@ -125,7 +127,7 @@ public:
         if(pub == (sensors_.find("server"))->second)
         {
             rmt_mtx_.lock();
-            std::shared_ptr<server> sptr = std::dynamic_pointer_cast<server>(pub);
+            std::shared_ptr<tcp_server> sptr = std::dynamic_pointer_cast<tcp_server>(pub);
             rmt_data_ = sptr->r_data();
             rmt_mtx_.unlock();
             return;
@@ -148,10 +150,10 @@ public:
         return res;
     }
     
-    comm::tcp_packet::remote_data rmt_data() const
+    remote_data rmt_data() const
     {
         rmt_mtx_.lock();
-        comm::tcp_packet::remote_data res = rmt_data_;
+        remote_data res = rmt_data_;
         rmt_mtx_.unlock();
         return res;
     }
@@ -159,7 +161,7 @@ public:
     void reset_rmt_data()
     {
         rmt_mtx_.lock();
-        rmt_data_.type = comm::tcp_packet::NONE_DATA;
+        rmt_data_.type = NON_DATA;
         rmt_data_.size = 0;
         rmt_mtx_.unlock();
     }
@@ -169,7 +171,7 @@ private:
     std::map<std::string, sensor_ptr> sensors_;
     RoboCupGameControlData gc_data_;
     imu::imu_data imu_data_;
-    comm::tcp_packet::remote_data rmt_data_;
+    remote_data rmt_data_;
     mutable std::mutex gc_mtx_, imu_mtx_, rmt_mtx_, dxl_mtx_;
 };
 

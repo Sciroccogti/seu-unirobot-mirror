@@ -3,12 +3,11 @@
 #include "configuration.hpp"
 
 using namespace std;
+using namespace boost::asio;
 
-boost::asio::io_service imu_io_service;
-unsigned char imu_header[] = {0x5A, 0xA5};
-imu::imu(const sub_ptr& s)
-    : sensor("imu"), serial_(imu_io_service, CONF.get_config_value<string>("hardware.imu.dev_name"), 
-                             CONF.get_config_value<int>("hardware.imu.baudrate"), 16, imu_header, 2)
+boost::asio::io_service imu_service;
+unsigned char imu_header[] = {0xA5, 0x5A};
+imu::imu(const sub_ptr& s): sensor("imu"), serial_(imu_service)
 {
     attach(s);
     str_.resize(imu_data_size);
@@ -17,41 +16,75 @@ imu::imu(const sub_ptr& s)
 
 bool imu::open()
 {
-    is_open_ = true;
-    is_alive_ = true;
-    return true;
+    try
+    {
+        serial_.open(CONF.get_config_value<string>("hardware.imu.dev_name"));
+        serial_.set_option(boost::asio::serial_port::baud_rate(CONF.get_config_value<unsigned int>("hardware.imu.baudrate")));
+        serial_.set_option(boost::asio::serial_port::flow_control(boost::asio::serial_port::flow_control::none));
+        serial_.set_option(boost::asio::serial_port::parity(boost::asio::serial_port::parity::none));
+        serial_.set_option(boost::asio::serial_port::stop_bits(boost::asio::serial_port::stop_bits::one));
+        serial_.set_option(boost::asio::serial_port::character_size(8));
+        return true;
+    }
+    catch(exception &e)
+    {
+        LOG<<LOG_ERROR<<e.what()<<"\n";
+        return false;
+    }
 }
 
 bool imu::start()
 {
-    this->open();
-    td_ = thread(bind(&imu::run, this));
+    if(!this->open()) return false;
+    is_open_ = true;
+    is_alive_ = true;
+    short pitch, roll, yaw;
+    td_ = std::move(thread([this]()
+    {
+        boost::system::error_code ec;
+        const int max_len = 64;
+        unsigned char len=0;
+        unsigned char buff[max_len];
+        while(is_alive_)
+        {
+            serial_.read_some(boost::asio::buffer(buff, 1), ec);
+            if(ec)
+            {
+                LOG<<LOG_ERROR<<ec.message()<<"\n";
+                break;
+            }
+            if(buff[0] != imu_header[0]) continue;
+            serial_.read_some(boost::asio::buffer(buff+1, 1), ec);
+            if(ec)
+            {
+                LOG<<LOG_ERROR<<ec.message()<<"\n";
+                break;
+            }
+            if(buff[1] != imu_header[1]) continue;
+            serial_.read_some(boost::asio::buffer(buff+2, 1), ec);
+            if(ec)
+            {
+                LOG<<LOG_ERROR<<ec.message()<<"\n";
+                break;
+            }
+            len = buff[2];
+            serial_.read_some(boost::asio::buffer(buff+3, (size_t)len), ec);
+            if(ec)
+            {
+                LOG<<LOG_ERROR<<ec.message()<<"\n";
+                break;
+            }
+            notify();
+        }
+    }));
     return true;
-}
-
-void imu::run()
-{
-    imu_io_service.run();
 }
 
 void imu::stop()
 {
-    if(is_open_)
-    {
-        serial_.close();
-        imu_io_service.stop();
-    }
-    is_open_ = false;
+    serial_.close();
     is_alive_ = false;
-}
-
-void imu::data_handler(const char* data, const int& size, const int& type)
-{
-    if(size==imu_data_size)
-    {
-        str_.assign(data, size);
-        notify();
-    }
+    is_open_ = false;
 }
 
 imu::~imu()

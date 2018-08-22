@@ -13,11 +13,10 @@ public:
 
     ~sensor()
     {
-        LOG(LOG_INFO, "sensor: [ "+name_+" ] end!");
+        LOG<<LOG_INFO<<"sensor: [ "+name_+" ] end!"<<"\n";
     }
 
     virtual bool start() = 0;
-    virtual void run() = 0;  
     virtual void stop() = 0;
 
     bool is_open() const

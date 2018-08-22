@@ -9,9 +9,7 @@ using namespace cv;
 
 vision::vision(const sensor_ptr &s): timer(CONF.get_config_value<int>("vision_period"))
 {
-    //frame_ = make_shared<VideoFrame>(640, 480, 3);
-    frame_.create(height, width, CV_8UC3);
-    server_ = dynamic_pointer_cast<server>(s);
+    server_ = dynamic_pointer_cast<tcp_server>(s);
     p_count_ = 0;
 }
 
@@ -19,6 +17,9 @@ bool vision::start()
 {
     cap_ = make_shared<capture>(shared_from_this());
     if(!cap_->start()) return false;
+    width_ = cap_->buff_info().width;
+    height_ = cap_->buff_info().height;
+    frame_.create(height_, width_, CV_8UC3);
     is_alive_ = true;
     start_timer();
     return true;
@@ -68,16 +69,24 @@ void vision::run()
         vector<unsigned char> jpgbuf;
         imencode(".jpg", bgr, jpgbuf);
         bgr.release();
+        /*
+        ofstream out;
+        out.open("testt.jpg");
+        out.write((char*)(&jpgbuf[0]), jpgbuf.size());
+        out.close();
+        */
+        tcp_command cmd;
+        cmd.type = IMAGE_DATA;
         if(server_!=nullptr)
         {
-            LOG(LOG_INFO, "send: "<<p_count_);
-            server_->write(comm::tcp_packet::IMAGE_DATA, jpgbuf.size(), (char*)&(jpgbuf[0]));
+            cmd.size = jpgbuf.size();
+            cmd.data.assign((char*)&(jpgbuf[0]), jpgbuf.size());
+            server_->write(cmd);
         }
-        //LOG(LOG_INFO, "origin size: "<<bgr.rows*bgr.cols*bgr.channels()<<"\tencode size: "<<jpgbuf.size()<<"\tpencentage: "<<(float)jpgbuf.size()/(float)(bgr.rows*bgr.cols*bgr.channels()));
     }
 }
 
 vision::~vision()
 {
-
+    frame_.release();
 }
