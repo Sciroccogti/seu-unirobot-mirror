@@ -2,7 +2,6 @@
 #define SEU_UNIROBOT_ACTUATOR_LOOKAT_PLAN_HPP
 
 #include "plan.hpp"
-#include "logger.hpp"
 #include "robot/humanoid.hpp"
 #include "joints_plan.hpp"
 #include "class_exception.hpp"

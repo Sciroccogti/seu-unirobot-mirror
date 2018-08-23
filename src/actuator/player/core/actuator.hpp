@@ -1,10 +1,11 @@
 #ifndef SEU_UNIROBOT_ACTUATOR_ACTUATOR_HPP
 #define SEU_UNIROBOT_ACTUATOR_ACTUATOR_HPP
 
+#include <iostream>
+#include <functional>
 #include <thread>
 #include <mutex>
 #include <list>
-#include "logger.hpp"
 #include "plan/plan.hpp"
 #include "sensor/sensor.hpp"
 
@@ -42,7 +43,7 @@ public:
     ~actuator()
     {
         if(td_.joinable()) td_.join();
-        LOG(LOG_INFO)<<"actuator: [ "+name_+" ] end!\n";
+        std::cout<<"\033[32mactuator: [ "+name_+" ] end!\n\033[0m";
     }
 
     mutable std::mutex plist_mutex_;
@@ -58,7 +59,10 @@ protected:
             {
                 p = plist_.front();
                 plist_.pop_front();
-                if(p->perform(s_) == -1) LOG(LOG_WARN)<<"plan: "+p->plan_name()+" perform failed.\n";
+                if(p->perform(s_) == -1) 
+                {
+                    std::cout<<"\033[33mplan: "+p->plan_name()+" perform failed.\n\033[0m";
+                }
             }
             plist_mutex_.unlock();
         }

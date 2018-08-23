@@ -38,15 +38,21 @@ public:
         return info_;
     }
 private:
+    void read_head();
+    void read_data();
     std::map<tcp_cmd_type, tcp_data_dir> td_map_;
     boost::asio::ip::tcp::socket socket_;
-    bool is_alive_;
     tcp_pool &pool_;
     tcp_callback tcb_;
     std::string info_;
+    tcp_command recv_cmd_;
+    char buff_[MAX_CMD_LEN];
+    tcp_cmd_type recv_type_;
+    unsigned char recv_end_;
+    unsigned int recv_size_;
 };
 
-class tcp_server: public sensor, public timer
+class tcp_server: public sensor
 {
 public:
     tcp_server(const sub_ptr& s);
@@ -60,7 +66,7 @@ public:
     }
     
 private:
-    void run();
+    void accept();
     void data_handler(const tcp_command cmd);
     std::vector<std::thread> session_threads_;
     boost::asio::ip::tcp::acceptor acceptor_;
@@ -68,7 +74,6 @@ private:
     std::thread td_;
     tcp_pool pool_;
     remote_data r_data_;
-    bool is_alive_;
     int port_;
 };
 

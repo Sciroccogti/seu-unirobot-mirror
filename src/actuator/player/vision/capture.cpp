@@ -40,7 +40,7 @@ void capture::run()
     {
         if (v4l2_ioctl(fd_, VIDIOC_DQBUF, &buf_) == -1)
         {
-            LOG(LOG_ERROR)<<"VIDIOC_DQBUF failed.\n";
+            std::cout<<"VIDIOC_DQBUF failed.\n";
             break;
         }
         num_bufs_ = buf_.index;
@@ -51,7 +51,7 @@ void capture::run()
         
         if(v4l2_ioctl(fd_, VIDIOC_QBUF, &buf_) == -1)
         {
-            LOG(LOG_ERROR)<<"VIDIOC_QBUF error\n";
+            std::cout<<"VIDIOC_QBUF error\n";
             break;
         }
         num_bufs_ = buf_.index;
@@ -77,7 +77,7 @@ void capture::close()
 
             if (v4l2_ioctl(fd_, VIDIOC_STREAMOFF, &type))
             {
-                LOG(LOG_ERROR)<<"VIDIOC_STREAMOFF error\n";
+                std::cout<<"VIDIOC_STREAMOFF error\n";
                 return;
             }
 
@@ -99,7 +99,7 @@ bool capture::open()
     fd_ = v4l2_open(cfg_.dev_name.c_str(), O_RDWR,0);
     if(fd_<0)
     {
-        LOG(LOG_ERROR)<<"open camera: "+cfg_.dev_name+" failed\n";
+        std::cout<<"open camera: "+cfg_.dev_name+" failed\n";
         return false;
     }
 
@@ -108,19 +108,19 @@ bool capture::open()
     memset(&vc, 0, sizeof(v4l2_capability));
     if(v4l2_ioctl(fd_, VIDIOC_QUERYCAP, &vc) !=-1)
     {
-        LOG(LOG_INFO)<<"driver:\t"<<vc.driver<<"\n";
-        LOG(LOG_INFO)<<"card:\t"<<vc.card<<"\n";
-        LOG(LOG_INFO)<<"bus_info:\t"<<vc.bus_info<<"\n";
-        LOG(LOG_INFO)<<"version:\t"<<vc.version<<"\n";
+        std::cout<<"driver:\t"<<vc.driver<<"\n";
+        std::cout<<"card:\t"<<vc.card<<"\n";
+        std::cout<<"bus_info:\t"<<vc.bus_info<<"\n";
+        std::cout<<"version:\t"<<vc.version<<"\n";
     }
     
     v4l2_fmtdesc fmtdesc;
     fmtdesc.index = 0;
     fmtdesc.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-    LOG(LOG_INFO)<<"Support format:\n";
+    std::cout<<"Support format:\n";
     while (v4l2_ioctl(fd_, VIDIOC_ENUM_FMT, &fmtdesc) != -1)
     {
-        LOG(LOG_INFO)<<'\t'<<fmtdesc.index<< ". " << fmtdesc.description<<"\n";
+        std::cout<<'\t'<<fmtdesc.index<< ". " << fmtdesc.description<<"\n";
         fmtdesc.index++;
     }
     */
@@ -132,7 +132,7 @@ bool capture::init()
 {
     if (format_map_.find(cfg_.format) == format_map_.end())
     {
-        LOG(LOG_ERROR)<<"no supported format\n";
+        std::cout<<"no supported format\n";
         return false;
     }
     v4l2_format fmt;
@@ -144,21 +144,22 @@ bool capture::init()
     
     if (v4l2_ioctl(fd_, VIDIOC_S_FMT, &fmt) == -1)
     {
-        LOG(LOG_ERROR)<<"set format failed\n";
+        std::cout<<"set format failed\n";
         return false;
     }
     if (v4l2_ioctl(fd_, VIDIOC_G_FMT, &fmt) == -1)
     {
-        LOG(LOG_ERROR)<<"get format failed\n";
+        std::cout<<"get format failed\n";
         return false;
     }
+    std::cout<<"\033[32m--------------------------------------------------------\n";
+    std::cout<<"Image Info: [";
+    std::cout<<"format: "<<(char)(fmt.fmt.pix.pixelformat & 0xFF)<<(char)((fmt.fmt.pix.pixelformat >> 8)
+        & 0xFF)<<(char)((fmt.fmt.pix.pixelformat >> 16) & 0xFF)<<(char)((fmt.fmt.pix.pixelformat >> 24) & 0xFF);
+    std::cout<<" width: "<< fmt.fmt.pix.width;
+    std::cout<<" height: "<< fmt.fmt.pix.height<<"]\n";
+    std::cout<<"--------------------------------------------------------\n\033[0m";
     
-    LOG(LOG_INFO)<<"Capture Image Info:\n";
-    LOG(LOG_INFO)<<"\tformat:\t"<<(char)(fmt.fmt.pix.pixelformat & 0xFF)<<(char)((fmt.fmt.pix.pixelformat >> 8) & 0xFF)
-                <<(char)((fmt.fmt.pix.pixelformat >> 16) & 0xFF)<<(char)((fmt.fmt.pix.pixelformat >> 24) & 0xFF)<<"\n";
-    LOG(LOG_INFO)<<"\twidth:\t"<< fmt.fmt.pix.width<<"\n";
-    LOG(LOG_INFO)<<"\theight:\t"<< fmt.fmt.pix.height<<"\n";
-
     buffer_info_.width = fmt.fmt.pix.width;
     buffer_info_.height = fmt.fmt.pix.height;
     buffer_info_.size = fmt.fmt.pix.sizeimage;
@@ -171,7 +172,7 @@ bool capture::init()
 
     if (v4l2_ioctl(fd_, VIDIOC_REQBUFS, &req) == -1)
     {
-        LOG(LOG_ERROR)<<"request buffer error \n";
+        std::cout<<"request buffer error \n";
         return false;
     }
 
@@ -184,7 +185,7 @@ bool capture::init()
 
         if (v4l2_ioctl(fd_, VIDIOC_QUERYBUF, &buf_) == -1)
         {
-            LOG(LOG_ERROR)<<"query buffer error\n";
+            std::cout<<"query buffer error\n";
             return false;
         }
 
@@ -194,12 +195,12 @@ bool capture::init()
                                     MAP_SHARED, fd_, buf_.m.offset);
         if (buffers_[num_bufs_].start == MAP_FAILED)
         {
-            LOG(LOG_ERROR)<<"buffer map error\n";
+            std::cout<<"buffer map error\n";
             return false;
         }
         if (v4l2_ioctl(fd_, VIDIOC_QBUF, &buf_) == -1)
         {
-            LOG(LOG_ERROR)<<"VIDIOC_QBUF error\n";
+            std::cout<<"VIDIOC_QBUF error\n";
             return false;
         }
     }
@@ -208,7 +209,7 @@ bool capture::init()
     type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     if (v4l2_ioctl(fd_, VIDIOC_STREAMON, &type) == -1)
     {
-        LOG(LOG_ERROR)<<"VIDIOC_STREAMON error\n";
+        std::cout<<"VIDIOC_STREAMON error\n";
         return false;
     }
     is_open_ = true;

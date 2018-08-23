@@ -21,20 +21,26 @@ public:
     {
         suber_ = std::make_shared<robot_subscriber>();
         if(!suber_->start()) return false;
+        
         controller_ = std::make_shared<controller>(suber_);
-        controller_->start();
+        controller_->start(); 
+        
+        if(OPTS.use_camera())
+        {
+            vision_ = std::make_shared<vision>(suber_->get_sensor("server"));
+            if(!vision_->start()) return false;
+        }
         
         is_alive_ = true;
-        vision_ = std::make_shared<vision>(suber_->get_sensor("server"));
-        if(OPTS.use_camera())
-            if(!vision_->start()) return false;
         return true;
     }
     
     void kill()
     {
         if(OPTS.use_camera()) vision_->stop();
+
         if(controller_!= nullptr) controller_->stop();
+
         if(is_alive_) delete_timer();
         is_alive_ = false;
         sleep(1);
@@ -58,7 +64,6 @@ public:
     virtual std::list<plan_ptr> think()=0;
 
 protected:
-    bool is_alive_;
     unsigned long period_count_;
     std::shared_ptr<vision> vision_;
     std::shared_ptr<robot_subscriber> suber_;

@@ -3,7 +3,6 @@
 
 #include <boost/asio.hpp>
 #include "plan.hpp"
-#include "logger.hpp"
 #include "robot/humanoid.hpp"
 #include "class_exception.hpp"
 #include "configuration.hpp"

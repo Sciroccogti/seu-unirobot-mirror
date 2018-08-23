@@ -3,18 +3,18 @@
 
 #include <memory>
 #include "pattern.hpp"
-#include "logger.hpp"
+#include <iostream>
+
 class sensor: public publisher
 {
 public:
     sensor(const std::string &name):name_(name)
     {
-        LOG(LOG_DEBUG)<<"sensor: [ "+name_+" ] construct\n";
     }
 
     ~sensor()
     {
-        LOG(LOG_INFO)<<"sensor: [ "+name_+" ] end!\n";
+        std::cout<<"\033[32msensor: [ "+name_+" ] end!\n\033[0m";
     }
 
     virtual bool start() = 0;

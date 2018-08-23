@@ -1,6 +1,7 @@
 #include "tcp_server.hpp"
 #include "configuration.hpp"
 #include "robot/humanoid.hpp"
+#include <string>
 
 using namespace std;
 using namespace robot;
@@ -8,13 +9,13 @@ using boost::asio::ip::tcp;
 
 void tcp_pool::join(tcp_session_ptr session)
 {
-    LOG(LOG_INFO)<<"connection from: "<<session->info()<<" joined\n";
+    std::cout<<"connection from: "<<session->info()<<" joined\n";
     sessions_.insert(session);
 }
 
 void tcp_pool::leave(tcp_session_ptr session)
 {
-    LOG(LOG_INFO)<<"connection from: "<<session->info()<<" leaved\n";
+    std::cout<<"connection from: "<<session->info()<<" leaved\n";
     sessions_.erase(session);
 }
 
@@ -38,102 +39,101 @@ tcp_session::tcp_session(tcp::socket sock, tcp_pool& pool, tcp_callback ncb)
 {
     info_.clear();
     info_.append(socket_.remote_endpoint().address().to_string()+":"+to_string(socket_.remote_endpoint().port()));
-    is_alive_ = false;
+    recv_cmd_.type = NONE_DATA;
+    memset(buff_, 0, MAX_CMD_LEN);
 }
 
 void tcp_session::start()
 {
     pool_.join(shared_from_this());
-    is_alive_ = true;
-    boost::system::error_code ec;
-    char buff[MAX_CMD_LEN];
-    tcp_command recv_cmd;
-    tcp_cmd_type recv_type;
-    unsigned char recv_end;
-    unsigned int recv_size;
-    recv_cmd.type = NONE_DATA;
-    unsigned int offset=0;
-    unsigned int ablen=0;
-    while(is_alive_)
+    this->read_head();
+}
+
+void tcp_session::read_head()
+{
+    auto self(shared_from_this());
+    boost::asio::async_read(socket_, boost::asio::buffer(buff_, data_offset),
+                            [this, self](boost::system::error_code ec, std::size_t length)
     {
-        ablen = socket_.available(ec);
-        if(ec)
+        if (!ec)
         {
-            pool_.leave(shared_from_this());
-            break;
-        }
-        if(!ablen) continue;
-        
-        //if(!socket_.available()) continue;
-        memset(buff, 0, MAX_CMD_LEN);
-        socket_.read_some(boost::asio::buffer(buff), ec);
-        if(ec)
-        {
-            pool_.leave(shared_from_this());
-            break;
+            memcpy(&recv_type_, buff_, tcp_type_size);
+            memcpy(&recv_end_, buff_+tcp_type_size, tcp_end_size);
+            memcpy(&recv_size_, buff_+tcp_type_size+tcp_end_size, tcp_size_size);
+            read_data();
         }
         else
         {
-            offset=0;
-            memcpy(&recv_type, buff+offset, tcp_type_size);
-            offset+=tcp_type_size;
-            memcpy(&recv_end, buff+offset, tcp_full_size);
-            offset+=tcp_full_size;
-            memcpy(&recv_size, buff+offset, tcp_size_size);
-            offset+=tcp_size_size;
-            if(recv_cmd.type != recv_type)
+            pool_.leave(shared_from_this());
+        }
+    });
+}
+
+void tcp_session::read_data()
+{
+    auto self(shared_from_this());
+    boost::asio::async_read(socket_, boost::asio::buffer(buff_+data_offset, recv_size_),
+                            [this, self](boost::system::error_code ec, std::size_t length)
+    {
+        if (!ec)
+        {
+            if(recv_cmd_.type != recv_type_)
             {
-                recv_cmd.type = recv_type;
-                recv_cmd.end = recv_end;
-                recv_cmd.size = recv_size;
-                recv_cmd.data.clear();
-                recv_cmd.data.assign((char*)(buff+offset), recv_size);
+                recv_cmd_.type = recv_type_;
+                recv_cmd_.end = recv_end_;
+                recv_cmd_.size = recv_size_;
+                recv_cmd_.data.clear();
+                recv_cmd_.data.assign((char*)(buff_+data_offset), recv_size_);
             }
             else
             {
-                if(!recv_cmd.end)
+                if(!recv_cmd_.end)
                 {
-                    recv_cmd.end = recv_end;
-                    recv_cmd.size+=recv_size;
-                    recv_cmd.data.append((char*)(buff+offset), recv_size);
+                    recv_cmd_.end = recv_end_;
+                    recv_cmd_.size+=recv_size_;
+                    recv_cmd_.data.append((char*)(buff_+data_offset), recv_size_);
                 }
                 else
                 {
-                    recv_cmd.type = recv_type;
-                    recv_cmd.end = recv_end;
-                    recv_cmd.size = recv_size;
-                    recv_cmd.data.clear();
-                    recv_cmd.data.assign((char*)(buff+offset), recv_size);
+                    recv_cmd_.type = recv_type_;
+                    recv_cmd_.end = recv_end_;
+                    recv_cmd_.size = recv_size_;
+                    recv_cmd_.data.clear();
+                    recv_cmd_.data.assign((char*)(buff_+data_offset), recv_size_);
                 }
             }
-            if(recv_end)
+            if(recv_end_)
             {
-                if(recv_cmd.type == REG_DATA)
+                if(recv_cmd_.type == REG_DATA)
                 {
                     tcp_cmd_type t;
                     tcp_data_dir d;
-                    std::memcpy(&t, recv_cmd.data.c_str(), tcp_type_size);
-                    std::memcpy(&d, recv_cmd.data.c_str()+tcp_type_size, tcp_dir_size);
+                    std::memcpy(&t, recv_cmd_.data.c_str(), tcp_type_size);
+                    std::memcpy(&d, recv_cmd_.data.c_str()+tcp_type_size, tcp_dir_size);
                     td_map_[t] = d;
                 }
                 else
                 {
-                    tcb_(recv_cmd);
+                    tcb_(recv_cmd_);
                 }
             }
+            read_head();
         }
-    }
-    socket_.close();
+        else
+        {
+            pool_.leave(shared_from_this());
+        }
+    });
 }
+
 
 void tcp_session::stop()
 {
-    is_alive_ = false;
+    socket_.close();
 }
 
 bool tcp_session::check_type(const tcp_cmd_type& t)
 {
-    if(t == BEAT_DATA) return true;
     for(auto c:td_map_)
         if(c.first == t && (c.second == DIR_BOTH || c.second == DIR_APPLY))
             return true;
@@ -142,35 +142,50 @@ bool tcp_session::check_type(const tcp_cmd_type& t)
 
 void tcp_session::deliver(const tcp_command& cmd)
 {
-    boost::system::error_code ec;
-    if(!is_alive_) return;
     unsigned int data_size = cmd.size;
-    unsigned int total_size = data_size+tcp_size_size+tcp_type_size+tcp_full_size;
+    unsigned int total_size = data_size+data_offset;
     char *buf = new char[total_size];
     unsigned int offset=0;
     memcpy(buf+offset, &(cmd.type),tcp_type_size);
     offset+=tcp_type_size;
-    memcpy(buf+offset, &(cmd.end), tcp_full_size);
-    offset+=tcp_full_size;
+    memcpy(buf+offset, &(cmd.end), tcp_end_size);
+    offset+=tcp_end_size;
     memcpy(buf+offset, &data_size, tcp_size_size);
     offset+=tcp_size_size;
     memcpy(buf+offset, cmd.data.c_str(), cmd.data.size());
-    socket_.write_some(boost::asio::buffer(buf, total_size), ec);
-    if(ec)
+    
+    auto self(shared_from_this());
+    boost::asio::async_write(socket_, boost::asio::buffer(buf, total_size),
+                            [this, self, buf](boost::system::error_code ec, std::size_t length)
     {
-        pool_.leave(shared_from_this());
-        stop();
-    }
-    delete []buf;
+        if (ec) pool_.leave(shared_from_this());
+        delete []buf;
+    });
 }
+    
     
 boost::asio::io_service tcp_service;
 
 tcp_server::tcp_server(const sub_ptr& s)
-    :sensor("server"), timer(1000), port_(CONF.get_config_value<int>("net.tcp.port")),
-    socket_(tcp_service), acceptor_(tcp_service, tcp::endpoint(tcp::v4(), CONF.get_config_value<int>("net.tcp.port")))
+    :sensor("server"), socket_(tcp_service), 
+    acceptor_(tcp_service, tcp::endpoint(tcp::v4(), CONF.get_config_value<int>("net.tcp.port")))
 {
     attach(s);
+    r_data_.type = NON_DATA;
+    r_data_.size = 0;
+}
+
+void tcp_server::accept()
+{
+    acceptor_.async_accept(socket_, [this](boost::system::error_code ec)
+    {
+        if (!ec)
+        {
+            std::make_shared<tcp_session>(std::move(socket_), pool_, 
+                bind(&tcp_server::data_handler, this, placeholders::_1))->start();
+        }
+        accept();
+    });
 }
 
 void tcp_server::data_handler(const tcp_command cmd)
@@ -220,7 +235,7 @@ void tcp_server::write(const tcp_command& cmd)
 {
     if(!sensor::is_alive_) return;
     unsigned int t_size = cmd.size;
-    unsigned max_data_size = MAX_CMD_LEN - tcp_size_size - tcp_type_size - tcp_full_size;
+    unsigned max_data_size = MAX_CMD_LEN - tcp_size_size - tcp_type_size - tcp_end_size;
     int i=0;
     tcp_command temp;
     temp.type = cmd.type;
@@ -242,55 +257,23 @@ void tcp_server::write(const tcp_command& cmd)
 
 bool tcp_server::start()
 {
-    sensor::is_alive_ = true;
-    timer::is_alive_ = true;
+    is_alive_ = true;
     td_ = std::move(std::thread([this]()
     {
-        boost::system::error_code ec;
-        while(sensor::is_alive_)
-        {
-            acceptor_.accept(socket_);
-            if(!sensor::is_alive_) break;
-            session_threads_.emplace_back(std::thread([this]()
-            {
-                std::make_shared<tcp_session>(std::move(socket_), pool_, std::bind(&tcp_server::data_handler, this, std::placeholders::_1))->start();
-            }));
-            usleep(10000);
-        }
-        socket_.close();
-        acceptor_.close();
+        accept();
+        tcp_service.run();
     }));
-    start_timer();
     return true;
-}
-
-void tcp_server::run()
-{
-    if(timer::is_alive_)
-    {
-        tcp_command cmd;
-        cmd.type = BEAT_DATA;
-        cmd.size = 0;
-        this->write(cmd);
-    }
 }
 
 void tcp_server::stop()
 {
-    sensor::is_alive_ = false;
-    timer::is_alive_ = false;
-    boost::asio::io_service tio;
-    tcp::socket ts(tio);
-    tcp::endpoint ep(boost::asio::ip::address::from_string("127.0.0.1"), port_);
-    ts.connect(ep);
-    ts.close();
     pool_.close();
-    delete_timer();
+    tcp_service.stop();
+    is_alive_ = false;
 }
 
 tcp_server::~tcp_server()
 {
-    for(auto &st:session_threads_)
-        if(st.joinable()) st.join();
     if(td_.joinable()) td_.join();
 }

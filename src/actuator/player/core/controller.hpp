@@ -6,7 +6,6 @@
 #include "actuator.hpp"
 #include "plan/plan.hpp"
 #include "robot_subscriber.hpp"
-#include "logger.hpp"
 #include "options/options.hpp"
 
 class controller
@@ -18,13 +17,13 @@ public:
         {
             actuators_["body"] = std::make_shared<actuator>("body", suber->get_sensor("motor"));
             actuators_["head"] = std::make_shared<actuator>("head", suber->get_sensor("motor"));
-            //actuators_["udp"] = std::make_shared<actuator>("udp");
+            actuators_["udp"] = std::make_shared<actuator>("udp");
         }
     }
     
     void add_plan(std::list<plan_ptr> plist)
     {
-        for(auto p:plist)
+        for(auto &p:plist)
         {
             if(actuators_.find(p->actuator_name()) != actuators_.end())
             {
@@ -33,7 +32,7 @@ public:
             }
             else
             {
-                LOG(LOG_WARN)<<"cannot find actuator: "+p->actuator_name()<<"\n";
+                std::cout<<"cannot find actuator: "+p->actuator_name()<<"\n";
             }
         }
     }
@@ -46,7 +45,7 @@ public:
 
     void stop()
     {
-        for(auto a:actuators_)
+        for(auto &a:actuators_)
             a.second->stop();
     }
 

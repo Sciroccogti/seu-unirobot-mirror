@@ -5,4 +5,7 @@ add_library(vision STATIC
             
 target_link_libraries(vision
             ${OpenCV_LIBS}
+            sensor
+            pthread
+            rt
             v4l2)

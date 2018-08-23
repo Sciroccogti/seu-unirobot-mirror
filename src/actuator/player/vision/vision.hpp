@@ -15,12 +15,12 @@ public:
     vision(const sensor_ptr &s=nullptr);
     ~vision();
     void updata(const pub_ptr &pub);
-    void run();
     
     bool start();
     void stop();
     mutable std::mutex frame_mutex_;
 private:
+    void run();
     std::shared_ptr<capture> cap_;
     cv::Mat frame_;
     std::shared_ptr<tcp_server> server_;

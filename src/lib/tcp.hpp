@@ -16,7 +16,6 @@ enum tcp_data_dir
 enum tcp_cmd_type
 {
     NONE_DATA = 0,
-    BEAT_DATA = 1,
     REG_DATA = 2,
     TEST_DATA = 5,
     JOINT_DATA = 6,
@@ -50,11 +49,13 @@ struct remote_data
 enum {tcp_dir_size = sizeof(tcp_data_dir)};
 enum {tcp_type_size = sizeof(tcp_cmd_type)};
 enum {tcp_size_size = sizeof(unsigned int)};
-enum {tcp_full_size = sizeof(unsigned char)};
+enum {tcp_end_size = sizeof(unsigned char)};
 enum {rmt_type_size = sizeof(remote_data_type)};
 enum {rmt_size_size = sizeof(unsigned int)};
 enum {float_size = sizeof(float)};
 enum {int_size = sizeof(int)};
+enum {data_offset = tcp_type_size + tcp_end_size + tcp_size_size};
+enum {max_data_size = MAX_CMD_LEN - data_offset};
         
 typedef std::function<void (const tcp_command)> tcp_callback;
 

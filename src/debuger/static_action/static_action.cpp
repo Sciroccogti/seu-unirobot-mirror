@@ -829,11 +829,11 @@ void static_action::procButtonJointRevise()
 
 void static_action::closeEvent(QCloseEvent *event)
 {
+    client_.stop();
     QMessageBox::StandardButton reply = QMessageBox::question(this, "Warning", "write action data into file?",
             QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
     if(reply == QMessageBox::StandardButton::Yes)
     {
         action_parser::save(CONF.action_file(), ROBOT.get_act_map(), ROBOT.get_pos_map());
     }
-    client_.stop();
 }

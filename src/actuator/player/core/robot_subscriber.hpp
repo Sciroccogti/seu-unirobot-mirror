@@ -6,7 +6,6 @@
 #include "pattern.hpp"
 #include "options/options.hpp"
 #include "configuration.hpp"
-#include "logger.hpp"
 #include "sensor/imu.hpp"
 #include "motor/rmotor.hpp"
 #include "motor/vmotor.hpp"
@@ -32,6 +31,7 @@ public:
             sensors_["server"] = std::make_shared<tcp_server>(shared_from_this());
             sensors_["server"]->start();
         }
+        
         if(OPTS.use_robot() == options::ROBOT_REAL)
         {
             sensors_["imu"] = std::make_shared<imu>(shared_from_this());
@@ -47,7 +47,7 @@ public:
             }
             else
             {
-                LOG(LOG_ERROR)<<"If you want to use virtual robot, you must run with -d1 -r2 \n";
+                std::cout<<"If you want to use virtual robot, you must run with -d1 -r2 \n";
                 return false;
             }
         }
@@ -60,14 +60,16 @@ public:
             }
             catch(std::exception &e)
             {
-                LOG(LOG_WARN)<<e.what()<<"\n";
+                std::cout<<e.what()<<"\n";
             }
         }
+        
         return true;
     }
     
     void stop()
     {
+        
         if(sensors_.find("gc") != sensors_.end())
         {
             sensors_["gc"]->detach(shared_from_this());
@@ -83,6 +85,7 @@ public:
             sensors_["motor"]->detach(shared_from_this());
             sensors_["motor"]->stop();
         }
+        
         if(sensors_.find("server") != sensors_.end())
         {
             sensors_["server"]->detach(shared_from_this());

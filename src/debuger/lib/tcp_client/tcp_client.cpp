@@ -1,6 +1,6 @@
 #include "tcp_client.hpp"
-#include "logger.hpp"
 #include <string>
+#include <iostream>
 
 using boost::asio::ip::tcp;
 
@@ -16,7 +16,6 @@ void tcp_client::write(const tcp_command& cmd)
 {
     if(!is_alive_) return;
     unsigned int t_size = cmd.size;
-    unsigned max_data_size = MAX_CMD_LEN - tcp_size_size - tcp_type_size - tcp_full_size;
     int i=0;
     tcp_command temp;
     temp.type = cmd.type;
@@ -52,13 +51,13 @@ void tcp_client::deliver(const tcp_command& cmd)
     if(!is_connect_) return;
     boost::system::error_code ec;
     unsigned int data_size = cmd.size;
-    unsigned int total_size = data_size + tcp_size_size + tcp_type_size + tcp_full_size;
+    unsigned int total_size = data_size + data_offset;
     char *buf = new char[total_size];
     unsigned int offset=0;
     memcpy(buf+offset, &(cmd.type),tcp_type_size);
     offset+=tcp_type_size;
-    memcpy(buf+offset, &(cmd.end), tcp_full_size);
-    offset+=tcp_full_size;
+    memcpy(buf+offset, &(cmd.end), tcp_end_size);
+    offset+=tcp_end_size;
     memcpy(buf+offset, &data_size, tcp_size_size);
     offset+=tcp_size_size;
     memcpy(buf+offset, cmd.data.c_str(), cmd.data.size());
@@ -98,20 +97,10 @@ void tcp_client::start()
             {
                 while(is_alive_)
                 {
-                    /*
-                    ablen = socket_.available(ec);
-                    if(ec)
-                    {
-                        LOG(LOG_WARN)<<"sever closed\n";
-                        is_connect_ = false;
-                        break;
-                    }
-                    if(!ablen) continue;*/
                     memset(buff, 0, MAX_CMD_LEN);
                     socket_.read_some(boost::asio::buffer(buff), ec);
                     if(ec)
                     {
-                        LOG(LOG_WARN)<<"sever closed\n";
                         is_connect_ = false;
                         socket_.close();
                         break;

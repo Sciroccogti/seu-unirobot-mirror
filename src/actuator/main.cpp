@@ -5,7 +5,7 @@
 #include "robot/humanoid.hpp"
 #include "options/options.hpp"
 #include "player/player.hpp"
-#include "logger.hpp"
+
 
 using namespace std;
 using namespace robot;
@@ -14,9 +14,9 @@ shared_ptr<player> maxwell;
 
 void exit_handler(int sig)
 {
-    LOG(LOG_INFO)<<"\n--------------------------------------------------------\n";
-    LOG(LOG_INFO)<<"                         Good bye!                      \n";
-    LOG(LOG_INFO)<<"--------------------------------------------------------\n";
+    std::cout<<"\n\033[32m--------------------------------------------------------\n";
+    std::cout<<"                         Good bye!                      \n";
+    std::cout<<"--------------------------------------------------------\n";
     if(sig == SIGINT)
     {
         maxwell->kill();
@@ -25,24 +25,23 @@ void exit_handler(int sig)
 
 void greeting()
 {
-    LOG(LOG_INFO)<<"\n--------------------------------------------------------\n";
-    LOG(LOG_INFO)<<setw(20)<<"team-name: "<<CONF.get_config_value<string>("team_name")<<"\n";
-    LOG(LOG_INFO)<<setw(20)<<"team-number: "<<CONF.get_config_value<string>("team_number")<<"\n";
-    LOG(LOG_INFO)<<setw(20)<<"player-id: "<<CONF.id()<<"\n";
-    LOG(LOG_INFO)<<  "--------------------------------------------------------\n";
+    std::cout<<"\033[32m--------------------------------------------------------\n";
+    std::cout<<left<<setw(15)<<"team-name: "<<CONF.get_config_value<string>("team_name")<<"\n";
+    std::cout<<left<<setw(15)<<"team-number: "<<CONF.get_config_value<string>("team_number")<<"\n";
+    std::cout<<left<<setw(15)<<"player-id: "<<CONF.id()<<"\n";
+    std::cout<<  "--------------------------------------------------------\n\033[0m";
 }
 
 int main(int argc, char *argv[])
 {
-    LOG.set_level(LOG_DEBUG);
     if(!OPTS.init(argc, argv))
     {
-        LOG(LOG_ERROR)<<"options init failed\n";
+        std::cout<<"\033[31moptions init failed\n\033[0m";
         return 1;
     }
     if(!CONF.init(OPTS.id()))
     {
-        LOG(LOG_ERROR)<<"config init failed\n";
+        std::cout<<"\033[31mconfig init failed\n\033[0m";
         return 2;
     }
     ROBOT.init(CONF.robot_file(), CONF.action_file(), CONF.offset_file());
@@ -51,10 +50,9 @@ int main(int argc, char *argv[])
     maxwell = make_shared<player>();
     if(!maxwell->initialization())
     {
-        LOG(LOG_ERROR)<<"robot init failed\n";
+        std::cout<<"\033[31mrobot init failed\n\033[0m";
         return 3;
     }
-
     while(maxwell->is_alive())
     {
         sleep(2);

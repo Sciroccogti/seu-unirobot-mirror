@@ -14,7 +14,7 @@ action_monitor::action_monitor()
     first_connect = true;
     net_info = QString::fromStdString(CONF.get_config_value<string>(CONF.player()+".address"))
                +":"+ QString::number(CONF.get_config_value<int>("net.tcp.port"));
-    setWindowTitle(net_info + "(offline)");
+    setWindowTitle(net_info);
 
     timer= new QTimer;
     timer->start(1000);
@@ -48,13 +48,11 @@ void action_monitor::procTimer()
             client_.regist(JOINT_DATA, DIR_APPLY);
         first_connect = false;
         statusBar()->setStyleSheet("background-color:green");
-        setWindowTitle(net_info + "(online)");
     }
     else
     {
         first_connect = true;
         statusBar()->setStyleSheet("background-color:red");
-        setWindowTitle(net_info + "(offline)");
     }
 }
 

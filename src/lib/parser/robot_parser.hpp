@@ -4,7 +4,6 @@
 #include "basic_parser.hpp"
 #include "robot/robot_define.hpp"
 #include "class_exception.hpp"
-#include "logger.hpp"
 
 namespace parser
 {
@@ -94,7 +93,7 @@ namespace parser
             }
             catch (bpt::ptree_error &e)
             {
-                LOG(LOG_WARN)<<e.what()<<"\n";
+                std::cout<<e.what()<<"\n";
             }
             return j;
         }
