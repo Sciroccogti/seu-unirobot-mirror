@@ -29,7 +29,7 @@ bool gamectrl::open()
     }
     catch (exception &e)
     {
-        LOG<<LOG_WARN<<e.what()<<"\n";
+        LOG(LOG_WARN)<<e.what()<<"\n";
         return false;
     }
 }
@@ -67,7 +67,7 @@ void gamectrl::run()
         }
         catch(exception &e)
         {
-            LOG<<LOG_WARN<<e.what()<<"\n";
+            LOG(LOG_WARN)<<e.what()<<"\n";
         }
     }
 }

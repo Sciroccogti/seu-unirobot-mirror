@@ -18,7 +18,6 @@ bool player::initialization()
 
 list< plan_ptr > player::think()
 {
-    LOG<<LOG_DEBUG<<"Thinking..."<<"\n";
     list<plan_ptr> plist;
     if(OPTS.use_remote())
     {

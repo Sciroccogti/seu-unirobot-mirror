@@ -21,17 +21,17 @@ bool options::init(int argc, char *argv[])
         id_ = arg<int>("player");
         if (var_map_.count("help"))
         {
-            LOG<<LOG_INFO<<opts_desc_<<"\n";
+            LOG(LOG_INFO)<<opts_desc_<<"\n";
             return false;
         }
     }
     catch (boost::program_options::unknown_option &e)
     {
-        LOG<<LOG_WARN<<e.what()<<"\n";
+        LOG(LOG_WARN)<<e.what()<<"\n";
     }
     catch (std::exception &e)
     {
-        LOG<<LOG_ERROR<<e.what()<<"\n";
+        LOG(LOG_ERROR)<<e.what()<<"\n";
         return false;
     }
     return true;

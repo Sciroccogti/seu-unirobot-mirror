@@ -28,7 +28,7 @@ bool imu::open()
     }
     catch(exception &e)
     {
-        LOG<<LOG_ERROR<<e.what()<<"\n";
+        LOG(LOG_ERROR)<<e.what()<<"\n";
         return false;
     }
 }
@@ -50,28 +50,28 @@ bool imu::start()
             serial_.read_some(boost::asio::buffer(buff, 1), ec);
             if(ec)
             {
-                LOG<<LOG_ERROR<<ec.message()<<"\n";
+                LOG(LOG_ERROR)<<ec.message()<<"\n";
                 break;
             }
             if(buff[0] != imu_header[0]) continue;
             serial_.read_some(boost::asio::buffer(buff+1, 1), ec);
             if(ec)
             {
-                LOG<<LOG_ERROR<<ec.message()<<"\n";
+                LOG(LOG_ERROR)<<ec.message()<<"\n";
                 break;
             }
             if(buff[1] != imu_header[1]) continue;
             serial_.read_some(boost::asio::buffer(buff+2, 1), ec);
             if(ec)
             {
-                LOG<<LOG_ERROR<<ec.message()<<"\n";
+                LOG(LOG_ERROR)<<ec.message()<<"\n";
                 break;
             }
             len = buff[2];
             serial_.read_some(boost::asio::buffer(buff+3, (size_t)len), ec);
             if(ec)
             {
-                LOG<<LOG_ERROR<<ec.message()<<"\n";
+                LOG(LOG_ERROR)<<ec.message()<<"\n";
                 break;
             }
             notify();

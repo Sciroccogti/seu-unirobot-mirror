@@ -102,7 +102,7 @@ void tcp_client::start()
                     ablen = socket_.available(ec);
                     if(ec)
                     {
-                        LOG<<LOG_WARN<<"sever closed"<<"\n";
+                        LOG(LOG_WARN)<<"sever closed\n";
                         is_connect_ = false;
                         break;
                     }
@@ -111,7 +111,7 @@ void tcp_client::start()
                     socket_.read_some(boost::asio::buffer(buff), ec);
                     if(ec)
                     {
-                        LOG<<LOG_WARN<<"sever closed"<<"\n";
+                        LOG(LOG_WARN)<<"sever closed\n";
                         is_connect_ = false;
                         socket_.close();
                         break;

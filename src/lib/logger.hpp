@@ -22,7 +22,7 @@ public:
         enable_ = true;
     }
 
-    logger& operator<<(log_level &l)
+    logger& operator()(const log_level &l)
     {
         curr_level_ = l;
         return *this;
@@ -39,31 +39,38 @@ public:
         return *this;
     }
 
-    void set_level(const log_level &l)
+    void set_level(const log_level l)
     {
         cout_level_ = l;
     }
 
-    void set_enable(const bool &e)
+    void set_enable(const bool e)
     {
         enable_ = e;
     }
 private:
-    std::string get_color(const log_level &ll)
+    std::string get_color(const log_level &l)
     {
-        switch(ll)
+        std::string clr;
+        switch(l)
         {
             case LOG_ERROR:
-                return "\033[31m";
+                clr = "\033[31m";
+                break;
             case LOG_WARN:
-                return "\033[33m";
+                clr = "\033[33m";
+                break;
             case LOG_INFO:
-                return "\033[32m";
+                clr = "\033[32m";
+                break;
             case LOG_DEBUG:
-                return "\033[35m";
+                clr = "\033[35m";
+                break;
             default:
-                return "\033[0m";
+                clr = "\033[0m";
+                break;
         }
+        return clr;
     }
 
     log_level curr_level_;

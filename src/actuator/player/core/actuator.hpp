@@ -42,7 +42,7 @@ public:
     ~actuator()
     {
         if(td_.joinable()) td_.join();
-        LOG<<LOG_INFO<<"actuator: [ "+name_+" ] end!\n";
+        LOG(LOG_INFO)<<"actuator: [ "+name_+" ] end!\n";
     }
 
     mutable std::mutex plist_mutex_;
@@ -58,7 +58,7 @@ protected:
             {
                 p = plist_.front();
                 plist_.pop_front();
-                if(p->perform(s_) == -1) LOG<<LOG_WARN<<"plan: "+p->plan_name()+" perform failed.\n";
+                if(p->perform(s_) == -1) LOG(LOG_WARN)<<"plan: "+p->plan_name()+" perform failed.\n";
             }
             plist_mutex_.unlock();
         }

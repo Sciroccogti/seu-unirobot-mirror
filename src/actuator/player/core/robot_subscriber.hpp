@@ -47,7 +47,7 @@ public:
             }
             else
             {
-                LOG<<LOG_ERROR<<"If you want to use virtual robot, you must run with -d1 -r2"<<"\n";
+                LOG(LOG_ERROR)<<"If you want to use virtual robot, you must run with -d1 -r2 \n";
                 return false;
             }
         }
@@ -60,7 +60,7 @@ public:
             }
             catch(std::exception &e)
             {
-                LOG<<LOG_WARN<<e.what()<<"\n";
+                LOG(LOG_WARN)<<e.what()<<"\n";
             }
         }
         return true;

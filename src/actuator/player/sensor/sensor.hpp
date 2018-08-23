@@ -9,11 +9,12 @@ class sensor: public publisher
 public:
     sensor(const std::string &name):name_(name)
     {
+        LOG(LOG_DEBUG)<<"sensor: [ "+name_+" ] construct\n";
     }
 
     ~sensor()
     {
-        LOG<<LOG_INFO<<"sensor: [ "+name_+" ] end!"<<"\n";
+        LOG(LOG_INFO)<<"sensor: [ "+name_+" ] end!\n";
     }
 
     virtual bool start() = 0;

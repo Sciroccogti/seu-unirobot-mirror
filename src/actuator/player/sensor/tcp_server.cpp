@@ -8,13 +8,13 @@ using boost::asio::ip::tcp;
 
 void tcp_pool::join(tcp_session_ptr session)
 {
-    LOG<<LOG_INFO<<"connection from: "<<session->info()<<" joined"<<"\n";
+    LOG(LOG_INFO)<<"connection from: "<<session->info()<<" joined\n";
     sessions_.insert(session);
 }
 
 void tcp_pool::leave(tcp_session_ptr session)
 {
-    LOG<<LOG_INFO<<"connection from: "<<session->info()<<" leaved"<<"\n";
+    LOG(LOG_INFO)<<"connection from: "<<session->info()<<" leaved\n";
     sessions_.erase(session);
 }
 
@@ -56,7 +56,6 @@ void tcp_session::start()
     unsigned int ablen=0;
     while(is_alive_)
     {
-        
         ablen = socket_.available(ec);
         if(ec)
         {
@@ -219,7 +218,7 @@ void tcp_server::data_handler(const tcp_command cmd)
 
 void tcp_server::write(const tcp_command& cmd)
 {
-    if(!is_alive_) return;
+    if(!sensor::is_alive_) return;
     unsigned int t_size = cmd.size;
     unsigned max_data_size = MAX_CMD_LEN - tcp_size_size - tcp_type_size - tcp_full_size;
     int i=0;
@@ -243,20 +242,22 @@ void tcp_server::write(const tcp_command& cmd)
 
 bool tcp_server::start()
 {
-    is_alive_ = true;
+    sensor::is_alive_ = true;
+    timer::is_alive_ = true;
     td_ = std::move(std::thread([this]()
     {
         boost::system::error_code ec;
-        while(is_alive_)
+        while(sensor::is_alive_)
         {
             acceptor_.accept(socket_);
-            if(!is_alive_) break;
+            if(!sensor::is_alive_) break;
             session_threads_.emplace_back(std::thread([this]()
             {
                 std::make_shared<tcp_session>(std::move(socket_), pool_, std::bind(&tcp_server::data_handler, this, std::placeholders::_1))->start();
             }));
             usleep(10000);
         }
+        socket_.close();
         acceptor_.close();
     }));
     start_timer();
@@ -265,7 +266,7 @@ bool tcp_server::start()
 
 void tcp_server::run()
 {
-    if(is_alive_)
+    if(timer::is_alive_)
     {
         tcp_command cmd;
         cmd.type = BEAT_DATA;
@@ -276,7 +277,8 @@ void tcp_server::run()
 
 void tcp_server::stop()
 {
-    is_alive_ = false;
+    sensor::is_alive_ = false;
+    timer::is_alive_ = false;
     boost::asio::io_service tio;
     tcp::socket ts(tio);
     tcp::endpoint ep(boost::asio::ip::address::from_string("127.0.0.1"), port_);

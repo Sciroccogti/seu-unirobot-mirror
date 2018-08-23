@@ -94,7 +94,7 @@ namespace parser
             }
             catch (bpt::ptree_error &e)
             {
-                LOG<<LOG_WARN<<e.what()<<"\n";
+                LOG(LOG_WARN)<<e.what()<<"\n";
             }
             return j;
         }
