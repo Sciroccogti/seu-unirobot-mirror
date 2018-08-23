@@ -36,12 +36,10 @@ public:
             if(actuator_name_ == "body")
             {
                 if(!motor_->add_body_degs(jdmap)) return -1;
-                //while (!motor_->body_empty());
             }
             else if(actuator_name_ == "head")
             {
                 if(!motor_->add_head_degs(jdmap)) return -1;
-                //while (!motor_->head_empty());
             }
         }
         return 0;

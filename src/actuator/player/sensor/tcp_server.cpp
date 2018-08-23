@@ -144,7 +144,7 @@ void tcp_session::deliver(const tcp_command& cmd)
 {
     unsigned int data_size = cmd.size;
     unsigned int total_size = data_size+data_offset;
-    char *buf = new char[total_size];
+    char buf[MAX_CMD_LEN];
     unsigned int offset=0;
     memcpy(buf+offset, &(cmd.type),tcp_type_size);
     offset+=tcp_type_size;
@@ -156,10 +156,9 @@ void tcp_session::deliver(const tcp_command& cmd)
     
     auto self(shared_from_this());
     boost::asio::async_write(socket_, boost::asio::buffer(buf, total_size),
-                            [this, self, buf](boost::system::error_code ec, std::size_t length)
+                            [this, self](boost::system::error_code ec, std::size_t length)
     {
         if (ec) pool_.leave(shared_from_this());
-        delete []buf;
     });
 }
     
@@ -205,24 +204,9 @@ void tcp_server::data_handler(const tcp_command cmd)
         case REMOTE_DATA:
         {
             memcpy(&(r_data_.type), cmd.data.c_str(), rmt_type_size);
-            if(r_data_.type == WALK_DATA)
-            {
-                if(cmd.size == 4*float_size+rmt_type_size)
-                {
-                    r_data_.data.clear();
-                    r_data_.data.assign((char*)(cmd.data.c_str()+rmt_type_size), cmd.size-rmt_type_size);
-                }
-            }
-            else if(r_data_.type == ACT_DATA)
-            {
-                int blksz = int_size+ROBOT.get_joint_map().size()*(int_size+float_size);
-                if((cmd.size-rmt_type_size)%blksz == 0)
-                {
-                    r_data_.data.clear();
-                    r_data_.data.assign((char*)(cmd.data.c_str()+rmt_type_size), cmd.size-rmt_type_size);
-                }
-            }
-            r_data_.size = cmd.size;
+            r_data_.data.clear();
+            r_data_.data.assign((char*)(cmd.data.c_str()+rmt_type_size), cmd.size-rmt_type_size);
+            r_data_.size = cmd.size-rmt_type_size;
             break;
         }
         default:

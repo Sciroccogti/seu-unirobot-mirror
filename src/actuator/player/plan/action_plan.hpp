@@ -6,19 +6,20 @@
 #include "class_exception.hpp"
 #include "math/math.hpp"
 #include "joints_plan.hpp"
+#include "lookat_plan.hpp"
 
 class action_plan: public plan
 {
 public:
-    action_plan(const std::string& act_name)
-        :plan("action_plan", "body"), act_name_(act_name)
+    action_plan(const std::string& act_name, const bool &set_head=false)
+        :plan("action_plan", "body"), act_name_(act_name), set_head_(set_head)
     {
         poses_.clear();
         pos_times_.clear();
     }
 
-    action_plan(const std::vector< std::map<int, float> > &poses, const std::vector<int> &pos_times)
-        :plan("action_plan", "body")
+    action_plan(const std::vector< std::map<int, float> > &poses, const std::vector<int> &pos_times, const bool &set_head=true)
+        :plan("action_plan", "body"), set_head_(set_head)
     {
         poses_ =  poses;
         pos_times_ = pos_times;
@@ -51,6 +52,11 @@ public:
                     one_pos_deg[robot::ROBOT.get_joint(j.first)->jid_] = j.second;
                 joints_plan jp(one_pos_deg, act_t, "body");
                 if(jp.perform(s) == -1) return -1;
+                if(set_head_)
+                {
+                    joints_plan jp(one_pos_deg, act_t, "head");
+                    if(jp.perform(s) == -1) return -1;
+                }
             }
         }
         else
@@ -61,6 +67,11 @@ public:
                 one_pos_deg = poses_[i];
                 joints_plan jp(one_pos_deg, act_t, "body");
                 if(jp.perform(s)==-1) return -1;
+                if(set_head_)
+                {
+                    joints_plan jp(one_pos_deg, act_t, "head");
+                    if(jp.perform(s) == -1) return -1;
+                }
             }
         }
         return 0;
@@ -69,6 +80,7 @@ private:
     std::string act_name_;
     std::vector< std::map<int, float> > poses_;
     std::vector<int> pos_times_;
+    bool set_head_;
 };
 
 #endif

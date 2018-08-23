@@ -36,7 +36,8 @@ enum remote_data_type
     NON_DATA = 0,
     WALK_DATA = 1,
     ACT_DATA = 2,
-    JOINT_OFFSET = 3
+    LOOKAT_DATA = 3,
+    JOINT_OFFSET = 4,
 };
 
 struct remote_data

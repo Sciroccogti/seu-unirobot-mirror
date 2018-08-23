@@ -23,13 +23,22 @@ public:
     
 private:
     void deliver(const tcp_command& cmd);
+    void connect();
+    void connect_timeout();
+    void read_head();
+    void read_data();
     boost::asio::ip::tcp::socket socket_;
     std::thread td_;
     std::string addr_;
     int port_;
     bool is_connect_;
-    bool is_alive_;
     tcp_callback tcb_;
+    boost::asio::deadline_timer timer_;
+    tcp_command recv_cmd_;
+    char buff_[MAX_CMD_LEN];
+    tcp_cmd_type recv_type_;
+    unsigned char recv_end_;
+    unsigned int recv_size_;
 };
 
 #endif

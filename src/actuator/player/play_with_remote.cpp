@@ -1,6 +1,8 @@
 #include <list>
 #include "player.hpp"
 #include "plan/action_plan.hpp"
+#include "plan/lookat_plan.hpp"
+#include "plan/walk_plan.hpp"
 #include "tcp.hpp"
 
 using namespace robot;
@@ -17,6 +19,7 @@ list<plan_ptr> player::play_with_remote()
         memcpy(&y, rdata.data.c_str()+float_size, float_size);
         memcpy(&d, rdata.data.c_str()+2*float_size, float_size);
         memcpy(&h, rdata.data.c_str()+3*float_size, float_size);
+        plist.push_back(make_shared<walk_plan>(x,y,d,h));
     }
     else if(rdata.type == ACT_DATA)
     {
@@ -43,6 +46,13 @@ list<plan_ptr> player::play_with_remote()
             poses.push_back(jdmap);
         }
         plist.push_back(make_shared<action_plan>(poses, pos_times));
+    }
+    else if(rdata.type == LOOKAT_DATA)
+    {
+        float yaw, pitch;
+        memcpy(&yaw, rdata.data.c_str(), float_size);
+        memcpy(&pitch, rdata.data.c_str()+float_size, float_size);
+        plist.push_back(make_shared<lookat_plan>(yaw, pitch));
     }
     suber_->reset_rmt_data();
     return plist;

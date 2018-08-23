@@ -5,6 +5,7 @@
 #include "robot/humanoid.hpp"
 #include "tcp_client/tcp_client.hpp"
 #include "ui/ImageLabel.hpp"
+#include <opencv2/opencv.hpp>
 
 class image_monitor: public QMainWindow
 {
@@ -16,10 +17,12 @@ public slots:
     void procTimer();
     void procYawSlider(int v);
     void procPitchSlider(int v);
+    void procBtnWR();
 
 protected:
     void closeEvent(QCloseEvent *event);
 private:
+    QPushButton *btnWR;
     ImageLabel *imageLab;
     QLabel *yawLab, *pitchLab, *netLab;
     QSlider *pitchSlider, *yawSlider;
@@ -27,6 +30,9 @@ private:
     tcp_client client_;
     QString net_info;
     bool first_connect;
+    cv::Mat curr_image_;
+    int width_;
+    int height_;
 };
 
 #endif //SEU_UNIROBOT_ACTION_MONITOR_HPP

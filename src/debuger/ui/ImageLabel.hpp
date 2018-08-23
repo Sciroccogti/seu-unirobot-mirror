@@ -8,10 +8,6 @@ class ImageLabel: public QLabel
     Q_OBJECT
 public:
     ImageLabel(const int &w=640, const int &h=480);
-    void set_image(unsigned char *src, const int size);
-
-private:
-    QPixmap *pixmap;
 };
 
 #endif
