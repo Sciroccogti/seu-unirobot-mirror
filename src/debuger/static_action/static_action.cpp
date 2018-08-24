@@ -816,15 +816,14 @@ void static_action::procButtonRunPos()
 
 void static_action::procButtonWalkRemote()
 {
-    walk_remote *wr = new walk_remote(client_, net_info);
-    wr->show();
+    walk_remote *window = new walk_remote(client_, net_info, this);
+    window->show();
 }
 
 void static_action::procButtonJointRevise()
 {
-    QStringList strList;
-    strList<<"-p"+QString::number(CONF.id());
-    QProcess::startDetached("./joint_revise", strList);
+    joint_revise *window = new joint_revise(client_, net_info, this);
+    window->show();
 }
 
 void static_action::closeEvent(QCloseEvent *event)

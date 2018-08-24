@@ -2,6 +2,7 @@
 #include "configuration.hpp"
 #include "plan/action_plan.hpp"
 #include "plan/lookat_plan.hpp"
+#include "plan/say_plan.hpp"
 
 using namespace std;
 
@@ -19,11 +20,18 @@ bool player::initialization()
 list< plan_ptr > player::think()
 {
     list<plan_ptr> plist;
+    list<plan_ptr> tlist;
     if(OPTS.use_remote())
     {
-        return play_with_remote();
+        tlist = play_with_remote();
     }
-    plist.push_back(make_shared<action_plan>("ready"));
-    plist.push_back(make_shared<lookat_plan>(0,45,100));
+    else
+    {
+        if(OPTS.use_gc())
+            tlist = play_with_gamectrl();
+        else
+            tlist = play_without_gamectrl();
+    }
+    plist.insert(plist.end(), tlist.begin(), tlist.end());
     return plist;
 }

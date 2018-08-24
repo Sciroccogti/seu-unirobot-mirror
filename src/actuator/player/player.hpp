@@ -1,6 +1,7 @@
 #ifndef SEU_UNIROBOT_PLAYER_HPP
 #define SEU_UNIROBOT_PLAYER_HPP
 
+#include <list>
 #include "core/agent.hpp"
 
 class player: public agent, public std::enable_shared_from_this<player>
@@ -17,6 +18,8 @@ protected:
 
 private:
     std::list<plan_ptr> play_with_remote();
+    std::list<plan_ptr> play_with_gamectrl();
+    std::list<plan_ptr> play_without_gamectrl();
 };
 
 #endif

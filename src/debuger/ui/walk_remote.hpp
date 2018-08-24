@@ -8,7 +8,7 @@ class walk_remote : public QMainWindow
 {
     Q_OBJECT
 public:
-    walk_remote(tcp_client &client, QString netinfo);
+    walk_remote(tcp_client &client, QString netinfo, QWidget *parent=nullptr);
     void updateLab();
 public slots:
     void procTimer();

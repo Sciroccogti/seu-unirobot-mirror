@@ -11,6 +11,7 @@
 #include "motor/vmotor.hpp"
 #include "sensor/gamectrl.hpp"
 #include "sensor/tcp_server.hpp"
+#include "sensor/hear.hpp"
 
 class robot_subscriber: public subscriber
 {
@@ -25,13 +26,11 @@ public:
     bool start()
     {
         sensors_.clear();
-        
         if(OPTS.use_debug())
         {
             sensors_["server"] = std::make_shared<tcp_server>(shared_from_this());
             sensors_["server"]->start();
         }
-        
         if(OPTS.use_robot() == options::ROBOT_REAL)
         {
             sensors_["imu"] = std::make_shared<imu>(shared_from_this());
@@ -56,24 +55,39 @@ public:
             try
             {
                 sensors_["gc"] = std::make_shared<gamectrl>(shared_from_this());
-                if(!sensors_["gc"]->start()) return false;
+                sensors_["gc"]->start();
             }
             catch(std::exception &e)
             {
                 std::cout<<e.what()<<"\n";
             }
         }
-        
+        if(OPTS.use_comm())
+        {
+            try
+            {
+                sensors_["hear"] = std::make_shared<hear>(shared_from_this());
+                sensors_["hear"]->start();
+            }
+            catch(std::exception &e)
+            {
+                std::cout<<e.what()<<"\n";
+            }
+        }
         return true;
     }
     
     void stop()
     {
-        
         if(sensors_.find("gc") != sensors_.end())
         {
             sensors_["gc"]->detach(shared_from_this());
             sensors_["gc"]->stop();
+        }
+        if(sensors_.find("hear") != sensors_.end())
+        {
+            sensors_["hear"]->detach(shared_from_this());
+            sensors_["hear"]->stop();
         }
         if(sensors_.find("imu") != sensors_.end())
         {
@@ -85,7 +99,6 @@ public:
             sensors_["motor"]->detach(shared_from_this());
             sensors_["motor"]->stop();
         }
-        
         if(sensors_.find("server") != sensors_.end())
         {
             sensors_["server"]->detach(shared_from_this());
@@ -109,6 +122,15 @@ public:
             std::shared_ptr<gamectrl> sptr = std::dynamic_pointer_cast<gamectrl>(pub);
             gc_data_ = sptr->data();
             gc_mtx_.unlock();
+            std::cout<<(int)gc_data_.state<<std::endl;
+            return;
+        }
+        if(pub == (sensors_.find("hear"))->second)
+        {
+            hear_mtx_.lock();
+            std::shared_ptr<hear> sptr = std::dynamic_pointer_cast<hear>(pub);
+            players_[sptr->info().id] = sptr->info();
+            hear_mtx_.unlock();
             return;
         }
         if(pub == (sensors_.find("imu"))->second)
@@ -139,43 +161,43 @@ public:
     
     RoboCupGameControlData gc_data() const 
     {
-        gc_mtx_.lock();
-        RoboCupGameControlData res = gc_data_;
-        gc_mtx_.unlock();
-        return res;
+        std::lock_guard<std::mutex> lk(gc_mtx_);
+        return gc_data_;
     }
     
     imu::imu_data imu_data() const 
-    { 
-        imu_mtx_.lock();
-        imu::imu_data res = imu_data_;
-        imu_mtx_.unlock();
-        return res;
+    {
+        std::lock_guard<std::mutex> lk(imu_mtx_);
+        return imu_data_;
     }
-    
+
+    std::map<int, player_info> players() const
+    {
+        std::lock_guard<std::mutex> lk(hear_mtx_);
+        return players_;
+    }
+
     remote_data rmt_data() const
     {
-        rmt_mtx_.lock();
-        remote_data res = rmt_data_;
-        rmt_mtx_.unlock();
-        return res;
+        std::lock_guard<std::mutex> lk(rmt_mtx_);
+        return rmt_data_;
     }
 
     void reset_rmt_data()
     {
-        rmt_mtx_.lock();
+        std::lock_guard<std::mutex> lk(rmt_mtx_);
         rmt_data_.type = NON_DATA;
         rmt_data_.size = 0;
-        rmt_mtx_.unlock();
     }
 
 private:
     float voltage_;
+    std::map<int, player_info> players_;
     std::map<std::string, sensor_ptr> sensors_;
     RoboCupGameControlData gc_data_;
     imu::imu_data imu_data_;
     remote_data rmt_data_;
-    mutable std::mutex gc_mtx_, imu_mtx_, rmt_mtx_, dxl_mtx_;
+    mutable std::mutex gc_mtx_, imu_mtx_, rmt_mtx_, dxl_mtx_, hear_mtx_;
 };
 
 #endif //SEU_UNIROBOT_ROBOT_SUBSCRIBER_HPP

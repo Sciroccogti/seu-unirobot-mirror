@@ -58,19 +58,21 @@ public:
     
     RoboCupGameControlData data() const
     {
-        return *data_;
+        return data_;
     }
 private:
-    bool open();
     void run();
+    void receive();
+    void send();
+    
     enum {gc_data_size = sizeof(RoboCupGameControlData)};
-    RoboCupGameControlData *data_;
+    RoboCupGameControlData data_;
     RoboCupGameControlReturnData ret_data_;
-    std::string str_;
     std::thread td_;
-    std::shared_ptr<boost::asio::ip::udp::socket> socket_;
-    std::shared_ptr<boost::asio::ip::udp::socket> ret_socket_;
-    boost::asio::ip::udp::endpoint ret_point_;
+    boost::asio::ip::udp::socket recv_socket_;
+    boost::asio::ip::udp::socket send_socket_;
+    boost::asio::ip::udp::endpoint recv_point_;
+    boost::asio::ip::udp::endpoint send_point_;
 };
 
 #endif

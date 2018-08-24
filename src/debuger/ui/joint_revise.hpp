@@ -57,7 +57,7 @@ class joint_revise: public QMainWindow
 {
     Q_OBJECT
 public:
-    joint_revise(tcp_client &client, QString netinfo);
+    joint_revise(tcp_client &client, QString netinfo, QWidget *parent=nullptr);
 public slots:
     void procBtnReset();
     void procBtnSave();

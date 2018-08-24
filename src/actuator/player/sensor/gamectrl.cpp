@@ -6,55 +6,45 @@ using boost::asio::ip::udp;
 
 boost::asio::io_service gc_service;
 
-gamectrl::gamectrl(const sub_ptr &s):sensor("gamectrl"), timer(CONF.get_config_value<int>("net.udp.gamectrl.send_period")),
-        ret_point_(boost::asio::ip::address_v4::from_string(CONF.get_config_value<string>("net.udp.addr")), CONF.get_config_value<unsigned short>("net.udp.gamectrl.send_port"))
+gamectrl::gamectrl(const sub_ptr &s): sensor("gamectrl"), timer(CONF.get_config_value<int>("net.udp.gamectrl.send_period")), 
+        recv_socket_ (gc_service, udp::endpoint(udp::v4(), CONF.get_config_value<short>("net.udp.gamectrl.recv_port"))),
+        send_socket_ (gc_service, udp::endpoint(udp::v4(), 0)), /*boost::asio::ip::address::from_string(CONF.get_config_value<string>("net.udp.addr"))*/
+        send_point_(udp::v4(), CONF.get_config_value<unsigned short>("net.udp.gamectrl.send_port"))
 {
     attach(s);
-    str_.resize(gc_data_size);
-    data_ = (RoboCupGameControlData*)(str_.data());
     ret_data_.version = GAMECONTROLLER_RETURN_STRUCT_VERSION;
     ret_data_.message = GAMECONTROLLER_RETURN_MSG_ALIVE;
     ret_data_.player = static_cast<uint8_t>(CONF.id());
     ret_data_.team = CONF.get_config_value<uint8_t>("team_number");
-}
-
-bool gamectrl::open()
-{
-    try
-    {
-        socket_ = make_shared<udp::socket>(gc_service, udp::endpoint(udp::v4(), CONF.get_config_value<unsigned short>("net.udp.gamectrl.recv_port")));
-        ret_socket_ = make_shared<udp::socket>(gc_service, udp::endpoint(udp::v4(), 0));
-        ret_socket_->set_option(boost::asio::socket_base::broadcast(true));
-        return true;
-    }
-    catch (exception &e)
-    {
-        std::cout<<e.what()<<"\n";
-        return false;
-    }
+    send_socket_.set_option(boost::asio::socket_base::broadcast(true));
 }
 
 bool gamectrl::start()
 {
-    if(!this->open()) return false;
     is_open_ = true;
     sensor::is_alive_ = true;
     timer::is_alive_ = true;
     td_ = std::move(std::thread([this]()
     {
-        boost::system::error_code ec;
-        udp::endpoint remote_point;
-        char buff[gc_data_size];
-        while(sensor::is_alive_)
-        {
-            if(!socket_->available()) continue;
-            memset(buff, 0, gc_data_size);
-            socket_->receive_from(boost::asio::buffer(buff, gc_data_size), remote_point);
-            if(ec) break;
-        }
+        this->receive();
+        gc_service.run();
     }));
     start_timer();
     return true;
+}
+
+void gamectrl::receive()
+{
+    recv_socket_.async_receive_from(boost::asio::buffer((char*)&data_, gc_data_size), recv_point_,
+    [this](boost::system::error_code ec, std::size_t bytes_recvd)
+    {
+        if (!ec && bytes_recvd > 0)
+        {
+            if(strcmp(GAMECONTROLLER_STRUCT_HEADER, data_.header))
+                notify();
+        }
+        receive();
+    });
 }
 
 void gamectrl::run()
@@ -63,7 +53,8 @@ void gamectrl::run()
     {
         try
         {
-            ret_socket_->send_to(boost::asio::buffer((char*)(&ret_data_), sizeof(RoboCupGameControlReturnData)), ret_point_);
+            send_socket_.async_send_to(boost::asio::buffer((char*)(&ret_data_), sizeof(RoboCupGameControlReturnData)), send_point_,
+                          [this](boost::system::error_code ec, std::size_t bytes_sent){});
         }
         catch(exception &e)
         {
@@ -74,11 +65,13 @@ void gamectrl::run()
 
 void gamectrl::stop()
 {
+    is_open_ = false;
     timer::is_alive_ = false;
     sensor::is_alive_ = false;
     delete_timer();
-    socket_->close();
-    ret_socket_->close();
+    recv_socket_.cancel();
+    send_socket_.cancel();
+    gc_service.stop();
 }
 
 gamectrl::~gamectrl()

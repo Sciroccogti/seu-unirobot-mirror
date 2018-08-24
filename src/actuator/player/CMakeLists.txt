@@ -5,6 +5,8 @@ add_subdirectory(motor)
 add_subdirectory(vision)
 
 add_library(player STATIC
+            play_without_gamectrl.cpp
+            play_with_gamectrl.cpp
             play_with_remote.cpp
             player.cpp)
             

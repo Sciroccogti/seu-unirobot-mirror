@@ -4,8 +4,8 @@
 using namespace robot;
 using namespace std;
 
-joint_revise::joint_revise(tcp_client &client, QString netinfo)
-    :client_(client), net_info(netinfo)
+joint_revise::joint_revise(tcp_client &client, QString netinfo, QWidget *parent)
+    :client_(client), net_info(netinfo), QMainWindow(parent)
 {
     setAttribute(Qt::WA_DeleteOnClose);
     QHBoxLayout *mainLayout = new QHBoxLayout();
@@ -91,7 +91,7 @@ void joint_revise::procBtnReset()
 
 void joint_revise::procBtnSave()
 {
-
+    parser::offset_parser::save(CONF.offset_file(), ROBOT.get_joint_map());
 }
 
 void joint_revise::procValueChanged(int id, float v)

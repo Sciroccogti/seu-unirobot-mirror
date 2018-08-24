@@ -4,8 +4,8 @@
 
 using namespace std;
 
-walk_remote::walk_remote(tcp_client &client, QString netinfo): range_(200), scale_d(10), scale_xy(5000),
-    client_(client), netinfo_(netinfo)
+walk_remote::walk_remote(tcp_client &client, QString netinfo, QWidget *parent): range_(200), scale_d(10), scale_xy(5000),
+    client_(client), netinfo_(netinfo), QMainWindow(parent)
 {
     setAttribute(Qt::WA_DeleteOnClose);
     setMinimumHeight(300);
