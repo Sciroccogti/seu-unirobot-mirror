@@ -11,6 +11,7 @@ using namespace std;
 list<plan_ptr> player::play_without_gamectrl()
 {
     list<plan_ptr> plist;
+    plist = fsm_->run(shared_from_this());
     plist.push_back(make_shared<action_plan>("ready"));
     plist.push_back(make_shared<lookat_plan>(0,45,100));
     return plist;

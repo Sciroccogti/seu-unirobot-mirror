@@ -94,7 +94,7 @@ namespace robot
                                                                         {"left_foot", MOTION_LEFT_FOOT},
                                                                         {"head", MOTION_HEAD}};
 
-    static std::string get_name_by_motion(const robot_motion &motion)
+    inline std::string get_name_by_motion(const robot_motion &motion)
     {
         for(auto nm : name_motion_map)
         {
@@ -103,7 +103,7 @@ namespace robot
         return "";
     }
 
-    static robot_motion get_motion_by_name(const std::string &name)
+    inline robot_motion get_motion_by_name(const std::string &name)
     {
         for(auto nm : name_motion_map)
         {

@@ -11,34 +11,34 @@
 namespace robot_math
 {
 
-    static double deg2rad(const double &x)
+    inline double deg2rad(const double &x)
     {
         return x*M_PI/180.0;
     }
 
-    static double rad2deg(const double &x)
+    inline double rad2deg(const double &x)
     {
         return x*180.0/M_PI;
     }
 
-    static bool is_zero(const double &x)
+    inline bool is_zero(const double &x)
     {
         return fabs(x)<1E-4;
     }
 
-    static int sign(const double &x)
+    inline int sign(const double &x)
     {
         return (x>=0)?1:-1;
     }
 
-    static void bound(const double &min, const double &max, double &x)
+    inline void bound(const double &min, const double &max, double &x)
     {
         if(max<min) return;
         if(x<min) x = min;
         if(x>max) x = max;
     }
 
-    static Eigen::Matrix3d RotY(const double &deg)
+    inline Eigen::Matrix3d RotY(const double &deg)
     {
         double x = deg2rad(deg);
         Eigen::Matrix3d m;
@@ -48,7 +48,7 @@ namespace robot_math
         return m;
     }
 
-    static Eigen::Matrix3d RotX(const double &deg)
+    inline Eigen::Matrix3d RotX(const double &deg)
     {
         double x = deg2rad(deg);
         Eigen::Matrix3d m;
@@ -58,7 +58,7 @@ namespace robot_math
         return m;
     }
 
-    static Eigen::Matrix3d RotZ(const double &deg)
+    inline Eigen::Matrix3d RotZ(const double &deg)
     {
         double x = deg2rad(deg);
         Eigen::Matrix3d m;

@@ -5,9 +5,11 @@
 #include "plan/say_plan.hpp"
 
 using namespace std;
+using namespace FSM;
 
 player::player(): agent(CONF.get_config_value<int>("think_period"))
 {
+    fsm_ = make_shared<fsm>();
 }
 
 bool player::initialization()
