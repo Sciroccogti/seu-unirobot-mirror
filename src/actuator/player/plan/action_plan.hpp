@@ -7,6 +7,7 @@
 #include "math/math.hpp"
 #include "joints_plan.hpp"
 #include "lookat_plan.hpp"
+#include "walk/WalkEngine.hpp"
 
 class action_plan: public plan
 {
@@ -27,6 +28,7 @@ public:
 
     int perform(sensor_ptr s)
     {
+        walk::WALK.set_enable(false, true);
         std::shared_ptr<motor> motor_ = std::dynamic_pointer_cast<motor>(s);
         if(! motor_->body_empty()) return 1;
         int act_t;

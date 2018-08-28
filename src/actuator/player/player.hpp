@@ -17,11 +17,6 @@ public:
         return suber_;
     }
 
-    world_model &wm()
-    {
-        return wm_;
-    }
-
     void stop()
     {
         kill();
@@ -35,7 +30,6 @@ private:
     std::list<plan_ptr> play_with_gamectrl();
     std::list<plan_ptr> play_without_gamectrl();
     FSM::fsm_ptr fsm_;
-    world_model wm_;
 };
 
 #endif

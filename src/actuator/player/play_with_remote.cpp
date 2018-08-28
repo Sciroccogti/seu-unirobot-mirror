@@ -54,7 +54,7 @@ list<plan_ptr> player::play_with_remote()
         memcpy(&pitch, rdata.data.c_str()+float_size, float_size);
         plist.push_back(make_shared<lookat_plan>(yaw, pitch));
     }
-    suber_->reset_rmt_data();
+    //suber_->reset_rmt_data();
     return plist;
 }
 

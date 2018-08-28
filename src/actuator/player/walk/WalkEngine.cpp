@@ -19,6 +19,7 @@ namespace walk
         Cz=ROBOT.leg_length()-0.02;
         wn=sqrt(9.8/Cz);
         supportfoot = -1.0;
+        mode_ = MODE_WALK;
     }
 
     WalkEngine::~WalkEngine()
@@ -54,17 +55,24 @@ namespace walk
         AngleAxisd yawRot, pitchRot, rollRot;
         std::vector<double> degs;
         std::map<int, float> jdegs;
-        bool e;
+        bool e, ra;
         float tt=0.0;
         while(is_alive_)
         {
             e_mutex_.lock();
             e = enable_;
+            ra = run_action_;
             e_mutex_.unlock();
-            if(e)
+            if((e || ra)&&mode_ == MODE_WALK)
             {
+                e_mutex_.lock();
+                if(run_action_)
+                {
+                    mode_ = MODE_ACT;
+                    run_action_ = false;
+                }
+                e_mutex_.unlock();
                 para_mutex_.lock();
-                //std::cout<<"xt: "<<xt<<std::endl;
                 CubicSpline stepSpline;
                 stepSpline.addPoint(0.0, x0);
                 stepSpline.addPoint(td, x0);
