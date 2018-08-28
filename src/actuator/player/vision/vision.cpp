@@ -2,10 +2,13 @@
 #include "configuration.hpp"
 #include "image/image_process.hpp"
 #include <fstream>
-
+#include <opencv2/dnn.hpp>
 using namespace std;
 using namespace image;
+
 using namespace cv;
+using namespace cv::cuda;
+using namespace cv::dnn;
 
 vision::vision(const sensor_ptr &s): timer(CONF.get_config_value<int>("vision_period"))
 {

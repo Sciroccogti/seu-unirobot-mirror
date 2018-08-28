@@ -31,7 +31,8 @@ namespace robot_math
         return (x>=0)?1:-1;
     }
 
-    inline void bound(const double &min, const double &max, double &x)
+    template <typename T>
+    inline void bound(const T &min, const T &max, T &x)
     {
         if(max<min) return;
         if(x<min) x = min;

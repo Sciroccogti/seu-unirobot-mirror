@@ -4,6 +4,7 @@ add_subdirectory(sensor)
 add_subdirectory(motor)
 add_subdirectory(vision)
 add_subdirectory(fsm)
+add_subdirectory(walk)
 
 add_library(player STATIC
             play_without_gamectrl.cpp
@@ -13,6 +14,7 @@ add_library(player STATIC
             
 target_link_libraries(player
             fsm
+            walk
             boost_system
             sensor
             motor

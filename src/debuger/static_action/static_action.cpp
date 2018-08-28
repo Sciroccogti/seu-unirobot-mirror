@@ -351,46 +351,32 @@ bool static_action::turn_joint()
     joint_degs_[ROBOT.get_joint("jlelbow")->jid_] = -get_deg_from_pose(pose_map_[MOTION_LEFT_HAND].z);
 
     transform_matrix body_mat, leftfoot_mat, rightfoot_mat;
-    double cx,cy,cz,sx,sy,sz;
-    Matrix3d R;
-    body_mat.set_p(Vector3d(pose_map_[MOTION_BODY].x, pose_map_[MOTION_BODY].y, pose_map_[MOTION_BODY].z+ROBOT.A()+ROBOT.B()+ROBOT.C()));
-    cx = cos(deg2rad(pose_map_[MOTION_BODY].roll));
-    cy = cos(deg2rad(pose_map_[MOTION_BODY].pitch));
-    cz = cos(deg2rad(pose_map_[MOTION_BODY].yaw));
-    sx = sin(deg2rad(pose_map_[MOTION_BODY].roll));
-    sy = sin(deg2rad(pose_map_[MOTION_BODY].pitch));
-    sz = sin(deg2rad(pose_map_[MOTION_BODY].yaw));
-    R<<cy * cz - sx * sy * sz, -cx * sz, sy * cz + cy * sx * sz,
-       cy * sz + sx * sy * cz, cx * cz, sy * sz - cy * sx * cz,
-       -cx * sy, sx, cx * cy;
-    body_mat.set_R(R);
+    Quaternion<double> quat;
+    AngleAxisd yawRot, pitchRot, rollRot;
 
-    leftfoot_mat.set_p(Vector3d(pose_map_[MOTION_LEFT_FOOT].x, pose_map_[MOTION_LEFT_FOOT].y+ROBOT.D(), pose_map_[MOTION_LEFT_FOOT].z));
-    cx = cos(deg2rad(pose_map_[MOTION_LEFT_FOOT].roll));
-    cy = cos(deg2rad(pose_map_[MOTION_LEFT_FOOT].pitch));
-    cz = cos(deg2rad(pose_map_[MOTION_LEFT_FOOT].yaw));
-    sx = sin(deg2rad(pose_map_[MOTION_LEFT_FOOT].roll));
-    sy = sin(deg2rad(pose_map_[MOTION_LEFT_FOOT].pitch));
-    sz = sin(deg2rad(pose_map_[MOTION_LEFT_FOOT].yaw));
-    R<<cy * cz - sx * sy * sz, -cx * sz, sy * cz + cy * sx * sz,
-       cy * sz + sx * sy * cz, cx * cz, sy * sz - cy * sx * cz,
-       -cx * sy, sx, cx * cy;
-    leftfoot_mat.set_R(R);
+    yawRot = AngleAxisd(deg2rad(pose_map_[MOTION_BODY].yaw), Vector3d::UnitZ());
+    pitchRot = AngleAxisd(deg2rad(pose_map_[MOTION_BODY].pitch), Vector3d::UnitY());
+    rollRot = AngleAxisd(deg2rad(pose_map_[MOTION_BODY].roll), Vector3d::UnitX());
+    quat = rollRot * pitchRot * yawRot;
+    body_mat.set_p(Vector3d(pose_map_[MOTION_BODY].x, pose_map_[MOTION_BODY].y, pose_map_[MOTION_BODY].z+ROBOT.leg_length()));
+    body_mat.set_R(quat.matrix());
 
-    rightfoot_mat.set_p(Vector3d(pose_map_[MOTION_RIGHT_FOOT].x, pose_map_[MOTION_RIGHT_FOOT].y-ROBOT.D(), pose_map_[MOTION_RIGHT_FOOT].z));
-    cx = cos(deg2rad(pose_map_[MOTION_RIGHT_FOOT].roll));
-    cy = cos(deg2rad(pose_map_[MOTION_RIGHT_FOOT].pitch));
-    cz = cos(deg2rad(pose_map_[MOTION_RIGHT_FOOT].yaw));
-    sx = sin(deg2rad(pose_map_[MOTION_RIGHT_FOOT].roll));
-    sy = sin(deg2rad(pose_map_[MOTION_RIGHT_FOOT].pitch));
-    sz = sin(deg2rad(pose_map_[MOTION_RIGHT_FOOT].yaw));
-    R<<cy * cz - sx * sy * sz, -cx * sz, sy * cz + cy * sx * sz,
-       cy * sz + sx * sy * cz, cx * cz, sy * sz - cy * sx * cz,
-       -cx * sy, sx, cx * cy;
-    rightfoot_mat.set_R(R);
+    yawRot = AngleAxisd(deg2rad(pose_map_[MOTION_LEFT_FOOT].yaw), Vector3d::UnitZ());
+    pitchRot = AngleAxisd(deg2rad(pose_map_[MOTION_LEFT_FOOT].pitch), Vector3d::UnitY());
+    rollRot = AngleAxisd(deg2rad(pose_map_[MOTION_LEFT_FOOT].roll), Vector3d::UnitX());
+    quat = rollRot * pitchRot * yawRot;
+    leftfoot_mat.set_p(Vector3d(pose_map_[MOTION_LEFT_FOOT].x, pose_map_[MOTION_LEFT_FOOT].y+ROBOT.D()/2.0, pose_map_[MOTION_LEFT_FOOT].z));
+    leftfoot_mat.set_R(quat.matrix());
+
+    yawRot = AngleAxisd(deg2rad(pose_map_[MOTION_RIGHT_FOOT].yaw), Vector3d::UnitZ());
+    pitchRot = AngleAxisd(deg2rad(pose_map_[MOTION_RIGHT_FOOT].pitch), Vector3d::UnitY());
+    rollRot = AngleAxisd(deg2rad(pose_map_[MOTION_RIGHT_FOOT].roll), Vector3d::UnitX());
+    quat = rollRot * pitchRot * yawRot;
+    rightfoot_mat.set_p(Vector3d(pose_map_[MOTION_RIGHT_FOOT].x, pose_map_[MOTION_RIGHT_FOOT].y-ROBOT.D()/2.0, pose_map_[MOTION_RIGHT_FOOT].z));
+    rightfoot_mat.set_R(quat.matrix());
 
     vector<double> degs;
-    if(ROBOT.leg_inverse_kinematics(body_mat, leftfoot_mat, degs, 1.0))
+    if(ROBOT.leg_inverse_kinematics(body_mat, leftfoot_mat, degs, true))
     {
         joint_degs_[ROBOT.get_joint("jlhip3")->jid_] = rad2deg(degs[0]);
         joint_degs_[ROBOT.get_joint("jlhip2")->jid_] = rad2deg(degs[1]);
@@ -400,7 +386,7 @@ bool static_action::turn_joint()
         joint_degs_[ROBOT.get_joint("jlankle1")->jid_] = rad2deg(degs[5]);
     }else return false;
 
-    if(ROBOT.leg_inverse_kinematics(body_mat, rightfoot_mat, degs, -1.0))
+    if(ROBOT.leg_inverse_kinematics(body_mat, rightfoot_mat, degs, false))
     {
         joint_degs_[ROBOT.get_joint("jrhip3")->jid_] = rad2deg(degs[0]);
         joint_degs_[ROBOT.get_joint("jrhip2")->jid_] = rad2deg(degs[1]);
@@ -828,11 +814,11 @@ void static_action::procButtonJointRevise()
 
 void static_action::closeEvent(QCloseEvent *event)
 {
-    client_.stop();
     QMessageBox::StandardButton reply = QMessageBox::question(this, "Warning", "write action data into file?",
             QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
     if(reply == QMessageBox::StandardButton::Yes)
     {
         action_parser::save(CONF.action_file(), ROBOT.get_act_map(), ROBOT.get_pos_map());
     }
+    client_.stop();
 }

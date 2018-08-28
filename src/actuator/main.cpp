@@ -19,7 +19,8 @@ void exit_handler(int sig)
     std::cout<<"--------------------------------------------------------\n";
     if(sig == SIGINT)
     {
-        maxwell->kill();
+        maxwell->stop();
+        sleep(1);
     }
 }
 

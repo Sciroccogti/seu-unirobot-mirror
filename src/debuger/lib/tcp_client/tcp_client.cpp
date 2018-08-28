@@ -92,7 +92,7 @@ void tcp_client::connect()
 
 void tcp_client::connect_timeout()
 {
-    if(!is_connect_)
+    if(!is_connect_&&is_alive_)
     {
         socket_.cancel();
         connect();
@@ -171,6 +171,7 @@ void tcp_client::read_data()
 
 void tcp_client::start()
 {
+    is_alive_ = true;
     td_ = std::thread([this]()
     {
         connect();
@@ -180,6 +181,7 @@ void tcp_client::start()
 
 void tcp_client::stop()
 {
+    is_alive_ = false;
     socket_.cancel();
     tcp_service.stop();
 }

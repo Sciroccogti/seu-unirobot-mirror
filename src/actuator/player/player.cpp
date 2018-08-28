@@ -6,16 +6,18 @@
 
 using namespace std;
 using namespace FSM;
+using namespace walk;
 
 player::player(): agent(CONF.get_config_value<int>("think_period"))
 {
-    fsm_ = make_shared<fsm>();
 }
 
 bool player::initialization()
 {
     if(!init()) return false;
+    fsm_ = make_shared<fsm>();
     start_timer();
+    WALK.start(suber_->get_sensor("motor"));
     return true;
 }
 

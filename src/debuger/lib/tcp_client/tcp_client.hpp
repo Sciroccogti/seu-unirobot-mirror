@@ -32,6 +32,7 @@ private:
     std::string addr_;
     int port_;
     bool is_connect_;
+    bool is_alive_;
     tcp_callback tcb_;
     boost::asio::deadline_timer timer_;
     tcp_command recv_cmd_;

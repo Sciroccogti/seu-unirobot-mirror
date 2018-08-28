@@ -5,6 +5,7 @@
 #include "core/agent.hpp"
 #include "core/world_model.hpp"
 #include "fsm/fsm.hpp"
+#include "walk/WalkEngine.hpp"
 
 class player: public agent, public std::enable_shared_from_this<player>
 {
@@ -15,9 +16,16 @@ public:
     {
         return suber_;
     }
+
     world_model &wm()
     {
         return wm_;
+    }
+
+    void stop()
+    {
+        kill();
+        walk::WALK.stop();
     }
 
 protected:
@@ -28,7 +36,6 @@ private:
     std::list<plan_ptr> play_without_gamectrl();
     FSM::fsm_ptr fsm_;
     world_model wm_;
-
 };
 
 #endif
