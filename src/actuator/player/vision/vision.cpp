@@ -18,7 +18,7 @@ vision::vision(const sensor_ptr &s): timer(CONF.get_config_value<int>("vision_pe
 
 bool vision::start()
 {
-    cap_ = make_shared<capture>(shared_from_this());
+    cap_ = make_shared<camera>(shared_from_this());
     if(!cap_->start()) return false;
     width_ = cap_->buff_info().width;
     height_ = cap_->buff_info().height;

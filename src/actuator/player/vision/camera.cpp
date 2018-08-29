@@ -2,35 +2,35 @@
 #include <sys/mman.h>
 #include <errno.h>
 #include <functional>
-#include "capture.hpp"
+#include "camera.hpp"
 #include "configuration.hpp"
 #include "class_exception.hpp"
 
 using namespace std;
 using namespace image;
 
-capture::capture(const sub_ptr& s): sensor("capture")
+camera::camera(const sub_ptr& s): sensor("camera")
 {
     attach(s);
     format_map_["V4L2_PIX_FMT_YUYV"] = V4L2_PIX_FMT_YUYV;
     format_map_["V4L2_PIX_FMT_MJPEG"] = V4L2_PIX_FMT_MJPEG;
     format_map_["V4L2_PIX_FMT_JPEG"] = V4L2_PIX_FMT_JPEG;
-    cfg_.dev_name = CONF.get_config_value<string>("hardware.capture.dev_name");
-    cfg_.buff_num = CONF.get_config_value<int>("hardware.capture.buff_num");
-    cfg_.format = CONF.get_config_value<string>("hardware.capture.format");
-    cfg_.height = CONF.get_config_value<int>("hardware.capture.height");
-    cfg_.width = CONF.get_config_value<int>("hardware.capture.width");
+    cfg_.dev_name = CONF.get_config_value<string>("hardware.camera.dev_name");
+    cfg_.buff_num = CONF.get_config_value<int>("hardware.camera.buff_num");
+    cfg_.format = CONF.get_config_value<string>("hardware.camera.format");
+    cfg_.height = CONF.get_config_value<int>("hardware.camera.height");
+    cfg_.width = CONF.get_config_value<int>("hardware.camera.width");
 }
 
-bool capture::start()
+bool camera::start()
 {
     if(!open()) return false;
     if(!init()) return false;
-    td_ = thread(bind(&capture::run, this));
+    td_ = thread(bind(&camera::run, this));
     return true;
 }
 
-void capture::run()
+void camera::run()
 {
     is_alive_ = true;
     buf_.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
@@ -58,7 +58,7 @@ void capture::run()
     }
 }
 
-void capture::stop()
+void camera::stop()
 {
     is_alive_ = false;
     sleep(1);
@@ -66,7 +66,7 @@ void capture::stop()
     is_open_ = false;
 }
 
-void capture::close()
+void camera::close()
 {
     if (cap_opened_)
     {
@@ -93,7 +93,7 @@ void capture::close()
     }
 }
 
-bool capture::open()
+bool camera::open()
 {
 
     fd_ = v4l2_open(cfg_.dev_name.c_str(), O_RDWR,0);
@@ -116,7 +116,7 @@ bool capture::open()
     
     v4l2_fmtdesc fmtdesc;
     fmtdesc.index = 0;
-    fmtdesc.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    fmtdesc.type = V4L2_BUF_TYPE_VIDEO_camera;
     std::cout<<"Support format:\n";
     while (v4l2_ioctl(fd_, VIDIOC_ENUM_FMT, &fmtdesc) != -1)
     {
@@ -128,7 +128,7 @@ bool capture::open()
     return true;
 }
 
-bool capture::init()
+bool camera::init()
 {
     if (format_map_.find(cfg_.format) == format_map_.end())
     {
@@ -216,7 +216,7 @@ bool capture::init()
     return true;
 }
 
-capture::~capture()
+camera::~camera()
 {
     if(td_.joinable()) td_.join();
 }

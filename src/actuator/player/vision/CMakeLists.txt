@@ -1,6 +1,6 @@
 add_library(vision STATIC
             vision.cpp
-            capture.cpp)
+            camera.cpp)
             
             
 target_link_libraries(vision
