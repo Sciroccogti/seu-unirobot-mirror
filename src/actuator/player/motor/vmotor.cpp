@@ -20,7 +20,7 @@ void vmotor::act()
         for(auto jm:ROBOT.get_joint_map())
         {
             jd.id = jm.second->jid_;
-            jd.deg = jm.second->get_deg();
+            jd.deg = jm.second->get_deg()+jm.second->offset_;
             j_data.append((char*)(&jd), sizeof(robot_joint_deg));
         }
         cmd.size = ROBOT.get_joint_map().size()*sizeof(robot_joint_deg);

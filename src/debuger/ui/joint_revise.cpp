@@ -51,23 +51,8 @@ void joint_revise::procTimer()
     {
         if(first_connect)
         {
-            client_.regist(JOINT_DATA, DIR_SUPPLY);
+            client_.regist(REMOTE_DATA, DIR_SUPPLY);
             first_connect = false;
-        }
-        else
-        {
-            tcp_command cmd;
-            cmd.data.clear();
-            cmd.type = JOINT_DATA;
-            cmd.size = sizeof(robot_joint_deg)*ROBOT.get_joint_map().size();
-            robot_joint_deg offset;
-            for(auto j:ROBOT.get_joint_map())
-            {
-                offset.id = j.second->jid_;
-                offset.deg = j.second->offset_;
-                cmd.data.append((char*)(&offset), sizeof(robot_joint_deg));
-            }
-            client_.write(cmd);
         }
         setEnabled(true);
         statusBar()->setStyleSheet("background-color:green");
@@ -97,4 +82,19 @@ void joint_revise::procBtnSave()
 void joint_revise::procValueChanged(int id, float v)
 {
     ROBOT.get_joint(id)->offset_ = v;
+    tcp_command cmd;
+    remote_data_type t = JOINT_OFFSET;
+    cmd.data.clear();
+    cmd.type = REMOTE_DATA;
+    cmd.size = sizeof(robot_joint_deg)*ROBOT.get_joint_map().size()+rmt_type_size;
+    cmd.data.clear();
+    robot_joint_deg offset;
+    cmd.data.append((char*)&t, rmt_type_size);
+    for(auto j:ROBOT.get_joint_map())
+    {
+        offset.id = j.second->jid_;
+        offset.deg = j.second->offset_;
+        cmd.data.append((char*)(&offset), sizeof(robot_joint_deg));
+    }
+    client_.write(cmd);
 }

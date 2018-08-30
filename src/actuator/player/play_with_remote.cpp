@@ -54,6 +54,15 @@ list<plan_ptr> player::play_with_remote()
         memcpy(&pitch, rdata.data.c_str()+float_size, float_size);
         plist.push_back(make_shared<lookat_plan>(yaw, pitch));
     }
+    else if(rdata.type == JOINT_OFFSET)
+    {
+        robot_joint_deg jdeg;
+        for(int i=0;i<ROBOT.get_joint_map().size();i++)
+        {
+            memcpy(&jdeg, rdata.data.c_str()+i*sizeof(robot_joint_deg), sizeof(robot_joint_deg));
+            ROBOT.get_joint(jdeg.id)->offset_ = jdeg.deg;
+        }
+    }
     //suber_->reset_rmt_data();
     return plist;
 }

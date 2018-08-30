@@ -33,9 +33,10 @@ public:
         }
         if(OPTS.use_robot() == options::ROBOT_REAL)
         {
-            sensors_["imu"] = std::make_shared<imu>(shared_from_this());
-            if(!sensors_["imu"]->start()) return false;
+            //sensors_["imu"] = std::make_shared<imu>(shared_from_this());
+            //if(!sensors_["imu"]->start()) return false;
             sensors_["motor"] = std::make_shared<rmotor>(shared_from_this());
+            if(!sensors_["motor"]->start()) return false;
         }
         else if(OPTS.use_robot() == options::ROBOT_VIRTUAL)
         {

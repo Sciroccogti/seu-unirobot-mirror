@@ -37,7 +37,9 @@ private:
     std::shared_ptr<dynamixel::GroupSyncWrite> ledWrite_;
 
     uint16_t voltage_;
-    uint8_t dxl_error_;
+    bool is_connected_;
+    uint8_t ping_id_;
+    int lost_count_;
     uint8_t led_status_;
 };
 

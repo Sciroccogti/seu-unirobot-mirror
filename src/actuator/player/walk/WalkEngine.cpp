@@ -98,7 +98,7 @@ namespace walk
                 turnSpline.addPoint(T - td, deg2rad(dt));
                 turnSpline.addPoint(T, deg2rad(dt));
 
-                float B = (xt - x0) / 2.0, A = supportfoot * ROBOT.D()/2.0;
+                float B = (xt - x0) / 2.0, A = supportfoot * (ROBOT.D()/2.0-0.02);
                 float Kx = B * td * wn / (td * wn + tanh(wn * (T / 2 - td)));
                 CubicSpline bodyXSpline;
                 bodyXSpline.addPoint(0.0, x0/2.0, Kx/td);
@@ -132,8 +132,12 @@ namespace walk
                     yawRot = AngleAxisd(turnSpline.pos(T-t), Eigen::Vector3d::UnitZ());
                     quat = rollRot*pitchRot*yawRot;
                     supportfoot_mat.set_R(quat.matrix());
-
+                    yawRot = AngleAxisd(0, Eigen::Vector3d::UnitZ());
+                    pitchRot = AngleAxisd(deg2rad(bodyPitch), Eigen::Vector3d::UnitY());
+                    rollRot = AngleAxisd(0, Eigen::Vector3d::UnitX());
+                    quat = rollRot*pitchRot*yawRot;
                     body_mat.set_p(Vector3d(bodyXSpline.pos(t), Cy[t], Cz));
+                    body_mat.set_R(quat.matrix());
                     supportfoot_mat.set_p(Vector3d(0.0, supportfoot * ROBOT.D()/2.0-laterSpline.pos(t)
                         +(supportfoot<0?-footYoffset: footYoffset), 0.0));
                     swingfoot_mat.set_p(Vector3d(stepSpline.pos(t), -supportfoot*ROBOT.D()/2.0+laterSpline.pos(t)

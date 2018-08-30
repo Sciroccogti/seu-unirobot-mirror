@@ -55,9 +55,10 @@ namespace walk
         bool run_action_;
         std::shared_ptr<motor> motor_;
         mutable std::mutex para_mutex_, e_mutex_;
-        const float footYoffset = 0.02;
-        const float T=0.5;
-        const float td=0.05;
+        const float footYoffset = 0.03;
+        const float bodyPitch = 15.0;
+        const float T=0.4;
+        const float td=0.02;
         const float x_range=0.04;
         const float y_range=0.02;
         const float d_range=20.0;

@@ -33,7 +33,9 @@ rmotor::rmotor(const sub_ptr& s)
     torqWrite_ = make_shared<GroupSyncWrite>(portHandler_, packetHandler_, ADDR_TORQ, SIZE_TORQ);
     gposWrite_ = make_shared<GroupSyncWrite>(portHandler_, packetHandler_, ADDR_GPOS, SIZE_GPOS);
 
-    dxl_error_ = 0;
+    ping_id_ = static_cast<uint8_t>(ROBOT.get_joint("jlhip3")->jid_);
+    is_connected_ = false;
+    lost_count_ = 0;
     voltage_ = static_cast<uint16_t>(MAX_VOLTAGE*10);
 }
 
@@ -56,17 +58,43 @@ void rmotor::close()
 
 void rmotor::act()
 {
-    set_gpos();
-    if((p_count_*period_%1000) == 0)
+    uint8_t dxl_error_=0;
+    int dxl_comm_result_=COMM_TX_FAIL;
+    uint16_t dxl_model_number;
+
+    if(!is_connected_)
     {
-        led_status_ = 1 - led_status_;
-        set_led(led_status_);
+        dxl_comm_result_ = packetHandler_->ping(portHandler_, ping_id_, &dxl_model_number, &dxl_error_);
+        if (dxl_comm_result_ == COMM_SUCCESS && dxl_error_==0)
+        {
+            set_torq(1);
+            is_connected_ = true;
+        }
     }
-    if((p_count_*period_%10000) == 0)
+    else
     {
-        int res = packetHandler_->read2ByteTxRx(portHandler_, static_cast<uint8_t>(ROBOT.get_joint("jhead1")->jid_),
-                                                ADDR_VOLT, (uint16_t*)&voltage_, &dxl_error_);
-        if(res == COMM_SUCCESS) notify();
+        set_gpos();
+        if((p_count_*period_%990) == 0)
+        {
+            led_status_ = 1 - led_status_;
+            set_led(led_status_);
+        }
+        if((p_count_*period_%1010) == 0)
+        {
+            dxl_comm_result_ = packetHandler_->ping(portHandler_, ping_id_, &dxl_model_number, &dxl_error_);
+            if (dxl_comm_result_ == COMM_SUCCESS && dxl_error_==0)
+                lost_count_ = 0;
+            else
+                lost_count_++;
+        }
+        /*
+        if((p_count_*period_%10000) == 0)
+        {
+            int res = packetHandler_->read2ByteTxRx(portHandler_, static_cast<uint8_t>(ROBOT.get_joint("jhead1")->jid_),
+                                                    ADDR_VOLT, (uint16_t*)&voltage_, &dxl_error_);
+            if(res == COMM_SUCCESS) notify();
+        }
+         */
     }
 }
 
@@ -95,9 +123,12 @@ void rmotor::set_gpos()
     gposWrite_->clearParam();
     uint8_t gpos_data[4];
     uint32_t gpos;
+    float deg;
     for(auto j:ROBOT.get_joint_map())
     {
-        gpos = float2pos(j.second->get_deg()+j.second->offset_);
+        deg = (j.second->inverse_)*(j.second->get_deg()+j.second->offset_);
+        //std::cout<<j.second->jid_<<"\t"<<deg<<std::endl;
+        gpos = float2pos(deg);
         gpos_data[0] = DXL_LOBYTE(DXL_LOWORD(gpos));
         gpos_data[1] = DXL_HIBYTE(DXL_LOWORD(gpos));
         gpos_data[2] = DXL_LOBYTE(DXL_HIWORD(gpos));
