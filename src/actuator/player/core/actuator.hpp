@@ -1,6 +1,7 @@
 #ifndef SEU_UNIROBOT_ACTUATOR_ACTUATOR_HPP
 #define SEU_UNIROBOT_ACTUATOR_ACTUATOR_HPP
 
+#include <iomanip>
 #include <iostream>
 #include <functional>
 #include <thread>
@@ -43,7 +44,7 @@ public:
     ~actuator()
     {
         if(td_.joinable()) td_.join();
-        std::cout<<"\033[32mactuator: [ "+name_+" ] end!\n\033[0m";
+        std::cout<<std::setw(15)<<"\033[32mactuator: "<<std::setw(10)<<"["+name_+"]"<<" end!\n\033[0m";
     }
 
     mutable std::mutex plist_mutex_;

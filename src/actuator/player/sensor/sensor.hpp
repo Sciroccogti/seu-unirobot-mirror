@@ -1,6 +1,7 @@
 #ifndef SEU_UNIROBOT_SENSOR_HPP
 #define SEU_UNIROBOT_SENSOR_HPP
 
+#include <iomanip>
 #include <memory>
 #include "pattern.hpp"
 #include <iostream>
@@ -14,7 +15,7 @@ public:
 
     ~sensor()
     {
-        std::cout<<"\033[32msensor: [ "+name_+" ] end!\n\033[0m";
+        std::cout<<std::setw(15)<<"\033[32msensor: "<<std::setw(10)<<"["+name_+"]"<<" end!\n\033[0m";
     }
 
     virtual bool start() = 0;

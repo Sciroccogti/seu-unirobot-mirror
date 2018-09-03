@@ -288,9 +288,7 @@ void static_action::updateSlider(int id)
     std::vector<CKSlider*>::iterator iter = mKsliders.begin();
     (*iter)->slider->setValue(pose_map_[motion_].x / SCALE_K);
     (*iter)->nameLab->setText("X");
-    if(motion_ == MOTION_LEFT_HAND || motion_ == MOTION_RIGHT_HAND)
-        (*iter)->nameLab->setText("Jshoulder1");
-    else if(motion_ == MOTION_HEAD)
+    if(motion_ == MOTION_HEAD)
         (*iter)->nameLab->setText("Head Pitch");
 
     iter++;
@@ -299,7 +297,6 @@ void static_action::updateSlider(int id)
     (*iter)->slider->setEnabled(true);
     if(motion_ == MOTION_LEFT_HAND || motion_ == MOTION_RIGHT_HAND)
     {
-        (*iter)->nameLab->setText("Jshoulder2");
         (*iter)->slider->setEnabled(false);
     }
     else if(motion_ == MOTION_HEAD)
@@ -308,8 +305,6 @@ void static_action::updateSlider(int id)
     iter++;
     (*iter)->slider->setValue(pose_map_[motion_].z / SCALE_K);
     (*iter)->nameLab->setText("Z");
-    if(motion_ == MOTION_LEFT_HAND || motion_ == MOTION_RIGHT_HAND)
-        (*iter)->nameLab->setText("Jelbow");
     (*iter)->slider->setEnabled(true);
     if(motion_ == MOTION_HEAD)
         (*iter)->slider->setEnabled(false);
@@ -342,13 +337,14 @@ float static_action::get_deg_from_pose(const float &ps)
 
 bool static_action::turn_joint()
 {
-    robot_pose pose = pose_map_[MOTION_LEFT_HAND];
     joint_degs_[ROBOT.get_joint("jhead2")->jid_] = get_deg_from_pose(pose_map_[MOTION_HEAD].x);
     joint_degs_[ROBOT.get_joint("jhead1")->jid_] = get_deg_from_pose(pose_map_[MOTION_HEAD].y);
-    joint_degs_[ROBOT.get_joint("jrshoulder1")->jid_] = get_deg_from_pose(pose_map_[MOTION_RIGHT_HAND].x);
-    joint_degs_[ROBOT.get_joint("jrelbow")->jid_] = get_deg_from_pose(pose_map_[MOTION_RIGHT_HAND].z);
-    joint_degs_[ROBOT.get_joint("jlshoulder1")->jid_] = get_deg_from_pose(pose_map_[MOTION_LEFT_HAND].x);
-    joint_degs_[ROBOT.get_joint("jlelbow")->jid_] = -get_deg_from_pose(pose_map_[MOTION_LEFT_HAND].z);
+
+    Vector3d lefthand, righthand;
+    righthand[0] = pose_map_[MOTION_RIGHT_HAND].x;
+    righthand[2] = pose_map_[MOTION_RIGHT_HAND].z;
+    lefthand[0] = pose_map_[MOTION_LEFT_HAND].x;
+    lefthand[2] = pose_map_[MOTION_LEFT_HAND].z;
 
     transform_matrix body_mat, leftfoot_mat, rightfoot_mat;
     Quaternion<double> quat;
@@ -394,6 +390,17 @@ bool static_action::turn_joint()
         joint_degs_[ROBOT.get_joint("jrknee")->jid_] = rad2deg(degs[3]);
         joint_degs_[ROBOT.get_joint("jrankle2")->jid_] = rad2deg(degs[4]);
         joint_degs_[ROBOT.get_joint("jrankle1")->jid_] = rad2deg(degs[5]);
+    }else return false;
+
+    if(ROBOT.arm_inverse_kinematics(lefthand, degs))
+    {
+        joint_degs_[ROBOT.get_joint("jlshoulder1")->jid_] = rad2deg(degs[0]);
+        joint_degs_[ROBOT.get_joint("jlelbow")->jid_] = -rad2deg(degs[2]);
+    }else return false;
+    if(ROBOT.arm_inverse_kinematics(righthand, degs))
+    {
+        joint_degs_[ROBOT.get_joint("jrshoulder1")->jid_] = rad2deg(degs[0]);
+        joint_degs_[ROBOT.get_joint("jrelbow")->jid_] = rad2deg(degs[2]);
     }else return false;
 
     robot_gl_->turn_joint(joint_degs_);

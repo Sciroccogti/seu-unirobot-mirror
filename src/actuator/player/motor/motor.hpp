@@ -86,6 +86,11 @@ public:
         return res;
     }
 
+    double freq() const
+    {
+        return 1000.0/(double)period_;
+    }
+
     mutable std::mutex bd_mutex_, hd_mutex_;
 protected:
     unsigned long p_count_;

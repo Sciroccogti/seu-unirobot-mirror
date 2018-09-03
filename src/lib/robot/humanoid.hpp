@@ -18,6 +18,31 @@ namespace robot
     class humanoid: public singleton<humanoid>
     {
     public:
+        bool arm_inverse_kinematics(const Eigen::Vector3d &hand, std::vector<double> &deg)
+        {
+            double x = hand[0];
+            double z = hand[2]-(E()+F());
+            double l = sqrt(x*x+z*z);
+            if(l>E()+F()) return false;
+            double q3t = acos((E()*E()+F()*F()-l*l)/(2*E()*F()));
+            double q3 = M_PI - q3t;
+            double q1t0 = atan2(z, x);
+            double q1t1;
+            if(z<=0) q1t1 = -M_PI/2.0-q1t0;
+            else
+            {
+                if(x<=0) q1t1 = 3.0*M_PI/2.0-q1t0;
+                else q1t1 = -(M_PI/2.0+q1t0);
+            }
+            double q1t2 = acos((E()*E()-F()*F()+l*l)/(2*E()*l));
+            double q1 = (q1t1+q1t2);
+            deg.clear();
+            deg.push_back(q1);
+            deg.push_back(0.0);
+            deg.push_back(q3);
+            return true;
+        }
+
         robot_math::transform_matrix leg_forward_kinematics(std::vector<double> &deg, const bool &left)
         {
             double sign=(left?1.0:-1.0);
@@ -80,6 +105,8 @@ namespace robot
             A_ = bone_map_["rthigh"]->length_;
             B_ = bone_map_["rshank"]->length_;
             C_ = bone_map_["rfoot1"]->length_;
+            E_ = bone_map_["ruparm"]->length_;
+            F_ = bone_map_["rlowarm"]->length_;
         }
         
         void set_degs(const std::map<int, float> &jdmap)
@@ -106,6 +133,8 @@ namespace robot
         double B() const { return B_; }
         double C() const { return C_; }
         double D() const { return D_; }
+        double E() const { return E_; }
+        double F() const { return F_; }
         double leg_length() const { return A_+B_+C_; }
 
         joint_map &get_joint_map()
@@ -132,6 +161,7 @@ namespace robot
         pos_map pos_map_;
         
         double D_, A_, B_, C_;
+        double E_, F_;
     };
 
     #define ROBOT humanoid::get_singleton()

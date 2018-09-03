@@ -308,8 +308,8 @@ void RobotGL::mouseMoveEvent(QMouseEvent *event)
 void RobotGL::wheelEvent(QWheelEvent *event)
 {
     float speed = 0.2f;
-    float rad_xy = float (3.1415927f * m_Rotate_X / 180.0f);
-    float rad_z = float (3.1415927f * m_Rotate_Y / 180.0f);
+    float rad_xy = 3.1415927f * m_Rotate_X / 180.0f;
+    float rad_z = 3.1415927f * m_Rotate_Y / 180.0f;
 
     if (event->delta() > 0)
     {
@@ -329,99 +329,101 @@ void RobotGL::wheelEvent(QWheelEvent *event)
 void RobotGL::keyPressEvent(QKeyEvent *event)
 {
     float speed = 0.1f;
-    float rad_xy = float (3.1415927f * m_Rotate_X / 180.0f);
-    float rad_z = float (3.1415927f * m_Rotate_Y / 180.0f);
+    float rad_xy = 3.1415927f * m_Rotate_X / 180.0f;
 
     switch (event->key())
     {
         case Qt::Key_W:
         case Qt::Key_Up:
-            m_KeyState |= 0x01;
+            m_KeyState = 1;
             break;
         case Qt::Key_S:
         case Qt::Key_Down:
-            m_KeyState |= 0x02;
+            m_KeyState = 2;
             break;
         case Qt::Key_A:
         case Qt::Key_Left:
-            m_KeyState |= 0x04;
+            m_KeyState = 3;
             break;
         case Qt::Key_D:
         case Qt::Key_Right:
-            m_KeyState |= 0x08;
+            m_KeyState = 4;
             break;
         case Qt::Key_PageUp:
-            m_KeyState |= 0x10;
+            m_KeyState = 5;
             break;
         case Qt::Key_PageDown:
-            m_KeyState |= 0x20;
+            m_KeyState = 6;
             break;
         case Qt::Key_Q:
-            m_KeyState |= 0x40;
+            m_KeyState = 7;
             break;
         case Qt::Key_E:
-            m_KeyState |= 0x80;
+            m_KeyState = 8;
+            break;
+        case Qt::Key_R:
+            m_KeyState = 9;
+            break;
+        case Qt::Key_F:
+            m_KeyState = 10;
+            break;
+        case Qt::Key_T:
+            m_KeyState = 11;
             break;
     }
 
-    if (m_KeyState & 0x01)
+    if (m_KeyState == 1)
     {
         m_transX -= cos(rad_xy) * speed / 3.0f;
         m_transY += sin(rad_xy) * speed / 3.0f;
     }
-    if (m_KeyState & 0x02)
+    if (m_KeyState == 2)
     {
         m_transX += cos(rad_xy) * speed / 3.0f;
         m_transY -= sin(rad_xy) * speed / 3.0f;
     }
-    if (m_KeyState & 0x04)
+    if (m_KeyState == 3)
     {
         m_transX -= sin(rad_xy) * speed / 3.0f;
         m_transY -= cos(rad_xy) * speed / 3.0f;
     }
-    if (m_KeyState & 0x08)
+    if (m_KeyState == 4)
     {
         m_transX += sin(rad_xy) * speed / 3.0f;
         m_transY += cos(rad_xy) * speed / 3.0f;
     }
-    if (m_KeyState & 0x10) m_transZ += speed;
-    if (m_KeyState & 0x20) m_transZ -= speed;
+    if (m_KeyState == 5) m_transZ += speed;
+    if (m_KeyState == 6) m_transZ -= speed;
+    if (m_KeyState == 9)
+    {
+        m_transX = 1;
+        m_transY = 0;
+        m_transZ = 0.4;
+        m_Rotate_X = 0.0;
+        m_Rotate_Y = 0.0;
+    }
+    if (m_KeyState == 10)
+    {
+        m_transX = 0;
+        m_transY = 1;
+        m_transZ = 0.4;
+        m_Rotate_X = -90.0;
+        m_Rotate_Y = 0.0;
+    }
+    if (m_KeyState == 11)
+    {
+        m_transX = 0;
+        m_transY = 0;
+        m_transZ = 1.2;
+        m_Rotate_X = 0.0;
+        m_Rotate_Y = 90.0;
+    }
     this->update();
 }
 
 void RobotGL::keyReleaseEvent(QKeyEvent *event)
 {
-    switch (event->key())
-    {
-        case Qt::Key_Up:
-        case Qt::Key_W:
-            m_KeyState &= ~0x01;
-            break;
-        case Qt::Key_Down:
-        case Qt::Key_S:
-            m_KeyState &= ~0x02;
-            break;
-        case Qt::Key_Left:
-        case Qt::Key_A:
-            m_KeyState &= ~0x04;
-            break;
-        case Qt::Key_Right:
-        case Qt::Key_D:
-            m_KeyState &= ~0x08;
-            break;
-        case Qt::Key_PageUp:
-            m_KeyState &= ~0x10;
-            break;
-        case Qt::Key_PageDown:
-            m_KeyState &= ~0x20;
-            break;
-        case Qt::Key_Q:
-            m_KeyState &= ~0x40;
-            break;
-        case Qt::Key_E:
-            m_KeyState &= ~0x80;
-            break;
-    }
+    m_KeyState = 0;
     QWidget::keyReleaseEvent(event);
 }
 

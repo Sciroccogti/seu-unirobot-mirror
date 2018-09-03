@@ -26,7 +26,8 @@ namespace robot_math
         return fabs(x)<1E-4;
     }
 
-    inline int sign(const double &x)
+    template <typename T>
+    inline T sign(const T &x)
     {
         return (x>=0)?1:-1;
     }

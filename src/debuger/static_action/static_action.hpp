@@ -7,7 +7,7 @@
 #include "robot/humanoid.hpp"
 #include "tcp_client/tcp_client.hpp"
 
-#define SLIDER_RANGE 500
+#define SLIDER_RANGE 1000
 
 class CPosListWidget : public QWidget
 {

@@ -17,7 +17,7 @@ public:
         {
             actuators_["body"] = std::make_shared<actuator>("body", suber->get_sensor("motor"));
             actuators_["head"] = std::make_shared<actuator>("head", suber->get_sensor("motor"));
-            actuators_["udp"] = std::make_shared<actuator>("udp", suber->get_sensor("hear"));
+            //actuators_["udp"] = std::make_shared<actuator>("udp", suber->get_sensor("hear"));
         }
     }
     
