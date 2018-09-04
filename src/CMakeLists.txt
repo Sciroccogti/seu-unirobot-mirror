@@ -1,7 +1,9 @@
 include_directories(./lib)
 find_package(OpenCV REQUIRED)
 add_subdirectory(actuator)
-add_subdirectory(debuger)
+if(BUILD_DEBUER)
+    add_subdirectory(debuger)
+endif()
 
 set(CMAKE_INSTALL_PREFIX "${CMAKE_SOURCE_DIR}/bin")
 install(DIRECTORY data DESTINATION ${CMAKE_INSTALL_PREFIX})

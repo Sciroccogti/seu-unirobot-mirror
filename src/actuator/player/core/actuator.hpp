@@ -59,11 +59,11 @@ protected:
             if(!plist_.empty())
             {
                 p = plist_.front();
-                plist_.pop_front();
                 if(p->perform(s_) == -1) 
                 {
                     std::cout<<"\033[33mplan: "+p->plan_name()+" perform failed.\n\033[0m";
                 }
+                plist_.pop_front();
             }
             plist_mutex_.unlock();
         }

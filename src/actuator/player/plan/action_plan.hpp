@@ -28,9 +28,9 @@ public:
 
     int perform(sensor_ptr s)
     {
-        walk::WALK.set_enable(false, true);
+        walk::WALK.set_enable(false);
         std::shared_ptr<motor> motor_ = std::dynamic_pointer_cast<motor>(s);
-        if(! motor_->body_empty()) return 1;
+        if (! motor_->body_empty()) return 1;
         int act_t;
         std::map<int, float> one_pos_deg;
         if(poses_.empty()&&pos_times_.empty())

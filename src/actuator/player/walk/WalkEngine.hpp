@@ -185,21 +185,7 @@ namespace walk
         ~WalkEngine();
         void start(sensor_ptr s);
         void stop() { is_alive_ = false; }
-        void set_enable(const bool &e, const bool &run_action=false)
-        {
-            e_mutex_.lock();
-            enable_ = e;
-            if(!enable_)
-            {
-                para_mutex_.lock();
-                params_.stepGain=0.0;
-                params_.lateralGain=0.0;
-                params_.turnGain=0.0;
-                params_.riseGain = 0.0;
-                para_mutex_.unlock();
-            }
-            e_mutex_.unlock();
-        }
+        void set_enable(const bool &e);
         void set_params(const Eigen::Vector4f &params);
     private:
         static void boundPhase(double &phase);

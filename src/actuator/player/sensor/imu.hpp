@@ -14,6 +14,7 @@ public:
     {
         float pitch, roll, yaw;
         float ax, ay, az;
+        float wx, wy, wz;
     };
     
     imu(const sub_ptr &s);

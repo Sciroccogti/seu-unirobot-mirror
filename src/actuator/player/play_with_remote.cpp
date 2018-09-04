@@ -63,7 +63,7 @@ list<plan_ptr> player::play_with_remote()
             ROBOT.get_joint(jdeg.id)->offset_ = jdeg.deg;
         }
     }
-    //suber_->reset_rmt_data();
+    suber_->reset_rmt_data();
     return plist;
 }
 

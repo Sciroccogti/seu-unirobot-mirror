@@ -27,8 +27,11 @@ def run_cmd(cmd):
         return False
 
 
-def build_project():
-    cmd = 'cd %s/build; make install'%config.project_dir
+def build_project(build_debuger=False):
+    if build_debuger:
+        cmd = 'cd %s/build; cmake -DBUILD_DEBUER=ON ..; make install'%config.project_dir
+    else:
+        cmd = 'cd %s/build; cmake -DBUILD_DEBUER=OFF ..; make install'%config.project_dir
     return run_cmd(cmd)
 
 
