@@ -5,7 +5,6 @@
 #include "dynamixel/dynamixel_sdk.h"
 #include "motor.hpp"
 
-#define MAX_VOLTAGE 16.8
 #define ZERO_POS 2048
 #define MAX_POS  4096
 #define MIN_POS  0
@@ -20,10 +19,7 @@ public:
     void close();
     void act();
     
-    float voltage() const
-    {
-        return voltage_/10.0;
-    }
+    float voltage() const { return voltage_/10.0; }
 private:
     void set_torq(uint8_t e);
     void set_led(uint8_t s);

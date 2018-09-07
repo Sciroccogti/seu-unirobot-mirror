@@ -10,7 +10,7 @@ add_library(player STATIC
             play_without_gamectrl.cpp
             play_with_gamectrl.cpp
             play_with_remote.cpp
-            player.cpp core/manager.hpp)
+            player.cpp)
             
 target_link_libraries(player
             fsm

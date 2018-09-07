@@ -6,11 +6,29 @@ using namespace std;
 using namespace boost::asio;
 
 boost::asio::io_service imu_service;
-unsigned char imu_header[] = {0xA5, 0x5A};
+unsigned char imu_header[] = {0x55, 0x51, 0x52, 0x53};
+const float g_ = 9.8;
+struct SAcc
+{
+    short a[3];
+    short T;
+};
+struct SGyro
+{
+    short w[3];
+    short T;
+};
+struct SAngle
+{
+    short Angle[3];
+    short T;
+};
+SAcc 		stcAcc;
+SGyro 		stcGyro;
+SAngle 	    stcAngle;
+
 imu::imu(): sensor("imu"), serial_(imu_service)
 {
-    str_.resize(imu_data_size);
-    data_ = (imu_data*)(str_.data());
 }
 
 bool imu::open()
@@ -32,49 +50,89 @@ bool imu::open()
     }
 }
 
+void imu::read_head0()
+{
+    auto self(shared_from_this());
+    boost::asio::async_read(serial_, boost::asio::buffer(buff_, 1),
+        [this, self](boost::system::error_code ec, std::size_t length)
+    {
+        if (!ec)
+        {
+            if(buff_[0] == imu_header[0])
+                read_head1();
+            else
+                read_head0();
+        }
+    });
+}
+
+void imu::read_head1()
+{
+    auto self(shared_from_this());
+    boost::asio::async_read(serial_, boost::asio::buffer(buff_+1, 1),
+        [this, self](boost::system::error_code ec, std::size_t length)
+    {
+        if (!ec)
+        {
+            if(buff_[1] == imu_header[1] || buff_[1] == imu_header[2] || buff_[1] == imu_header[3])
+                read_data();
+            else
+                read_head0();
+        }
+    });
+}
+
+void imu::read_data()
+{
+    auto self(shared_from_this());
+    boost::asio::async_read(serial_, boost::asio::buffer(buff_+2, imu_len-2),
+    [this, self](boost::system::error_code ec, std::size_t length)
+    {
+        if (!ec)
+        {
+            unsigned char sum=0;
+            for(int i=0;i<imu_len-1;i++)
+                sum+=buff_[i];
+            if(sum == buff_[imu_len-1])
+            {
+                switch(buff_[1])
+                {
+                    case 0x51:
+                        memcpy(&stcAcc,&buff_[2],8);
+                        data_.ax = stcAcc.a[0]/32768.0f*16.0f*g_;
+                        data_.ay = stcAcc.a[1]/32768.0f*16.0f*g_;
+                        data_.az = stcAcc.a[2]/32768.0f*16.0f*g_;
+                        break;
+                    case 0x52:
+                        memcpy(&stcGyro,&buff_[2],8);
+                        data_.wx = stcGyro.w[0]/32768.0f*2000.0f;
+                        data_.wy = stcGyro.w[1]/32768.0f*2000.0f;
+                        data_.wz = stcGyro.w[2]/32768.0f*2000.0f;
+                        break;
+                    case 0x53:
+                        memcpy(&stcAngle,&buff_[2],8);
+                        data_.roll = stcAngle.Angle[0]/32768.0f*180.0f;
+                        data_.pitch = stcAngle.Angle[1]/32768.0f*180.0f;
+                        data_.yaw = stcAngle.Angle[2]/32768.0f*180.0f;
+                        break;
+                    default: break;
+                }
+                notify(SENSOR_IMU);
+            }
+            read_head0();
+        }
+    });
+}
+
 bool imu::start()
 {
     if(!this->open()) return false;
     is_open_ = true;
     is_alive_ = true;
-    short pitch, roll, yaw;
     td_ = std::move(thread([this]()
     {
-        boost::system::error_code ec;
-        const int max_len = 64;
-        unsigned char len=0;
-        unsigned char buff[max_len];
-        while(is_alive_)
-        {
-            serial_.read_some(boost::asio::buffer(buff, 1), ec);
-            if(ec)
-            {
-                std::cout<<ec.message()<<"\n";
-                break;
-            }
-            if(buff[0] != imu_header[0]) continue;
-            serial_.read_some(boost::asio::buffer(buff+1, 1), ec);
-            if(ec)
-            {
-                std::cout<<ec.message()<<"\n";
-                break;
-            }
-            if(buff[1] != imu_header[1]) continue;
-            serial_.read_some(boost::asio::buffer(buff+2, 1), ec);
-            if(ec)
-            {
-                std::cout<<ec.message()<<"\n";
-                break;
-            }
-            len = buff[2];
-            serial_.read_some(boost::asio::buffer(buff+3, (size_t)len), ec);
-            if(ec)
-            {
-                std::cout<<ec.message()<<"\n";
-                break;
-            }
-            notify(SENSOR_IMU);
-        }
+        this->read_head0();
+        imu_service.run();
     }));
     return true;
 }
@@ -82,6 +140,7 @@ bool imu::start()
 void imu::stop()
 {
     serial_.close();
+    imu_service.stop();
     is_alive_ = false;
     is_open_ = false;
 }

@@ -9,15 +9,17 @@
 #include "sensor/gamectrl.hpp"
 #include "sensor/tcp_server.hpp"
 #include "sensor/hear.hpp"
+#include "configuration.hpp"
 
 class worldmodel: public subscriber
 {
 public:
     worldmodel()
     {
-        voltage_ = MAX_VOLTAGE;
+        min_volt_ = CONF->get_config_value<float>("hardware.battery.min_volt");
         rmt_data_.type = NON_DATA;
         rmt_data_.size = 0;
+        low_power_ = false;
     }
 
     void updata(const pro_ptr &pub, const int &type)
@@ -51,7 +53,7 @@ public:
         {
             dxl_mtx_.lock();
             std::shared_ptr<rmotor> sptr = std::dynamic_pointer_cast<rmotor>(pub);
-            voltage_ = sptr->voltage();
+            if(sptr->voltage()<min_volt_) low_power_ = true;
             dxl_mtx_.unlock();
             return;
         }
@@ -96,8 +98,11 @@ public:
         rmt_data_.size = 0;
     }
 
+    bool low_power() const { return low_power_; }
+
 private:
-    float voltage_;
+    bool low_power_;
+    float min_volt_;
     std::map<int, player_info> players_;
     RoboCupGameControlData gc_data_;
     imu::imu_data imu_data_;

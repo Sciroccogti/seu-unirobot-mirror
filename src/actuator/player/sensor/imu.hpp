@@ -27,17 +27,22 @@ public:
     
     imu_data data() const
     {
-        return *data_;
+        return data_;
     }
     
 private:
     bool open();
-    
+    void read_head0();
+    void read_head1();
+    void read_data();
+
     enum {imu_data_size = sizeof(imu_data)};
-    imu_data *data_;
-    std::string str_;
+    enum {imu_len = 11};
+    unsigned char buff_[imu_len];
+    imu_data data_;
     std::thread td_;
     boost::asio::serial_port serial_;
+
 };
 
 #endif

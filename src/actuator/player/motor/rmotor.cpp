@@ -35,7 +35,7 @@ rmotor::rmotor()
     ping_id_ = static_cast<uint8_t>(ROBOT->get_joint("jrhip3")->jid_);
     is_connected_ = false;
     lost_count_ = 0;
-    voltage_ = static_cast<uint16_t>(MAX_VOLTAGE*10);
+    voltage_ = static_cast<uint16_t>(CONF->get_config_value<float>("hardware.battery.max_volt")*10);
 }
 
 bool rmotor::open()

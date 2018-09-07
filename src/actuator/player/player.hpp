@@ -31,7 +31,7 @@ private:
     std::list<plan_ptr> play_with_remote();
     std::list<plan_ptr> play_with_gamectrl();
     std::list<plan_ptr> play_without_gamectrl();
-    void add_plan(std::list<plan_ptr> plist);
+    void add_plans(std::list<plan_ptr> plist);
 
     bool regist();
     void unregist();

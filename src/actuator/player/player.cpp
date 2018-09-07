@@ -47,7 +47,7 @@ void player::run()
     if(is_alive_)
     {
         period_count_++;
-        add_plan(think());
+        add_plans(think());
     }
 }
 
@@ -55,6 +55,14 @@ list< plan_ptr > player::think()
 {
     list<plan_ptr> plist;
     list<plan_ptr> tlist;
+    if(period_count_*period_ms_%1000 == 0)
+    {
+        if(wm_->low_power())
+        {
+            std::cout<<"\033[31m******** low power! ********\033[0m\n";
+        }
+    }
+
     if(OPTS->use_remote())
     {
         tlist = play_with_remote();
@@ -70,7 +78,7 @@ list< plan_ptr > player::think()
     return plist;
 }
 
-void player::add_plan(std::list<plan_ptr> plist)
+void player::add_plans(std::list<plan_ptr> plist)
 {
     for(auto &p:plist)
     {
