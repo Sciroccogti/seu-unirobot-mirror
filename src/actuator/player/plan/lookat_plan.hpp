@@ -19,8 +19,8 @@ public:
         std::map<int, float> jdmap;
 
         int pitch_id, yaw_id;
-        jdmap[robot::ROBOT.get_joint("jhead1")->jid_] = yaw_;
-        jdmap[robot::ROBOT.get_joint("jhead2")->jid_] = pitch_;
+        jdmap[robot::ROBOT->get_joint("jhead1")->jid_] = yaw_;
+        jdmap[robot::ROBOT->get_joint("jhead2")->jid_] = pitch_;
         joints_plan jp(jdmap, act_time_, actuator_name_);
         return jp.perform(s);
     }

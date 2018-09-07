@@ -6,9 +6,19 @@
 #include "pattern.hpp"
 #include <iostream>
 
-class sensor: public publisher
+class sensor: public promulgator
 {
 public:
+    enum sensor_type
+    {
+        SENSOR_NONE = 0,
+        SENSOR_SERVER = 1,
+        SENSOR_GC = 2,
+        SENSOR_HEAR = 3,
+        SENSOR_IMU = 4,
+        SENSOR_MOTOR = 5,
+        SENSOR_CAMERA = 6
+    };
     sensor(const std::string &name):name_(name)
     {
     }

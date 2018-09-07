@@ -11,7 +11,7 @@ using namespace std;
 list<plan_ptr> player::play_with_remote()
 {
     list<plan_ptr> plist;
-    remote_data rdata = suber_->rmt_data();
+    remote_data rdata = wm_->rmt_data();
     if(rdata.type == WALK_DATA)
     {
         float x,y,d,h;
@@ -23,9 +23,9 @@ list<plan_ptr> player::play_with_remote()
     }
     else if(rdata.type == ACT_DATA)
     {
-        int blksz = int_size + ROBOT.get_joint_map().size()*(int_size+float_size);
+        int blksz = int_size + ROBOT->get_joint_map().size()*(int_size+float_size);
         int pos_count = rdata.size/blksz;
-        int j_count = ROBOT.get_joint_map().size();
+        int j_count = ROBOT->get_joint_map().size();
         map<int, float> jdmap;
         int act_t;
         int id;
@@ -57,13 +57,13 @@ list<plan_ptr> player::play_with_remote()
     else if(rdata.type == JOINT_OFFSET)
     {
         robot_joint_deg jdeg;
-        for(int i=0;i<ROBOT.get_joint_map().size();i++)
+        for(int i=0;i<ROBOT->get_joint_map().size();i++)
         {
             memcpy(&jdeg, rdata.data.c_str()+i*sizeof(robot_joint_deg), sizeof(robot_joint_deg));
-            ROBOT.get_joint(jdeg.id)->offset_ = jdeg.deg;
+            ROBOT->get_joint(jdeg.id)->offset_ = jdeg.deg;
         }
     }
-    suber_->reset_rmt_data();
+    wm_->reset_rmt_data();
     return plist;
 }
 

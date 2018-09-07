@@ -16,24 +16,24 @@ namespace walk
 
     WalkEngine::WalkEngine()
     {
-        xrange[0] = CONF.get_config_value<double>("walk.x.min");
-        xrange[1] = CONF.get_config_value<double>("walk.x.max");
-        yrange[0] = CONF.get_config_value<double>("walk.y.min");
-        yrange[1] = CONF.get_config_value<double>("walk.y.max");
-        drange[0] = CONF.get_config_value<double>("walk.dir.min");
-        drange[1] = CONF.get_config_value<double>("walk.dir.max");
+        xrange[0] = CONF->get_config_value<double>("walk.x.min");
+        xrange[1] = CONF->get_config_value<double>("walk.x.max");
+        yrange[0] = CONF->get_config_value<double>("walk.y.min");
+        yrange[1] = CONF->get_config_value<double>("walk.y.max");
+        drange[0] = CONF->get_config_value<double>("walk.dir.min");
+        drange[1] = CONF->get_config_value<double>("walk.dir.max");
 
-        params_.freq = CONF.get_config_value<double>("walk.freq");
-        params_.footYOffset = CONF.get_config_value<double>("walk.footYOffset");
+        params_.freq = CONF->get_config_value<double>("walk.freq");
+        params_.footYOffset = CONF->get_config_value<double>("walk.footYOffset");
 
-        params_.trunkZOffset = CONF.get_config_value<double>("walk.trunkZOffset");
-        params_.trunkXOffset = CONF.get_config_value<double>("walk.trunkXOffset");
-        params_.trunkPitch = deg2rad(CONF.get_config_value<double>("walk.trunkPitch"));
+        params_.trunkZOffset = CONF->get_config_value<double>("walk.trunkZOffset");
+        params_.trunkXOffset = CONF->get_config_value<double>("walk.trunkXOffset");
+        params_.trunkPitch = deg2rad(CONF->get_config_value<double>("walk.trunkPitch"));
         params_.trunkYOffset = 0.0;
         params_.trunkRoll = 0.0;
 
-        params_.swingGain = CONF.get_config_value<float>("walk.swingGain");
-        params_.swingPhase = CONF.get_config_value<float>("walk.swingPhase");
+        params_.swingGain = CONF->get_config_value<float>("walk.swingGain");
+        params_.swingPhase = CONF->get_config_value<float>("walk.swingPhase");
         params_.swingRollGain = 0.0;
 
         params_.supportPhaseRatio = 0.0;
@@ -67,6 +67,25 @@ namespace walk
         dt_ = 0.0;
         support_foot_ = DOUBLE_SUPPORT;
         enable_ = false;
+    }
+
+    void WalkEngine::updata(const pro_ptr &pub, const int &type)
+    {
+        if(type == sensor::SENSOR_IMU)
+        {
+            imu_mtx_.lock();
+            std::shared_ptr<imu> sptr = std::dynamic_pointer_cast<imu>(pub);
+            imu_data_ = sptr->data();
+            imu_mtx_.unlock();
+            return;
+        }
+        if(type == sensor::SENSOR_MOTOR)
+        {
+            dxl_mtx_.lock();
+            std::shared_ptr<rmotor> sptr = std::dynamic_pointer_cast<rmotor>(pub);
+            dxl_mtx_.unlock();
+            return;
+        }
     }
 
     WalkEngine::~WalkEngine()
@@ -211,8 +230,8 @@ namespace walk
                     double rightX = tempParams.enabledGain * tempParams.stepGain * stepSpline.pos(phaseRight);
 
                     //Compute feet swing oscillation
-                    double leftY = swingVal + ROBOT.D()/2.0;
-                    double rightY = swingVal - ROBOT.D()/2.0;
+                    double leftY = swingVal + ROBOT->D()/2.0;
+                    double rightY = swingVal - ROBOT->D()/2.0;
                     //Compute feet lateral movement oscillation
                     leftY += tempParams.enabledGain * tempParams.lateralGain * (stepSpline.pos(phaseLeft)
                             + 0.5 * (tempParams.lateralGain >= 0.0 ? 1.0 : -1.0));
@@ -289,7 +308,7 @@ namespace walk
                     //In case of trunk Roll rotation, an height (Z)
                     //positive offset have to be applied on external foot to
                     //set both feet on same level
-                    double deltaLen = ROBOT.D()*tan(rollVal);
+                    double deltaLen = ROBOT->D()*tan(rollVal);
                     if (rollVal > 0.0)
                         posRight(2) += deltaLen;
                     else if (rollVal < 0.0)
@@ -299,12 +318,12 @@ namespace walk
                     //Pitch and Roll rotation. It is better for tunning if
                     //trunk pitch or roll rotation do not apply offset on
                     //trunk position.
-                    //posLeft(0) += (ROBOT.leg_length())*tan(tempParams.trunkPitch);
-                    //posRight(0) += (ROBOT.leg_length())*tan(tempParams.trunkPitch);
-                    posLeft(1) -= (ROBOT.leg_length())*tan(rollVal);
-                    posRight(1) -= (ROBOT.leg_length())*tan(rollVal);
+                    //posLeft(0) += (ROBOT->leg_length())*tan(tempParams.trunkPitch);
+                    //posRight(0) += (ROBOT->leg_length())*tan(tempParams.trunkPitch);
+                    posLeft(1) -= (ROBOT->leg_length())*tan(rollVal);
+                    posRight(1) -= (ROBOT->leg_length())*tan(rollVal);
 
-                    body_mat.set_p(Vector3d(0, 0, ROBOT.leg_length()));
+                    body_mat.set_p(Vector3d(0, 0, ROBOT->leg_length()));
                     leftfoot_mat.set_p(posLeft);
                     rightfoot_mat.set_p(posRight);
 
@@ -322,26 +341,26 @@ namespace walk
                     quat = Quaternion<double>(rollRot * pitchRot * yawRot);
                     rightfoot_mat.set_R(quat.matrix());
 
-                    if (ROBOT.leg_inverse_kinematics(body_mat, leftfoot_mat, degs, true))
+                    if (ROBOT->leg_inverse_kinematics(body_mat, leftfoot_mat, degs, true))
                     {
-                        jdegs[ROBOT.get_joint("jlhip3")->jid_] = rad2deg(degs[0]);
-                        jdegs[ROBOT.get_joint("jlhip2")->jid_] = rad2deg(degs[1]);
-                        jdegs[ROBOT.get_joint("jlhip1")->jid_] = rad2deg(degs[2]);
-                        jdegs[ROBOT.get_joint("jlknee")->jid_] = rad2deg(degs[3]);
-                        jdegs[ROBOT.get_joint("jlankle2")->jid_] = rad2deg(degs[4]);
-                        jdegs[ROBOT.get_joint("jlankle1")->jid_] = rad2deg(degs[5]);
-                        if(support_foot_ == LEFT_SUPPORT) ROBOT.leg_forward_kinematics(degs, true);
+                        jdegs[ROBOT->get_joint("jlhip3")->jid_] = rad2deg(degs[0]);
+                        jdegs[ROBOT->get_joint("jlhip2")->jid_] = rad2deg(degs[1]);
+                        jdegs[ROBOT->get_joint("jlhip1")->jid_] = rad2deg(degs[2]);
+                        jdegs[ROBOT->get_joint("jlknee")->jid_] = rad2deg(degs[3]);
+                        jdegs[ROBOT->get_joint("jlankle2")->jid_] = rad2deg(degs[4]);
+                        jdegs[ROBOT->get_joint("jlankle1")->jid_] = rad2deg(degs[5]);
+                        if(support_foot_ == LEFT_SUPPORT) ROBOT->leg_forward_kinematics(degs, true);
                     }
                     else std::cout<<phase_<<'\t'<<"\033[31mleft leg_inverse_kinematics faied!\033[0m"<<std::endl;
-                    if (ROBOT.leg_inverse_kinematics(body_mat, rightfoot_mat, degs, false))
+                    if (ROBOT->leg_inverse_kinematics(body_mat, rightfoot_mat, degs, false))
                     {
-                        jdegs[ROBOT.get_joint("jrhip3")->jid_] = rad2deg(degs[0]);
-                        jdegs[ROBOT.get_joint("jrhip2")->jid_] = rad2deg(degs[1]);
-                        jdegs[ROBOT.get_joint("jrhip1")->jid_] = rad2deg(degs[2]);
-                        jdegs[ROBOT.get_joint("jrknee")->jid_] = rad2deg(degs[3]);
-                        jdegs[ROBOT.get_joint("jrankle2")->jid_] = rad2deg(degs[4]);
-                        jdegs[ROBOT.get_joint("jrankle1")->jid_] = rad2deg(degs[5]);
-                        if(support_foot_ == RIGHT_SUPPORT) ROBOT.leg_forward_kinematics(degs, false);
+                        jdegs[ROBOT->get_joint("jrhip3")->jid_] = rad2deg(degs[0]);
+                        jdegs[ROBOT->get_joint("jrhip2")->jid_] = rad2deg(degs[1]);
+                        jdegs[ROBOT->get_joint("jrhip1")->jid_] = rad2deg(degs[2]);
+                        jdegs[ROBOT->get_joint("jrknee")->jid_] = rad2deg(degs[3]);
+                        jdegs[ROBOT->get_joint("jrankle2")->jid_] = rad2deg(degs[4]);
+                        jdegs[ROBOT->get_joint("jrankle1")->jid_] = rad2deg(degs[5]);
+                        if(support_foot_ == RIGHT_SUPPORT) ROBOT->leg_forward_kinematics(degs, false);
                     }
                     else std::cout<<phase_<<'\t'<<"\033[31mright leg_inverse_kinematics faied!\033[0m"<<std::endl;
 
@@ -350,15 +369,15 @@ namespace walk
                     righthand[0] = handGain*handSpline.pos(phaseRight);
                     lefthand[2] = 0.1;
                     righthand[2] = 0.1;
-                    if(ROBOT.arm_inverse_kinematics(lefthand, degs))
+                    if(ROBOT->arm_inverse_kinematics(lefthand, degs))
                     {
-                        jdegs[ROBOT.get_joint("jlshoulder1")->jid_] = rad2deg(degs[0]);
-                        jdegs[ROBOT.get_joint("jlelbow")->jid_] = -rad2deg(degs[2]);
+                        jdegs[ROBOT->get_joint("jlshoulder1")->jid_] = rad2deg(degs[0]);
+                        jdegs[ROBOT->get_joint("jlelbow")->jid_] = -rad2deg(degs[2]);
                     }
-                    if(ROBOT.arm_inverse_kinematics(righthand, degs))
+                    if(ROBOT->arm_inverse_kinematics(righthand, degs))
                     {
-                        jdegs[ROBOT.get_joint("jrshoulder1")->jid_] = rad2deg(degs[0]);
-                        jdegs[ROBOT.get_joint("jrelbow")->jid_] = rad2deg(degs[2]);
+                        jdegs[ROBOT->get_joint("jrshoulder1")->jid_] = rad2deg(degs[0]);
+                        jdegs[ROBOT->get_joint("jrelbow")->jid_] = rad2deg(degs[2]);
                     }
                     while(!motor_->body_empty());
                     if(!motor_->add_body_degs(jdegs)) break;

@@ -55,7 +55,7 @@ private:
 class tcp_server: public sensor
 {
 public:
-    tcp_server(const sub_ptr& s);
+    tcp_server();
     ~tcp_server();
     bool start();
     void stop();

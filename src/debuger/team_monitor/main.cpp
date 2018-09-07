@@ -7,7 +7,7 @@ using namespace std;
 
 int main(int argc, char **argv)
 {
-    if(!CONF.init())
+    if(!CONF->init())
     {
         std::cout<<"config init failed\n";
         exit(2);

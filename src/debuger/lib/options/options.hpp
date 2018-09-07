@@ -23,6 +23,6 @@ private:
     int id_;
 };
 
-#define OPTS options::get_singleton()
+#define OPTS options::instance()
 
 #endif //SEU_UNIROBOT_DEBUGER_OPTIONS_HPP

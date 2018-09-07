@@ -13,7 +13,7 @@
 class rmotor: public motor
 {
 public:
-    rmotor(const sub_ptr &s);
+    rmotor();
     ~rmotor();
 
     bool open();

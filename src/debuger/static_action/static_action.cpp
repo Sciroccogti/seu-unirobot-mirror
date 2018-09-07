@@ -16,10 +16,10 @@ using namespace robot_math;
 using namespace Eigen;
 
 static_action::static_action()
-    : client_(CONF.get_config_value<string>(CONF.player()+".address"), CONF.get_config_value<int>("net.tcp.port"))
+    : client_(CONF->get_config_value<string>(CONF->player()+".address"), CONF->get_config_value<int>("net.tcp.port"))
 {
     initStatusBar();
-    robot_gl_ = new RobotGL(ROBOT.get_main_bone(), ROBOT.get_joint_map());
+    robot_gl_ = new RobotGL(ROBOT->get_main_bone(), ROBOT->get_joint_map());
     QVBoxLayout *leftLayout = new QVBoxLayout;
     leftLayout->addWidget(robot_gl_);
 
@@ -136,8 +136,8 @@ static_action::static_action()
     initActs();
     initPoseMap();
     initJDInfo();
-    net_info = QString::fromStdString(CONF.get_config_value<string>(CONF.player()+".address"))
-               +":"+ QString::number(CONF.get_config_value<int>("net.tcp.port"));
+    net_info = QString::fromStdString(CONF->get_config_value<string>(CONF->player()+".address"))
+               +":"+ QString::number(CONF->get_config_value<int>("net.tcp.port"));
     setWindowTitle(net_info);
 
     timer= new QTimer;
@@ -169,7 +169,7 @@ void static_action::procPosNameChanged(int id)
     string old_name = pCur_PosWidget->pos_name_;
     string act_name = m_pActListWidget->currentItem()->text().toStdString();
     
-    if(ROBOT.get_pos_map().find(new_name)==ROBOT.get_pos_map().end())
+    if(ROBOT->get_pos_map().find(new_name)==ROBOT->get_pos_map().end())
     {
         QMessageBox::StandardButton reply = QMessageBox::question(this, "Warning", "pos: "+QString::fromStdString(new_name)+" does not exist, create it?",
                 QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
@@ -180,18 +180,18 @@ void static_action::procPosNameChanged(int id)
         }
         robot_pos tempPos;
         tempPos.name = new_name;
-        tempPos.pose_info = ROBOT.get_pos_map()[old_name].pose_info;
-        tempPos.joints_deg = ROBOT.get_pos_map()[old_name].joints_deg;
-        ROBOT.get_pos_map()[new_name] = tempPos;
+        tempPos.pose_info = ROBOT->get_pos_map()[old_name].pose_info;
+        tempPos.joints_deg = ROBOT->get_pos_map()[old_name].joints_deg;
+        ROBOT->get_pos_map()[new_name] = tempPos;
     }
-    ROBOT.get_act_map()[act_name].poses[id-1].pos_name = new_name;
+    ROBOT->get_act_map()[act_name].poses[id-1].pos_name = new_name;
 }
 
 void static_action::procPosTimeChanged(int id)
 {
     CPosListWidget *pCur_PosWidget = (CPosListWidget *) m_pPosListWidget->itemWidget(m_pPosListWidget->item(id-1));
     string act_name = m_pActListWidget->currentItem()->text().toStdString();
-    ROBOT.get_act_map()[act_name].poses[id-1].act_time = pCur_PosWidget->pos_time->text().toInt();
+    ROBOT->get_act_map()[act_name].poses[id-1].act_time = pCur_PosWidget->pos_time->text().toInt();
 }
 
 void static_action::procTimer()
@@ -216,7 +216,7 @@ void static_action::initActs()
 {
     m_pPosListWidget->clear();
     m_pActListWidget->clear();
-    for(auto act:ROBOT.get_act_map())
+    for(auto act:ROBOT->get_act_map())
         m_pActListWidget->addItem(QString::fromStdString(act.second.name));
     mSliderGroup->setEnabled(false);
 }
@@ -228,7 +228,7 @@ void static_action::initPoseMap()
     robot_pose temp = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
     for(int i=1;i<=6;i++)
         pose_map_[static_cast<robot_motion >(i)] = temp;
-    for(auto j:ROBOT.get_joint_map())
+    for(auto j:ROBOT->get_joint_map())
         joint_degs_[j.second->jid_] = j.second->get_deg();
 }
 
@@ -263,10 +263,10 @@ void static_action::initJDInfo()
     for(auto jd: joint_degs_)
     {
         pListItem = new QListWidgetItem;
-        pJDWidget = new CJointDegWidget(ROBOT.get_joint(jd.first)->name_, jd.second);
+        pJDWidget = new CJointDegWidget(ROBOT->get_joint(jd.first)->name_, jd.second);
         pJDWidget->show();
-        mJDInfos[ROBOT.get_joint(jd.first)->name_] = pJDWidget;
-        if(ROBOT.get_joint(jd.first)->name_ == "jhead2" || ROBOT.get_joint(jd.first)->name_.find("jr") != string::npos)
+        mJDInfos[ROBOT->get_joint(jd.first)->name_] = pJDWidget;
+        if(ROBOT->get_joint(jd.first)->name_ == "jhead2" || ROBOT->get_joint(jd.first)->name_.find("jr") != string::npos)
         {
             m_pJDListWidget1->addItem(pListItem);
             m_pJDListWidget1->setItemWidget(pListItem, pJDWidget);
@@ -337,8 +337,8 @@ float static_action::get_deg_from_pose(const float &ps)
 
 bool static_action::turn_joint()
 {
-    joint_degs_[ROBOT.get_joint("jhead2")->jid_] = get_deg_from_pose(pose_map_[MOTION_HEAD].x);
-    joint_degs_[ROBOT.get_joint("jhead1")->jid_] = get_deg_from_pose(pose_map_[MOTION_HEAD].y);
+    joint_degs_[ROBOT->get_joint("jhead2")->jid_] = get_deg_from_pose(pose_map_[MOTION_HEAD].x);
+    joint_degs_[ROBOT->get_joint("jhead1")->jid_] = get_deg_from_pose(pose_map_[MOTION_HEAD].y);
 
     Vector3d lefthand, righthand;
     righthand[0] = pose_map_[MOTION_RIGHT_HAND].x;
@@ -354,53 +354,53 @@ bool static_action::turn_joint()
     pitchRot = AngleAxisd(deg2rad(pose_map_[MOTION_BODY].pitch), Vector3d::UnitY());
     rollRot = AngleAxisd(deg2rad(pose_map_[MOTION_BODY].roll), Vector3d::UnitX());
     quat = rollRot * pitchRot * yawRot;
-    body_mat.set_p(Vector3d(pose_map_[MOTION_BODY].x, pose_map_[MOTION_BODY].y, pose_map_[MOTION_BODY].z+ROBOT.leg_length()));
+    body_mat.set_p(Vector3d(pose_map_[MOTION_BODY].x, pose_map_[MOTION_BODY].y, pose_map_[MOTION_BODY].z+ROBOT->leg_length()));
     body_mat.set_R(quat.matrix());
 
     yawRot = AngleAxisd(deg2rad(pose_map_[MOTION_LEFT_FOOT].yaw), Vector3d::UnitZ());
     pitchRot = AngleAxisd(deg2rad(pose_map_[MOTION_LEFT_FOOT].pitch), Vector3d::UnitY());
     rollRot = AngleAxisd(deg2rad(pose_map_[MOTION_LEFT_FOOT].roll), Vector3d::UnitX());
     quat = rollRot * pitchRot * yawRot;
-    leftfoot_mat.set_p(Vector3d(pose_map_[MOTION_LEFT_FOOT].x, pose_map_[MOTION_LEFT_FOOT].y+ROBOT.D()/2.0, pose_map_[MOTION_LEFT_FOOT].z));
+    leftfoot_mat.set_p(Vector3d(pose_map_[MOTION_LEFT_FOOT].x, pose_map_[MOTION_LEFT_FOOT].y+ROBOT->D()/2.0, pose_map_[MOTION_LEFT_FOOT].z));
     leftfoot_mat.set_R(quat.matrix());
 
     yawRot = AngleAxisd(deg2rad(pose_map_[MOTION_RIGHT_FOOT].yaw), Vector3d::UnitZ());
     pitchRot = AngleAxisd(deg2rad(pose_map_[MOTION_RIGHT_FOOT].pitch), Vector3d::UnitY());
     rollRot = AngleAxisd(deg2rad(pose_map_[MOTION_RIGHT_FOOT].roll), Vector3d::UnitX());
     quat = rollRot * pitchRot * yawRot;
-    rightfoot_mat.set_p(Vector3d(pose_map_[MOTION_RIGHT_FOOT].x, pose_map_[MOTION_RIGHT_FOOT].y-ROBOT.D()/2.0, pose_map_[MOTION_RIGHT_FOOT].z));
+    rightfoot_mat.set_p(Vector3d(pose_map_[MOTION_RIGHT_FOOT].x, pose_map_[MOTION_RIGHT_FOOT].y-ROBOT->D()/2.0, pose_map_[MOTION_RIGHT_FOOT].z));
     rightfoot_mat.set_R(quat.matrix());
 
     vector<double> degs;
-    if(ROBOT.leg_inverse_kinematics(body_mat, leftfoot_mat, degs, true))
+    if(ROBOT->leg_inverse_kinematics(body_mat, leftfoot_mat, degs, true))
     {
-        joint_degs_[ROBOT.get_joint("jlhip3")->jid_] = rad2deg(degs[0]);
-        joint_degs_[ROBOT.get_joint("jlhip2")->jid_] = rad2deg(degs[1]);
-        joint_degs_[ROBOT.get_joint("jlhip1")->jid_] = rad2deg(degs[2]);
-        joint_degs_[ROBOT.get_joint("jlknee")->jid_] = rad2deg(degs[3]);
-        joint_degs_[ROBOT.get_joint("jlankle2")->jid_] = rad2deg(degs[4]);
-        joint_degs_[ROBOT.get_joint("jlankle1")->jid_] = rad2deg(degs[5]);
+        joint_degs_[ROBOT->get_joint("jlhip3")->jid_] = rad2deg(degs[0]);
+        joint_degs_[ROBOT->get_joint("jlhip2")->jid_] = rad2deg(degs[1]);
+        joint_degs_[ROBOT->get_joint("jlhip1")->jid_] = rad2deg(degs[2]);
+        joint_degs_[ROBOT->get_joint("jlknee")->jid_] = rad2deg(degs[3]);
+        joint_degs_[ROBOT->get_joint("jlankle2")->jid_] = rad2deg(degs[4]);
+        joint_degs_[ROBOT->get_joint("jlankle1")->jid_] = rad2deg(degs[5]);
     }else return false;
 
-    if(ROBOT.leg_inverse_kinematics(body_mat, rightfoot_mat, degs, false))
+    if(ROBOT->leg_inverse_kinematics(body_mat, rightfoot_mat, degs, false))
     {
-        joint_degs_[ROBOT.get_joint("jrhip3")->jid_] = rad2deg(degs[0]);
-        joint_degs_[ROBOT.get_joint("jrhip2")->jid_] = rad2deg(degs[1]);
-        joint_degs_[ROBOT.get_joint("jrhip1")->jid_] = rad2deg(degs[2]);
-        joint_degs_[ROBOT.get_joint("jrknee")->jid_] = rad2deg(degs[3]);
-        joint_degs_[ROBOT.get_joint("jrankle2")->jid_] = rad2deg(degs[4]);
-        joint_degs_[ROBOT.get_joint("jrankle1")->jid_] = rad2deg(degs[5]);
+        joint_degs_[ROBOT->get_joint("jrhip3")->jid_] = rad2deg(degs[0]);
+        joint_degs_[ROBOT->get_joint("jrhip2")->jid_] = rad2deg(degs[1]);
+        joint_degs_[ROBOT->get_joint("jrhip1")->jid_] = rad2deg(degs[2]);
+        joint_degs_[ROBOT->get_joint("jrknee")->jid_] = rad2deg(degs[3]);
+        joint_degs_[ROBOT->get_joint("jrankle2")->jid_] = rad2deg(degs[4]);
+        joint_degs_[ROBOT->get_joint("jrankle1")->jid_] = rad2deg(degs[5]);
     }else return false;
 
-    if(ROBOT.arm_inverse_kinematics(lefthand, degs))
+    if(ROBOT->arm_inverse_kinematics(lefthand, degs))
     {
-        joint_degs_[ROBOT.get_joint("jlshoulder1")->jid_] = rad2deg(degs[0]);
-        joint_degs_[ROBOT.get_joint("jlelbow")->jid_] = -rad2deg(degs[2]);
+        joint_degs_[ROBOT->get_joint("jlshoulder1")->jid_] = rad2deg(degs[0]);
+        joint_degs_[ROBOT->get_joint("jlelbow")->jid_] = -rad2deg(degs[2]);
     }else return false;
-    if(ROBOT.arm_inverse_kinematics(righthand, degs))
+    if(ROBOT->arm_inverse_kinematics(righthand, degs))
     {
-        joint_degs_[ROBOT.get_joint("jrshoulder1")->jid_] = rad2deg(degs[0]);
-        joint_degs_[ROBOT.get_joint("jrelbow")->jid_] = rad2deg(degs[2]);
+        joint_degs_[ROBOT->get_joint("jrshoulder1")->jid_] = rad2deg(degs[0]);
+        joint_degs_[ROBOT->get_joint("jrelbow")->jid_] = rad2deg(degs[2]);
     }else return false;
 
     robot_gl_->turn_joint(joint_degs_);
@@ -496,13 +496,13 @@ void static_action::procYaw(int value)
 void static_action::updateJDInfo()
 {
     for(auto jd: joint_degs_)
-        mJDInfos[ROBOT.get_joint(jd.first)->name_]->deg->setText(QString::number(jd.second,'f', 2));
+        mJDInfos[ROBOT->get_joint(jd.first)->name_]->deg->setText(QString::number(jd.second,'f', 2));
     update();
 }
 
 void static_action::updatePosList(string act_name)
 {
-    robot_act act = ROBOT.get_act_map()[act_name];
+    robot_act act = ROBOT->get_act_map()[act_name];
     QListWidgetItem *pListItem;
     CPosListWidget *pPosWidget;
     int id = 0;
@@ -560,12 +560,12 @@ void static_action::procPosSelect(QListWidgetItem* item)
     string pos_name = pPosWidget->pos_name_;
     currposlab->setText(QString::fromStdString(pos_name));
     valuelab->setText("");
-    pose_map_ = ROBOT.get_pos_map()[pos_name].pose_info;
+    pose_map_ = ROBOT->get_pos_map()[pos_name].pose_info;
     joint_degs_.clear();
-    for(auto jd:ROBOT.get_pos_map()[pos_name].joints_deg)
-        joint_degs_[ROBOT.get_joint(jd.first)->jid_] = jd.second;
+    for(auto jd:ROBOT->get_pos_map()[pos_name].joints_deg)
+        joint_degs_[ROBOT->get_joint(jd.first)->jid_] = jd.second;
     for(auto jd: joint_degs_)
-        ROBOT.get_joint(jd.first)->set_deg(jd.second);
+        ROBOT->get_joint(jd.first)->set_deg(jd.second);
     updateJDInfo();
     updateSlider(static_cast<int>(motion_));
     robot_gl_->turn_joint(joint_degs_);
@@ -593,7 +593,7 @@ void static_action::procButtonInsertPosFront()
                                         QLineEdit::Normal, nullptr, &ok).toStdString();
     if(!ok || new_pos_name.empty()) return;
     bool exist = false;
-    if(ROBOT.get_pos_map().find(new_pos_name) != ROBOT.get_pos_map().end())
+    if(ROBOT->get_pos_map().find(new_pos_name) != ROBOT->get_pos_map().end())
     {
         exist = true;
         QMessageBox::StandardButton reply = QMessageBox::question(this, "Warning", "pos: "+QString::fromStdString(new_pos_name)+"  exists, use it?",
@@ -608,11 +608,11 @@ void static_action::procButtonInsertPosFront()
     pos.name = new_pos_name;
     CPosListWidget *pCur_PosWidget = (CPosListWidget *) m_pPosListWidget->itemWidget(m_pPosListWidget->currentItem());
     string pos_name = pCur_PosWidget->pos_name_;
-    pos.joints_deg = ROBOT.get_pos_map()[pos_name].joints_deg;
-    pos.pose_info = ROBOT.get_pos_map()[pos_name].pose_info;
+    pos.joints_deg = ROBOT->get_pos_map()[pos_name].joints_deg;
+    pos.pose_info = ROBOT->get_pos_map()[pos_name].pose_info;
     int id = pCur_PosWidget->m_id->text().toInt();
-    ROBOT.get_act_map()[act_name].poses.insert(ROBOT.get_act_map()[act_name].poses.begin()+id-1, one_pos);
-    if(!exist) ROBOT.get_pos_map()[new_pos_name] = pos;
+    ROBOT->get_act_map()[act_name].poses.insert(ROBOT->get_act_map()[act_name].poses.begin()+id-1, one_pos);
+    if(!exist) ROBOT->get_pos_map()[new_pos_name] = pos;
     updatePosList(act_name);
 }
 
@@ -629,7 +629,7 @@ void static_action::procButtonInsertPosBack()
     string new_pos_name = QInputDialog::getText(this,tr("pos name"),tr("input pos name:"), QLineEdit::Normal, nullptr, &ok).toStdString();
     if(!ok || new_pos_name.empty()) return;
     bool exist = false;
-    if(ROBOT.get_pos_map().find(new_pos_name) != ROBOT.get_pos_map().end())
+    if(ROBOT->get_pos_map().find(new_pos_name) != ROBOT->get_pos_map().end())
     {
         exist = true;
         QMessageBox::StandardButton reply = QMessageBox::question(this, "Warning", "pos: "+QString::fromStdString(new_pos_name)+"  exists, use it?",
@@ -647,20 +647,20 @@ void static_action::procButtonInsertPosBack()
         robot_pose pose = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
         for(int i=1;i<=6;i++)
             pos.pose_info[static_cast<robot_motion >(i)] = pose;
-        for(auto j: ROBOT.get_joint_map())
+        for(auto j: ROBOT->get_joint_map())
             pos.joints_deg[j.first] = 0.0;
-        ROBOT.get_act_map()[act_name].poses.push_back(one_pos);
+        ROBOT->get_act_map()[act_name].poses.push_back(one_pos);
     }
     else
     {
         CPosListWidget *pCur_PosWidget = (CPosListWidget *) m_pPosListWidget->itemWidget(m_pPosListWidget->currentItem());
         string pos_name = pCur_PosWidget->pos_name_;
-        pos.joints_deg = ROBOT.get_pos_map()[pos_name].joints_deg;
-        pos.pose_info = ROBOT.get_pos_map()[pos_name].pose_info;
+        pos.joints_deg = ROBOT->get_pos_map()[pos_name].joints_deg;
+        pos.pose_info = ROBOT->get_pos_map()[pos_name].pose_info;
         int id = pCur_PosWidget->m_id->text().toInt();
-        ROBOT.get_act_map()[act_name].poses.insert(ROBOT.get_act_map()[act_name].poses.begin()+id, one_pos);
+        ROBOT->get_act_map()[act_name].poses.insert(ROBOT->get_act_map()[act_name].poses.begin()+id, one_pos);
     }
-    if(!exist) ROBOT.get_pos_map()[new_pos_name] = pos;
+    if(!exist) ROBOT->get_pos_map()[new_pos_name] = pos;
     updatePosList(act_name);
 }
 
@@ -674,7 +674,7 @@ void static_action::procButtonDeletePos()
     CPosListWidget *pCur_PosWidget = (CPosListWidget *) m_pPosListWidget->itemWidget(m_pPosListWidget->currentItem());
     int id = pCur_PosWidget->m_id->text().toInt();
     string act_name = m_pActListWidget->currentItem()->text().toStdString();
-    ROBOT.get_act_map()[act_name].poses.erase(ROBOT.get_act_map()[act_name].poses.begin()+id-1);
+    ROBOT->get_act_map()[act_name].poses.erase(ROBOT->get_act_map()[act_name].poses.begin()+id-1);
     removeUnusedPos();
     updatePosList(act_name);
 }
@@ -692,10 +692,10 @@ void static_action::procButtonSavePos()
             QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
     if(reply != QMessageBox::StandardButton::Yes) return;
 
-    ROBOT.get_pos_map()[pos_name].joints_deg.clear();
+    ROBOT->get_pos_map()[pos_name].joints_deg.clear();
     for(auto jd:joint_degs_)
-        ROBOT.get_pos_map()[pos_name].joints_deg[ROBOT.get_joint(jd.first)->name_] = jd.second;
-    ROBOT.get_pos_map()[pos_name].pose_info = pose_map_;
+        ROBOT->get_pos_map()[pos_name].joints_deg[ROBOT->get_joint(jd.first)->name_] = jd.second;
+    ROBOT->get_pos_map()[pos_name].pose_info = pose_map_;
     pos_saved = true;
 }
 
@@ -707,12 +707,12 @@ void static_action::procButtonDeleteAction()
         return;
     }
     string act_name = m_pActListWidget->currentItem()->text().toStdString();
-    auto iter = ROBOT.get_act_map().begin();
-    while (iter!=ROBOT.get_act_map().end())
+    auto iter = ROBOT->get_act_map().begin();
+    while (iter!=ROBOT->get_act_map().end())
     {
         if(iter->first == act_name)
         {
-            ROBOT.get_act_map().erase(iter);
+            ROBOT->get_act_map().erase(iter);
             break;
         }
         iter++;
@@ -726,7 +726,7 @@ void static_action::procButtonSaveAction()
     QMessageBox::StandardButton reply = QMessageBox::question(this, "Warning", "all action data will be written into file, save?",
             QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
     if(reply != QMessageBox::StandardButton::Yes) return;
-    action_parser::save(CONF.action_file(), ROBOT.get_act_map(), ROBOT.get_pos_map());
+    action_parser::save(CONF->action_file(), ROBOT->get_act_map(), ROBOT->get_pos_map());
 }
 
 void static_action::procButtonAddAction()
@@ -736,14 +736,14 @@ void static_action::procButtonAddAction()
     if(name.empty()) return;
     if(ok)
     {
-        if(ROBOT.get_act_map().find(name) != ROBOT.get_act_map().end())
+        if(ROBOT->get_act_map().find(name) != ROBOT->get_act_map().end())
         {
             QMessageBox::warning(this, "Waring", "the name had been used", QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
             return;
         }
         robot_act act;
         act.name = name;
-        ROBOT.get_act_map()[name] = act;
+        ROBOT->get_act_map()[name] = act;
         initActs();
     }
 }
@@ -751,11 +751,11 @@ void static_action::procButtonAddAction()
 void static_action::removeUnusedPos()
 {
     bool fd;
-    auto p_iter = ROBOT.get_pos_map().begin();
-    while(p_iter!=ROBOT.get_pos_map().end())
+    auto p_iter = ROBOT->get_pos_map().begin();
+    while(p_iter!=ROBOT->get_pos_map().end())
     {
         fd = false;
-        for(auto act:ROBOT.get_act_map())
+        for(auto act:ROBOT->get_act_map())
         {
             for(auto p:act.second.poses)
             {
@@ -767,7 +767,7 @@ void static_action::removeUnusedPos()
             }
             if(fd) break;
         }
-        if(!fd) p_iter = ROBOT.get_pos_map().erase(p_iter);
+        if(!fd) p_iter = ROBOT->get_pos_map().erase(p_iter);
         else p_iter++;
     }
 }
@@ -782,7 +782,7 @@ void static_action::procButtonRunPos()
     CPosListWidget *pCur_PosWidget = (CPosListWidget *) m_pPosListWidget->itemWidget(m_pPosListWidget->currentItem());
     int id = pCur_PosWidget->m_id->text().toInt();
     string act_name = m_pActListWidget->currentItem()->text().toStdString();
-    robot_act act = ROBOT.get_act_map()[act_name];
+    robot_act act = ROBOT->get_act_map()[act_name];
     robot_pos pos;
     tcp_command cmd;
     cmd.type = REMOTE_DATA;
@@ -794,10 +794,10 @@ void static_action::procButtonRunPos()
     {
         cmd.data.append((char*)(&(act.poses[i].act_time)), int_size);
         size += int_size;
-        pos = ROBOT.get_pos_map()[act.poses[i].pos_name];
+        pos = ROBOT->get_pos_map()[act.poses[i].pos_name];
         for(auto j:pos.joints_deg)
         {
-            cmd.data.append((char*)(&(ROBOT.get_joint(j.first)->jid_)), int_size);
+            cmd.data.append((char*)(&(ROBOT->get_joint(j.first)->jid_)), int_size);
             size += int_size;
             cmd.data.append((char*)(&(j.second)), float_size);
             size += float_size;
@@ -825,7 +825,7 @@ void static_action::closeEvent(QCloseEvent *event)
             QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
     if(reply == QMessageBox::StandardButton::Yes)
     {
-        action_parser::save(CONF.action_file(), ROBOT.get_act_map(), ROBOT.get_pos_map());
+        action_parser::save(CONF->action_file(), ROBOT->get_act_map(), ROBOT->get_pos_map());
     }
     client_.stop();
 }

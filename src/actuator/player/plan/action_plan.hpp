@@ -28,15 +28,15 @@ public:
 
     int perform(sensor_ptr s)
     {
-        walk::WALK.set_enable(false);
+        //walk::WALK->set_enable(false);
         std::shared_ptr<motor> motor_ = std::dynamic_pointer_cast<motor>(s);
         if (! motor_->body_empty()) return 1;
         int act_t;
         std::map<int, float> one_pos_deg;
         if(poses_.empty()&&pos_times_.empty())
         {
-            auto aiter = robot::ROBOT.get_act_map().find(act_name_);
-            if(aiter == robot::ROBOT.get_act_map().end())
+            auto aiter = robot::ROBOT->get_act_map().find(act_name_);
+            if(aiter == robot::ROBOT->get_act_map().end())
             {
                 std::cout<<"cannot find action: "+act_name_<<"\n";
                 return -1;
@@ -48,10 +48,10 @@ public:
                 act_t = p.act_time;
                 pos_name = p.pos_name;
                 jdegs.clear();
-                jdegs = robot::ROBOT.get_pos_map()[pos_name].joints_deg;
+                jdegs = robot::ROBOT->get_pos_map()[pos_name].joints_deg;
                 one_pos_deg.clear();
                 for(auto j:jdegs)
-                    one_pos_deg[robot::ROBOT.get_joint(j.first)->jid_] = j.second;
+                    one_pos_deg[robot::ROBOT->get_joint(j.first)->jid_] = j.second;
                 joints_plan jp(one_pos_deg, act_t, "body");
                 if(jp.perform(s) == -1) return -1;
                 if(set_head_)

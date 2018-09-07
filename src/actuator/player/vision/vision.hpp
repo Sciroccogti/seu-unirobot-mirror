@@ -14,18 +14,15 @@ class vision: public timer, public subscriber
 public:
     vision(const sensor_ptr &s=nullptr);
     ~vision();
-    void updata(const pub_ptr &pub);
+    void updata(const pro_ptr &pub, const int &type);
     
     bool start();
     void stop();
     mutable std::mutex frame_mutex_;
 private:
     void run();
-    std::shared_ptr<camera> cap_;
     cv::Mat frame_;
     std::shared_ptr<tcp_server> server_;
-    int width_;
-    int height_;
     int p_count_;
 };
 

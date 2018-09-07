@@ -41,5 +41,5 @@ private:
     int id_;
 };
 
-#define CONF configuration::get_singleton()
-#endif //SEU_UNIROBOT_CONFIGURATION_HPP
+#define CONF configuration::instance()
+#endif 

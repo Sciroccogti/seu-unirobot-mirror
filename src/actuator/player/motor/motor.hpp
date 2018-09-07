@@ -43,7 +43,7 @@ public:
             res = body_degs_list.back();
         else
         {
-            for(auto j:robot::ROBOT.get_joint_map())
+            for(auto j:robot::ROBOT->get_joint_map())
             {
                 if(j.second->name_.find("head") == std::string::npos)
                     res[j.second->jid_] = j.second->get_deg();
@@ -61,9 +61,9 @@ public:
             res = head_degs_list.back();
         else
         {
-            robot::joint_ptr j = robot::ROBOT.get_joint("jhead1");
+            robot::joint_ptr j = robot::ROBOT->get_joint("jhead1");
             res[j->jid_] = j->get_deg();
-            j = robot::ROBOT.get_joint("jhead2");
+            j = robot::ROBOT->get_joint("jhead2");
             res[j->jid_] = j->get_deg();
         }
         hd_mutex_.unlock();

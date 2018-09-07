@@ -5,8 +5,9 @@
 #include <thread>
 #include <mutex>
 #include <eigen3/Eigen/Dense>
-#include "motor/motor.hpp"
-#include "singleton.hpp"
+#include "motor/rmotor.hpp"
+#include "pattern.hpp"
+#include "sensor/imu.hpp"
 
 namespace walk
 {
@@ -172,7 +173,7 @@ namespace walk
         double extraRightRoll;
     };
 
-    class WalkEngine: public singleton<WalkEngine>
+    class WalkEngine: public subscriber
     {
     public:
         enum support_foot
@@ -187,6 +188,8 @@ namespace walk
         void stop() { is_alive_ = false; }
         void set_enable(const bool &e);
         void set_params(const Eigen::Vector4f &params);
+
+        void updata(const pro_ptr &pub, const int &type);
     private:
         static void boundPhase(double &phase);
 
@@ -199,9 +202,9 @@ namespace walk
         std::shared_ptr<motor> motor_;
         mutable std::mutex para_mutex_, e_mutex_;
         Eigen::Vector2d xrange, yrange, drange;
+        imu::imu_data imu_data_;
+        mutable std::mutex imu_mtx_, dxl_mtx_;
     };
-
-#define WALK WalkEngine::get_singleton()
 }
 
 #endif

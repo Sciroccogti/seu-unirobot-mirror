@@ -4,8 +4,8 @@
 using namespace std;
 using namespace robot;
 
-motor::motor(): timer(CONF.get_config_value<int>("hardware.motor.period")), sensor("motor"),
-    period_(CONF.get_config_value<int>("hardware.motor.period")), p_count_(0)
+motor::motor(): timer(CONF->get_config_value<int>("hardware.motor.period")), sensor("motor"),
+    period_(CONF->get_config_value<int>("hardware.motor.period")), p_count_(0)
 {
 }
 
@@ -28,7 +28,7 @@ void motor::run()
         {
             jdmap = body_degs_list.front();
             body_degs_list.pop_front();
-            ROBOT.set_degs(jdmap);
+            ROBOT->set_degs(jdmap);
         }
         bd_mutex_.unlock();
 
@@ -37,7 +37,7 @@ void motor::run()
         {
             jdmap = head_degs_list.front();
             head_degs_list.pop_front();
-            ROBOT.set_degs(jdmap);
+            ROBOT->set_degs(jdmap);
         }
         hd_mutex_.unlock();
         act();

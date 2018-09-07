@@ -17,7 +17,7 @@ public:
         float wx, wy, wz;
     };
     
-    imu(const sub_ptr &s);
+    imu();
     ~imu();
     
     bool start();

@@ -6,10 +6,9 @@ using namespace std;
 
 boost::asio::io_service sh_service;
 
-hear::hear(const sub_ptr &s) : sensor("hear"),
-    socket_(sh_service, udp::endpoint(udp::v4(), CONF.get_config_value<short>("net.udp.team.port")))
+hear::hear() : sensor("hear"),
+    socket_(sh_service, udp::endpoint(udp::v4(), CONF->get_config_value<short>("net.udp.team.port")))
 {
-    attach(s);
 }
 
 bool hear::start()
@@ -39,7 +38,7 @@ void hear::receive()
     {
         if (!ec && bytes_recvd > 0)
         {
-            notify();
+            notify(SENSOR_HEAR);
         }
         receive();
     });

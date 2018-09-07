@@ -5,15 +5,15 @@ using namespace std;
 using namespace robot;
 
 action_monitor::action_monitor()
-    :client_(CONF.get_config_value<string>(CONF.player()+".address"), CONF.get_config_value<int>("net.tcp.port"),
+    :client_(CONF->get_config_value<string>(CONF->player()+".address"), CONF->get_config_value<int>("net.tcp.port"),
             bind(&action_monitor::data_handler, this, placeholders::_1))
 {
-    rgl = new RobotGL(ROBOT.get_main_bone(), ROBOT.get_joint_map());
+    rgl = new RobotGL(ROBOT->get_main_bone(), ROBOT->get_joint_map());
     setCentralWidget(rgl);
 
     first_connect = true;
-    net_info = QString::fromStdString(CONF.get_config_value<string>(CONF.player()+".address"))
-               +":"+ QString::number(CONF.get_config_value<int>("net.tcp.port"));
+    net_info = QString::fromStdString(CONF->get_config_value<string>(CONF->player()+".address"))
+               +":"+ QString::number(CONF->get_config_value<int>("net.tcp.port"));
     setWindowTitle(net_info);
 
     timer= new QTimer;

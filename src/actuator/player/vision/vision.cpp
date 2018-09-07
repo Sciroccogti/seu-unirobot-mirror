@@ -7,22 +7,15 @@ using namespace std;
 using namespace image;
 
 using namespace cv;
-using namespace cv::cuda;
-using namespace cv::dnn;
 
-vision::vision(const sensor_ptr &s): timer(CONF.get_config_value<int>("vision_period"))
+vision::vision(const sensor_ptr &s): timer(CONF->get_config_value<int>("vision_period"))
 {
-    server_ = dynamic_pointer_cast<tcp_server>(s);
+    server_ = std::dynamic_pointer_cast<tcp_server>(s);
     p_count_ = 0;
 }
 
 bool vision::start()
 {
-    cap_ = make_shared<camera>(shared_from_this());
-    if(!cap_->start()) return false;
-    width_ = cap_->buff_info().width;
-    height_ = cap_->buff_info().height;
-    frame_.create(height_, width_, CV_8UC3);
     is_alive_ = true;
     start_timer();
     return true;
@@ -30,21 +23,17 @@ bool vision::start()
 
 void vision::stop()
 {
-    if(cap_!= nullptr)
-    {
-        cap_->detach(shared_from_this());
-        cap_->stop();
-    }
     if(is_alive_) delete_timer();
     is_alive_ = false;
 }
 
-void vision::updata(const pub_ptr& pub)
+void vision::updata(const pro_ptr& pub, const int &type)
 {
-    if(pub == cap_)
+    std::shared_ptr<camera> sptr = std::dynamic_pointer_cast<camera>(pub);
+    if(type == sensor::SENSOR_CAMERA)
     {
         frame_mutex_.lock();
-        image_process::buffer2Mat_YUV(frame_, cap_->buffer(), cap_->buff_info());
+        frame_ = image_process::Buff2Mat_YUV(sptr->buffer(), sptr->buff_info());
         /*
         Mat bgr;
         cvtColor(frame_, bgr, CV_YUV2BGR);

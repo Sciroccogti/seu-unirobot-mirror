@@ -8,11 +8,11 @@ using namespace std;
 using namespace robot;
 
 image_monitor::image_monitor()
-    :client_(CONF.get_config_value<string>(CONF.player()+".address"), CONF.get_config_value<int>("net.tcp.port"),
+    :client_(CONF->get_config_value<string>(CONF->player()+".address"), CONF->get_config_value<int>("net.tcp.port"),
             bind(&image_monitor::data_handler, this, placeholders::_1))
 {
-    height_ = CONF.get_config_value<int>("hardware.capture.height");
-    width_ = CONF.get_config_value<int>("hardware.capture.width");
+    height_ = CONF->get_config_value<int>("hardware.camera.height");
+    width_ = CONF->get_config_value<int>("hardware.camera.width");
     first_connect = true;
     
     imageLab = new ImageLabel(width_, height_);
@@ -47,8 +47,8 @@ image_monitor::image_monitor()
     statusBar()->addWidget(yawLab);
     statusBar()->addWidget(netLab);
     
-    net_info = QString::fromStdString(CONF.get_config_value<string>(CONF.player()+".address"))
-               +":"+ QString::number(CONF.get_config_value<int>("net.tcp.port"));
+    net_info = QString::fromStdString(CONF->get_config_value<string>(CONF->player()+".address"))
+               +":"+ QString::number(CONF->get_config_value<int>("net.tcp.port"));
     setWindowTitle(net_info);
 
     timer= new QTimer;

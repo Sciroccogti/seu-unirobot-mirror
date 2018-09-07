@@ -38,6 +38,6 @@ private:
     bool use_remote_;
 };
 
-#define OPTS options::get_singleton()
+#define OPTS options::instance()
 
 #endif

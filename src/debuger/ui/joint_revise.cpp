@@ -14,7 +14,7 @@ joint_revise::joint_revise(tcp_client &client, QString netinfo, QWidget *parent)
 
     first_connect = true;
     JSlider *slider;
-    for(auto jo:ROBOT.get_joint_map())
+    for(auto jo:ROBOT->get_joint_map())
     {
         slider = new JSlider(jo.second);
         connect(slider, &JSlider::valueChanged, this, &joint_revise::procValueChanged);
@@ -70,27 +70,27 @@ void joint_revise::procBtnReset()
     for(auto s:j_sliders_)
     {
         s.second->reset();
-        ROBOT.get_joint_map()[s.first]->offset_ = 0.0;
+        ROBOT->get_joint_map()[s.first]->offset_ = 0.0;
     }
 }
 
 void joint_revise::procBtnSave()
 {
-    parser::offset_parser::save(CONF.offset_file(), ROBOT.get_joint_map());
+    parser::offset_parser::save(CONF->offset_file(), ROBOT->get_joint_map());
 }
 
 void joint_revise::procValueChanged(int id, float v)
 {
-    ROBOT.get_joint(id)->offset_ = v;
+    ROBOT->get_joint(id)->offset_ = v;
     tcp_command cmd;
     remote_data_type t = JOINT_OFFSET;
     cmd.data.clear();
     cmd.type = REMOTE_DATA;
-    cmd.size = sizeof(robot_joint_deg)*ROBOT.get_joint_map().size()+rmt_type_size;
+    cmd.size = sizeof(robot_joint_deg)*ROBOT->get_joint_map().size()+rmt_type_size;
     cmd.data.clear();
     robot_joint_deg offset;
     cmd.data.append((char*)&t, rmt_type_size);
-    for(auto j:ROBOT.get_joint_map())
+    for(auto j:ROBOT->get_joint_map())
     {
         offset.id = j.second->jid_;
         offset.deg = j.second->offset_;

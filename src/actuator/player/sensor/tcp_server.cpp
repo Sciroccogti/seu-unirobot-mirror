@@ -165,11 +165,10 @@ void tcp_session::deliver(const tcp_command& cmd)
     
 boost::asio::io_service tcp_service;
 
-tcp_server::tcp_server(const sub_ptr& s)
+tcp_server::tcp_server()
     :sensor("server"), socket_(tcp_service), 
-    acceptor_(tcp_service, tcp::endpoint(tcp::v4(), CONF.get_config_value<int>("net.tcp.port")))
+    acceptor_(tcp_service, tcp::endpoint(tcp::v4(), CONF->get_config_value<int>("net.tcp.port")))
 {
-    attach(s);
     r_data_.type = NON_DATA;
     r_data_.size = 0;
 }
@@ -196,7 +195,7 @@ void tcp_server::data_handler(const tcp_command cmd)
             if(cmd.size%sizeof(robot_joint_deg) == 0)
             {
                 robot_joint_deg jd;
-                for(int i=0;i<ROBOT.get_joint_map().size();i++)
+                for(int i=0;i<ROBOT->get_joint_map().size();i++)
                     memcpy(&jd, cmd.data.c_str()+i*sizeof(robot_joint_deg), sizeof(robot_joint_deg));
             }
             break;
@@ -212,7 +211,7 @@ void tcp_server::data_handler(const tcp_command cmd)
         default:
             break;
     }
-    notify();
+    notify(SENSOR_SERVER);
 }
 
 void tcp_server::write(const tcp_command& cmd)

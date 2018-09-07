@@ -50,7 +50,7 @@ public:
         FK_EXECUTE
     };
     
-    gamectrl(const sub_ptr &s);
+    gamectrl();
     ~gamectrl();
     
     bool start();

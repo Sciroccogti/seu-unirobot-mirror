@@ -6,16 +6,15 @@ using boost::asio::ip::udp;
 
 boost::asio::io_service gc_service;
 
-gamectrl::gamectrl(const sub_ptr &s): sensor("gamectrl"), timer(CONF.get_config_value<int>("net.udp.gamectrl.send_period")), 
-        recv_socket_ (gc_service, udp::endpoint(udp::v4(), CONF.get_config_value<short>("net.udp.gamectrl.recv_port"))),
-        send_socket_ (gc_service, udp::endpoint(udp::v4(), 0)), /*boost::asio::ip::address::from_string(CONF.get_config_value<string>("net.udp.addr"))*/
-        send_point_(udp::v4(), CONF.get_config_value<unsigned short>("net.udp.gamectrl.send_port"))
+gamectrl::gamectrl(): sensor("gamectrl"), timer(CONF->get_config_value<int>("net.udp.gamectrl.send_period")),
+        recv_socket_ (gc_service, udp::endpoint(udp::v4(), CONF->get_config_value<short>("net.udp.gamectrl.recv_port"))),
+        send_socket_ (gc_service, udp::endpoint(udp::v4(), 0)), /*boost::asio::ip::address::from_string(CONF->get_config_value<string>("net.udp.addr"))*/
+        send_point_(udp::v4(), CONF->get_config_value<unsigned short>("net.udp.gamectrl.send_port"))
 {
-    attach(s);
     ret_data_.version = GAMECONTROLLER_RETURN_STRUCT_VERSION;
     ret_data_.message = GAMECONTROLLER_RETURN_MSG_ALIVE;
-    ret_data_.player = static_cast<uint8_t>(CONF.id());
-    ret_data_.team = CONF.get_config_value<uint8_t>("team_number");
+    ret_data_.player = static_cast<uint8_t>(CONF->id());
+    ret_data_.team = CONF->get_config_value<uint8_t>("team_number");
     send_socket_.set_option(boost::asio::socket_base::broadcast(true));
 }
 
@@ -41,7 +40,7 @@ void gamectrl::receive()
         if (!ec && bytes_recvd > 0)
         {
             if(strcmp(GAMECONTROLLER_STRUCT_HEADER, data_.header))
-                notify();
+                notify(SENSOR_GC);
         }
         receive();
     });

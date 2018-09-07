@@ -19,8 +19,8 @@ public:
 
     int perform(sensor_ptr s)
     {
-        walk::WALK.set_params(params_);
-        walk::WALK.set_enable(true);
+        //walk::WALK->set_params(params_);
+        //walk::WALK->set_enable(true);
         return 0;
     }
 private:

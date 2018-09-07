@@ -9,7 +9,7 @@
 class hear: public sensor
 {
 public:
-    hear(const sub_ptr &s);
+    hear();
     ~hear();
 
     bool start();

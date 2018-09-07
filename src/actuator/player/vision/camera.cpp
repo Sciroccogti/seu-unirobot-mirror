@@ -9,17 +9,16 @@
 using namespace std;
 using namespace image;
 
-camera::camera(const sub_ptr& s): sensor("camera")
+camera::camera(): sensor("camera")
 {
-    attach(s);
     format_map_["V4L2_PIX_FMT_YUYV"] = V4L2_PIX_FMT_YUYV;
     format_map_["V4L2_PIX_FMT_MJPEG"] = V4L2_PIX_FMT_MJPEG;
     format_map_["V4L2_PIX_FMT_JPEG"] = V4L2_PIX_FMT_JPEG;
-    cfg_.dev_name = CONF.get_config_value<string>("hardware.camera.dev_name");
-    cfg_.buff_num = CONF.get_config_value<int>("hardware.camera.buff_num");
-    cfg_.format = CONF.get_config_value<string>("hardware.camera.format");
-    cfg_.height = CONF.get_config_value<int>("hardware.camera.height");
-    cfg_.width = CONF.get_config_value<int>("hardware.camera.width");
+    cfg_.dev_name = CONF->get_config_value<string>("hardware.camera.dev_name");
+    cfg_.buff_num = CONF->get_config_value<int>("hardware.camera.buff_num");
+    cfg_.format = CONF->get_config_value<string>("hardware.camera.format");
+    cfg_.height = CONF->get_config_value<int>("hardware.camera.height");
+    cfg_.width = CONF->get_config_value<int>("hardware.camera.width");
 }
 
 bool camera::start()
@@ -47,7 +46,7 @@ void camera::run()
         buffers_[num_bufs_].bytesused = buf_.bytesused;
         buffers_[num_bufs_].length = buf_.length;
         buffers_[num_bufs_].offset = buf_.m.offset;
-        notify();
+        notify(SENSOR_CAMERA);
         
         if(v4l2_ioctl(fd_, VIDIOC_QBUF, &buf_) == -1)
         {

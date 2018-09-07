@@ -164,6 +164,6 @@ namespace robot
         double E_, F_;
     };
 
-    #define ROBOT humanoid::get_singleton()
+    #define ROBOT humanoid::instance()
 }
 #endif

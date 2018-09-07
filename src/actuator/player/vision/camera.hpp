@@ -11,7 +11,7 @@
 class camera: public sensor
 {
 public: 
-    camera(const sub_ptr &s);
+    camera();
     ~camera();
  
     bool start();
