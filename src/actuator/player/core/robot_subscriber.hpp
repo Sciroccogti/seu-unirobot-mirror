@@ -148,6 +148,7 @@ public:
             std::shared_ptr<rmotor> sptr = std::dynamic_pointer_cast<rmotor>(pub);
             voltage_ = sptr->voltage();
             dxl_mtx_.unlock();
+            //std::cout<<voltage_<<std::endl;
             return;
         }
         if(pub == (sensors_.find("server"))->second)
