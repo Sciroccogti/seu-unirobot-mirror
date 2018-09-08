@@ -1,7 +1,6 @@
 include_directories(.)
 
 add_subdirectory(sensor)
-add_subdirectory(motor)
 add_subdirectory(vision)
 add_subdirectory(fsm)
 add_subdirectory(walk)
@@ -17,6 +16,5 @@ target_link_libraries(player
             walk
             boost_system
             sensor
-            motor
             vision
             rt)

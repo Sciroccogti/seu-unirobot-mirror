@@ -2,7 +2,6 @@
 #include "configuration.hpp"
 #include "plan/action_plan.hpp"
 #include "plan/lookat_plan.hpp"
-#include "plan/say_plan.hpp"
 
 using namespace std;
 using namespace FSM;
@@ -17,23 +16,23 @@ player::player(): timer(CONF->get_config_value<int>("think_period"))
 bool player::init()
 {
     if(!regist()) return false;
-    if(OPTS->use_robot() != options::ROBOT_NONE)
-    {
-        actuators_["body"] = std::make_shared<actuator>("body", get_sensor("motor"));
-        actuators_["head"] = std::make_shared<actuator>("head", get_sensor("motor"));
-    }
+    MADT->start();
+    actuators_["body"] = std::make_shared<actuator>("body");
+    actuators_["head"] = std::make_shared<actuator>("head");
     for(auto a:actuators_)
         a.second->start();
 
     is_alive_ = true;
     fsm_ = make_shared<fsm>();
     start_timer();
-    //WALK->start(suber_->get_sensor("motor"));
+    WE->start();
     return true;
 }
 
 void player::stop()
 {
+    WE->stop();
+    MADT->stop();
     for(auto &a:actuators_)
         a.second->stop();
     if(is_alive_) delete_timer();
@@ -97,8 +96,6 @@ void player::add_plans(std::list<plan_ptr> plist)
 bool player::regist()
 {
     wm_ = std::make_shared<worldmodel>();
-    we_ = std::make_shared<walk::WalkEngine>();
-
     sensors_.clear();
     if(OPTS->use_debug())
     {
@@ -114,35 +111,22 @@ bool player::regist()
         sensors_["camera"]->start();
         if(!vision_->start()) return false;
     }
-    if(OPTS->use_robot() == options::ROBOT_REAL)
+    sensors_["motor"] = std::make_shared<motor>(get_sensor("server"));
+    sensors_["motor"]->attach(wm_);
+    sensors_["motor"]->attach(WE);
+    if(!sensors_["motor"]->start()) return false;
+    if(OPTS->use_robot())
     {
         try
         {
             sensors_["imu"] = std::make_shared<imu>();
             sensors_["imu"]->attach(wm_);
-            sensors_["imu"]->attach(we_);
+            sensors_["imu"]->attach(WE);
             sensors_["imu"]->start();
         }
         catch(std::exception &e)
         {
-            std::cout<<e.what()<<"\n";
-        }
-        sensors_["motor"] = std::make_shared<rmotor>();
-        sensors_["motor"]->attach(wm_);
-        sensors_["motor"]->attach(we_);
-        if(!sensors_["motor"]->start()) return false;
-    }
-    else if(OPTS->use_robot() == options::ROBOT_VIRTUAL)
-    {
-        if(OPTS->use_debug())
-        {
-            sensors_["motor"] = std::make_shared<vmotor>(sensors_["server"]);
-            if(!sensors_["motor"]->start()) return false;
-        }
-        else
-        {
-            std::cout<<"If you want to use virtual robot, you must run with -d1 -r2 \n";
-            return false;
+            std::cout<<"imu: "<<e.what()<<"\n";
         }
     }
     if(OPTS->use_gc())
@@ -155,7 +139,7 @@ bool player::regist()
         }
         catch(std::exception &e)
         {
-            std::cout<<e.what()<<"\n";
+            std::cout<<"game controller: "<<e.what()<<"\n";
         }
     }
     if(OPTS->use_comm())
@@ -168,7 +152,7 @@ bool player::regist()
         }
         catch(std::exception &e)
         {
-            std::cout<<e.what()<<"\n";
+            std::cout<<"say_hear: "<<e.what()<<"\n";
         }
     }
     return true;
@@ -189,16 +173,13 @@ void player::unregist()
     if(sensors_.find("imu") != sensors_.end())
     {
         sensors_["imu"]->detach(wm_);
-        sensors_["imu"]->detach(we_);
+        sensors_["imu"]->detach(WE);
         sensors_["imu"]->stop();
     }
     if(sensors_.find("motor") != sensors_.end())
     {
-        if(OPTS->use_robot() == options::ROBOT_REAL)
-        {
-            sensors_["motor"]->detach(wm_);
-            sensors_["motor"]->detach(we_);
-        }
+        sensors_["motor"]->detach(wm_);
+        sensors_["motor"]->detach(WE);
         sensors_["motor"]->stop();
     }
     if(sensors_.find("camera") != sensors_.end())

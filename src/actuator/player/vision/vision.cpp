@@ -55,26 +55,26 @@ void vision::run()
     {
         p_count_ ++;
         frame_mutex_.lock();
-        Mat bgr;
-        cvtColor(frame_, bgr, CV_YUV2BGR);
+        Mat yuv(frame_);
         frame_mutex_.unlock();
-        vector<unsigned char> jpgbuf;
-        imencode(".jpg", bgr, jpgbuf);
-        bgr.release();
-        /*
-        ofstream out;
-        out.open("testt.jpg");
-        out.write((char*)(&jpgbuf[0]), jpgbuf.size());
-        out.close();
-        */
-        tcp_command cmd;
-        cmd.type = IMAGE_DATA;
-        if(server_!=nullptr)
-        {
-            cmd.size = jpgbuf.size();
-            cmd.data.assign((char*)&(jpgbuf[0]), jpgbuf.size());
-            server_->write(cmd);
-        }
+        send_image(yuv);
+    }
+}
+
+void vision::send_image(const cv::Mat &yuvsrc)
+{
+    Mat bgr;
+    cvtColor(yuvsrc, bgr, CV_YUV2BGR);
+    vector<unsigned char> jpgbuf;
+    imencode(".jpg", bgr, jpgbuf);
+    bgr.release();
+    tcp_command cmd;
+    cmd.type = IMAGE_DATA;
+    if(server_!=nullptr)
+    {
+        cmd.size = jpgbuf.size();
+        cmd.data.assign((char*)&(jpgbuf[0]), jpgbuf.size());
+        server_->write(cmd);
     }
 }
 

@@ -3,9 +3,10 @@
 
 #include "plan.hpp"
 #include "robot/humanoid.hpp"
-#include "motor/motor.hpp"
+#include "sensor/motor.hpp"
 #include "class_exception.hpp"
 #include "math/math.hpp"
+#include "core/adapter.hpp"
 
 class joints_plan: public plan
 {
@@ -17,14 +18,13 @@ public:
         act_time_ = act_time;
     }
 
-    int perform(sensor_ptr s)
+    int perform()
     {
-        std::shared_ptr<motor> motor_ = std::dynamic_pointer_cast<motor>(s);
         std::map<int, float> latest_deg, diff, jdmap;
         if(actuator_name_ == "body")
-            latest_deg = motor_->get_body_degs();
+            latest_deg = MADT->get_body_degs();
         else if(actuator_name_ == "head")
-            latest_deg = motor_->get_head_degs();
+            latest_deg = MADT->get_head_degs();
         for(auto jd:latest_deg)
             diff[jd.first] = jdegs_[jd.first] - latest_deg[jd.first];
 
@@ -35,11 +35,14 @@ public:
                 jdmap[jd.first] = latest_deg[jd.first]+i*jd.second/(float)act_time_;
             if(actuator_name_ == "body")
             {
-                if(!motor_->add_body_degs(jdmap)) return -1;
+                while(!MADT->body_empty());
+                if(!MADT->add_body_degs(jdmap)) return -1;
             }
             else if(actuator_name_ == "head")
             {
-                if(!motor_->add_head_degs(jdmap)) return -1;
+                while(!MADT->head_empty());
+                if(!MADT->add_head_degs(jdmap)) return -1;
+                //std::cout<<"head performed\n";
             }
         }
         return 0;

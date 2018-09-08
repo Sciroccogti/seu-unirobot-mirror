@@ -17,10 +17,10 @@ public:
         params_[3] = h;
     }
 
-    int perform(sensor_ptr s)
+    int perform()
     {
-        //walk::WALK->set_params(params_);
-        //walk::WALK->set_enable(true);
+        walk::WE->set_params(params_);
+        MADT->mode() = adapter::MODE_WALK;
         return 0;
     }
 private:

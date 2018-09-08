@@ -13,10 +13,9 @@
 class actuator
 {
 public:
-    actuator(const std::string &name, sensor_ptr s=nullptr, const int &max_len=1)
+    actuator(const std::string &name, const int &max_len=1)
     :name_(name), max_len_(max_len)
     {
-        s_ = s;
         is_alive_ = false;
     }
 
@@ -59,7 +58,7 @@ protected:
             if(!plist_.empty())
             {
                 p = plist_.front();
-                if(p->perform(s_) == -1) 
+                if(p->perform() == -1)
                 {
                     std::cout<<"\033[33mplan: "+p->plan_name()+" perform failed.\n\033[0m";
                 }
@@ -74,7 +73,6 @@ private:
     std::thread td_;
     bool is_alive_;
     std::list<plan_ptr> plist_;
-    sensor_ptr s_;
 };
 
 typedef std::shared_ptr<actuator> actuator_ptr;

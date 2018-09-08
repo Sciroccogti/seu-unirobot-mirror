@@ -4,10 +4,9 @@
 #include <mutex>
 #include "pattern.hpp"
 #include "sensor/imu.hpp"
-#include "motor/rmotor.hpp"
-#include "motor/vmotor.hpp"
+#include "sensor/motor.hpp"
 #include "sensor/gamectrl.hpp"
-#include "sensor/tcp_server.hpp"
+#include "sensor/server.hpp"
 #include "sensor/hear.hpp"
 #include "configuration.hpp"
 
@@ -52,7 +51,7 @@ public:
         if(type == sensor::SENSOR_MOTOR)
         {
             dxl_mtx_.lock();
-            std::shared_ptr<rmotor> sptr = std::dynamic_pointer_cast<rmotor>(pub);
+            std::shared_ptr<motor> sptr = std::dynamic_pointer_cast<motor>(pub);
             if(sptr->voltage()<min_volt_) low_power_ = true;
             dxl_mtx_.unlock();
             return;

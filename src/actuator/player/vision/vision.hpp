@@ -7,7 +7,7 @@
 #include "timer.hpp"
 #include "pattern.hpp"
 #include "camera.hpp"
-#include "sensor/tcp_server.hpp"
+#include "sensor/server.hpp"
 
 class vision: public timer, public subscriber
 {
@@ -21,6 +21,7 @@ public:
     mutable std::mutex frame_mutex_;
 private:
     void run();
+    void send_image(const cv::Mat &yuvsrc);
     cv::Mat frame_;
     std::shared_ptr<tcp_server> server_;
     int p_count_;

@@ -7,6 +7,7 @@
 #include "configuration.hpp"
 #include <cmath>
 #include <fstream>
+#include "core/adapter.hpp"
 
 namespace walk
 {
@@ -66,7 +67,6 @@ namespace walk
         phase_ = 0.0;
         dt_ = 0.0;
         support_foot_ = DOUBLE_SUPPORT;
-        enable_ = false;
     }
 
     void WalkEngine::updata(const pro_ptr &pub, const int &type)
@@ -82,7 +82,7 @@ namespace walk
         if(type == sensor::SENSOR_MOTOR)
         {
             dxl_mtx_.lock();
-            std::shared_ptr<rmotor> sptr = std::dynamic_pointer_cast<rmotor>(pub);
+            std::shared_ptr<motor> sptr = std::dynamic_pointer_cast<motor>(pub);
             dxl_mtx_.unlock();
             return;
         }
@@ -93,27 +93,11 @@ namespace walk
         if(td_.joinable()) td_.join();
     }
 
-    void WalkEngine::start(sensor_ptr s)
+    void WalkEngine::start()
     {
-        motor_ = std::dynamic_pointer_cast<motor>(s);
-        dt_ = 1.0/motor_->freq();
+        dt_ = 1.0/(1000.0/CONF->get_config_value<double>("hardware.motor.period"));
         is_alive_ = true;
         td_ = std::move(std::thread(&WalkEngine::run, this));
-    }
-
-    void WalkEngine::set_enable(const bool &e)
-    {
-        e_mutex_.lock();
-        enable_ = e;
-        if(!enable_)
-        {
-            para_mutex_.lock();
-            params_.stepGain=0.0;
-            params_.lateralGain=0.0;
-            params_.turnGain=0.0;
-            para_mutex_.unlock();
-        }
-        e_mutex_.unlock();
     }
 
     void WalkEngine::boundPhase(double &phase)
@@ -188,28 +172,23 @@ namespace walk
         Vector3d lefthand, righthand;
         std::vector<double> degs;
         std::map<int, float> jdegs;
-        bool e, last_e=false;
         double phaseLeft, phaseRight;
         double handGain = 0.1;
         WalkParameters tempParams;
         while(is_alive_)
         {
-            e_mutex_.lock();
-            e = enable_;
-            e_mutex_.unlock();
             para_mutex_.lock();
             tempParams = params_;
             para_mutex_.unlock();
-            if(e || (last_e && !e))
+            if(MADT->mode() == adapter::MODE_READY || MADT->mode() == adapter::MODE_WALK)
             {
                 phase_ = 0.0;
-                if(!last_e||(last_e && !e))
+                if(MADT->mode() == adapter::MODE_READY)
                 {
                     tempParams.stepGain = 0.0;
                     tempParams.lateralGain = 0.0;
                     tempParams.turnGain = 0.0;
                 }
-                last_e = e;
                 while(phase_<1.0)
                 {
                     boundPhase(phase_);
@@ -379,9 +358,13 @@ namespace walk
                         jdegs[ROBOT->get_joint("jrshoulder1")->jid_] = rad2deg(degs[0]);
                         jdegs[ROBOT->get_joint("jrelbow")->jid_] = rad2deg(degs[2]);
                     }
-                    while(!motor_->body_empty());
-                    if(!motor_->add_body_degs(jdegs)) break;
+                    while(!MADT->body_empty());
+                    if(!MADT->add_body_degs(jdegs)) break;
                     phase_ += dt_*tempParams.freq;
+                }
+                if(MADT->mode() == adapter::MODE_READY)
+                {
+                    MADT->mode() = adapter::MODE_ACT;
                 }
             }
         }

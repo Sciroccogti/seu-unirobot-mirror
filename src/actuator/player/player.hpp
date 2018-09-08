@@ -9,10 +9,9 @@
 #include "robot/humanoid.hpp"
 #include "options/options.hpp"
 #include "sensor/imu.hpp"
-#include "motor/rmotor.hpp"
-#include "motor/vmotor.hpp"
+#include "sensor/motor.hpp"
 #include "sensor/gamectrl.hpp"
-#include "sensor/tcp_server.hpp"
+#include "sensor/server.hpp"
 #include "sensor/hear.hpp"
 #include "walk/WalkEngine.hpp"
 #include "vision/vision.hpp"
@@ -42,7 +41,6 @@ private:
     std::map<std::string, sensor_ptr> sensors_;
 
     std::shared_ptr<worldmodel> wm_;
-    std::shared_ptr<walk::WalkEngine> we_;
     std::shared_ptr<vision> vision_;
     std::shared_ptr<FSM::fsm> fsm_;
 };

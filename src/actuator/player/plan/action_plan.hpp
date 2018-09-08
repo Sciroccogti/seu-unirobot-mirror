@@ -8,6 +8,7 @@
 #include "joints_plan.hpp"
 #include "lookat_plan.hpp"
 #include "walk/WalkEngine.hpp"
+#include "core/adapter.hpp"
 
 class action_plan: public plan
 {
@@ -26,11 +27,11 @@ public:
         pos_times_ = pos_times;
     }
 
-    int perform(sensor_ptr s)
+    int perform()
     {
-        //walk::WALK->set_enable(false);
-        std::shared_ptr<motor> motor_ = std::dynamic_pointer_cast<motor>(s);
-        if (! motor_->body_empty()) return 1;
+        if(MADT->mode() == adapter::MODE_WALK)
+            MADT->mode() = adapter::MODE_READY;
+        while (MADT->mode() != adapter::MODE_ACT);
         int act_t;
         std::map<int, float> one_pos_deg;
         if(poses_.empty()&&pos_times_.empty())
@@ -53,11 +54,11 @@ public:
                 for(auto j:jdegs)
                     one_pos_deg[robot::ROBOT->get_joint(j.first)->jid_] = j.second;
                 joints_plan jp(one_pos_deg, act_t, "body");
-                if(jp.perform(s) == -1) return -1;
+                if(jp.perform() == -1) return -1;
                 if(set_head_)
                 {
                     joints_plan jp(one_pos_deg, act_t, "head");
-                    if(jp.perform(s) == -1) return -1;
+                    if(jp.perform() == -1) return -1;
                 }
             }
         }
@@ -68,11 +69,11 @@ public:
                 act_t = pos_times_[i];
                 one_pos_deg = poses_[i];
                 joints_plan jp(one_pos_deg, act_t, "body");
-                if(jp.perform(s)==-1) return -1;
+                if(jp.perform()==-1) return -1;
                 if(set_head_)
                 {
                     joints_plan jp(one_pos_deg, act_t, "head");
-                    if(jp.perform(s) == -1) return -1;
+                    if(jp.perform() == -1) return -1;
                 }
             }
         }

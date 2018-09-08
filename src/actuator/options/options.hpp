@@ -21,7 +21,7 @@ public:
     bool use_debug() const { return use_debug_; }
     bool use_gc() const { return use_gc_; }
     bool use_camera() const { return use_camera_; }
-    robot_choice use_robot() const { return robot_choice_; }
+    bool use_robot() const { return use_robot_; }
     bool use_comm() const { return use_comm_; }
     bool use_remote() const { return use_remote_; }
 
@@ -33,7 +33,7 @@ private:
     bool use_debug_;
     bool use_gc_;
     bool use_camera_;
-    robot_choice robot_choice_;
+    bool use_robot_;
     bool use_comm_;
     bool use_remote_;
 };
