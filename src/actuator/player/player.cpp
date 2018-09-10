@@ -16,13 +16,25 @@ player::player(): timer(CONF->get_config_value<int>("think_period"))
 bool player::init()
 {
     if(!regist()) return false;
+    is_alive_ = true;
+    if(OPTS->use_robot())
+    {
+        while(!dynamic_pointer_cast<motor>(sensors_["motor"])->is_connected() && is_alive_)
+        {
+            std::cout<<"\033[33mwaitint for motor connection, please turn on the power.\033[0m"<<std::endl;
+            sleep(1);
+        }
+        if(!is_alive_) return true;
+    }
     MADT->start();
     actuators_["body"] = std::make_shared<actuator>("body");
     actuators_["head"] = std::make_shared<actuator>("head");
     for(auto a:actuators_)
         a.second->start();
 
-    is_alive_ = true;
+    action_plan p("ready", true);
+    p.perform();
+
     fsm_ = make_shared<fsm>();
     start_timer();
     WE->start();
@@ -46,6 +58,11 @@ void player::run()
     if(is_alive_)
     {
         period_count_++;
+        if(wm_->is_lost())
+        {
+            std::cout<<"\033[31mmotor has no response!\033[0m\n";
+            raise(SIGINT);
+        }
         add_plans(think());
     }
 }
@@ -54,6 +71,7 @@ list< plan_ptr > player::think()
 {
     list<plan_ptr> plist;
     list<plan_ptr> tlist;
+    
     if(period_count_*period_ms_%1000 == 0)
     {
         if(wm_->low_power())
@@ -117,17 +135,10 @@ bool player::regist()
     if(!sensors_["motor"]->start()) return false;
     if(OPTS->use_robot())
     {
-        try
-        {
-            sensors_["imu"] = std::make_shared<imu>();
-            sensors_["imu"]->attach(wm_);
-            sensors_["imu"]->attach(WE);
-            sensors_["imu"]->start();
-        }
-        catch(std::exception &e)
-        {
-            std::cout<<"imu: "<<e.what()<<"\n";
-        }
+        sensors_["imu"] = std::make_shared<imu>();
+        sensors_["imu"]->attach(wm_);
+        sensors_["imu"]->attach(WE);
+        sensors_["imu"]->start();
     }
     if(OPTS->use_gc())
     {
@@ -139,7 +150,7 @@ bool player::regist()
         }
         catch(std::exception &e)
         {
-            std::cout<<"game controller: "<<e.what()<<"\n";
+            std::cout<<"\033[33mgame controller: "<<e.what()<<"\033[0m\n";
         }
     }
     if(OPTS->use_comm())

@@ -31,6 +31,8 @@ public:
     {
         if(MADT->mode() == adapter::MODE_WALK)
             MADT->mode() = adapter::MODE_READY;
+        else if(MADT->mode() == adapter::MODE_NONE)
+            MADT->mode() = adapter::MODE_ACT;
         while (MADT->mode() != adapter::MODE_ACT);
         int act_t;
         std::map<int, float> one_pos_deg;

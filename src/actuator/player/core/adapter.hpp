@@ -20,15 +20,6 @@ public:
     adapter()
     {
         act_mode_ = MODE_NONE;
-        robot::joint_ptr j = robot::ROBOT->get_joint("jhead1");
-        latest_head_deg[j->jid_] = j->get_deg();
-        j = robot::ROBOT->get_joint("jhead2");
-        latest_head_deg[j->jid_] = j->get_deg();
-        for(auto j:robot::ROBOT->get_joint_map())
-        {
-            if(j.second->name_.find("head") == std::string::npos)
-                latest_body_deg[j.second->jid_] = j.second->get_deg();
-        }
     }
     std::map<int, float> get_degs()
     {
@@ -99,7 +90,19 @@ public:
         return res;
     }
 
-    void start() { is_alive_ = true; }
+    void start()
+    {
+        robot::joint_ptr j = robot::ROBOT->get_joint("jhead1");
+        latest_head_deg[j->jid_] = j->get_deg();
+        j = robot::ROBOT->get_joint("jhead2");
+        latest_head_deg[j->jid_] = j->get_deg();
+        for(auto j:robot::ROBOT->get_joint_map())
+        {
+            if(j.second->name_.find("head") == std::string::npos)
+                latest_body_deg[j.second->jid_] = j.second->get_deg();
+        }
+        is_alive_ = true;
+    }
     void stop() { is_alive_ = false;}
     act_mode mode() const { return act_mode_; }
     act_mode &mode() { return act_mode_; }

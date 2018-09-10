@@ -15,10 +15,10 @@ class worldmodel: public subscriber
 public:
     worldmodel()
     {
-        min_volt_ = CONF->get_config_value<float>("hardware.battery.min_volt");
         rmt_data_.type = NON_DATA;
         rmt_data_.size = 0;
         low_power_ = false;
+        is_lost_ = false;
     }
 
     void updata(const pro_ptr &pub, const int &type)
@@ -52,7 +52,8 @@ public:
         {
             dxl_mtx_.lock();
             std::shared_ptr<motor> sptr = std::dynamic_pointer_cast<motor>(pub);
-            if(sptr->voltage()<min_volt_) low_power_ = true;
+            low_power_ = sptr->low_power();
+            is_lost_ = sptr->is_lost();
             dxl_mtx_.unlock();
             return;
         }
@@ -98,10 +99,10 @@ public:
     }
 
     bool low_power() const { return low_power_; }
+    bool is_lost() const { return is_lost_; }
 
 private:
-    bool low_power_;
-    float min_volt_;
+    bool low_power_, is_lost_;
     std::map<int, player_info> players_;
     RoboCupGameControlData gc_data_;
     imu::imu_data imu_data_;

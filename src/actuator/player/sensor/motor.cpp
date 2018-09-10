@@ -2,6 +2,7 @@
 #include "configuration.hpp"
 #include "core/adapter.hpp"
 #include "options/options.hpp"
+#include "class_exception.hpp"
 
 #define ZERO_POS 2048
 #define MAX_POS  4096
@@ -33,16 +34,27 @@ motor::motor(sensor_ptr dbg): timer(CONF->get_config_value<int>("hardware.motor.
     ledWrite_ = make_shared<GroupSyncWrite>(portHandler_, packetHandler_, ADDR_LED, SIZE_LED);
     torqWrite_ = make_shared<GroupSyncWrite>(portHandler_, packetHandler_, ADDR_TORQ, SIZE_TORQ);
     gposWrite_ = make_shared<GroupSyncWrite>(portHandler_, packetHandler_, ADDR_GPOS, SIZE_GPOS);
+    pposRead_ = make_shared<GroupSyncRead>(portHandler_, packetHandler_, ADDR_PPOS, SIZE_PPOS);
 
     ping_id_ = static_cast<uint8_t>(ROBOT->get_joint("jrhip3")->jid_);
     is_connected_ = false;
+    is_lost_ = false;
     lost_count_ = 0;
-    voltage_ = static_cast<uint16_t>(CONF->get_config_value<float>("hardware.battery.max_volt")*10);
+    min_volt_ = CONF->get_config_value<float>("hardware.battery.min_volt");
+    max_volt_ = CONF->get_config_value<float>("hardware.battery.max_volt");
+    voltage_ = static_cast<uint16_t>(max_volt_*10);
+    for(auto r:ROBOT->get_joint_map())
+        pposRead_->addParam(static_cast<uint8_t>(r.second->jid_));
 }
 
 uint32_t float2pos(const float &deg)
 {
     return static_cast<uint32_t>(deg/(360.0f/(float)(MAX_POS-MIN_POS))+ZERO_POS);
+}
+
+float pos2float(const uint32_t &pos)
+{
+    return (float)(pos-ZERO_POS)*(360.0f/(float)(MAX_POS-MIN_POS));
 }
 
 bool motor::start()
@@ -60,46 +72,51 @@ void motor::run()
     if(timer::is_alive_)
     {
         ROBOT->set_degs(MADT->get_degs());
-        virtul_act();
-        if(OPTS->use_robot())
-            real_act();
+        if(OPTS->use_debug()) virtul_act();
+        if(OPTS->use_robot()) real_act();
         p_count_++;
     }
 }
 
 void motor::virtul_act()
 {
-    if(dbg_!=nullptr)
+    tcp_command cmd;
+    cmd.type = JOINT_DATA;
+    robot_joint_deg jd;
+    string j_data;
+    j_data.clear();
+    for(auto jm:ROBOT->get_joint_map())
     {
-        tcp_command cmd;
-        cmd.type = JOINT_DATA;
-        robot_joint_deg jd;
-        string j_data;
-        j_data.clear();
-        for(auto jm:ROBOT->get_joint_map())
-        {
-            jd.id = jm.second->jid_;
-            jd.deg = jm.second->get_deg();
-            j_data.append((char*)(&jd), sizeof(robot_joint_deg));
-        }
-        cmd.size = ROBOT->get_joint_map().size()*sizeof(robot_joint_deg);
-        cmd.data.assign(j_data.c_str(), cmd.size);
-        dbg_->write(cmd);
+        jd.id = jm.second->jid_;
+        jd.deg = jm.second->get_deg();
+        j_data.append((char*)(&jd), sizeof(robot_joint_deg));
     }
+    cmd.size = ROBOT->get_joint_map().size()*sizeof(robot_joint_deg);
+    cmd.data.assign(j_data.c_str(), cmd.size);
+    dbg_->write(cmd);
 }
 
 void motor::real_act()
 {
-    uint8_t dxl_error_=0;
+    uint8_t dxl_error=0;
     int not_alert_error = 0;
-    int dxl_comm_result_=COMM_TX_FAIL;
+    int dxl_comm_result=COMM_TX_FAIL;
     uint16_t dxl_model_number;
     if(!is_connected_)
     {
-        dxl_comm_result_ = packetHandler_->ping(portHandler_, ping_id_, &dxl_model_number, &dxl_error_);
-        not_alert_error = dxl_error_ & ~128;
-        if (dxl_comm_result_ == COMM_SUCCESS && not_alert_error==0)
+        dxl_comm_result = packetHandler_->ping(portHandler_, ping_id_, &dxl_model_number, &dxl_error);
+        not_alert_error = dxl_error & ~128;
+        if (dxl_comm_result == COMM_SUCCESS && not_alert_error==0)
         {
+            read_voltage();
+            if(voltage_/10.0f<min_volt_)
+            {
+                std::cout<<"\033[31mcan not start because the voltage("<<voltage_/10.0f<<"V) is too low!\033[0m\n";
+                raise(SIGINT);
+            }
+            read_pos();
+            for(auto cd:curr_degs_)
+                ROBOT->get_joint(cd.first)->set_deg(cd.second);
             set_torq(1);
             is_connected_ = true;
         }
@@ -114,18 +131,19 @@ void motor::real_act()
         }
         if((p_count_*period_ms_%1010) == 0)
         {
-            dxl_comm_result_ = packetHandler_->ping(portHandler_, ping_id_, &dxl_model_number, &dxl_error_);
-            not_alert_error = dxl_error_ & ~128;
-            if (dxl_comm_result_ == COMM_SUCCESS && not_alert_error==0)
+            dxl_comm_result = packetHandler_->ping(portHandler_, ping_id_, &dxl_model_number, &dxl_error);
+            not_alert_error = dxl_error & ~128;
+            if (dxl_comm_result == COMM_SUCCESS && not_alert_error==0)
                 lost_count_ = 0;
             else
                 lost_count_++;
+            if(lost_count_>5)
+                is_lost_ = true;
+                //throw class_exception<motor>("motor time out!");
         }
         if((p_count_*period_ms_%10000) == 0)
-        {
-            int res = packetHandler_->read2ByteTxRx(portHandler_, ping_id_, ADDR_VOLT, (uint16_t*)&voltage_, &dxl_error_);
-            if(res == COMM_SUCCESS) notify(SENSOR_MOTOR);
-        }
+            read_voltage();
+	    notify(SENSOR_MOTOR);
     }
 }
 
@@ -155,6 +173,34 @@ void motor::stop()
     timer::is_alive_ = false;
     close();
     delete_timer();
+}
+
+void motor::read_pos()
+{
+    uint8_t dxl_error=0;
+    int dxl_comm_result=COMM_TX_FAIL;
+    uint8_t id=0;
+    dxl_comm_result = pposRead_->txRxPacket();
+    //if (dxl_comm_result != COMM_SUCCESS)
+    //    std::cout<<packetHandler_->getTxRxResult(dxl_comm_result)<<std::endl;
+
+    for(auto &r:ROBOT->get_joint_map())
+    {
+        id=static_cast<uint8_t >(r.second->jid_);
+        //if(pposRead_->getError(id, &dxl_error))
+        //    std::cout<<"[ID: "<<setw(2)<<(int)id<<"] "<<packetHandler_->getRxPacketError(dxl_error)<<std::endl;
+        if(pposRead_->isAvailable(id, ADDR_PPOS, SIZE_PPOS))
+            curr_degs_[static_cast<int>(id)] = pos2float(pposRead_->getData(id, ADDR_PPOS, SIZE_PPOS));
+        else
+            curr_degs_[static_cast<int>(id)] = 0.0;
+    }
+}
+
+void motor::read_voltage()
+{
+    uint8_t dxl_error=0;
+    int dxl_comm_result=COMM_TX_FAIL;
+    dxl_comm_result = packetHandler_->read2ByteTxRx(portHandler_, ping_id_, ADDR_VOLT, (uint16_t*)&voltage_, &dxl_error);
 }
 
 void motor::set_torq(uint8_t e)
