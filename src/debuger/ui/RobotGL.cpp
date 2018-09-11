@@ -25,13 +25,13 @@ RobotGL::RobotGL(bone_ptr b, const robot::joint_map &jmap): main_bone_(b)
     m_mousePoint = QPoint(300,300);
     setMouseTracking(false);
     joints_deg_.clear();
-    for(auto j:jmap)
+    for(auto &j:jmap)
         joints_deg_[j.second->jid_] = j.second->get_deg();
 }
 
 void RobotGL::turn_joint(const std::map<int, float> &degs)
 {
-    for(auto d:degs)
+    for(auto &d:degs)
         joints_deg_[d.first] = d.second;
     this->update();
 }
@@ -61,7 +61,7 @@ void RobotGL::draw_3d_bone(bone_ptr b)
 
     glPushMatrix();
     draw_3d_cylinder(b->length_, r_b, r_b);
-    for(auto j : b->joints_)
+    for(auto &j : b->joints_)
     {
         glPushMatrix();
         if(j->can_turn_)
@@ -85,7 +85,7 @@ void RobotGL::draw_3d_bone(bone_ptr b)
     }
     glPopMatrix();
 
-    for(auto j : b->joints_)
+    for(auto &j : b->joints_)
     {
         glPushMatrix();
         glTranslatef(-j->cp_[0], -j->cp_[1], -j->cp_[2]);

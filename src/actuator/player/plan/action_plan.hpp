@@ -27,7 +27,7 @@ public:
         pos_times_ = pos_times;
     }
 
-    int perform()
+    bool perform()
     {
         if(MADT->mode() == adapter::MODE_WALK)
             MADT->mode() = adapter::MODE_READY;
@@ -42,25 +42,25 @@ public:
             if(aiter == robot::ROBOT->get_act_map().end())
             {
                 std::cout<<"cannot find action: "+act_name_<<"\n";
-                return -1;
+                return false;
             }
             std::string pos_name;
             std::map<std::string, float> jdegs;
-            for(auto p:aiter->second.poses)
+            for(auto &p:aiter->second.poses)
             {
                 act_t = p.act_time;
                 pos_name = p.pos_name;
                 jdegs.clear();
                 jdegs = robot::ROBOT->get_pos_map()[pos_name].joints_deg;
                 one_pos_deg.clear();
-                for(auto j:jdegs)
+                for(auto &j:jdegs)
                     one_pos_deg[robot::ROBOT->get_joint(j.first)->jid_] = j.second;
                 joints_plan jp(one_pos_deg, act_t, "body");
-                if(jp.perform() == -1) return -1;
+                if(!jp.perform()) return false;
                 if(set_head_)
                 {
                     joints_plan jp(one_pos_deg, act_t, "head");
-                    if(jp.perform() == -1) return -1;
+                    if(!jp.perform()) return false;
                 }
             }
         }
@@ -71,15 +71,15 @@ public:
                 act_t = pos_times_[i];
                 one_pos_deg = poses_[i];
                 joints_plan jp(one_pos_deg, act_t, "body");
-                if(jp.perform()==-1) return -1;
+                if(!jp.perform()) return false;
                 if(set_head_)
                 {
                     joints_plan jp(one_pos_deg, act_t, "head");
-                    if(jp.perform() == -1) return -1;
+                    if(!jp.perform()) return false;
                 }
             }
         }
-        return 0;
+        return true;
     }
 private:
     std::string act_name_;

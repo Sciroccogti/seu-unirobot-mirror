@@ -1,6 +1,7 @@
 #include "image_monitor.hpp"
 #include "configuration.hpp"
 #include "ui/walk_remote.hpp"
+#include "ui/camera_setter.hpp"
 #include <opencv2/opencv.hpp>
 
 using namespace cv;
@@ -11,8 +12,8 @@ image_monitor::image_monitor()
     :client_(CONF->get_config_value<string>(CONF->player()+".address"), CONF->get_config_value<int>("net.tcp.port"),
             bind(&image_monitor::data_handler, this, placeholders::_1))
 {
-    height_ = CONF->get_config_value<int>("hardware.camera.height");
-    width_ = CONF->get_config_value<int>("hardware.camera.width");
+    height_ = CONF->get_config_value<int>("video.height");
+    width_ = CONF->get_config_value<int>("video.width");
     first_connect = true;
     
     imageLab = new ImageLabel(width_, height_);
@@ -24,15 +25,20 @@ image_monitor::image_monitor()
     yawSlider->setRange(-90, 90);
     
     btnWR = new QPushButton("Walk Remote");
+    btnCS = new QPushButton("Camera Setting");
     
     QVBoxLayout *leftLayout = new QVBoxLayout();
     leftLayout->addWidget(imageLab);
     leftLayout->addWidget(yawSlider);
     
+    QVBoxLayout *ctrlLayout = new QVBoxLayout;
+    ctrlLayout->addWidget(btnWR);
+    ctrlLayout->addWidget(btnCS);
+    
     QHBoxLayout *mainLayout = new QHBoxLayout();
     mainLayout->addLayout(leftLayout);
     mainLayout->addWidget(pitchSlider);
-    mainLayout->addWidget(btnWR);
+    mainLayout->addLayout(ctrlLayout);
     
     QWidget *mainWidget  = new QWidget();
     mainWidget->setLayout(mainLayout);
@@ -58,6 +64,7 @@ image_monitor::image_monitor()
     connect(yawSlider, &QSlider::valueChanged, this, &image_monitor::procYawSlider);
     connect(pitchSlider, &QSlider::valueChanged, this, &image_monitor::procPitchSlider);
     connect(btnWR, &QPushButton::clicked, this, &image_monitor::procBtnWR);
+    connect(btnCS, &QPushButton::clicked, this, &image_monitor::procBtnCS);
     client_.start();
     yawSlider->setEnabled(false);
     pitchSlider->setEnabled(false);
@@ -106,8 +113,14 @@ void image_monitor::procTimer()
 
 void image_monitor::procBtnWR()
 {
-    walk_remote *wr = new walk_remote(client_, net_info);
+    walk_remote *wr = new walk_remote(client_, net_info, this);
     wr->show();
+}
+
+void image_monitor::procBtnCS()
+{
+    camera_setter *cs = new camera_setter(client_, net_info, this);
+    cs->show();
 }
 
 void image_monitor::procPitchSlider(int v)

@@ -43,7 +43,7 @@ motor::motor(sensor_ptr dbg): timer(CONF->get_config_value<int>("hardware.motor.
     min_volt_ = CONF->get_config_value<float>("hardware.battery.min_volt");
     max_volt_ = CONF->get_config_value<float>("hardware.battery.max_volt");
     voltage_ = static_cast<uint16_t>(max_volt_*10);
-    for(auto r:ROBOT->get_joint_map())
+    for(auto &r:ROBOT->get_joint_map())
         pposRead_->addParam(static_cast<uint8_t>(r.second->jid_));
 }
 
@@ -85,7 +85,7 @@ void motor::virtul_act()
     robot_joint_deg jd;
     string j_data;
     j_data.clear();
-    for(auto jm:ROBOT->get_joint_map())
+    for(auto &jm:ROBOT->get_joint_map())
     {
         jd.id = jm.second->jid_;
         jd.deg = jm.second->get_deg();
@@ -115,7 +115,7 @@ void motor::real_act()
                 raise(SIGINT);
             }
             read_pos();
-            for(auto cd:curr_degs_)
+            for(auto &cd:curr_degs_)
                 ROBOT->get_joint(cd.first)->set_deg(cd.second);
             set_torq(1);
             is_connected_ = true;
@@ -208,7 +208,7 @@ void motor::set_torq(uint8_t e)
     torqWrite_->clearParam();
     uint8_t torq_data;
     torq_data = e;
-    for(auto r:ROBOT->get_joint_map())
+    for(auto &r:ROBOT->get_joint_map())
         torqWrite_->addParam(static_cast<uint8_t>(r.second->jid_), &torq_data);
     torqWrite_->txPacket();
 }
@@ -218,7 +218,7 @@ void motor::set_led(uint8_t s)
     ledWrite_->clearParam();
     uint8_t led_data;
     led_data = s;
-    for(auto r:ROBOT->get_joint_map())
+    for(auto &r:ROBOT->get_joint_map())
         ledWrite_->addParam(static_cast<uint8_t>(r.second->jid_), &led_data);
     ledWrite_->txPacket();
 }
@@ -229,7 +229,7 @@ void motor::set_gpos()
     uint8_t gpos_data[4];
     uint32_t gpos;
     float deg;
-    for(auto j:ROBOT->get_joint_map())
+    for(auto &j:ROBOT->get_joint_map())
     {
         deg = (j.second->inverse_)*(j.second->get_deg()+j.second->offset_);
         gpos = float2pos(deg);

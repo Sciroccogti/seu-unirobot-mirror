@@ -1,6 +1,7 @@
 #ifndef SEU_UNIROBOT_TCP_HPP
 #define SEU_UNIROBOT_TCP_HPP
 
+#include <functional>
 #include <string>
 #include <vector>
 

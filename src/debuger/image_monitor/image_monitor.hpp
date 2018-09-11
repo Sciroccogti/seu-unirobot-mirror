@@ -18,11 +18,12 @@ public slots:
     void procYawSlider(int v);
     void procPitchSlider(int v);
     void procBtnWR();
+    void procBtnCS();
 
 protected:
     void closeEvent(QCloseEvent *event);
 private:
-    QPushButton *btnWR;
+    QPushButton *btnWR, *btnCS;
     ImageLabel *imageLab;
     QLabel *yawLab, *pitchLab, *netLab;
     QSlider *pitchSlider, *yawSlider;

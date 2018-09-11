@@ -12,7 +12,7 @@ public:
     {
     }
     
-    virtual int perform() = 0;
+    virtual bool perform() = 0;
     
     std::string plan_name() const
     {

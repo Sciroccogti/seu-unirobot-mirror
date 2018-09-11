@@ -18,34 +18,33 @@ public:
         act_time_ = act_time;
     }
 
-    int perform()
+    bool perform()
     {
         std::map<int, float> latest_deg, diff, jdmap;
         if(actuator_name_ == "body")
             latest_deg = MADT->get_body_degs();
         else if(actuator_name_ == "head")
             latest_deg = MADT->get_head_degs();
-        for(auto jd:latest_deg)
+        for(auto &jd:latest_deg)
             diff[jd.first] = jdegs_[jd.first] - latest_deg[jd.first];
 
         for(int i=1;i<=act_time_;i++)
         {
             jdmap.clear();
-            for(auto jd:diff)
+            for(auto &jd:diff)
                 jdmap[jd.first] = latest_deg[jd.first]+i*jd.second/(float)act_time_;
             if(actuator_name_ == "body")
             {
                 while(!MADT->body_empty());
-                if(!MADT->add_body_degs(jdmap)) return -1;
+                if(!MADT->add_body_degs(jdmap)) return false;
             }
             else if(actuator_name_ == "head")
             {
                 while(!MADT->head_empty());
-                if(!MADT->add_head_degs(jdmap)) return -1;
-                //std::cout<<"head performed\n";
+                if(!MADT->add_head_degs(jdmap)) return false;
             }
         }
-        return 0;
+        return true;
     }
 private:
     std::map<int, float> jdegs_;

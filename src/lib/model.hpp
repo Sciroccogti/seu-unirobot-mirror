@@ -22,6 +22,13 @@ struct player_info
     float ball_x, ball_y;
 };
 
+struct ctrl_item_info
+{
+    unsigned int id;
+    int value;
+    std::string name;
+};
+        
 enum { player_info_size = sizeof(player_info)};
 
 #endif

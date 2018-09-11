@@ -29,7 +29,7 @@ bool player::init()
     MADT->start();
     actuators_["body"] = std::make_shared<actuator>("body");
     actuators_["head"] = std::make_shared<actuator>("head");
-    for(auto a:actuators_)
+    for(auto &a:actuators_)
         a.second->start();
 
     action_plan p("ready", true);

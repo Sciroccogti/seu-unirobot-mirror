@@ -20,6 +20,8 @@ options::options(): opts_desc_("  Options description")
             "If you want to use robot")
     ("mote,m", value<bool>()->default_value(false),
             "If you want to use remote.")
+    ("log,l", value<bool>()->default_value(false),
+            "If you want to record image")
     ("say,s", value<bool>()->default_value(false),
             "If you want to use communication.");
 }
@@ -36,6 +38,7 @@ bool options::init(int argc, char **argv)
         use_robot_ = arg<bool>("robot");
         use_comm_ = arg<bool>("say");
         use_remote_ = arg<bool>("mote");
+        image_record_ = arg<bool>("log");
         if (var_map_.count("help"))
         {
             std::cout<<opts_desc_<<"\n";

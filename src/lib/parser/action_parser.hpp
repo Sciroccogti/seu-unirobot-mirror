@@ -33,19 +33,19 @@ namespace parser
             }
             robot::robot_pos t_pos;
             bpt::ptree deg_pt;
-            for(auto pos : pos_pt)
+            for(auto &pos : pos_pt)
             {
                 t_pos.name.clear();
                 t_pos.pose_info.clear();
                 t_pos.joints_deg.clear();
                 t_pos.name = pos.first;
-                for(auto info : pos.second)
+                for(auto &info : pos.second)
                 {
                     if(info.first != jd_key_)
                         t_pos.pose_info[robot::get_motion_by_name(info.first)] = get_pose_from_tree(info.second);
                     else
                     {
-                        for(auto j_deg : info.second)
+                        for(auto &j_deg : info.second)
                             t_pos.joints_deg[j_deg.first] = j_deg.second.get_value<float>();
                     }
                 }
@@ -55,12 +55,12 @@ namespace parser
             robot::robot_act t_act;
             robot::robot_one_pos t_one_pos;
 
-            for(auto act : act_pt)
+            for(auto &act : act_pt)
             {
                 t_act.name.clear();
                 t_act.poses.clear();
                 t_act.name = act.first;
-                for(auto pos : act.second)
+                for(auto &pos : act.second)
                 {
                     if(pos_exist(pos.first, poses))
                     {
@@ -82,7 +82,7 @@ namespace parser
             bpt::ptree act_pt, pos_pt;
 
             bpt::ptree act_info_child;
-            for(auto act : acts)
+            for(auto &act : acts)
             {
                 act_info_child.clear();
                 for(int i=0;i<act.second.poses.size();i++)
@@ -91,13 +91,13 @@ namespace parser
             }
             pt.add_child(acts_key_, act_pt);
             bpt::ptree pos_info_child, deg_pt;
-            for(auto pos : poses)
+            for(auto &pos : poses)
             {
                 pos_info_child.clear();
                 deg_pt.clear();
-                for(auto p_info : pos.second.pose_info)
+                for(auto &p_info : pos.second.pose_info)
                     pos_info_child.add_child(robot::get_name_by_motion(p_info.first), get_tree_from_pose(p_info.second));
-                for(auto j_deg : pos.second.joints_deg)
+                for(auto &j_deg : pos.second.joints_deg)
                     deg_pt.add<float>(j_deg.first, j_deg.second);
                 pos_info_child.add_child(jd_key_, deg_pt);
                 pos_pt.add_child(pos.second.name, pos_info_child);

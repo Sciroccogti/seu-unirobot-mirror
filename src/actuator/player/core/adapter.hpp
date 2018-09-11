@@ -96,7 +96,7 @@ public:
         latest_head_deg[j->jid_] = j->get_deg();
         j = robot::ROBOT->get_joint("jhead2");
         latest_head_deg[j->jid_] = j->get_deg();
-        for(auto j:robot::ROBOT->get_joint_map())
+        for(auto &j:robot::ROBOT->get_joint_map())
         {
             if(j.second->name_.find("head") == std::string::npos)
                 latest_body_deg[j.second->jid_] = j.second->get_deg();

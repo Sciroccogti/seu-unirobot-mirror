@@ -43,6 +43,7 @@ namespace robot
         bool set_deg(const float &deg)
         {
             current_deg_ = deg;
+            return true;
         }
 
         float get_deg() const
@@ -60,6 +61,7 @@ namespace robot
             current_deg_ = j.current_deg_;
             offset_ = j.offset_;
             inverse_ = j.inverse_;
+            return *this;
         }
 
         int jid_;
@@ -96,7 +98,7 @@ namespace robot
 
     inline std::string get_name_by_motion(const robot_motion &motion)
     {
-        for(auto nm : name_motion_map)
+        for(auto &nm : name_motion_map)
         {
             if(nm.second == motion) return nm.first;
         }
@@ -105,7 +107,7 @@ namespace robot
 
     inline robot_motion get_motion_by_name(const std::string &name)
     {
-        for(auto nm : name_motion_map)
+        for(auto &nm : name_motion_map)
         {
             if(nm.first == name) return nm.second;
         }

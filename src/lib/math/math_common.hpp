@@ -1,7 +1,3 @@
-//
-// Created by lcseu on 18-8-8.
-//
-
 #ifndef SEU_UNIROBOT_MATH_COMMON_HPP
 #define SEU_UNIROBOT_MATH_COMMON_HPP
 

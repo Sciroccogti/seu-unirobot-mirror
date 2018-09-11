@@ -24,6 +24,7 @@ public:
     bool use_robot() const { return use_robot_; }
     bool use_comm() const { return use_comm_; }
     bool use_remote() const { return use_remote_; }
+    bool image_record() const { return image_record_; }
 
 private:
     template<typename T> T arg(const std::string &opt) const { return var_map_[opt].as<T>(); }
@@ -36,6 +37,7 @@ private:
     bool use_robot_;
     bool use_comm_;
     bool use_remote_;
+    bool image_record_;
 };
 
 #define OPTS options::instance()

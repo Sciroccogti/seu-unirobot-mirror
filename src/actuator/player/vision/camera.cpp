@@ -5,6 +5,7 @@
 #include "camera.hpp"
 #include "configuration.hpp"
 #include "class_exception.hpp"
+#include "parser/camera_parser.hpp"
 
 using namespace std;
 using namespace image;
@@ -14,11 +15,12 @@ camera::camera(): sensor("camera")
     format_map_["V4L2_PIX_FMT_YUYV"] = V4L2_PIX_FMT_YUYV;
     format_map_["V4L2_PIX_FMT_MJPEG"] = V4L2_PIX_FMT_MJPEG;
     format_map_["V4L2_PIX_FMT_JPEG"] = V4L2_PIX_FMT_JPEG;
-    cfg_.dev_name = CONF->get_config_value<string>("hardware.camera.dev_name");
-    cfg_.buff_num = CONF->get_config_value<int>("hardware.camera.buff_num");
-    cfg_.format = CONF->get_config_value<string>("hardware.camera.format");
-    cfg_.height = CONF->get_config_value<int>("hardware.camera.height");
-    cfg_.width = CONF->get_config_value<int>("hardware.camera.width");
+    cfg_.dev_name = CONF->get_config_value<string>("video.dev_name");
+    cfg_.buff_num = CONF->get_config_value<int>("video.buff_num");
+    cfg_.format = CONF->get_config_value<string>("video.format");
+    cfg_.height = CONF->get_config_value<int>("video.height");
+    cfg_.width = CONF->get_config_value<int>("video.width");
+    cfg_.ctrl_file = CONF->get_config_value<string>(CONF->player()+".camera_file");
 }
 
 bool camera::start()
@@ -63,6 +65,89 @@ void camera::stop()
     sleep(1);
     close();
     is_open_ = false;
+}
+
+void camera::get_ctrl_items()
+{
+    ctrl_items_.clear();
+    camera::v4l2_ctrl_item item;
+    item.qctrl.id = V4L2_CTRL_FLAG_NEXT_CTRL;
+    while(v4l2_ioctl (fd_, VIDIOC_QUERYCTRL, &item.qctrl) == 0)
+    {
+        if (item.qctrl.type == V4L2_CTRL_TYPE_MENU)
+        {
+            auto &ctrl = item.qctrl;
+            const int maxmenu_size = sizeof(item.qmenu) / sizeof(v4l2_querymenu);
+            for (int i = ctrl.minimum; i <= std::min(ctrl.maximum, maxmenu_size); i++)
+            {
+                auto &qm = item.qmenu[i];
+                qm.id = ctrl.id;
+                qm.index = i;
+                if (v4l2_ioctl(fd_, VIDIOC_QUERYMENU, &qm) != 0)
+                    std::strcpy((char *)(qm.name), "Unknown");
+            }
+        }
+        item.control.id = item.qctrl.id;
+        get_ctrl_item(item);
+        ctrl_items_.push_back(item);
+        item.qctrl.id |= V4L2_CTRL_FLAG_NEXT_CTRL;
+    }
+}
+
+bool camera::get_ctrl_item(camera::v4l2_ctrl_item &item)
+{
+    if (fd_ < 0) return false;
+
+    v4l2_queryctrl ctrl;
+    ctrl.id = item.qctrl.id;
+    if (v4l2_ioctl(fd_, VIDIOC_QUERYCTRL, &ctrl) == -1)
+    {
+        std::cout << "Invalid control item " << ctrl.name << std::endl;
+        return false;
+    }
+    if (ctrl.type == V4L2_CTRL_TYPE_BUTTON) return true;
+    if (v4l2_ioctl(fd_, VIDIOC_G_CTRL, &(item.control)) == -1)
+    {
+        std::cout << "Unable to get " << ctrl.name << " " << strerror(errno) << std::endl;
+        return false;
+    }
+    return true;
+}
+
+bool camera::set_ctrl_item(const camera::v4l2_ctrl_item &item)
+{
+    if (fd_ < 0) return false;
+
+    v4l2_queryctrl ctrl;
+    ctrl.id = item.qctrl.id;
+
+    if (v4l2_ioctl(fd_, VIDIOC_QUERYCTRL, &ctrl) == -1)
+    {
+        std::cout << "Invalid control item " << ctrl.name << std::endl;
+        return false;
+    }
+
+    if (ctrl.flags & (V4L2_CTRL_FLAG_READ_ONLY |
+                        V4L2_CTRL_FLAG_DISABLED |
+                        V4L2_CTRL_FLAG_GRABBED))
+    {
+        return true;
+    }
+
+    if (ctrl.type != V4L2_CTRL_TYPE_INTEGER &&
+        ctrl.type != V4L2_CTRL_TYPE_BOOLEAN &&
+        ctrl.type != V4L2_CTRL_TYPE_MENU)
+    {
+        return true;
+    }
+
+    auto c = item.control;
+    if (v4l2_ioctl(fd_, VIDIOC_S_CTRL, &c) == -1)
+    {
+        std::cout << "Unable to set control " << ctrl.name << " " << strerror(errno) << std::endl;
+        return false;
+    }
+    return true;
 }
 
 void camera::close()
@@ -211,6 +296,17 @@ bool camera::init()
         std::cout<<"VIDIOC_STREAMON error\n";
         return false;
     }
+    get_ctrl_items();
+    vector<ctrl_item_info> ctrl_items;
+    parser::camera_parser::parse(cfg_.ctrl_file, ctrl_items);
+    for(auto &it: ctrl_items)
+    {
+        for(auto &item: ctrl_items_)
+            if(item.control.id == it.id)
+                item.control.value = it.value;
+    }
+    for(auto &item: ctrl_items_)
+        set_ctrl_item(item);
     is_open_ = true;
     return true;
 }

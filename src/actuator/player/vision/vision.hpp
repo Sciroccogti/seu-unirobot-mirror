@@ -2,6 +2,7 @@
 #define SEU_UNIROBOT_ACTUATOR_VISION_HPP
 
 #include <mutex>
+#include <string>
 #include <opencv2/opencv.hpp>
 #include "image/image_define.hpp"
 #include "timer.hpp"
@@ -25,6 +26,7 @@ private:
     cv::Mat frame_;
     std::shared_ptr<tcp_server> server_;
     int p_count_;
+    std::string filename_;
 };
 
 #endif

@@ -17,11 +17,11 @@ public:
         params_[3] = h;
     }
 
-    int perform()
+    bool perform()
     {
         walk::WE->set_params(params_);
         MADT->mode() = adapter::MODE_WALK;
-        return 0;
+        return true;
     }
 private:
     Eigen::Vector4f params_;

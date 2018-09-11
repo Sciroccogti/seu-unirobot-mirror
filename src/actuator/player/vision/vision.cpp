@@ -2,7 +2,9 @@
 #include "configuration.hpp"
 #include "image/image_process.hpp"
 #include <fstream>
-#include <opencv2/dnn.hpp>
+#include "options/options.hpp"
+#include "common.hpp"
+
 using namespace std;
 using namespace image;
 
@@ -12,6 +14,7 @@ vision::vision(const sensor_ptr &s): timer(CONF->get_config_value<int>("vision_p
 {
     server_ = std::dynamic_pointer_cast<tcp_server>(s);
     p_count_ = 0;
+    filename_ = get_time()+".yuv";
 }
 
 bool vision::start()
@@ -33,18 +36,7 @@ void vision::updata(const pro_ptr& pub, const int &type)
     if(type == sensor::SENSOR_CAMERA)
     {
         frame_mutex_.lock();
-        frame_ = image_process::Buff2Mat_YUV(sptr->buffer(), sptr->buff_info());
-        /*
-        Mat bgr;
-        cvtColor(frame_, bgr, CV_YUV2BGR);
-        imwrite("test.jpg", bgr);
-        */
-        /*
-        ofstream out;
-        out.open("test.yuv", ios::app);
-        out.write((char*)(frame_->start), frame_->size);
-        out.close();
-        */
+        frame_ = image_process::buff2yuv_mat(sptr->buffer(), sptr->buff_info());
         frame_mutex_.unlock();
     }
 }
@@ -57,7 +49,10 @@ void vision::run()
         frame_mutex_.lock();
         Mat yuv(frame_);
         frame_mutex_.unlock();
-        send_image(yuv);
+        if(OPTS->image_record())
+            image_process::save_yuv(yuv, filename_, ios::app);
+        if(OPTS->use_debug())
+            send_image(yuv);
     }
 }
 
@@ -70,12 +65,9 @@ void vision::send_image(const cv::Mat &yuvsrc)
     bgr.release();
     tcp_command cmd;
     cmd.type = IMAGE_DATA;
-    if(server_!=nullptr)
-    {
-        cmd.size = jpgbuf.size();
-        cmd.data.assign((char*)&(jpgbuf[0]), jpgbuf.size());
-        server_->write(cmd);
-    }
+    cmd.size = jpgbuf.size();
+    cmd.data.assign((char*)&(jpgbuf[0]), jpgbuf.size());
+    server_->write(cmd);
 }
 
 vision::~vision()

@@ -134,7 +134,7 @@ void tcp_session::stop()
 
 bool tcp_session::check_type(const tcp_cmd_type& t)
 {
-    for(auto c:td_map_)
+    for(auto &c:td_map_)
         if(c.first == t && (c.second == DIR_BOTH || c.second == DIR_APPLY))
             return true;
     return false;

@@ -47,7 +47,7 @@ static_action::static_action()
 
     mSliderGroup = new QGroupBox();
     QVBoxLayout *sliderLayout = new QVBoxLayout();
-    for(auto s:mKsliders)
+    for(auto &s:mKsliders)
         sliderLayout->addWidget(s);
     mSliderGroup->setLayout(sliderLayout);
 
@@ -216,7 +216,7 @@ void static_action::initActs()
 {
     m_pPosListWidget->clear();
     m_pActListWidget->clear();
-    for(auto act:ROBOT->get_act_map())
+    for(auto &act:ROBOT->get_act_map())
         m_pActListWidget->addItem(QString::fromStdString(act.second.name));
     mSliderGroup->setEnabled(false);
 }
@@ -228,7 +228,7 @@ void static_action::initPoseMap()
     robot_pose temp = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
     for(int i=1;i<=6;i++)
         pose_map_[static_cast<robot_motion >(i)] = temp;
-    for(auto j:ROBOT->get_joint_map())
+    for(auto &j:ROBOT->get_joint_map())
         joint_degs_[j.second->jid_] = j.second->get_deg();
 }
 
@@ -260,7 +260,7 @@ void static_action::initJDInfo()
     QListWidgetItem *pListItem;;
     m_pJDListWidget1->clear();
     m_pJDListWidget2->clear();
-    for(auto jd: joint_degs_)
+    for(auto &jd: joint_degs_)
     {
         pListItem = new QListWidgetItem;
         pJDWidget = new CJointDegWidget(ROBOT->get_joint(jd.first)->name_, jd.second);
@@ -495,7 +495,7 @@ void static_action::procYaw(int value)
 
 void static_action::updateJDInfo()
 {
-    for(auto jd: joint_degs_)
+    for(auto &jd: joint_degs_)
         mJDInfos[ROBOT->get_joint(jd.first)->name_]->deg->setText(QString::number(jd.second,'f', 2));
     update();
 }
@@ -507,7 +507,7 @@ void static_action::updatePosList(string act_name)
     CPosListWidget *pPosWidget;
     int id = 0;
     m_pPosListWidget->clear();
-    for(auto pos:act.poses)
+    for(auto &pos:act.poses)
     {
         id++;
         pListItem = new QListWidgetItem;
@@ -562,9 +562,9 @@ void static_action::procPosSelect(QListWidgetItem* item)
     valuelab->setText("");
     pose_map_ = ROBOT->get_pos_map()[pos_name].pose_info;
     joint_degs_.clear();
-    for(auto jd:ROBOT->get_pos_map()[pos_name].joints_deg)
+    for(auto &jd:ROBOT->get_pos_map()[pos_name].joints_deg)
         joint_degs_[ROBOT->get_joint(jd.first)->jid_] = jd.second;
-    for(auto jd: joint_degs_)
+    for(auto &jd: joint_degs_)
         ROBOT->get_joint(jd.first)->set_deg(jd.second);
     updateJDInfo();
     updateSlider(static_cast<int>(motion_));
@@ -647,7 +647,7 @@ void static_action::procButtonInsertPosBack()
         robot_pose pose = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
         for(int i=1;i<=6;i++)
             pos.pose_info[static_cast<robot_motion >(i)] = pose;
-        for(auto j: ROBOT->get_joint_map())
+        for(auto &j: ROBOT->get_joint_map())
             pos.joints_deg[j.first] = 0.0;
         ROBOT->get_act_map()[act_name].poses.push_back(one_pos);
     }
@@ -693,7 +693,7 @@ void static_action::procButtonSavePos()
     if(reply != QMessageBox::StandardButton::Yes) return;
 
     ROBOT->get_pos_map()[pos_name].joints_deg.clear();
-    for(auto jd:joint_degs_)
+    for(auto &jd:joint_degs_)
         ROBOT->get_pos_map()[pos_name].joints_deg[ROBOT->get_joint(jd.first)->name_] = jd.second;
     ROBOT->get_pos_map()[pos_name].pose_info = pose_map_;
     pos_saved = true;
@@ -755,9 +755,9 @@ void static_action::removeUnusedPos()
     while(p_iter!=ROBOT->get_pos_map().end())
     {
         fd = false;
-        for(auto act:ROBOT->get_act_map())
+        for(auto &act:ROBOT->get_act_map())
         {
-            for(auto p:act.second.poses)
+            for(auto &p:act.second.poses)
             {
                 if(p.pos_name == p_iter->first)
                 {
@@ -795,7 +795,7 @@ void static_action::procButtonRunPos()
         cmd.data.append((char*)(&(act.poses[i].act_time)), int_size);
         size += int_size;
         pos = ROBOT->get_pos_map()[act.poses[i].pos_name];
-        for(auto j:pos.joints_deg)
+        for(auto &j:pos.joints_deg)
         {
             cmd.data.append((char*)(&(ROBOT->get_joint(j.first)->jid_)), int_size);
             size += int_size;

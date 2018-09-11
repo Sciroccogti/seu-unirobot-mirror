@@ -3,6 +3,7 @@
 #include "configuration.hpp"
 #include "options/options.hpp"
 #include "robot/humanoid.hpp"
+#include "common.hpp"
 
 using namespace std;
 using namespace robot;

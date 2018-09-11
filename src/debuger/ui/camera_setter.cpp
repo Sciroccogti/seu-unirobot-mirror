@@ -1,10 +1,10 @@
-#include "joint_revise.hpp"
+#include "camera_setter.hpp"
 #include "configuration.hpp"
+#include "parser/camera_parser.hpp"
 
-using namespace robot;
 using namespace std;
 
-joint_revise::joint_revise(tcp_client &client, QString netinfo, QWidget *parent)
+camera_setter::camera_setter(tcp_client &client, QString netinfo, QWidget *parent)
     :client_(client), net_info(netinfo), QMainWindow(parent)
 {
     setAttribute(Qt::WA_DeleteOnClose);
@@ -13,15 +13,20 @@ joint_revise::joint_revise(tcp_client &client, QString netinfo, QWidget *parent)
     QVBoxLayout *rightLayout = new QVBoxLayout();
 
     first_connect = true;
-    JSlider *slider;
-    for(auto &jo:ROBOT->get_joint_map())
+    CtrlSlider *slider;
+    
+    parser::camera_parser::parse(CONF->get_config_value<string>(CONF->player()+".camera_file"), ctrl_items_);
+    int i=0;
+    for(auto &it: ctrl_items_)
     {
-        slider = new JSlider(jo.second);
-        connect(slider, &JSlider::valueChanged, this, &joint_revise::procValueChanged);
-        if(jo.first == "jhead2" || jo.first.find("jr") != string::npos)
+        slider = new CtrlSlider(it);
+        connect(slider, &CtrlSlider::valueChanged, this, &camera_setter::procValueChanged);
+        c_sliders_[it.id] = slider;
+        if(i<ctrl_items_.size()/2)
+            leftLayout->addWidget(slider);
+        else
             rightLayout->addWidget(slider);
-        else leftLayout->addWidget(slider);
-        j_sliders_[jo.first] = slider;
+        i++;
     }
 
     btnReset = new QPushButton("Reset");
@@ -39,13 +44,13 @@ joint_revise::joint_revise(tcp_client &client, QString netinfo, QWidget *parent)
     mainWidget->setLayout(mainLayout);
     this->setCentralWidget(mainWidget);
 
-    connect(btnReset, &QPushButton::clicked, this, &joint_revise::procBtnReset);
-    connect(btnSave, &QPushButton::clicked, this, &joint_revise::procBtnSave);
-    connect(timer, &QTimer::timeout, this, &joint_revise::procTimer);
+    connect(btnReset, &QPushButton::clicked, this, &camera_setter::procBtnReset);
+    connect(btnSave, &QPushButton::clicked, this, &camera_setter::procBtnSave);
+    connect(timer, &QTimer::timeout, this, &camera_setter::procTimer);
     setEnabled(false);
 }
 
-void joint_revise::procTimer()
+void camera_setter::procTimer()
 {
     if(client_.is_connected())
     {
@@ -65,22 +70,19 @@ void joint_revise::procTimer()
     }
 }
 
-void joint_revise::procBtnReset()
+void camera_setter::procBtnReset()
 {
-    for(auto &s:j_sliders_)
-    {
-        s.second->reset();
-        ROBOT->get_joint_map()[s.first]->offset_ = 0.0;
-    }
+    
 }
 
-void joint_revise::procBtnSave()
+void camera_setter::procBtnSave()
 {
-    parser::offset_parser::save(CONF->offset_file(), ROBOT->get_joint_map());
+
 }
 
-void joint_revise::procValueChanged(int id, float v)
+void camera_setter::procValueChanged(int id, float v)
 {
+    /*
     ROBOT->get_joint(id)->offset_ = v;
     tcp_command cmd;
     remote_data_type t = JOINT_OFFSET;
@@ -97,4 +99,5 @@ void joint_revise::procValueChanged(int id, float v)
         cmd.data.append((char*)(&offset), sizeof(robot_joint_deg));
     }
     client_.write(cmd);
+    */
 }

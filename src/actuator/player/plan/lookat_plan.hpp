@@ -14,7 +14,7 @@ public:
     {
     }
     
-    int perform()
+    bool perform()
     {
         std::map<int, float> jdmap;
         jdmap[robot::ROBOT->get_joint("jhead1")->jid_] = yaw_;

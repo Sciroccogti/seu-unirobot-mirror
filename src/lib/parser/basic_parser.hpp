@@ -23,7 +23,7 @@ namespace parser
             while(std::getline(ifs, line))
             {
                 count_of_quotatuion = 0;
-                for(auto c: line)
+                for(auto &c: line)
                 {
                     if(c == '\'' || c == '\"') count_of_quotatuion++;
                     if(c == '#'&& count_of_quotatuion%2 == 0) break;
