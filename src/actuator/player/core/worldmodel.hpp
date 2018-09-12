@@ -9,11 +9,12 @@
 #include "sensor/server.hpp"
 #include "sensor/hear.hpp"
 #include "configuration.hpp"
+#include "singleton.hpp"
 
-class worldmodel: public subscriber
+class WorldModel: public subscriber, public singleton<WorldModel>
 {
 public:
-    worldmodel()
+    WorldModel()
     {
         rmt_data_.type = NON_DATA;
         rmt_data_.size = 0;
@@ -109,5 +110,7 @@ private:
     remote_data rmt_data_;
     mutable std::mutex gc_mtx_, imu_mtx_, rmt_mtx_, dxl_mtx_, hear_mtx_;
 };
+
+#define WM WorldModel::instance()
 
 #endif

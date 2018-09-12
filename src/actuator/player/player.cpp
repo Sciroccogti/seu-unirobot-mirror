@@ -58,7 +58,7 @@ void player::run()
     if(is_alive_)
     {
         period_count_++;
-        if(wm_->is_lost())
+        if(WM->is_lost())
         {
             std::cout<<"\033[31mmotor has no response!\033[0m\n";
             raise(SIGINT);
@@ -74,7 +74,7 @@ list< plan_ptr > player::think()
     
     if(period_count_*period_ms_%1000 == 0)
     {
-        if(wm_->low_power())
+        if(WM->low_power())
         {
             std::cout<<"\033[31m******** low power! ********\033[0m\n";
         }
@@ -113,30 +113,28 @@ void player::add_plans(std::list<plan_ptr> plist)
 
 bool player::regist()
 {
-    wm_ = std::make_shared<worldmodel>();
     sensors_.clear();
     if(OPTS->use_debug())
     {
         sensors_["server"] = std::make_shared<tcp_server>();
-        sensors_["server"]->attach(wm_);
+        sensors_["server"]->attach(WM);
         sensors_["server"]->start();
     }
     if(OPTS->use_camera())
     {
-        vision_ = std::make_shared<vision>(get_sensor("server"));
         sensors_["camera"] = std::make_shared<camera>();
-        sensors_["camera"]->attach(vision_);
+        sensors_["camera"]->attach(VISION);
         sensors_["camera"]->start();
-        if(!vision_->start()) return false;
+        if(!VISION->start(get_sensor("server"))) return false;
     }
     sensors_["motor"] = std::make_shared<motor>(get_sensor("server"));
-    sensors_["motor"]->attach(wm_);
+    sensors_["motor"]->attach(WM);
     sensors_["motor"]->attach(WE);
     if(!sensors_["motor"]->start()) return false;
     if(OPTS->use_robot())
     {
         sensors_["imu"] = std::make_shared<imu>();
-        sensors_["imu"]->attach(wm_);
+        sensors_["imu"]->attach(WM);
         sensors_["imu"]->attach(WE);
         sensors_["imu"]->start();
     }
@@ -145,7 +143,7 @@ bool player::regist()
         try
         {
             sensors_["gc"] = std::make_shared<gamectrl>();
-            sensors_["gc"]->attach(wm_);
+            sensors_["gc"]->attach(WM);
             sensors_["gc"]->start();
         }
         catch(std::exception &e)
@@ -158,7 +156,7 @@ bool player::regist()
         try
         {
             sensors_["hear"] = std::make_shared<hear>();
-            sensors_["hear"]->attach(wm_);
+            sensors_["hear"]->attach(WM);
             sensors_["hear"]->start();
         }
         catch(std::exception &e)
@@ -173,35 +171,35 @@ void player::unregist()
 {
     if(sensors_.find("gc") != sensors_.end())
     {
-        sensors_["gc"]->detach(wm_);
+        sensors_["gc"]->detach(WM);
         sensors_["gc"]->stop();
     }
     if(sensors_.find("hear") != sensors_.end())
     {
-        sensors_["hear"]->detach(wm_);
+        sensors_["hear"]->detach(WM);
         sensors_["hear"]->stop();
     }
     if(sensors_.find("imu") != sensors_.end())
     {
-        sensors_["imu"]->detach(wm_);
+        sensors_["imu"]->detach(WM);
         sensors_["imu"]->detach(WE);
         sensors_["imu"]->stop();
     }
     if(sensors_.find("motor") != sensors_.end())
     {
-        sensors_["motor"]->detach(wm_);
+        sensors_["motor"]->detach(WM);
         sensors_["motor"]->detach(WE);
         sensors_["motor"]->stop();
     }
     if(sensors_.find("camera") != sensors_.end())
     {
-        sensors_["camera"]->detach(vision_);
+        sensors_["camera"]->detach(VISION);
         sensors_["camera"]->stop();
-        vision_->stop();
+        VISION->stop();
     }
     if(sensors_.find("server") != sensors_.end())
     {
-        sensors_["server"]->detach(wm_);
+        sensors_["server"]->detach(WM);
         sensors_["server"]->stop();
     }
 }

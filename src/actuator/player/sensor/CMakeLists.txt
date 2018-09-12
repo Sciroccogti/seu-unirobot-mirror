@@ -1,4 +1,5 @@
 add_library(sensor STATIC
+            camera.cpp
             motor.cpp
             server.cpp
             gamectrl.cpp
@@ -8,5 +9,6 @@ add_library(sensor STATIC
 target_link_libraries(sensor
             dynamixel
             boost_system
+            v4l2
             rt
             pthread)

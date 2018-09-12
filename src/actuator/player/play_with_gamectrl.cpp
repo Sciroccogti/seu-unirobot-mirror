@@ -11,7 +11,7 @@ using namespace std;
 list<plan_ptr> player::play_with_gamectrl()
 {
     list<plan_ptr> plist;
-    RoboCupGameControlData gc_data = wm_->gc_data();
+    RoboCupGameControlData gc_data = WM->gc_data();
     return plist;
 }
 

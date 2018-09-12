@@ -14,9 +14,9 @@ shared_ptr<player> maxwell;
 
 void exit_handler(int sig)
 {
-    cout<<"\n\033[32m--------------------------------------------------------\n";
-    cout<<"                         Good bye!                      \n";
-    cout<<"--------------------------------------------------------\n";
+    std::cout<<"\n\033[32m--------------------------------------------------------\n";
+    std::cout<<"                         Good bye!                      \n";
+    std::cout<<"--------------------------------------------------------\n";
     if(sig == SIGINT)
     {
         maxwell->stop();
@@ -26,11 +26,30 @@ void exit_handler(int sig)
 
 void greeting()
 {
-    cout<<"\033[32m--------------------------------------------------------\n";
-    cout<<left<<setw(15)<<"team-name: "<<CONF->get_config_value<string>("team_name")<<"\n";
-    cout<<left<<setw(15)<<"team-number: "<<CONF->get_config_value<string>("team_number")<<"\n";
-    cout<<left<<setw(15)<<"player-id: "<<CONF->id()<<"\n";
-    cout<<  "--------------------------------------------------------\n\033[0m";
+    std::cout <<"\033[33m"
+      "------------------------------------------------------------------------------\n"
+      " .-----. .---- .      .   .      .          .----.         .             .    \n"
+      "|       |      |      |   |      |          |     |        |             |    \n"
+      "|       |      |      |   |      | .----. ` |     /        |           --|--- \n"
+      " '----. |----- |      |---|      | |    | | |----'  .----. |---.  .----. |    \n"
+      "       ||      |      |   |      | |    | | |    \\  |    | |    | |    | |   \n"
+      "       ||      |      |   |      | |    | | |     | |    | |    | |    | |    \n"
+      "'-----'  '----  '----'     '----'  '    ' ' '     ' '----' '---'  '----'  '-- \n"
+      "------------------------------------------------------------------------------\n"
+      "  RoboCup Humanoid KidSize Team, Southeast University, China\n"
+      "  Authors:\n"
+      "  2018.   Liu Chuan.\n"
+      "  All rights reserved.     \n"
+      "------------------------------------------------------------------------------\n"
+      "  Version: ""seu-unirobot""\n"
+      "  Build Time: "<<__DATE__<<" -- "<<__TIME__<<"\n"
+      "------------------------------------------------------------------------------\033[0m\n"
+      << std::endl;
+    std::cout<<"\033[32m--------------------------------------------------------\n";
+    std::cout<<left<<setw(15)<<"team-name: "<<CONF->get_config_value<string>("team_name")<<"\n";
+    std::cout<<left<<setw(15)<<"team-number: "<<CONF->get_config_value<string>("team_number")<<"\n";
+    std::cout<<left<<setw(15)<<"player-id: "<<CONF->id()<<"\n";
+    std::cout<<  "--------------------------------------------------------\n\033[0m";
 }
 
 int main(int argc, char *argv[])

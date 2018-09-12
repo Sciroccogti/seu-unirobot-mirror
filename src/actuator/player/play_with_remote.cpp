@@ -11,7 +11,7 @@ using namespace std;
 list<plan_ptr> player::play_with_remote()
 {
     list<plan_ptr> plist;
-    remote_data rdata = wm_->rmt_data();
+    remote_data rdata = WM->rmt_data();
     if(rdata.type == WALK_DATA)
     {
         float x,y,d,h;
@@ -71,7 +71,7 @@ list<plan_ptr> player::play_with_remote()
         shared_ptr<camera> cm = dynamic_pointer_cast<camera>(get_sensor("camera"));
         cm->set_ctrl_item(info);
     }
-    wm_->reset_rmt_data();
+    WM->reset_rmt_data();
     return plist;
 }
 

@@ -14,7 +14,7 @@
 #include "sensor/server.hpp"
 #include "sensor/hear.hpp"
 #include "walk/WalkEngine.hpp"
-#include "vision/vision.hpp"
+#include "core/vision.hpp"
 
 class player: public timer, public std::enable_shared_from_this<player>
 {
@@ -39,9 +39,6 @@ private:
     unsigned long period_count_;
     std::map<std::string, actuator_ptr> actuators_;
     std::map<std::string, sensor_ptr> sensors_;
-
-    std::shared_ptr<worldmodel> wm_;
-    std::shared_ptr<vision> vision_;
     std::shared_ptr<FSM::fsm> fsm_;
 };
 
