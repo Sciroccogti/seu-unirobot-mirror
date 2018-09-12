@@ -1,6 +1,9 @@
 #ifndef SEU_UNIROBOT_MODEL_HPP
 #define SEU_UNIROBOT_MODEL_HPP
 
+#include <string>
+#include <linux/videodev2.h>
+
 struct filed_info
 {
     int field_length;
@@ -22,11 +25,11 @@ struct player_info
     float ball_x, ball_y;
 };
 
-struct ctrl_item_info
+struct camera_ctrl_info
 {
-    unsigned int id;
-    int value;
-    std::string name;
+    v4l2_queryctrl qctrl;
+    v4l2_control ctrl;
+    std::string menu;
 };
         
 enum { player_info_size = sizeof(player_info)};

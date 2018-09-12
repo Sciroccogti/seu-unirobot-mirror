@@ -6,6 +6,7 @@
 #include "configuration.hpp"
 #include "class_exception.hpp"
 #include "parser/camera_parser.hpp"
+#include <sstream>
 
 using namespace std;
 using namespace image;
@@ -69,82 +70,59 @@ void camera::stop()
 
 void camera::get_ctrl_items()
 {
-    ctrl_items_.clear();
-    camera::v4l2_ctrl_item item;
-    item.qctrl.id = V4L2_CTRL_FLAG_NEXT_CTRL;
-    while(v4l2_ioctl (fd_, VIDIOC_QUERYCTRL, &item.qctrl) == 0)
-    {
-        if (item.qctrl.type == V4L2_CTRL_TYPE_MENU)
+    ctrl_infos_.clear();
+    camera_ctrl_info info;
+    info.qctrl.id = V4L2_CTRL_FLAG_NEXT_CTRL;
+    while (v4l2_ioctl(fd_, VIDIOC_QUERYCTRL, &(info.qctrl)) == 0)
+    {  
+        info.ctrl.id = info.qctrl.id;
+        info.menu.clear();
+        if (v4l2_ioctl(fd_, VIDIOC_G_CTRL, &(info.ctrl)) < 0) 
+            std::cout<<"\033[31mget "<<info.qctrl.name<<" failed\033[0m\n";
+        else
         {
-            auto &ctrl = item.qctrl;
-            const int maxmenu_size = sizeof(item.qmenu) / sizeof(v4l2_querymenu);
-            for (int i = ctrl.minimum; i <= std::min(ctrl.maximum, maxmenu_size); i++)
+            /*
+            printf("%-14s : id=%d, type=%d, minimum=%d, maximum=%d\n"
+            "\t\t value = %d, step=%d, default_value=%d\n", 
+            info.qctrl.name, info.qctrl.id, info.qctrl.type, info.qctrl.minimum, info.qctrl.maximum,
+            info.ctrl.value, info.qctrl.step, info.qctrl.default_value);
+            */
+            if (info.qctrl.type == V4L2_CTRL_TYPE_MENU) 
             {
-                auto &qm = item.qmenu[i];
-                qm.id = ctrl.id;
-                qm.index = i;
-                if (v4l2_ioctl(fd_, VIDIOC_QUERYMENU, &qm) != 0)
-                    std::strcpy((char *)(qm.name), "Unknown");
+                int idx;
+                v4l2_querymenu menu;
+                for (idx = info.qctrl.minimum; idx <= info.qctrl.maximum; idx++) 
+                {
+                    menu.id = info.qctrl.id;
+                    menu.index = idx;
+                    if (v4l2_ioctl(fd_, VIDIOC_QUERYMENU, &menu)==0)
+                    {
+                        stringstream ss;
+                        ss<<menu.index<<": "<<menu.name<<"; ";
+                        info.menu.append(ss.str());
+                    }
+                }
             }
+            ctrl_infos_.push_back(info);
         }
-        item.control.id = item.qctrl.id;
-        get_ctrl_item(item);
-        ctrl_items_.push_back(item);
-        item.qctrl.id |= V4L2_CTRL_FLAG_NEXT_CTRL;
+        info.qctrl.id |= V4L2_CTRL_FLAG_NEXT_CTRL;
     }
+    //parser::camera_parser::save(cfg_.ctrl_file, ctrl_infos_);
 }
 
-bool camera::get_ctrl_item(camera::v4l2_ctrl_item &item)
+string camera::get_name_by_id(const unsigned int& id)
 {
-    if (fd_ < 0) return false;
-
-    v4l2_queryctrl ctrl;
-    ctrl.id = item.qctrl.id;
-    if (v4l2_ioctl(fd_, VIDIOC_QUERYCTRL, &ctrl) == -1)
-    {
-        std::cout << "Invalid control item " << ctrl.name << std::endl;
-        return false;
-    }
-    if (ctrl.type == V4L2_CTRL_TYPE_BUTTON) return true;
-    if (v4l2_ioctl(fd_, VIDIOC_G_CTRL, &(item.control)) == -1)
-    {
-        std::cout << "Unable to get " << ctrl.name << " " << strerror(errno) << std::endl;
-        return false;
-    }
-    return true;
+    for(camera_ctrl_info i:ctrl_infos_)
+        if(id == i.qctrl.id)
+            return string((char*)(i.qctrl.name));
+    return "Unknown";
 }
 
-bool camera::set_ctrl_item(const camera::v4l2_ctrl_item &item)
+bool camera::set_ctrl_item(const camera_ctrl_info& info)
 {
-    if (fd_ < 0) return false;
-
-    v4l2_queryctrl ctrl;
-    ctrl.id = item.qctrl.id;
-
-    if (v4l2_ioctl(fd_, VIDIOC_QUERYCTRL, &ctrl) == -1)
+    if (v4l2_ioctl(fd_, VIDIOC_S_CTRL, &(info.ctrl)) == -1)
     {
-        std::cout << "Invalid control item " << ctrl.name << std::endl;
-        return false;
-    }
-
-    if (ctrl.flags & (V4L2_CTRL_FLAG_READ_ONLY |
-                        V4L2_CTRL_FLAG_DISABLED |
-                        V4L2_CTRL_FLAG_GRABBED))
-    {
-        return true;
-    }
-
-    if (ctrl.type != V4L2_CTRL_TYPE_INTEGER &&
-        ctrl.type != V4L2_CTRL_TYPE_BOOLEAN &&
-        ctrl.type != V4L2_CTRL_TYPE_MENU)
-    {
-        return true;
-    }
-
-    auto c = item.control;
-    if (v4l2_ioctl(fd_, VIDIOC_S_CTRL, &c) == -1)
-    {
-        std::cout << "Unable to set control " << ctrl.name << " " << strerror(errno) << std::endl;
+        std::cout << "Unable to set: " << get_name_by_id(info.ctrl.id) << " => " << strerror(errno) << std::endl;
         return false;
     }
     return true;
@@ -177,17 +155,8 @@ void camera::close()
     }
 }
 
-bool camera::open()
+void camera::print_camera_info()
 {
-
-    fd_ = v4l2_open(cfg_.dev_name.c_str(), O_RDWR,0);
-    if(fd_<0)
-    {
-        std::cout<<"open camera: "+cfg_.dev_name+" failed\n";
-        return false;
-    }
-
-    /*
     v4l2_capability vc;
     memset(&vc, 0, sizeof(v4l2_capability));
     if(v4l2_ioctl(fd_, VIDIOC_QUERYCAP, &vc) !=-1)
@@ -200,14 +169,25 @@ bool camera::open()
     
     v4l2_fmtdesc fmtdesc;
     fmtdesc.index = 0;
-    fmtdesc.type = V4L2_BUF_TYPE_VIDEO_camera;
+    fmtdesc.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     std::cout<<"Support format:\n";
     while (v4l2_ioctl(fd_, VIDIOC_ENUM_FMT, &fmtdesc) != -1)
     {
         std::cout<<'\t'<<fmtdesc.index<< ". " << fmtdesc.description<<"\n";
         fmtdesc.index++;
     }
-    */
+}
+
+bool camera::open()
+{
+
+    fd_ = v4l2_open(cfg_.dev_name.c_str(), O_RDWR,0);
+    if(fd_<0)
+    {
+        std::cout<<"open camera: "+cfg_.dev_name+" failed\n";
+        return false;
+    }
+    print_camera_info();
     cap_opened_ = true;
     return true;
 }
@@ -297,16 +277,10 @@ bool camera::init()
         return false;
     }
     get_ctrl_items();
-    vector<ctrl_item_info> ctrl_items;
-    parser::camera_parser::parse(cfg_.ctrl_file, ctrl_items);
-    for(auto &it: ctrl_items)
-    {
-        for(auto &item: ctrl_items_)
-            if(item.control.id == it.id)
-                item.control.value = it.value;
-    }
-    for(auto &item: ctrl_items_)
-        set_ctrl_item(item);
+
+    parser::camera_parser::parse(cfg_.ctrl_file, ctrl_infos_);
+    for(auto it: ctrl_infos_)
+        set_ctrl_item(it);
     is_open_ = true;
     return true;
 }

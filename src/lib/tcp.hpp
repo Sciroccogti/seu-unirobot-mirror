@@ -39,6 +39,7 @@ enum remote_data_type
     ACT_DATA = 2,
     LOOKAT_DATA = 3,
     JOINT_OFFSET = 4,
+    CAMERA_SET = 10
 };
 
 struct remote_data

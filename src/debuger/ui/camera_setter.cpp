@@ -16,12 +16,13 @@ camera_setter::camera_setter(tcp_client &client, QString netinfo, QWidget *paren
     CtrlSlider *slider;
     
     parser::camera_parser::parse(CONF->get_config_value<string>(CONF->player()+".camera_file"), ctrl_items_);
+
     int i=0;
-    for(auto &it: ctrl_items_)
+    for(camera_ctrl_info it: ctrl_items_)
     {
         slider = new CtrlSlider(it);
         connect(slider, &CtrlSlider::valueChanged, this, &camera_setter::procValueChanged);
-        c_sliders_[it.id] = slider;
+        c_sliders_.push_back(slider);
         if(i<ctrl_items_.size()/2)
             leftLayout->addWidget(slider);
         else
@@ -72,32 +73,37 @@ void camera_setter::procTimer()
 
 void camera_setter::procBtnReset()
 {
-    
+    for(auto &c:ctrl_items_)
+    {
+        c.ctrl.value = c.qctrl.default_value;
+        procValueChanged(c);
+    }
+    for(auto &s:c_sliders_)
+        s->reset();
 }
 
 void camera_setter::procBtnSave()
 {
-
+    parser::camera_parser::save(CONF->get_config_value<string>(CONF->player()+".camera_file"), ctrl_items_);
 }
 
-void camera_setter::procValueChanged(int id, float v)
+void camera_setter::procValueChanged(camera_ctrl_info info)
 {
-    /*
-    ROBOT->get_joint(id)->offset_ = v;
-    tcp_command cmd;
-    remote_data_type t = JOINT_OFFSET;
-    cmd.data.clear();
-    cmd.type = REMOTE_DATA;
-    cmd.size = sizeof(robot_joint_deg)*ROBOT->get_joint_map().size()+rmt_type_size;
-    cmd.data.clear();
-    robot_joint_deg offset;
-    cmd.data.append((char*)&t, rmt_type_size);
-    for(auto &j:ROBOT->get_joint_map())
+    for(camera_ctrl_info &item:ctrl_items_)
     {
-        offset.id = j.second->jid_;
-        offset.deg = j.second->offset_;
-        cmd.data.append((char*)(&offset), sizeof(robot_joint_deg));
+        if(item.qctrl.id == info.qctrl.id)
+        {
+            item.ctrl.value = info.ctrl.value;
+            break;
+        }
     }
+    tcp_command cmd;
+    remote_data_type t = CAMERA_SET;
+    cmd.type = REMOTE_DATA;
+    cmd.size = int_size*2 +rmt_type_size;
+    cmd.data.clear();
+    cmd.data.append((char*)&t, rmt_type_size);
+    cmd.data.append((char*)&(info.ctrl.id), int_size);
+    cmd.data.append((char*)&(info.ctrl.value), int_size);
     client_.write(cmd);
-    */
 }

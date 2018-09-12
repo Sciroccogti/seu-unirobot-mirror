@@ -6,7 +6,7 @@
 #include <linux/videodev2.h>
 #include "image/image_define.hpp"
 #include "sensor/sensor.hpp"
-
+#include "model.hpp"
 
 class camera: public sensor
 {
@@ -26,7 +26,7 @@ public:
     bool open();
     void close();
     
-    bool set_ctrl_item(const v4l2_ctrl_item &item);
+    bool set_ctrl_item(const camera_ctrl_info &info);
     
     image::VideoBufferInfo buff_info() const
     {
@@ -41,8 +41,8 @@ public:
 private:
     bool init();
     void get_ctrl_items();
-    bool get_ctrl_item(v4l2_ctrl_item &item);
-    
+    void print_camera_info();
+    std::string get_name_by_id(const unsigned int &id);
 private:
     struct camera_cfg
     {
@@ -56,7 +56,7 @@ private:
     };
     
     std::thread td_;
-    std::vector<v4l2_ctrl_item> ctrl_items_;
+    std::vector<camera_ctrl_info> ctrl_infos_;
     std::map<std::string, unsigned int> format_map_;
     image::VideoBufferInfo buffer_info_;
     image::VideoBuffer *buffers_;

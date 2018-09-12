@@ -63,6 +63,14 @@ list<plan_ptr> player::play_with_remote()
             ROBOT->get_joint(jdeg.id)->offset_ = jdeg.deg;
         }
     }
+    else if(rdata.type == CAMERA_SET)
+    {
+        camera_ctrl_info info;
+        memcpy(&(info.ctrl.id), rdata.data.c_str(), int_size);
+        memcpy(&(info.ctrl.value), rdata.data.c_str()+int_size, int_size);
+        shared_ptr<camera> cm = dynamic_pointer_cast<camera>(get_sensor("camera"));
+        cm->set_ctrl_item(info);
+    }
     wm_->reset_rmt_data();
     return plist;
 }
