@@ -9,6 +9,7 @@ add_library(ui STATIC
 
 target_link_libraries(ui
             ${OpenCV_LIBS}
+            tcp_client
             glut
             GLU
             GL

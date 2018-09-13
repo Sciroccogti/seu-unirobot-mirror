@@ -62,6 +62,7 @@ namespace image
             in.seekg(0, std::ios::end);
             int tsz = in.tellg();
             in.seekg(0);
+            if(tsz%blksz != 0) return res;
             int frame_num = tsz/blksz;
             for(int i=0;i<frame_num;i++)
             {

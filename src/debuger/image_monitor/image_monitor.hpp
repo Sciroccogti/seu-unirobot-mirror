@@ -1,5 +1,5 @@
-#ifndef SEU_UNIROBOT_DEBUGER_ACTION_MONITOR_HPP
-#define SEU_UNIROBOT_DEBUGER_ACTION_MONITOR_HPP
+#ifndef SEU_UNIROBOT_DEBUGER_IMAGE_MONITOR_HPP
+#define SEU_UNIROBOT_DEBUGER_IMAGE_MONITOR_HPP
 
 #include <QtWidgets>
 #include "robot/humanoid.hpp"
@@ -36,4 +36,4 @@ private:
     int height_;
 };
 
-#endif //SEU_UNIROBOT_ACTION_MONITOR_HPP
+#endif
