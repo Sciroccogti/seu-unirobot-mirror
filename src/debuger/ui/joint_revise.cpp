@@ -5,7 +5,7 @@ using namespace robot;
 using namespace std;
 
 joint_revise::joint_revise(tcp_client &client, QString netinfo, QWidget *parent)
-    :client_(client), net_info(netinfo), QMainWindow(parent)
+    : net_info(netinfo), client_(client), QMainWindow(parent)
 {
     setAttribute(Qt::WA_DeleteOnClose);
     QHBoxLayout *mainLayout = new QHBoxLayout();
@@ -14,13 +14,21 @@ joint_revise::joint_revise(tcp_client &client, QString netinfo, QWidget *parent)
 
     first_connect = true;
     JSlider *slider;
-    for(auto &jo:ROBOT->get_joint_map())
+
+    for (auto &jo : ROBOT->get_joint_map())
     {
         slider = new JSlider(jo.second);
         connect(slider, &JSlider::valueChanged, this, &joint_revise::procValueChanged);
-        if(jo.first == "jhead2" || jo.first.find("jr") != string::npos)
+
+        if (jo.first == "jhead2" || jo.first.find("jr") != string::npos)
+        {
             rightLayout->addWidget(slider);
-        else leftLayout->addWidget(slider);
+        }
+        else
+        {
+            leftLayout->addWidget(slider);
+        }
+
         j_sliders_[jo.first] = slider;
     }
 
@@ -32,7 +40,7 @@ joint_revise::joint_revise(tcp_client &client, QString netinfo, QWidget *parent)
     mainLayout->addLayout(rightLayout);
     setWindowTitle(net_info);
 
-    timer= new QTimer;
+    timer = new QTimer;
     timer->start(1000);
 
     QWidget *mainWidget  = new QWidget();
@@ -47,13 +55,14 @@ joint_revise::joint_revise(tcp_client &client, QString netinfo, QWidget *parent)
 
 void joint_revise::procTimer()
 {
-    if(client_.is_connected())
+    if (client_.is_connected())
     {
-        if(first_connect)
+        if (first_connect)
         {
             client_.regist(REMOTE_DATA, DIR_SUPPLY);
             first_connect = false;
         }
+
         setEnabled(true);
         statusBar()->setStyleSheet("background-color:green");
     }
@@ -67,7 +76,7 @@ void joint_revise::procTimer()
 
 void joint_revise::procBtnReset()
 {
-    for(auto &s:j_sliders_)
+    for (auto &s : j_sliders_)
     {
         s.second->reset();
         ROBOT->get_joint_map()[s.first]->offset_ = 0.0;
@@ -86,15 +95,17 @@ void joint_revise::procValueChanged(int id, float v)
     remote_data_type t = JOINT_OFFSET;
     cmd.data.clear();
     cmd.type = REMOTE_DATA;
-    cmd.size = sizeof(robot_joint_deg)*ROBOT->get_joint_map().size()+rmt_type_size;
+    cmd.size = sizeof(robot_joint_deg) * ROBOT->get_joint_map().size() + rmt_type_size;
     cmd.data.clear();
     robot_joint_deg offset;
-    cmd.data.append((char*)&t, rmt_type_size);
-    for(auto &j:ROBOT->get_joint_map())
+    cmd.data.append((char *)&t, rmt_type_size);
+
+    for (auto &j : ROBOT->get_joint_map())
     {
         offset.id = j.second->jid_;
         offset.deg = j.second->offset_;
-        cmd.data.append((char*)(&offset), sizeof(robot_joint_deg));
+        cmd.data.append((char *)(&offset), sizeof(robot_joint_deg));
     }
+
     client_.write(cmd);
 }

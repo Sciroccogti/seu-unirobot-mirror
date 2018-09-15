@@ -8,8 +8,8 @@
 class walk_plan: public plan
 {
 public:
-    walk_plan(const float &x, const float &y, const float &dir, const float &h=0.04)
-        :plan("walk_plan", "body")
+    walk_plan(const float &x, const float &y, const float &dir, const float &h = 0.04)
+        : plan("walk_plan", "body")
     {
         params_[0] = x;
         params_[1] = y;

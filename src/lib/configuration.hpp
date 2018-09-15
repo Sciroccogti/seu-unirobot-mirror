@@ -7,10 +7,15 @@
 class configuration: public singleton<configuration>
 {
 public:
-    bool init(const int &id=0)
+    bool init(const int &id = 0)
     {
         id_ = id;
-        if(!parser::config_parser::parse("data/config.conf", config_tree_)) return false;
+
+        if (!parser::config_parser::parse("data/config.conf", config_tree_))
+        {
+            return false;
+        }
+
         player_ = "players." + std::to_string(id_);
         return true;
     }
@@ -28,12 +33,30 @@ public:
         }
     }
 
-    int id() const { return id_; }
-    std::string player() const { return player_; };
-    std::string field_file() const { return config_tree_.get<std::string>("field_file"); }
-    std::string robot_file() const { return config_tree_.get<std::string>(player_+".robot_file"); }
-    std::string offset_file() const { return config_tree_.get<std::string>(player_+".offset_file"); }
-    std::string action_file() const { return config_tree_.get<std::string>(player_+".action_file"); }
+    int id() const
+    {
+        return id_;
+    }
+    std::string player() const
+    {
+        return player_;
+    };
+    std::string field_file() const
+    {
+        return config_tree_.get<std::string>("field_file");
+    }
+    std::string robot_file() const
+    {
+        return config_tree_.get<std::string>(player_ + ".robot_file");
+    }
+    std::string offset_file() const
+    {
+        return config_tree_.get<std::string>(player_ + ".offset_file");
+    }
+    std::string action_file() const
+    {
+        return config_tree_.get<std::string>(player_ + ".action_file");
+    }
 
 private:
     parser::bpt::ptree config_tree_;
@@ -42,4 +65,4 @@ private:
 };
 
 #define CONF configuration::instance()
-#endif 
+#endif

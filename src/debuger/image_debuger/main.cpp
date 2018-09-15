@@ -9,14 +9,15 @@ using namespace robot;
 
 int main(int argc, char **argv)
 {
-    if(!OPTS->init(argc, argv))
+    if (!OPTS->init(argc, argv))
     {
-        std::cout<<"options init failed\n";
+        std::cout << "options init failed\n";
         exit(1);
     }
-    if(!CONF->init(OPTS->id()))
+
+    if (!CONF->init(OPTS->id()))
     {
-        std::cout<<"config init failed\n";
+        std::cout << "config init failed\n";
         exit(2);
     }
 

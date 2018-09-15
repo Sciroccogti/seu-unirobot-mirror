@@ -31,7 +31,7 @@ public:
     tcp_session(boost::asio::ip::tcp::socket sock, tcp_pool &pool, tcp_callback ncb);
     void start();
     void stop();
-    void deliver(const tcp_command& cmd);
+    void deliver(const tcp_command &cmd);
     bool check_type(const tcp_cmd_type &t);
     std::string info() const
     {
@@ -64,7 +64,7 @@ public:
     {
         return r_data_;
     }
-    
+
 private:
     void accept();
     void data_handler(const tcp_command cmd);

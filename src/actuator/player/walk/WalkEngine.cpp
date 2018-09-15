@@ -71,7 +71,7 @@ namespace walk
 
     void WalkEngine::updata(const pro_ptr &pub, const int &type)
     {
-        if(type == sensor::SENSOR_IMU)
+        if (type == sensor::SENSOR_IMU)
         {
             imu_mtx_.lock();
             std::shared_ptr<imu> sptr = std::dynamic_pointer_cast<imu>(pub);
@@ -79,7 +79,8 @@ namespace walk
             imu_mtx_.unlock();
             return;
         }
-        if(type == sensor::SENSOR_MOTOR)
+
+        if (type == sensor::SENSOR_MOTOR)
         {
             dxl_mtx_.lock();
             std::shared_ptr<motor> sptr = std::dynamic_pointer_cast<motor>(pub);
@@ -90,12 +91,15 @@ namespace walk
 
     WalkEngine::~WalkEngine()
     {
-        if(td_.joinable()) td_.join();
+        if (td_.joinable())
+        {
+            td_.join();
+        }
     }
 
     void WalkEngine::start()
     {
-        dt_ = 1.0/(1000.0/CONF->get_config_value<double>("hardware.motor.period"));
+        dt_ = 1.0 / (1000.0 / CONF->get_config_value<double>("hardware.motor.period"));
         is_alive_ = true;
         td_ = std::move(std::thread(&WalkEngine::run, this));
     }
@@ -105,7 +109,11 @@ namespace walk
         while (phase >= 1.0)
         {
             phase -= 1.0;
-            if (phase < 0.0) phase = 0.0;
+
+            if (phase < 0.0)
+            {
+                phase = 0.0;
+            }
         }
     }
 
@@ -175,29 +183,40 @@ namespace walk
         double phaseLeft, phaseRight;
         double handGain = 0.1;
         WalkParameters tempParams;
-        while(is_alive_)
+
+        while (is_alive_)
         {
             para_mutex_.lock();
             tempParams = params_;
             para_mutex_.unlock();
-            if(MADT->mode() == adapter::MODE_READY || MADT->mode() == adapter::MODE_WALK)
+
+            if (MADT->mode() == adapter::MODE_READY || MADT->mode() == adapter::MODE_WALK)
             {
                 phase_ = 0.0;
-                if(MADT->mode() == adapter::MODE_READY)
+
+                if (MADT->mode() == adapter::MODE_READY)
                 {
                     tempParams.stepGain = 0.0;
                     tempParams.lateralGain = 0.0;
                     tempParams.turnGain = 0.0;
                 }
-                while(phase_<1.0)
+
+                while (phase_ < 1.0)
                 {
                     boundPhase(phase_);
                     phaseLeft = phase_;
                     phaseRight = phase_ + 0.5;
                     boundPhase(phaseLeft);
                     boundPhase(phaseRight);
-                    if(phaseLeft<0.5) support_foot_ = LEFT_SUPPORT;
-                    else support_foot_ = RIGHT_SUPPORT;
+
+                    if (phaseLeft < 0.5)
+                    {
+                        support_foot_ = LEFT_SUPPORT;
+                    }
+                    else
+                    {
+                        support_foot_ = RIGHT_SUPPORT;
+                    }
 
                     para_mutex_.lock();
                     //Compute swing value
@@ -209,13 +228,13 @@ namespace walk
                     double rightX = tempParams.enabledGain * tempParams.stepGain * stepSpline.pos(phaseRight);
 
                     //Compute feet swing oscillation
-                    double leftY = swingVal + ROBOT->D()/2.0;
-                    double rightY = swingVal - ROBOT->D()/2.0;
+                    double leftY = swingVal + ROBOT->D() / 2.0;
+                    double rightY = swingVal - ROBOT->D() / 2.0;
                     //Compute feet lateral movement oscillation
                     leftY += tempParams.enabledGain * tempParams.lateralGain * (stepSpline.pos(phaseLeft)
-                            + 0.5 * (tempParams.lateralGain >= 0.0 ? 1.0 : -1.0));
+                             + 0.5 * (tempParams.lateralGain >= 0.0 ? 1.0 : -1.0));
                     rightY += tempParams.enabledGain * tempParams.lateralGain * (stepSpline.pos(phaseRight)
-                            + 0.5 * (tempParams.lateralGain >= 0.0 ? -1.0 : 1.0));
+                              + 0.5 * (tempParams.lateralGain >= 0.0 ? -1.0 : 1.0));
                     leftY += tempParams.footYOffset;
                     rightY += -tempParams.footYOffset;
 
@@ -275,8 +294,8 @@ namespace walk
                     //Rotate built feet trajectory to
                     //meet asked trunk Pitch and Roll new
                     //ground orientation
-                    posLeft = rotation*posLeft;
-                    posRight = rotation*posRight;
+                    posLeft = rotation * posLeft;
+                    posRight = rotation * posRight;
 
                     //Apply trunk X-Y offset
                     posLeft(0) -= tempParams.trunkXOffset;
@@ -287,11 +306,16 @@ namespace walk
                     //In case of trunk Roll rotation, an height (Z)
                     //positive offset have to be applied on external foot to
                     //set both feet on same level
-                    double deltaLen = ROBOT->D()*tan(rollVal);
+                    double deltaLen = ROBOT->D() * tan(rollVal);
+
                     if (rollVal > 0.0)
+                    {
                         posRight(2) += deltaLen;
+                    }
                     else if (rollVal < 0.0)
+                    {
                         posLeft(2) -= deltaLen;
+                    }
 
                     //Trunk X and Y offset is applied to compensate
                     //Pitch and Roll rotation. It is better for tunning if
@@ -299,8 +323,8 @@ namespace walk
                     //trunk position.
                     //posLeft(0) += (ROBOT->leg_length())*tan(tempParams.trunkPitch);
                     //posRight(0) += (ROBOT->leg_length())*tan(tempParams.trunkPitch);
-                    posLeft(1) -= (ROBOT->leg_length())*tan(rollVal);
-                    posRight(1) -= (ROBOT->leg_length())*tan(rollVal);
+                    posLeft(1) -= (ROBOT->leg_length()) * tan(rollVal);
+                    posRight(1) -= (ROBOT->leg_length()) * tan(rollVal);
 
                     body_mat.set_p(Vector3d(0, 0, ROBOT->leg_length()));
                     leftfoot_mat.set_p(posLeft);
@@ -328,9 +352,17 @@ namespace walk
                         jdegs[ROBOT->get_joint("jlknee")->jid_] = rad2deg(degs[3]);
                         jdegs[ROBOT->get_joint("jlankle2")->jid_] = rad2deg(degs[4]);
                         jdegs[ROBOT->get_joint("jlankle1")->jid_] = rad2deg(degs[5]);
-                        if(support_foot_ == LEFT_SUPPORT) ROBOT->leg_forward_kinematics(degs, true);
+
+                        if (support_foot_ == LEFT_SUPPORT)
+                        {
+                            ROBOT->leg_forward_kinematics(degs, true);
+                        }
                     }
-                    else std::cout<<phase_<<'\t'<<"\033[31mleft leg_inverse_kinematics faied!\033[0m"<<std::endl;
+                    else
+                    {
+                        std::cout << phase_ << '\t' << "\033[31mleft leg_inverse_kinematics faied!\033[0m" << std::endl;
+                    }
+
                     if (ROBOT->leg_inverse_kinematics(body_mat, rightfoot_mat, degs, false))
                     {
                         jdegs[ROBOT->get_joint("jrhip3")->jid_] = rad2deg(degs[0]);
@@ -339,30 +371,46 @@ namespace walk
                         jdegs[ROBOT->get_joint("jrknee")->jid_] = rad2deg(degs[3]);
                         jdegs[ROBOT->get_joint("jrankle2")->jid_] = rad2deg(degs[4]);
                         jdegs[ROBOT->get_joint("jrankle1")->jid_] = rad2deg(degs[5]);
-                        if(support_foot_ == RIGHT_SUPPORT) ROBOT->leg_forward_kinematics(degs, false);
+
+                        if (support_foot_ == RIGHT_SUPPORT)
+                        {
+                            ROBOT->leg_forward_kinematics(degs, false);
+                        }
                     }
-                    else std::cout<<phase_<<'\t'<<"\033[31mright leg_inverse_kinematics faied!\033[0m"<<std::endl;
+                    else
+                    {
+                        std::cout << phase_ << '\t' << "\033[31mright leg_inverse_kinematics faied!\033[0m" << std::endl;
+                    }
 
 
-                    lefthand[0] = handGain*handSpline.pos(phaseLeft);
-                    righthand[0] = handGain*handSpline.pos(phaseRight);
+                    lefthand[0] = handGain * handSpline.pos(phaseLeft);
+                    righthand[0] = handGain * handSpline.pos(phaseRight);
                     lefthand[2] = 0.1;
                     righthand[2] = 0.1;
-                    if(ROBOT->arm_inverse_kinematics(lefthand, degs))
+
+                    if (ROBOT->arm_inverse_kinematics(lefthand, degs))
                     {
                         jdegs[ROBOT->get_joint("jlshoulder1")->jid_] = rad2deg(degs[0]);
                         jdegs[ROBOT->get_joint("jlelbow")->jid_] = -rad2deg(degs[2]);
                     }
-                    if(ROBOT->arm_inverse_kinematics(righthand, degs))
+
+                    if (ROBOT->arm_inverse_kinematics(righthand, degs))
                     {
                         jdegs[ROBOT->get_joint("jrshoulder1")->jid_] = rad2deg(degs[0]);
                         jdegs[ROBOT->get_joint("jrelbow")->jid_] = rad2deg(degs[2]);
                     }
-                    while(!MADT->body_empty());
-                    if(!MADT->add_body_degs(jdegs)) break;
-                    phase_ += dt_*tempParams.freq;
+
+                    while (!MADT->body_empty());
+
+                    if (!MADT->add_body_degs(jdegs))
+                    {
+                        break;
+                    }
+
+                    phase_ += dt_ * tempParams.freq;
                 }
-                if(MADT->mode() == adapter::MODE_READY)
+
+                if (MADT->mode() == adapter::MODE_READY)
                 {
                     MADT->mode() = adapter::MODE_ACT;
                 }

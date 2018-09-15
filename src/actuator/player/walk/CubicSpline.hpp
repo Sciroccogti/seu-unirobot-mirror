@@ -6,29 +6,30 @@
 namespace walk
 {
 
-/**
- * CubicSpline
- *
- * Implementation of 3th order 
- * polynomial splines 
- */
-class CubicSpline : public Spline
-{
+    /**
+     * CubicSpline
+     *
+     * Implementation of 3th order
+     * polynomial splines
+     */
+    class CubicSpline : public Spline
+    {
     public:
 
         /**
          * Add a new point with its time, position value,
          * and velocity
          */
-        void addPoint(double time, double position, 
-            double velocity = 0.0);
-        
+        void addPoint(double time, double position,
+                      double velocity = 0.0);
+
     private:
 
         /**
          * Simple point struture
          */
-        struct Point {
+        struct Point
+        {
             double time;
             double position;
             double velocity;
@@ -38,20 +39,20 @@ class CubicSpline : public Spline
          * Points container
          */
         std::vector<Point> _points;
-        
+
         /**
          * Fit a polynom between 0 and t with given
          * pos, vel and acc initial and final conditions
          */
-        Polynom polynomFit(double t, 
-            double pos1, double vel1,
-            double pos2, double vel2) const;
-        
+        Polynom polynomFit(double t,
+                           double pos1, double vel1,
+                           double pos2, double vel2) const;
+
         /**
          * Recompute splines interpolation model
          */
         void computeSplines();
-};
+    };
 
 }
 

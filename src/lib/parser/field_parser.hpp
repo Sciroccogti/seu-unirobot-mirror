@@ -13,7 +13,12 @@ namespace parser
         static bool parse(const std::string &filename, filed_info &field)
         {
             bpt::ptree pt;
-            if(!get_tree_from_file(filename, pt)) return false;
+
+            if (!get_tree_from_file(filename, pt))
+            {
+                return false;
+            }
+
             field.field_length = pt.get<int>("field_length");
             field.field_width = pt.get<int>("field_width");
             field.goal_depth = pt.get<int>("goal_depth");

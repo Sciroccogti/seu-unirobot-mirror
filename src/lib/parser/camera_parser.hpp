@@ -14,10 +14,15 @@ namespace parser
         static void parse(const std::string &filename, std::vector<camera_ctrl_info> &ctrl_infos)
         {
             bpt::ptree pt;
-            
+
             ctrl_infos.clear();
-            if(!get_tree_from_file(filename, pt)) return;
-            for(auto &ctrl : pt)
+
+            if (!get_tree_from_file(filename, pt))
+            {
+                return;
+            }
+
+            for (auto &ctrl : pt)
             {
                 camera_ctrl_info info;
                 info.qctrl.id = static_cast<unsigned int>(std::atoi(ctrl.first.c_str()));
@@ -36,7 +41,8 @@ namespace parser
         static void save(const std::string &filename, const std::vector<camera_ctrl_info> &ctrl_infos)
         {
             bpt::ptree pt;
-            for(camera_ctrl_info item : ctrl_infos)
+
+            for (camera_ctrl_info item : ctrl_infos)
             {
                 bpt::ptree item_pt;
                 item_pt.add("name", item.qctrl.name);
@@ -47,6 +53,7 @@ namespace parser
                 item_pt.add("menu", item.menu);
                 pt.add_child(std::to_string(item.qctrl.id), item_pt);
             }
+
             write_tree_to_file(filename, pt);
         }
     };

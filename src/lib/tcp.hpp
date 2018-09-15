@@ -59,7 +59,7 @@ enum {float_size = sizeof(float)};
 enum {int_size = sizeof(int)};
 enum {data_offset = tcp_type_size + tcp_end_size + tcp_size_size};
 enum {max_data_size = MAX_CMD_LEN - data_offset};
-        
+
 typedef std::function<void (const tcp_command)> tcp_callback;
 
 #endif

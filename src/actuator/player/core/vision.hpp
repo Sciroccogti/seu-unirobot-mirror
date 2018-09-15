@@ -18,28 +18,29 @@
 class Vision: public timer, public subscriber, public singleton<Vision>
 {
 public:
-    Vision():timer(CONF->get_config_value<int>("vision_period"))
+    Vision(): timer(CONF->get_config_value<int>("vision_period"))
     {
         p_count_ = 0;
-        filename_ = get_time()+".yuv";
+        filename_ = get_time() + ".yuv";
     }
     ~Vision()
     {
-        std::cout<<"\033[32malgorithm:[Vision]   end!\033[0m\n";
+        std::cout << "\033[32malgorithm:[Vision]   end!\033[0m\n";
     }
 
     void updata(const pro_ptr &pub, const int &type)
     {
         std::shared_ptr<camera> sptr = std::dynamic_pointer_cast<camera>(pub);
-        if(type == sensor::SENSOR_CAMERA)
+
+        if (type == sensor::SENSOR_CAMERA)
         {
             frame_mutex_.lock();
             frame_ = image::image_process::buff2yuv_mat(sptr->buffer(), sptr->buff_info());
             frame_mutex_.unlock();
         }
     }
-    
-    bool start(const sensor_ptr &s=nullptr)
+
+    bool start(const sensor_ptr &s = nullptr)
     {
         server_ = std::dynamic_pointer_cast<tcp_server>(s);
         is_alive_ = true;
@@ -48,27 +49,42 @@ public:
     }
     void stop()
     {
-        if(is_alive_) delete_timer();
+        if (is_alive_)
+        {
+            delete_timer();
+        }
+
         is_alive_ = false;
     }
     mutable std::mutex frame_mutex_;
 private:
     void run()
     {
-        if(is_alive_)
+        if (is_alive_)
         {
             p_count_ ++;
             frame_mutex_.lock();
             cv::Mat yuv(frame_);
             frame_mutex_.unlock();
-            if(OPTS->image_record())
+
+            if (OPTS->image_record())
+            {
                 image::image_process::save_yuv(yuv, filename_, std::ios::app);
-            if(OPTS->use_debug())
+            }
+
+            if (OPTS->use_debug())
+            {
                 send_image(yuv);
+            }
         }
     }
     void send_image(const cv::Mat &yuvsrc)
     {
+        if (yuvsrc.empty())
+        {
+            return;
+        }
+
         cv::Mat bgr;
         cvtColor(yuvsrc, bgr, CV_YUV2BGR);
         std::vector<unsigned char> jpgbuf;
@@ -77,7 +93,7 @@ private:
         tcp_command cmd;
         cmd.type = IMAGE_DATA;
         cmd.size = jpgbuf.size();
-        cmd.data.assign((char*)&(jpgbuf[0]), jpgbuf.size());
+        cmd.data.assign((char *) & (jpgbuf[0]), jpgbuf.size());
         server_->write(cmd);
     }
     cv::Mat frame_;

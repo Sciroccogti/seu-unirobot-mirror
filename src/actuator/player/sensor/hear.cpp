@@ -33,32 +33,40 @@ void hear::stop()
 
 void hear::receive()
 {
-    socket_.async_receive_from(boost::asio::buffer((char*)&p_info_, player_info_size), point_,
-    [this](boost::system::error_code ec, std::size_t bytes_recvd)
+    socket_.async_receive_from(boost::asio::buffer((char *)&p_info_, player_info_size), point_,
+                               [this](boost::system::error_code ec, std::size_t bytes_recvd)
     {
         if (!ec && bytes_recvd > 0)
         {
             notify(SENSOR_HEAR);
         }
+
         receive();
     });
 }
 
 void hear::send(const player_info &pinfo)
 {
-    if(!is_alive_) return;
+    if (!is_alive_)
+    {
+        return;
+    }
+
     try
     {
-        socket_.async_send_to(boost::asio::buffer((char*)(&pinfo), player_info_size), point_,
-                                   [this](boost::system::error_code ec, std::size_t bytes_sent){});
+        socket_.async_send_to(boost::asio::buffer((char *)(&pinfo), player_info_size), point_,
+        [this](boost::system::error_code ec, std::size_t bytes_sent) {});
     }
-    catch(exception &e)
+    catch (exception &e)
     {
-        std::cout<<e.what()<<"\n";
+        std::cout << e.what() << "\n";
     }
 }
 
 hear::~hear()
 {
-    if(td_.joinable()) td_.join();
+    if (td_.joinable())
+    {
+        td_.join();
+    }
 }

@@ -10,7 +10,10 @@ class options: public singleton<options>
 public:
     options();
     bool init(int argc, char *argv[]);
-    int id() const { return id_; }
+    int id() const
+    {
+        return id_;
+    }
 
 private:
     template<typename T>

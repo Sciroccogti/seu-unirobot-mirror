@@ -9,11 +9,14 @@
 class lookat_plan: public plan
 {
 public:
-    lookat_plan(const float &yaw, const float &pitch, const int &act_time=1)
-        :plan("lookat_plan","head"), yaw_(yaw), pitch_(pitch), act_time_(act_time)
+    lookat_plan(const float &yaw, const float &pitch, const int &act_time = 1)
+        : plan("lookat_plan", "head")
     {
+        act_time_ = act_time;
+        yaw_ = yaw;
+        pitch_ = pitch;
     }
-    
+
     bool perform()
     {
         std::map<int, float> jdmap;
@@ -23,7 +26,9 @@ public:
         return jp.perform();
     }
 private:
-    float pitch_, yaw_, act_time_;
+    float pitch_;
+    float yaw_;
+    int act_time_;
 };
 
 #endif

@@ -10,19 +10,19 @@
 class tcp_client
 {
 public:
-    tcp_client(const std::string &addr, const int &port, tcp_callback tcb=nullptr);
+    tcp_client(const std::string &addr, const int &port, tcp_callback tcb = nullptr);
     ~tcp_client();
     void start();
     void stop();
-    void write(const tcp_command& cmd);
+    void write(const tcp_command &cmd);
     void regist(const tcp_cmd_type &type, const tcp_data_dir &dir);
     bool is_connected() const
     {
         return is_connect_;
     }
-    
+
 private:
-    void deliver(const tcp_command& cmd);
+    void deliver(const tcp_command &cmd);
     void connect();
     void connect_timeout();
     void read_head();

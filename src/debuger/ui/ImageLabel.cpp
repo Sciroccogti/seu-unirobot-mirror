@@ -4,8 +4,8 @@
 using namespace cv;
 using namespace std;
 
-ImageLabel::ImageLabel(const int& w, const int& h)
+ImageLabel::ImageLabel(const int &w, const int &h)
 {
-    this->setFixedSize(w,h);
+    this->setFixedSize(w, h);
     this->setStyleSheet("QLabel{background:black}");
 }

@@ -15,7 +15,7 @@ namespace parser
         {
             return parse_file(cfgname, pt);
         }
-        
+
         static void save(const std::string &filename, const bpt::ptree &pt)
         {
             write_tree_to_file(filename, pt);
@@ -32,13 +32,20 @@ namespace parser
             {
                 return false;
             }
+
             return true;
         }
 
         static bool parse_file(const std::string &cfgname, bpt::ptree &pt)
         {
-            if (get_tree_from_file(cfgname, pt)) return parse_ptree(pt);
-            else return false;
+            if (get_tree_from_file(cfgname, pt))
+            {
+                return parse_ptree(pt);
+            }
+            else
+            {
+                return false;
+            }
         }
 
         static bool parse_ptree(bpt::ptree &pt)
@@ -52,42 +59,71 @@ namespace parser
             {
                 data.clear();
                 data = oript.begin()->second.data();
+
                 if (data.size() == 0)
                 {
                     tpt = oript.begin()->second;
+
                     if (parse_ptree(tpt))
                     {
-                        if (!add_child(pt, oript.begin()->first, tpt)) return false;
-                        else return true;
+                        if (!add_child(pt, oript.begin()->first, tpt))
+                        {
+                            return false;
+                        }
+                        else
+                        {
+                            return true;
+                        }
                     }
-                    else return false;
+                    else
+                    {
+                        return false;
+                    }
                 }
                 else
                 {
                     if (oript.begin()->first.empty())
                     {
-                        if (parse_file(data, tpt)) pt = tpt;
-                        else return false;
+                        if (parse_file(data, tpt))
+                        {
+                            pt = tpt;
+                        }
+                        else
+                        {
+                            return false;
+                        }
+
                         return true;
                     }
                 }
             }
+
             auto iter = oript.begin();
+
             while (iter != oript.end())
             {
                 tpt = iter->second;
                 data.clear();
                 data = tpt.data();
+
                 if (data.size() == 0)
                 {
                     if (parse_ptree(tpt))
                     {
-                        if (!add_child(pt, iter->first, tpt)) return false;
+                        if (!add_child(pt, iter->first, tpt))
+                        {
+                            return false;
+                        }
                     }
-                    else return false;
+                    else
+                    {
+                        return false;
+                    }
                 }
+
                 iter++;
             }
+
             return true;
         }
     };

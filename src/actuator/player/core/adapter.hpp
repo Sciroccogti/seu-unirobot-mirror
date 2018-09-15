@@ -26,18 +26,22 @@ public:
         std::map<int, float> degs;
         degs.clear();
         bd_mutex_.lock();
-        if(!body_degs_list.empty())
+
+        if (!body_degs_list.empty())
         {
             degs.insert(body_degs_list.front().begin(), body_degs_list.front().end());
             body_degs_list.pop_front();
         }
+
         bd_mutex_.unlock();
         hd_mutex_.lock();
-        if(!head_degs_list.empty())
+
+        if (!head_degs_list.empty())
         {
             degs.insert(head_degs_list.front().begin(), head_degs_list.front().end());
             head_degs_list.pop_front();
         }
+
         hd_mutex_.unlock();
         return degs;
     }
@@ -57,7 +61,11 @@ public:
     }
     bool add_body_degs(const std::map<int, float> &jdmap)
     {
-        if(!is_alive_) return false;
+        if (!is_alive_)
+        {
+            return false;
+        }
+
         bd_mutex_.lock();
         body_degs_list.push_back(jdmap);
         latest_body_deg = jdmap;
@@ -66,7 +74,11 @@ public:
     }
     bool add_head_degs(const std::map<int, float> &jdmap)
     {
-        if(!is_alive_) return false;
+        if (!is_alive_)
+        {
+            return false;
+        }
+
         hd_mutex_.lock();
         head_degs_list.push_back(jdmap);
         latest_head_deg = jdmap;
@@ -96,16 +108,29 @@ public:
         latest_head_deg[j->jid_] = j->get_deg();
         j = robot::ROBOT->get_joint("jhead2");
         latest_head_deg[j->jid_] = j->get_deg();
-        for(auto &j:robot::ROBOT->get_joint_map())
+
+        for (auto &j : robot::ROBOT->get_joint_map())
         {
-            if(j.second->name_.find("head") == std::string::npos)
+            if (j.second->name_.find("head") == std::string::npos)
+            {
                 latest_body_deg[j.second->jid_] = j.second->get_deg();
+            }
         }
+
         is_alive_ = true;
     }
-    void stop() { is_alive_ = false;}
-    act_mode mode() const { return act_mode_; }
-    act_mode &mode() { return act_mode_; }
+    void stop()
+    {
+        is_alive_ = false;
+    }
+    act_mode mode() const
+    {
+        return act_mode_;
+    }
+    act_mode &mode()
+    {
+        return act_mode_;
+    }
 private:
     std::list< std::map<int, float> > head_degs_list;
     std::list< std::map<int, float> > body_degs_list;

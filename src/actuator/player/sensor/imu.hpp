@@ -16,20 +16,20 @@ public:
         float ax, ay, az;
         float wx, wy, wz;
     };
-    
+
     imu();
     ~imu();
-    
+
     bool start();
     void stop();
-    
-    void data_handler(const char* data, const int& size, const int& type=0);
-    
+
+    void data_handler(const char *data, const int &size, const int &type = 0);
+
     imu_data data() const
     {
         return data_;
     }
-    
+
 private:
     bool open();
     void read_head0();

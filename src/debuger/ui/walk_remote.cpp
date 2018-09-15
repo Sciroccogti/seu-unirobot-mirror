@@ -74,7 +74,7 @@ walk_remote::walk_remote(tcp_client &client, QString netinfo, QWidget *parent): 
     mainWidget->setLayout(mainLayout);
     this->setCentralWidget(mainWidget);
     setWindowTitle(netinfo_);
-    timer= new QTimer;
+    timer = new QTimer;
     timer->start(1000);
 
     connect(timer, &QTimer::timeout, this, &walk_remote::procTimer);
@@ -93,51 +93,54 @@ walk_remote::walk_remote(tcp_client &client, QString netinfo, QWidget *parent): 
 
 void walk_remote::procTimer()
 {
-    if(btnRand->isChecked())
+    if (btnRand->isChecked())
     {
 
-        _x = (rand()%(2*range_+1)-range_)/scale_xy;
-        _y = (rand()%(2*range_+1)-range_)/scale_xy;
-        _dir = (rand()%(2*range_+1)-range_)/scale_d;
+        _x = (rand() % (2 * range_ + 1) - range_) / scale_xy;
+        _y = (rand() % (2 * range_ + 1) - range_) / scale_xy;
+        _dir = (rand() % (2 * range_ + 1) - range_) / scale_d;
     }
-    else if(btnSpot->isChecked())
+    else if (btnSpot->isChecked())
     {
         _x = 0;
         _y = 0;
         _dir = 0;
     }
-    else if(btnMan->isChecked())
+    else if (btnMan->isChecked())
     {
-        _x = xSlider->value()/scale_xy;
-        _y = ySlider->value()/scale_xy;
-        _dir = dirSlider->value()/scale_d;
+        _x = xSlider->value() / scale_xy;
+        _y = ySlider->value() / scale_xy;
+        _dir = dirSlider->value() / scale_d;
     }
+
     _h = hSpinBox->value();
     updateLab();
-    if(client_.is_connected())
+
+    if (client_.is_connected())
     {
-        if(first_connect)
+        if (first_connect)
         {
             client_.regist(REMOTE_DATA, DIR_SUPPLY);
             first_connect = false;
         }
         else
         {
-            if(startCheck->isChecked())
+            if (startCheck->isChecked())
             {
                 remote_data_type rtp = WALK_DATA;
                 tcp_command cmd;
                 cmd.type = REMOTE_DATA;
-                cmd.size = rmt_type_size + float_size*4;
+                cmd.size = rmt_type_size + float_size * 4;
                 cmd.data.clear();
-                cmd.data.append((char*)(&rtp), rmt_type_size);
-                cmd.data.append((char*)(&_x), float_size);
-                cmd.data.append((char*)(&_y), float_size);
-                cmd.data.append((char*)(&_dir), float_size);
-                cmd.data.append((char*)(&_h), float_size);
+                cmd.data.append((char *)(&rtp), rmt_type_size);
+                cmd.data.append((char *)(&_x), float_size);
+                cmd.data.append((char *)(&_y), float_size);
+                cmd.data.append((char *)(&_dir), float_size);
+                cmd.data.append((char *)(&_h), float_size);
                 client_.write(cmd);
             }
         }
+
         setEnabled(true);
         statusBar()->setStyleSheet("background-color:green");
     }
@@ -151,26 +154,26 @@ void walk_remote::procTimer()
 
 void walk_remote::updateLab()
 {
-    dirLab->setText("d: "+ QString::number(_dir, 'f', 4));
-    xLab->setText("x: "+ QString::number(_x, 'f', 4));
-    yLab->setText("y: "+ QString::number(_y, 'f', 4));
+    dirLab->setText("d: " + QString::number(_dir, 'f', 4));
+    xLab->setText("x: " + QString::number(_x, 'f', 4));
+    yLab->setText("y: " + QString::number(_y, 'f', 4));
     update();
 }
 
 void walk_remote::procDSlider(int v)
 {
-    _dir = v/scale_d;
+    _dir = v / scale_d;
     updateLab();
 }
 
 void walk_remote::procXSlider(int v)
 {
-    _x = v/scale_xy;
+    _x = v / scale_xy;
     updateLab();
 }
 
 void walk_remote::procYSlider(int v)
 {
-    _y = v/scale_xy;
+    _y = v / scale_xy;
     updateLab();
 }

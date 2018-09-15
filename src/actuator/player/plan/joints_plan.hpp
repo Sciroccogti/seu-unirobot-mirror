@@ -12,7 +12,7 @@ class joints_plan: public plan
 {
 public:
     joints_plan(const std::map<int, float> &jdegs, const int &act_time, const std::string &actu)
-            :plan("action_plan", actu)
+        : plan("action_plan", actu)
     {
         jdegs_ = jdegs;
         act_time_ = act_time;
@@ -21,29 +21,50 @@ public:
     bool perform()
     {
         std::map<int, float> latest_deg, diff, jdmap;
-        if(actuator_name_ == "body")
-            latest_deg = MADT->get_body_degs();
-        else if(actuator_name_ == "head")
-            latest_deg = MADT->get_head_degs();
-        for(auto &jd:latest_deg)
-            diff[jd.first] = jdegs_[jd.first] - latest_deg[jd.first];
 
-        for(int i=1;i<=act_time_;i++)
+        if (actuator_name_ == "body")
+        {
+            latest_deg = MADT->get_body_degs();
+        }
+        else if (actuator_name_ == "head")
+        {
+            latest_deg = MADT->get_head_degs();
+        }
+
+        for (auto &jd : latest_deg)
+        {
+            diff[jd.first] = jdegs_[jd.first] - latest_deg[jd.first];
+        }
+
+        for (int i = 1; i <= act_time_; i++)
         {
             jdmap.clear();
-            for(auto &jd:diff)
-                jdmap[jd.first] = latest_deg[jd.first]+i*jd.second/(float)act_time_;
-            if(actuator_name_ == "body")
+
+            for (auto &jd : diff)
             {
-                while(!MADT->body_empty());
-                if(!MADT->add_body_degs(jdmap)) return false;
+                jdmap[jd.first] = latest_deg[jd.first] + i * jd.second / (float)act_time_;
             }
-            else if(actuator_name_ == "head")
+
+            if (actuator_name_ == "body")
             {
-                while(!MADT->head_empty());
-                if(!MADT->add_head_degs(jdmap)) return false;
+                while (!MADT->body_empty());
+
+                if (!MADT->add_body_degs(jdmap))
+                {
+                    return false;
+                }
+            }
+            else if (actuator_name_ == "head")
+            {
+                while (!MADT->head_empty());
+
+                if (!MADT->add_head_degs(jdmap))
+                {
+                    return false;
+                }
             }
         }
+
         return true;
     }
 private:

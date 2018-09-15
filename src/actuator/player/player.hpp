@@ -22,7 +22,10 @@ public:
     player();
     bool init();
     void stop();
-    bool is_alive() const { return is_alive_; }
+    bool is_alive() const
+    {
+        return is_alive_;
+    }
 protected:
     void run();
 private:

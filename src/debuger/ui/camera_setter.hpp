@@ -5,7 +5,7 @@
 #include "model.hpp"
 #include "tcp_client/tcp_client.hpp"
 
-class CtrlSlider:public QWidget
+class CtrlSlider: public QWidget
 {
     Q_OBJECT
 public:
@@ -13,7 +13,7 @@ public:
         : info_(info)
     {
         qRegisterMetaType<camera_ctrl_info>("ctrl_item_info");
-        nameLab = new QLabel(QString::fromStdString(std::string((char*)(info.qctrl.name))));
+        nameLab = new QLabel(QString::fromStdString(std::string((char *)(info.qctrl.name))));
         slider = new QSlider(Qt::Horizontal);
         slider->setMinimumWidth(200);
         slider->setMaximum(info.qctrl.maximum);
@@ -32,14 +32,17 @@ public:
         setLayout(mainLayout);
         connect(slider, &QSlider::valueChanged, this, &CtrlSlider::procSliderChanged);
     }
-    
+
     void reset()
     {
         slider->setValue(info_.qctrl.default_value);
         procSliderChanged(info_.qctrl.default_value);
     }
-    
-    camera_ctrl_info c_info() const { return info_; }
+
+    camera_ctrl_info c_info() const
+    {
+        return info_;
+    }
 public slots:
     void procSliderChanged(int v)
     {
@@ -60,7 +63,7 @@ class camera_setter: public QMainWindow
 {
     Q_OBJECT
 public:
-    camera_setter(tcp_client &client, QString netinfo, QWidget *parent=nullptr);
+    camera_setter(tcp_client &client, QString netinfo, QWidget *parent = nullptr);
 public slots:
     void procBtnReset();
     void procBtnSave();
@@ -68,7 +71,7 @@ public slots:
     void procTimer();
 
 private:
-    std::vector<CtrlSlider*> c_sliders_;
+    std::vector<CtrlSlider *> c_sliders_;
     std::vector<camera_ctrl_info> ctrl_items_;
     QPushButton *btnReset, *btnSave;
     QTimer *timer;

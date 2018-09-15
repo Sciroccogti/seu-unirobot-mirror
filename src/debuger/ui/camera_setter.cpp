@@ -5,7 +5,7 @@
 using namespace std;
 
 camera_setter::camera_setter(tcp_client &client, QString netinfo, QWidget *parent)
-    :client_(client), net_info(netinfo), QMainWindow(parent)
+    : client_(client), net_info(netinfo), QMainWindow(parent)
 {
     setAttribute(Qt::WA_DeleteOnClose);
     QHBoxLayout *mainLayout = new QHBoxLayout();
@@ -14,19 +14,26 @@ camera_setter::camera_setter(tcp_client &client, QString netinfo, QWidget *paren
 
     first_connect = true;
     CtrlSlider *slider;
-    
-    parser::camera_parser::parse(CONF->get_config_value<string>(CONF->player()+".camera_file"), ctrl_items_);
 
-    int i=0;
-    for(camera_ctrl_info it: ctrl_items_)
+    parser::camera_parser::parse(CONF->get_config_value<string>(CONF->player() + ".camera_file"), ctrl_items_);
+
+    int i = 0;
+
+    for (camera_ctrl_info it : ctrl_items_)
     {
         slider = new CtrlSlider(it);
         connect(slider, &CtrlSlider::valueChanged, this, &camera_setter::procValueChanged);
         c_sliders_.push_back(slider);
-        if(i<ctrl_items_.size()/2)
+
+        if (i < ctrl_items_.size() / 2)
+        {
             leftLayout->addWidget(slider);
+        }
         else
+        {
             rightLayout->addWidget(slider);
+        }
+
         i++;
     }
 
@@ -38,7 +45,7 @@ camera_setter::camera_setter(tcp_client &client, QString netinfo, QWidget *paren
     mainLayout->addLayout(rightLayout);
     setWindowTitle(net_info);
 
-    timer= new QTimer;
+    timer = new QTimer;
     timer->start(1000);
 
     QWidget *mainWidget  = new QWidget();
@@ -53,13 +60,14 @@ camera_setter::camera_setter(tcp_client &client, QString netinfo, QWidget *paren
 
 void camera_setter::procTimer()
 {
-    if(client_.is_connected())
+    if (client_.is_connected())
     {
-        if(first_connect)
+        if (first_connect)
         {
             client_.regist(REMOTE_DATA, DIR_SUPPLY);
             first_connect = false;
         }
+
         setEnabled(true);
         statusBar()->setStyleSheet("background-color:green");
     }
@@ -73,37 +81,41 @@ void camera_setter::procTimer()
 
 void camera_setter::procBtnReset()
 {
-    for(auto &c:ctrl_items_)
+    for (auto &c : ctrl_items_)
     {
         c.ctrl.value = c.qctrl.default_value;
         procValueChanged(c);
     }
-    for(auto &s:c_sliders_)
+
+    for (auto &s : c_sliders_)
+    {
         s->reset();
+    }
 }
 
 void camera_setter::procBtnSave()
 {
-    parser::camera_parser::save(CONF->get_config_value<string>(CONF->player()+".camera_file"), ctrl_items_);
+    parser::camera_parser::save(CONF->get_config_value<string>(CONF->player() + ".camera_file"), ctrl_items_);
 }
 
 void camera_setter::procValueChanged(camera_ctrl_info info)
 {
-    for(camera_ctrl_info &item:ctrl_items_)
+    for (camera_ctrl_info &item : ctrl_items_)
     {
-        if(item.qctrl.id == info.qctrl.id)
+        if (item.qctrl.id == info.qctrl.id)
         {
             item.ctrl.value = info.ctrl.value;
             break;
         }
     }
+
     tcp_command cmd;
     remote_data_type t = CAMERA_SET;
     cmd.type = REMOTE_DATA;
-    cmd.size = int_size*2 +rmt_type_size;
+    cmd.size = int_size * 2 + rmt_type_size;
     cmd.data.clear();
-    cmd.data.append((char*)&t, rmt_type_size);
-    cmd.data.append((char*)&(info.ctrl.id), int_size);
-    cmd.data.append((char*)&(info.ctrl.value), int_size);
+    cmd.data.append((char *)&t, rmt_type_size);
+    cmd.data.append((char *) & (info.ctrl.id), int_size);
+    cmd.data.append((char *) & (info.ctrl.value), int_size);
     client_.write(cmd);
 }

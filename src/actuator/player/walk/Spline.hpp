@@ -8,14 +8,14 @@
 namespace walk
 {
 
-/**
- * Spline
- *
- * Generic one dimentional 
- * polynomial spline generator
- */
-class Spline 
-{
+    /**
+     * Spline
+     *
+     * Generic one dimentional
+     * polynomial spline generator
+     */
+    class Spline
+    {
     public:
 
         /**
@@ -47,8 +47,8 @@ class Spline
          * Write and read splines data into given
          * iostream in ascii format
          */
-        void exportData(std::ostream& os) const;
-        void importData(std::istream& is);
+        void exportData(std::ostream &os) const;
+        void importData(std::istream &is);
 
     protected:
 
@@ -56,7 +56,8 @@ class Spline
          * Internal spline part structure
          * with a polynom valid on an interval
          */
-        struct Spline_t {
+        struct Spline_t
+        {
             Polynom polynom;
             double min;
             double max;
@@ -66,22 +67,22 @@ class Spline
          * Spline part container
          */
         std::vector<Spline_t> _splines;
-        
+
         /**
          * Return spline interpolation of given value and
          * used given polynom evaluation function
          * (member function pointer)
          */
-        double interpolation(double x, 
-            double(Polynom::*func)(double) const) const;
+        double interpolation(double x,
+                             double(Polynom::*func)(double) const) const;
 
         /**
-         * Return interpolation with x 
+         * Return interpolation with x
          * bound between 0 and 1
          */
-        double interpolationMod(double x, 
-            double(Polynom::*func)(double) const) const;
-};
+        double interpolationMod(double x,
+                                double(Polynom::*func)(double) const) const;
+    };
 
 }
 

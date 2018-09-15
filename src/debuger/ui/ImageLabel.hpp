@@ -7,7 +7,7 @@ class ImageLabel: public QLabel
 {
     Q_OBJECT
 public:
-    ImageLabel(const int &w=640, const int &h=480);
+    ImageLabel(const int &w = 640, const int &h = 480);
 };
 
 #endif

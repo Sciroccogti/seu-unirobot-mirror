@@ -185,7 +185,10 @@ namespace walk
         WalkEngine();
         ~WalkEngine();
         void start();
-        void stop() { is_alive_ = false; }
+        void stop()
+        {
+            is_alive_ = false;
+        }
         void set_params(const Eigen::Vector4f &params);
         void updata(const pro_ptr &pub, const int &type);
     private:
@@ -201,7 +204,7 @@ namespace walk
         imu::imu_data imu_data_;
         mutable std::mutex para_mutex_, imu_mtx_, dxl_mtx_;
     };
-    #define WE WalkEngine::instance()
+#define WE WalkEngine::instance()
 }
 
 #endif

@@ -25,8 +25,12 @@ namespace FSM
     {
         state_map::iterator iter;
         iter = state_map_.find(name);
+
         if (iter == state_map_.end())
+        {
             return false;
+        }
+
         curr_state_ = iter->second;
         return true;
     }
@@ -34,8 +38,12 @@ namespace FSM
     std::list<plan_ptr> fsm::run(player_ptr p)
     {
         list<plan_ptr> plist;
-        if(curr_state_.get())
+
+        if (curr_state_.get())
+        {
             plist = curr_state_->run(p);
+        }
+
         return plist;
     }
 }

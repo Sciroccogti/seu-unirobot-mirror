@@ -10,7 +10,7 @@
 
 class camera: public sensor
 {
-public: 
+public:
     struct v4l2_ctrl_item
     {
         v4l2_queryctrl qctrl;
@@ -19,20 +19,20 @@ public:
     };
     camera();
     ~camera();
- 
+
     bool start();
     void run();
     void stop();
     bool open();
     void close();
-    
+
     bool set_ctrl_item(const camera_ctrl_info &info);
-    
+
     image::VideoBufferInfo buff_info() const
     {
         return buffer_info_;
     }
-    
+
     image::VideoBuffer *buffer() const
     {
         return &(buffers_[num_bufs_]);
@@ -54,7 +54,7 @@ private:
         std::string format;
         std::string ctrl_file;
     };
-    
+
     std::thread td_;
     std::vector<camera_ctrl_info> ctrl_infos_;
     std::map<std::string, unsigned int> format_map_;
@@ -62,7 +62,7 @@ private:
     image::VideoBuffer *buffers_;
     camera_cfg cfg_;
     v4l2_buffer buf_;
-    int num_bufs_;
+    unsigned int num_bufs_;
     int fd_;
     bool cap_opened_;
 };

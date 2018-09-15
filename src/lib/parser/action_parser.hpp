@@ -7,10 +7,10 @@
 
 namespace parser
 {
-    #define acts_key_ "acts"
-    #define poses_key_ "poses"
-    #define jd_key_ "joint_deg"
-    
+#define acts_key_ "acts"
+#define poses_key_ "poses"
+#define jd_key_ "joint_deg"
+
     class action_parser: public basic_parser
     {
     public:
@@ -19,9 +19,14 @@ namespace parser
             bpt::ptree pt;
             acts.clear();
             poses.clear();
-            if(!get_tree_from_file(act_file, pt))
+
+            if (!get_tree_from_file(act_file, pt))
+            {
                 throw class_exception<action_parser>("Parse act file failed");
+            }
+
             bpt::ptree act_pt, pos_pt;
+
             try
             {
                 act_pt = pt.get_child(acts_key_);
@@ -31,38 +36,47 @@ namespace parser
             {
                 throw class_exception<action_parser>("Parse act file failed");
             }
+
             robot::robot_pos t_pos;
             bpt::ptree deg_pt;
-            for(auto &pos : pos_pt)
+
+            for (auto &pos : pos_pt)
             {
                 t_pos.name.clear();
                 t_pos.pose_info.clear();
                 t_pos.joints_deg.clear();
                 t_pos.name = pos.first;
-                for(auto &info : pos.second)
+
+                for (auto &info : pos.second)
                 {
-                    if(info.first != jd_key_)
+                    if (info.first != jd_key_)
+                    {
                         t_pos.pose_info[robot::get_motion_by_name(info.first)] = get_pose_from_tree(info.second);
+                    }
                     else
                     {
-                        for(auto &j_deg : info.second)
+                        for (auto &j_deg : info.second)
+                        {
                             t_pos.joints_deg[j_deg.first] = j_deg.second.get_value<float>();
+                        }
                     }
                 }
+
                 poses[t_pos.name] = t_pos;
             }
-            
+
             robot::robot_act t_act;
             robot::robot_one_pos t_one_pos;
 
-            for(auto &act : act_pt)
+            for (auto &act : act_pt)
             {
                 t_act.name.clear();
                 t_act.poses.clear();
                 t_act.name = act.first;
-                for(auto &pos : act.second)
+
+                for (auto &pos : act.second)
                 {
-                    if(pos_exist(pos.first, poses))
+                    if (pos_exist(pos.first, poses))
                     {
                         t_one_pos.act_time = 0;
                         t_one_pos.pos_name.clear();
@@ -70,8 +84,12 @@ namespace parser
                         t_one_pos.act_time = pos.second.get_value<int>();
                         t_act.poses.push_back(t_one_pos);
                     }
-                    else throw class_exception<action_parser>("pos: "+pos.first+" does not exist");
+                    else
+                    {
+                        throw class_exception<action_parser>("pos: " + pos.first + " does not exist");
+                    }
                 }
+
                 acts[t_act.name] = t_act;
             }
         }
@@ -82,26 +100,41 @@ namespace parser
             bpt::ptree act_pt, pos_pt;
 
             bpt::ptree act_info_child;
-            for(auto &act : acts)
+
+            for (auto &act : acts)
             {
                 act_info_child.clear();
-                for(int i=0;i<act.second.poses.size();i++)
+
+                for (size_t i = 0; i < act.second.poses.size(); i++)
+                {
                     act_info_child.add<int>(act.second.poses[i].pos_name, act.second.poses[i].act_time);
+                }
+
                 act_pt.add_child(act.second.name, act_info_child);
             }
+
             pt.add_child(acts_key_, act_pt);
             bpt::ptree pos_info_child, deg_pt;
-            for(auto &pos : poses)
+
+            for (auto &pos : poses)
             {
                 pos_info_child.clear();
                 deg_pt.clear();
-                for(auto &p_info : pos.second.pose_info)
+
+                for (auto &p_info : pos.second.pose_info)
+                {
                     pos_info_child.add_child(robot::get_name_by_motion(p_info.first), get_tree_from_pose(p_info.second));
-                for(auto &j_deg : pos.second.joints_deg)
+                }
+
+                for (auto &j_deg : pos.second.joints_deg)
+                {
                     deg_pt.add<float>(j_deg.first, j_deg.second);
+                }
+
                 pos_info_child.add_child(jd_key_, deg_pt);
                 pos_pt.add_child(pos.second.name, pos_info_child);
             }
+
             pt.add_child(poses_key_, pos_pt);
             write_tree_to_file(act_file, pt);
         }
@@ -133,8 +166,14 @@ namespace parser
 
         static bool pos_exist(const std::string &name, const std::map<std::string, robot::robot_pos> &poses)
         {
-            if(poses.find(name) != poses.end()) return true;
-            else return false;
+            if (poses.find(name) != poses.end())
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         }
     };
 }

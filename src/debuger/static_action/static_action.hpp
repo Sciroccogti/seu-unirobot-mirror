@@ -20,7 +20,7 @@ public:
     int time_;
 public:
     CPosListWidget(const int &id, const std::string &p_name, const int &t)
-        :time_(t), pos_name_(p_name)
+        : pos_name_(p_name), time_(t)
     {
         m_id = new QLabel(QString::number(id));
         pos_name = new QLineEdit(QString::fromStdString(p_name));
@@ -37,17 +37,19 @@ public:
 private slots:
     void procNameChange()
     {
-        emit nameChanged(m_id->text().toInt()); 
+        emit nameChanged(m_id->text().toInt());
     }
     void procTimeChange()
     {
         int t = pos_time->text().toInt();
-        if(t == 0)
+
+        if (t == 0)
         {
             QMessageBox::warning(this, "Error", "Invalid time!");
             pos_time->setText(QString::number(time_));
             return;
         }
+
         time_ = t;
         emit timeChanged(m_id->text().toInt());
     }
@@ -77,7 +79,7 @@ public:
 
 class CKSlider: public QWidget
 {
-Q_OBJECT
+    Q_OBJECT
 public:
     QLabel *nameLab;
     QSlider *slider;
@@ -121,8 +123,8 @@ private slots:
     void procPitch(int value);
     void procYaw(int value);
 
-    void procActSelect(QListWidgetItem* item);
-    void procPosSelect(QListWidgetItem* item);
+    void procActSelect(QListWidgetItem *item);
+    void procPosSelect(QListWidgetItem *item);
 
     void procButtonInsertPosBack();
     void procButtonInsertPosFront();
@@ -160,7 +162,7 @@ private:
     bool pos_saved;
     int last_pos_id, last_act_id;
 
-    QLabel *motionlab, *valuelab,*currposlab, *curractlab, *netstatuslab;
+    QLabel *motionlab, *valuelab, *currposlab, *curractlab, *netstatuslab;
     QListWidget *m_pPosListWidget, *m_pActListWidget, *m_pJDListWidget1, *m_pJDListWidget2;
     QPushButton *mButtonInsertPosFront, *mButtonInsertPosBack, *mButtonDeletePos, *mButtonSavePos;
     QPushButton *mButtonAddAction, *mButtonDeleteAction, *mButtonSaveAction;
@@ -169,8 +171,8 @@ private:
     QButtonGroup *motionBtnGroup;
     QGroupBox *mSliderGroup;
     RobotGL *robot_gl_;
-    std::vector<CKSlider*> mKsliders;
-    std::map<std::string, CJointDegWidget*> mJDInfos;
+    std::vector<CKSlider *> mKsliders;
+    std::map<std::string, CJointDegWidget *> mJDInfos;
 };
 
 #endif

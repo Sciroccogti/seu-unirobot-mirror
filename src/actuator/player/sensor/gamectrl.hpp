@@ -43,19 +43,19 @@ public:
         P_PENALTY_PICKUP_OR_INCAPABLE, // defien PENALTY_HL_KID_REQUEST_FOR_PICKUP 5
         P_PENALTY_SERVICE, // define PENALTY_HL_KID_REQUEST_FOR_SERVICE 6
     };
-    
+
     enum FreeKickStage
     {
-        FK_ADAJUST=0,
+        FK_ADAJUST = 0,
         FK_EXECUTE
     };
-    
+
     gamectrl();
     ~gamectrl();
-    
+
     bool start();
     void stop();
-    
+
     RoboCupGameControlData data() const
     {
         return data_;
@@ -64,7 +64,7 @@ private:
     void run();
     void receive();
     void send();
-    
+
     enum {gc_data_size = sizeof(RoboCupGameControlData)};
     RoboCupGameControlData data_;
     RoboCupGameControlReturnData ret_data_;

@@ -23,5 +23,5 @@ using namespace dynamixel;
 
 std::shared_ptr<PortHandler> PortHandler::getPortHandler(const char *port_name)
 {
-  return std::dynamic_pointer_cast<PortHandler>(std::make_shared<PortHandlerLinux>(port_name));
+    return std::dynamic_pointer_cast<PortHandler>(std::make_shared<PortHandlerLinux>(port_name));
 }

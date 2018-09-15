@@ -13,15 +13,27 @@
 class motor: public sensor, public timer
 {
 public:
-    motor(sensor_ptr dbg=nullptr);
+    motor(sensor_ptr dbg = nullptr);
     ~motor();
     void stop();
     bool start();
     void run();
-    double freq() const { return 1000.0/(double)period_ms_; }
-    float low_power() const { return (voltage_/10.0f)<min_volt_?true:false; }
-    bool is_connected() const { return is_connected_; }
-    bool is_lost() const { return is_lost_; }
+    double freq() const
+    {
+        return 1000.0 / (double)period_ms_;
+    }
+    float low_power() const
+    {
+        return (voltage_ / 10.0f) < min_volt_ ? true : false;
+    }
+    bool is_connected() const
+    {
+        return is_connected_;
+    }
+    bool is_lost() const
+    {
+        return is_lost_;
+    }
 private:
     bool open();
     void close();

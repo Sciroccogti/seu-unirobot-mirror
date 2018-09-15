@@ -23,9 +23,9 @@ struct SAngle
     short Angle[3];
     short T;
 };
-SAcc 		stcAcc;
-SGyro 		stcGyro;
-SAngle 	    stcAngle;
+SAcc        stcAcc;
+SGyro       stcGyro;
+SAngle      stcAngle;
 
 imu::imu(): sensor("imu"), serial_(imu_service)
 {
@@ -43,9 +43,9 @@ bool imu::open()
         serial_.set_option(boost::asio::serial_port::character_size(8));
         return true;
     }
-    catch(exception &e)
+    catch (exception &e)
     {
-        std::cout<<"\033[33mimu: "<<e.what()<<"\033[0m\n";
+        std::cout << "\033[33mimu: " << e.what() << "\033[0m\n";
         return false;
     }
 }
@@ -54,14 +54,18 @@ void imu::read_head0()
 {
     auto self(shared_from_this());
     boost::asio::async_read(serial_, boost::asio::buffer(buff_, 1),
-        [this, self](boost::system::error_code ec, std::size_t length)
+                            [this, self](boost::system::error_code ec, std::size_t length)
     {
         if (!ec)
         {
-            if(buff_[0] == imu_header[0])
+            if (buff_[0] == imu_header[0])
+            {
                 read_head1();
+            }
             else
+            {
                 read_head0();
+            }
         }
     });
 }
@@ -69,15 +73,19 @@ void imu::read_head0()
 void imu::read_head1()
 {
     auto self(shared_from_this());
-    boost::asio::async_read(serial_, boost::asio::buffer(buff_+1, 1),
-        [this, self](boost::system::error_code ec, std::size_t length)
+    boost::asio::async_read(serial_, boost::asio::buffer(buff_ + 1, 1),
+                            [this, self](boost::system::error_code ec, std::size_t length)
     {
         if (!ec)
         {
-            if(buff_[1] == imu_header[1] || buff_[1] == imu_header[2] || buff_[1] == imu_header[3])
+            if (buff_[1] == imu_header[1] || buff_[1] == imu_header[2] || buff_[1] == imu_header[3])
+            {
                 read_data();
+            }
             else
+            {
                 read_head0();
+            }
         }
     });
 }
@@ -85,40 +93,50 @@ void imu::read_head1()
 void imu::read_data()
 {
     auto self(shared_from_this());
-    boost::asio::async_read(serial_, boost::asio::buffer(buff_+2, imu_len-2),
-    [this, self](boost::system::error_code ec, std::size_t length)
+    boost::asio::async_read(serial_, boost::asio::buffer(buff_ + 2, imu_len - 2),
+                            [this, self](boost::system::error_code ec, std::size_t length)
     {
         if (!ec)
         {
-            unsigned char sum=0;
-            for(int i=0;i<imu_len-1;i++)
-                sum+=buff_[i];
-            if(sum == buff_[imu_len-1])
+            unsigned char sum = 0;
+
+            for (int i = 0; i < imu_len - 1; i++)
             {
-                switch(buff_[1])
+                sum += buff_[i];
+            }
+
+            if (sum == buff_[imu_len - 1])
+            {
+                switch (buff_[1])
                 {
                     case 0x51:
-                        memcpy(&stcAcc,&buff_[2],8);
-                        data_.ax = stcAcc.a[0]/32768.0f*16.0f*g_;
-                        data_.ay = stcAcc.a[1]/32768.0f*16.0f*g_;
-                        data_.az = stcAcc.a[2]/32768.0f*16.0f*g_;
+                        memcpy(&stcAcc, &buff_[2], 8);
+                        data_.ax = stcAcc.a[0] / 32768.0f * 16.0f * g_;
+                        data_.ay = stcAcc.a[1] / 32768.0f * 16.0f * g_;
+                        data_.az = stcAcc.a[2] / 32768.0f * 16.0f * g_;
                         break;
+
                     case 0x52:
-                        memcpy(&stcGyro,&buff_[2],8);
-                        data_.wx = stcGyro.w[0]/32768.0f*2000.0f;
-                        data_.wy = stcGyro.w[1]/32768.0f*2000.0f;
-                        data_.wz = stcGyro.w[2]/32768.0f*2000.0f;
+                        memcpy(&stcGyro, &buff_[2], 8);
+                        data_.wx = stcGyro.w[0] / 32768.0f * 2000.0f;
+                        data_.wy = stcGyro.w[1] / 32768.0f * 2000.0f;
+                        data_.wz = stcGyro.w[2] / 32768.0f * 2000.0f;
                         break;
+
                     case 0x53:
-                        memcpy(&stcAngle,&buff_[2],8);
-                        data_.roll = stcAngle.Angle[0]/32768.0f*180.0f;
-                        data_.pitch = stcAngle.Angle[1]/32768.0f*180.0f;
-                        data_.yaw = stcAngle.Angle[2]/32768.0f*180.0f;
+                        memcpy(&stcAngle, &buff_[2], 8);
+                        data_.roll = stcAngle.Angle[0] / 32768.0f * 180.0f;
+                        data_.pitch = stcAngle.Angle[1] / 32768.0f * 180.0f;
+                        data_.yaw = stcAngle.Angle[2] / 32768.0f * 180.0f;
                         break;
-                    default: break;
+
+                    default:
+                        break;
                 }
+
                 notify(SENSOR_IMU);
             }
+
             read_head0();
         }
     });
@@ -126,7 +144,11 @@ void imu::read_data()
 
 bool imu::start()
 {
-    if(!this->open()) return false;
+    if (!this->open())
+    {
+        return false;
+    }
+
     is_open_ = true;
     is_alive_ = true;
     td_ = std::move(thread([this]()
@@ -147,5 +169,8 @@ void imu::stop()
 
 imu::~imu()
 {
-    if(td_.joinable()) td_.join();
+    if (td_.joinable())
+    {
+        td_.join();
+    }
 }

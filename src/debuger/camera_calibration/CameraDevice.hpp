@@ -9,7 +9,7 @@ class CameraDevice: public QObject
     Q_OBJECT
 public:
     explicit CameraDevice();
-    bool start(const int &index=0);
+    bool start(const int &index = 0);
     bool stop();
     cv::Mat getimage()
     {
@@ -23,7 +23,7 @@ signals:
 private slots:
     void onTimeout();
 private:
-    bool Camera_Init(const int &index=0);
+    bool Camera_Init(const int &index = 0);
     cv::VideoCapture m_capture;
     QTimer *m_timer;
     cv::Mat srcimage;

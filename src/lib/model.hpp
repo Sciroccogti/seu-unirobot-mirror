@@ -21,7 +21,7 @@ struct filed_info
 struct player_info
 {
     int id;
-    float x,y,dir;
+    float x, y, dir;
     float ball_x, ball_y;
 };
 
@@ -31,7 +31,7 @@ struct camera_ctrl_info
     v4l2_control ctrl;
     std::string menu;
 };
-        
+
 enum { player_info_size = sizeof(player_info)};
 
 #endif

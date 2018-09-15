@@ -9,40 +9,51 @@ namespace robot_math
 
     inline double deg2rad(const double &x)
     {
-        return x*M_PI/180.0;
+        return x * M_PI / 180.0;
     }
 
     inline double rad2deg(const double &x)
     {
-        return x*180.0/M_PI;
+        return x * 180.0 / M_PI;
     }
 
     inline bool is_zero(const double &x)
     {
-        return fabs(x)<1E-4;
+        return fabs(x) < 1E-4;
     }
 
     template <typename T>
     inline T sign(const T &x)
     {
-        return (x>=0)?1:-1;
+        return (x >= 0) ? 1 : -1;
     }
 
     template <typename T>
     inline void bound(const T &min, const T &max, T &x)
     {
-        if(max<min) return;
-        if(x<min) x = min;
-        if(x>max) x = max;
+        if (max < min)
+        {
+            return;
+        }
+
+        if (x < min)
+        {
+            x = min;
+        }
+
+        if (x > max)
+        {
+            x = max;
+        }
     }
 
     inline Eigen::Matrix3d RotY(const double &deg)
     {
         double x = deg2rad(deg);
         Eigen::Matrix3d m;
-        m<< cos(x),     0.0, sin(x),
-                0.0,        1.0, 0.0,
-                -sin(x),    0.0, cos(x);
+        m << cos(x),     0.0, sin(x),
+        0.0,        1.0, 0.0,
+        -sin(x),    0.0, cos(x);
         return m;
     }
 
@@ -50,9 +61,9 @@ namespace robot_math
     {
         double x = deg2rad(deg);
         Eigen::Matrix3d m;
-        m<< 1.0, 0.0,       0.0,
-                0.0, cos(x),    -sin(x),
-                0.0, sin(x),    cos(x);
+        m << 1.0, 0.0,       0.0,
+        0.0, cos(x),    -sin(x),
+        0.0, sin(x),    cos(x);
         return m;
     }
 
@@ -60,9 +71,9 @@ namespace robot_math
     {
         double x = deg2rad(deg);
         Eigen::Matrix3d m;
-        m<< cos(x), -sin(x),    0.0,
-                sin(x), cos(x),     0.0,
-                0.0,    0.0,        1.0;
+        m << cos(x), -sin(x),    0.0,
+        sin(x), cos(x),     0.0,
+        0.0,    0.0,        1.0;
         return m;
     }
 }

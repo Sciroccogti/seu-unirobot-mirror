@@ -18,18 +18,31 @@ namespace parser
             int count_of_quotatuion = 0;
             std::stringstream json_data;
 
-            if (!ifs) return false;
+            if (!ifs)
+            {
+                return false;
+            }
 
-            while(std::getline(ifs, line))
+            while (std::getline(ifs, line))
             {
                 count_of_quotatuion = 0;
-                for(auto &c: line)
+
+                for (auto &c : line)
                 {
-                    if(c == '\'' || c == '\"') count_of_quotatuion++;
-                    if(c == '#'&& count_of_quotatuion%2 == 0) break;
-                    json_data<<c;
+                    if (c == '\'' || c == '\"')
+                    {
+                        count_of_quotatuion++;
+                    }
+
+                    if (c == '#' && count_of_quotatuion % 2 == 0)
+                    {
+                        break;
+                    }
+
+                    json_data << c;
                 }
             }
+
             bpt::read_json(json_data, pt);
             return true;
         }

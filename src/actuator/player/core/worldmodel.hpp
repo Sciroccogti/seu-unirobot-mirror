@@ -24,16 +24,17 @@ public:
 
     void updata(const pro_ptr &pub, const int &type)
     {
-        if(type == sensor::SENSOR_GC)
+        if (type == sensor::SENSOR_GC)
         {
             gc_mtx_.lock();
             std::shared_ptr<gamectrl> sptr = std::dynamic_pointer_cast<gamectrl>(pub);
             gc_data_ = sptr->data();
             gc_mtx_.unlock();
-            std::cout<<(int)gc_data_.state<<std::endl;
+            std::cout << (int)gc_data_.state << std::endl;
             return;
         }
-        if(type == sensor::SENSOR_HEAR)
+
+        if (type == sensor::SENSOR_HEAR)
         {
             hear_mtx_.lock();
             std::shared_ptr<hear> sptr = std::dynamic_pointer_cast<hear>(pub);
@@ -41,7 +42,8 @@ public:
             hear_mtx_.unlock();
             return;
         }
-        if(type == sensor::SENSOR_IMU)
+
+        if (type == sensor::SENSOR_IMU)
         {
             imu_mtx_.lock();
             std::shared_ptr<imu> sptr = std::dynamic_pointer_cast<imu>(pub);
@@ -49,7 +51,8 @@ public:
             imu_mtx_.unlock();
             return;
         }
-        if(type == sensor::SENSOR_MOTOR)
+
+        if (type == sensor::SENSOR_MOTOR)
         {
             dxl_mtx_.lock();
             std::shared_ptr<motor> sptr = std::dynamic_pointer_cast<motor>(pub);
@@ -58,7 +61,8 @@ public:
             dxl_mtx_.unlock();
             return;
         }
-        if(type == sensor::SENSOR_SERVER)
+
+        if (type == sensor::SENSOR_SERVER)
         {
             rmt_mtx_.lock();
             std::shared_ptr<tcp_server> sptr = std::dynamic_pointer_cast<tcp_server>(pub);
@@ -99,8 +103,14 @@ public:
         rmt_data_.size = 0;
     }
 
-    bool low_power() const { return low_power_; }
-    bool is_lost() const { return is_lost_; }
+    bool low_power() const
+    {
+        return low_power_;
+    }
+    bool is_lost() const
+    {
+        return is_lost_;
+    }
 
 private:
     bool low_power_, is_lost_;

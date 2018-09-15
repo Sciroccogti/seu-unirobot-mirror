@@ -39,7 +39,7 @@ namespace robot
             current_deg_ = 0.0f;
             offset_ = 0.0f;
         }
-        
+
         bool set_deg(const float &deg)
         {
             current_deg_ = deg;
@@ -89,28 +89,37 @@ namespace robot
     };
 
     static const std::map<std::string, robot_motion> name_motion_map = {{"none", MOTION_NONE},
-                                                                        {"right_hand", MOTION_RIGHT_HAND},
-                                                                        {"left_hand", MOTION_LEFT_HAND},
-                                                                        {"body", MOTION_BODY},
-                                                                        {"right_foot", MOTION_RIGHT_FOOT},
-                                                                        {"left_foot", MOTION_LEFT_FOOT},
-                                                                        {"head", MOTION_HEAD}};
+        {"right_hand", MOTION_RIGHT_HAND},
+        {"left_hand", MOTION_LEFT_HAND},
+        {"body", MOTION_BODY},
+        {"right_foot", MOTION_RIGHT_FOOT},
+        {"left_foot", MOTION_LEFT_FOOT},
+        {"head", MOTION_HEAD}
+    };
 
     inline std::string get_name_by_motion(const robot_motion &motion)
     {
-        for(auto &nm : name_motion_map)
+        for (auto &nm : name_motion_map)
         {
-            if(nm.second == motion) return nm.first;
+            if (nm.second == motion)
+            {
+                return nm.first;
+            }
         }
+
         return "";
     }
 
     inline robot_motion get_motion_by_name(const std::string &name)
     {
-        for(auto &nm : name_motion_map)
+        for (auto &nm : name_motion_map)
         {
-            if(nm.first == name) return nm.second;
+            if (nm.first == name)
+            {
+                return nm.second;
+            }
         }
+
         return MOTION_NONE;
     }
 

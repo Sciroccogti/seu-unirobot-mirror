@@ -48,9 +48,14 @@ public:
             it_.it_value.tv_nsec = msc * 1000000;
 
             if (timer_create(CLOCK_REALTIME, &se_, &t_) < 0)
+            {
                 throw class_exception<timer>("Timer create failed.");
+            }
+
             if (timer_settime(t_, 0, &it_, 0) < 0)
+            {
                 throw class_exception<timer>("Timer setting failed.");
+            }
         }
     }
 

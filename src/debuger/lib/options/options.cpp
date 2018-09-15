@@ -15,20 +15,22 @@ bool options::init(int argc, char *argv[])
     {
         store(parse_command_line(argc, argv, opts_desc_), var_map_);
         id_ = arg<int>("player");
+
         if (var_map_.count("help"))
         {
-            std::cout<<opts_desc_<<"\n";
+            std::cout << opts_desc_ << "\n";
             return false;
         }
     }
     catch (boost::program_options::unknown_option &e)
     {
-        std::cout<<e.what()<<"\n";
+        std::cout << e.what() << "\n";
     }
     catch (std::exception &e)
     {
-        std::cout<<e.what()<<"\n";
+        std::cout << e.what() << "\n";
         return false;
     }
+
     return true;
 }

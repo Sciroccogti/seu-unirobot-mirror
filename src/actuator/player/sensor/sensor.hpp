@@ -19,13 +19,13 @@ public:
         SENSOR_MOTOR = 5,
         SENSOR_CAMERA = 6
     };
-    sensor(const std::string &name):name_(name)
+    sensor(const std::string &name): name_(name)
     {
     }
 
     ~sensor()
     {
-        std::cout<<std::setw(15)<<"\033[32msensor: "<<std::setw(10)<<"["+name_+"]"<<" end!\n\033[0m";
+        std::cout << std::setw(15) << "\033[32msensor: " << std::setw(10) << "[" + name_ + "]" << " end!\n\033[0m";
     }
 
     virtual bool start() = 0;

@@ -13,7 +13,7 @@ using namespace robot;
 
 RobotGL::RobotGL(bone_ptr b, const robot::joint_map &jmap): main_bone_(b)
 {
-    setMinimumSize(600,600);
+    setMinimumSize(600, 600);
     m_Rotate_X = -45.0;
     m_Rotate_Y = -36.0;
 
@@ -22,17 +22,23 @@ RobotGL::RobotGL(bone_ptr b, const robot::joint_map &jmap): main_bone_(b)
     m_transZ = 1.0f;
 
     m_KeyState = 0;
-    m_mousePoint = QPoint(300,300);
+    m_mousePoint = QPoint(300, 300);
     setMouseTracking(false);
     joints_deg_.clear();
-    for(auto &j:jmap)
+
+    for (auto &j : jmap)
+    {
         joints_deg_[j.second->jid_] = j.second->get_deg();
+    }
 }
 
 void RobotGL::turn_joint(const std::map<int, float> &degs)
 {
-    for(auto &d:degs)
+    for (auto &d : degs)
+    {
         joints_deg_[d.first] = d.second;
+    }
+
     this->update();
 }
 
@@ -50,7 +56,11 @@ void RobotGL::paintGL()
 
 void RobotGL::draw_3d_bone(bone_ptr b)
 {
-    if(!b) return;
+    if (!b)
+    {
+        return;
+    }
+
     float r_b = 0.01;
     float r_j = 0.02;
     float j_l = 0.04;
@@ -61,16 +71,19 @@ void RobotGL::draw_3d_bone(bone_ptr b)
 
     glPushMatrix();
     draw_3d_cylinder(b->length_, r_b, r_b);
-    for(auto &j : b->joints_)
+
+    for (auto &j : b->joints_)
     {
         glPushMatrix();
-        if(j->can_turn_)
+
+        if (j->can_turn_)
         {
             glTranslatef(-j->cp_[0], -j->cp_[1], -j->cp_[2]);
             glRotatef(j->cr_[0], 1.0f, 0.0f, 0.0f);
             glRotatef(j->cr_[1], 0.0f, 1.0f, 0.0f);
             glRotatef(j->cr_[2], 0.0f, 0.0f, 1.0f);
-            if(j->next_bone_)
+
+            if (j->next_bone_)
             {
                 glTranslatef(0.0f, 0.0f, r_j);
                 draw_3d_cylinder(j_l, r_j, r_j);
@@ -81,11 +94,13 @@ void RobotGL::draw_3d_bone(bone_ptr b)
             glTranslatef(-j->cp_[0], -j->cp_[1], -j->cp_[2]);
             draw_3d_sphere(r_j);
         }
+
         glPopMatrix();
     }
+
     glPopMatrix();
 
-    for(auto &j : b->joints_)
+    for (auto &j : b->joints_)
     {
         glPushMatrix();
         glTranslatef(-j->cp_[0], -j->cp_[1], -j->cp_[2]);
@@ -93,12 +108,17 @@ void RobotGL::draw_3d_bone(bone_ptr b)
         glRotatef(j->cr_[1], 0.0f, 1.0f, 0.0f);
         glRotatef(j->cr_[2], 0.0f, 0.0f, 1.0f);
 
-        if(j->can_turn_)
+        if (j->can_turn_)
         {
             glRotatef(joints_deg_[j->jid_] + j->init_deg_, 0.0f, 0.0f, 1.0f);
             glRotatef(90.0f, 1.0f, 0.0f, 0.0f);
         }
-        if (j->next_bone_) draw_3d_bone(j->next_bone_);
+
+        if (j->next_bone_)
+        {
+            draw_3d_bone(j->next_bone_);
+        }
+
         glPopMatrix();
     }
 }
@@ -172,7 +192,10 @@ void RobotGL::initializeGL()
 
     quad_obj = NULL;
 
-    if ( quad_obj == NULL ) quad_obj = gluNewQuadric();
+    if ( quad_obj == NULL )
+    {
+        quad_obj = gluNewQuadric();
+    }
 
     gluQuadricDrawStyle( quad_obj, GLU_FILL );
     gluQuadricNormals( quad_obj, GLU_SMOOTH );
@@ -278,10 +301,11 @@ void RobotGL::draw_3d_ground(float width, float div)
 void RobotGL::mousePressEvent(QMouseEvent *event)
 {
     this->setFocusPolicy(Qt::StrongFocus);
+
     if (event ->button() == Qt::LeftButton)
     {
-       m_mousePoint = event->pos();
-       m_IsPressed = true;
+        m_mousePoint = event->pos();
+        m_IsPressed = true;
     }
 }
 
@@ -293,14 +317,23 @@ void RobotGL::mouseReleaseEvent(QMouseEvent *event)
 void RobotGL::mouseMoveEvent(QMouseEvent *event)
 {
     QPoint p;
+
     if (m_IsPressed)
     {
         p = event->pos();
         m_Rotate_X += (p.x() - m_mousePoint.x()) / 3.0f;
         m_Rotate_Y -= (p.y() - m_mousePoint.y()) / 3.0f;
         m_mousePoint = p;
-        if (m_Rotate_Y > 90.0f) m_Rotate_Y = 90.0f;
-        else if (m_Rotate_Y < -90.0f) m_Rotate_Y = -90.0f;
+
+        if (m_Rotate_Y > 90.0f)
+        {
+            m_Rotate_Y = 90.0f;
+        }
+        else if (m_Rotate_Y < -90.0f)
+        {
+            m_Rotate_Y = -90.0f;
+        }
+
         this->update();
     }
 }
@@ -323,6 +356,7 @@ void RobotGL::wheelEvent(QWheelEvent *event)
         m_transY -= sin(rad_xy) * speed / 3.0f;
         m_transZ -= tan(rad_z) * speed / 3.0f;
     }
+
     this->update();
 }
 
@@ -337,36 +371,46 @@ void RobotGL::keyPressEvent(QKeyEvent *event)
         case Qt::Key_Up:
             m_KeyState = 1;
             break;
+
         case Qt::Key_S:
         case Qt::Key_Down:
             m_KeyState = 2;
             break;
+
         case Qt::Key_A:
         case Qt::Key_Left:
             m_KeyState = 3;
             break;
+
         case Qt::Key_D:
         case Qt::Key_Right:
             m_KeyState = 4;
             break;
+
         case Qt::Key_PageUp:
             m_KeyState = 5;
             break;
+
         case Qt::Key_PageDown:
             m_KeyState = 6;
             break;
+
         case Qt::Key_Q:
             m_KeyState = 7;
             break;
+
         case Qt::Key_E:
             m_KeyState = 8;
             break;
+
         case Qt::Key_R:
             m_KeyState = 9;
             break;
+
         case Qt::Key_F:
             m_KeyState = 10;
             break;
+
         case Qt::Key_T:
             m_KeyState = 11;
             break;
@@ -377,23 +421,35 @@ void RobotGL::keyPressEvent(QKeyEvent *event)
         m_transX -= cos(rad_xy) * speed / 3.0f;
         m_transY += sin(rad_xy) * speed / 3.0f;
     }
+
     if (m_KeyState == 2)
     {
         m_transX += cos(rad_xy) * speed / 3.0f;
         m_transY -= sin(rad_xy) * speed / 3.0f;
     }
+
     if (m_KeyState == 3)
     {
         m_transX -= sin(rad_xy) * speed / 3.0f;
         m_transY -= cos(rad_xy) * speed / 3.0f;
     }
+
     if (m_KeyState == 4)
     {
         m_transX += sin(rad_xy) * speed / 3.0f;
         m_transY += cos(rad_xy) * speed / 3.0f;
     }
-    if (m_KeyState == 5) m_transZ += speed;
-    if (m_KeyState == 6) m_transZ -= speed;
+
+    if (m_KeyState == 5)
+    {
+        m_transZ += speed;
+    }
+
+    if (m_KeyState == 6)
+    {
+        m_transZ -= speed;
+    }
+
     if (m_KeyState == 9)
     {
         m_transX = 1;
@@ -402,6 +458,7 @@ void RobotGL::keyPressEvent(QKeyEvent *event)
         m_Rotate_X = 0.0;
         m_Rotate_Y = 0.0;
     }
+
     if (m_KeyState == 10)
     {
         m_transX = 0;
@@ -410,6 +467,7 @@ void RobotGL::keyPressEvent(QKeyEvent *event)
         m_Rotate_X = -90.0;
         m_Rotate_Y = 0.0;
     }
+
     if (m_KeyState == 11)
     {
         m_transX = 0;
@@ -418,6 +476,7 @@ void RobotGL::keyPressEvent(QKeyEvent *event)
         m_Rotate_X = 0.0;
         m_Rotate_Y = 90.0;
     }
+
     this->update();
 }
 

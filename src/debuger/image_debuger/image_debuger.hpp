@@ -20,7 +20,7 @@ public slots:
     void procBoxAuto();
     void procFrmSlider(int v);
 private:
-    void proc_image(const int &index);
+    void proc_image(const unsigned int &index);
     QPushButton *btnLoad, *btnNext, *btnLast;
     QCheckBox *boxAuto;
     ImageLabel *srcLab, *dstLab;
@@ -28,11 +28,11 @@ private:
     QTimer *timer;
     QSlider *frmSlider;
     QLineEdit *delayEdit;
-    int curr_index_;
+    unsigned int curr_index_;
     cv::Mat curr_image_;
     std::vector<cv::Mat> yuv_images_;
     int width_;
     int height_;
 };
 
-#endif 
+#endif

@@ -8,12 +8,12 @@ template <class CLASS>
 class class_exception
 {
 public:
-    class_exception(std::string msg, int id=0): msg_(msg), id_(id)
+    class_exception(std::string msg, int id = 0): msg_(msg), id_(id)
     {
-        std::cout<<"\033[31mexception: "+msg_<<"\n\033[0m";
+        std::cout << "\033[31mexception: " + msg_ << "\n\033[0m";
     }
 
-    ~class_exception(){};
+    ~class_exception() {};
 
     const char *what() const
     {

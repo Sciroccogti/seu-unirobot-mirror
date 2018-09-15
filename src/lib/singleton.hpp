@@ -9,13 +9,16 @@ class singleton
 public:
     static std::shared_ptr<T> instance()
     {
-        if(instance_ == nullptr)
+        if (instance_ == nullptr)
+        {
             instance_ = std::make_shared<T>();
+        }
+
         return instance_;
     }
 protected:
-    singleton(){}
-    T& operator=(const T&){}
+    singleton() {}
+    T &operator=(const T &) {}
     static std::shared_ptr<T> instance_;
 };
 

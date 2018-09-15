@@ -8,15 +8,15 @@
 namespace walk
 {
 
-/**
- * Polynom
- *
- * Simple one dimentional 
- * polynom class for spline 
- * generation
- */
-class Polynom
-{
+    /**
+     * Polynom
+     *
+     * Simple one dimentional
+     * polynom class for spline
+     * generation
+     */
+    class Polynom
+    {
     public:
 
         /**
@@ -30,14 +30,14 @@ class Polynom
          * indexed from constant to
          * higher degree
          */
-        const std::vector<double>& getCoefs() const;
-        std::vector<double>& getCoefs();
+        const std::vector<double> &getCoefs() const;
+        std::vector<double> &getCoefs();
 
         /**
          * Access to coefficient
          */
-        const double& operator()(size_t index) const;
-        double& operator()(size_t index);
+        const double &operator()(size_t index) const;
+        double &operator()(size_t index);
 
         /**
          * Return polynom degree
@@ -57,7 +57,7 @@ class Polynom
          * Some useful operators
          */
         void operator*=(double coef);
-        void operator+=(const Polynom& p);
+        void operator+=(const Polynom &p);
 
     private:
 
@@ -65,12 +65,12 @@ class Polynom
          * Polynom coeficients
          */
         std::vector<double> _coefs;
-};
+    };
 
-/**
- * Print operator
- */
-std::ostream& operator<<(std::ostream& os, const Polynom& p);
+    /**
+     * Print operator
+     */
+    std::ostream &operator<<(std::ostream &os, const Polynom &p);
 
 }
 

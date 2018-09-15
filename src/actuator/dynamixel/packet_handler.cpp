@@ -24,14 +24,14 @@ using namespace dynamixel;
 
 std::shared_ptr<PacketHandler> PacketHandler::getPacketHandler(float protocol_version)
 {
-  if (protocol_version == 1.0)
-  {
-      return std::dynamic_pointer_cast<PacketHandler>(Protocol1PacketHandler::getInstance());
-  }
-  else if (protocol_version == 2.0)
-  {
+    if (protocol_version == 1.0)
+    {
+        return std::dynamic_pointer_cast<PacketHandler>(Protocol1PacketHandler::getInstance());
+    }
+    else if (protocol_version == 2.0)
+    {
         return std::dynamic_pointer_cast<PacketHandler>(Protocol2PacketHandler::getInstance());
-  }
+    }
 
-  return std::dynamic_pointer_cast<PacketHandler>(Protocol2PacketHandler::getInstance());
+    return std::dynamic_pointer_cast<PacketHandler>(Protocol2PacketHandler::getInstance());
 }

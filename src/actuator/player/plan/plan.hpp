@@ -8,12 +8,12 @@ class plan
 {
 public:
     plan(const std::string &plan_name, const std::string &actuator_name)
-    : plan_name_(plan_name), actuator_name_(actuator_name)
+        : plan_name_(plan_name), actuator_name_(actuator_name)
     {
     }
-    
+
     virtual bool perform() = 0;
-    
+
     std::string plan_name() const
     {
         return plan_name_;

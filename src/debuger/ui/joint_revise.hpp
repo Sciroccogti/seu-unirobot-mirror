@@ -5,7 +5,7 @@
 #include "robot/humanoid.hpp"
 #include "tcp_client/tcp_client.hpp"
 
-class JSlider:public QWidget
+class JSlider: public QWidget
 {
     Q_OBJECT
 public:
@@ -18,7 +18,7 @@ public:
         slider->setMinimumWidth(200);
         slider->setMaximum(range_);
         slider->setMinimum(-range_);
-        slider->setValue(static_cast<int>(scale_*j->offset_));
+        slider->setValue(static_cast<int>(scale_ * j->offset_));
         dataLab = new QLabel(QString::number(j->offset_, 'f', 1));
         dataLab->setFixedWidth(40);
         QHBoxLayout *mainLayout = new QHBoxLayout;
@@ -28,7 +28,7 @@ public:
         setLayout(mainLayout);
         connect(slider, &QSlider::valueChanged, this, &JSlider::procSliderChanged);
     }
-    
+
     void reset()
     {
         slider->setValue(0);
@@ -37,7 +37,7 @@ public:
 public slots:
     void procSliderChanged(int v)
     {
-        float offset = v/scale_;
+        float offset = v / scale_;
         dataLab->setText(QString::number(offset, 'f', 1));
         emit valueChanged(id_, offset);
     }
@@ -57,7 +57,7 @@ class joint_revise: public QMainWindow
 {
     Q_OBJECT
 public:
-    joint_revise(tcp_client &client, QString netinfo, QWidget *parent=nullptr);
+    joint_revise(tcp_client &client, QString netinfo, QWidget *parent = nullptr);
 public slots:
     void procBtnReset();
     void procBtnSave();
@@ -65,7 +65,7 @@ public slots:
     void procTimer();
 
 private:
-    std::map<std::string, JSlider*> j_sliders_;
+    std::map<std::string, JSlider *> j_sliders_;
     QPushButton *btnReset, *btnSave;
     QTimer *timer;
     tcp_client &client_;

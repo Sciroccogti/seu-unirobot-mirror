@@ -23,7 +23,10 @@ namespace FSM
         }
         virtual std::list<plan_ptr> run(player_ptr p) = 0;
 
-        std::string name() const { return name_; }
+        std::string name() const
+        {
+            return name_;
+        }
     protected:
         fsm_ptr fsm_;
         std::string name_;
