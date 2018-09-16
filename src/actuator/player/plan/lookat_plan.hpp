@@ -1,5 +1,4 @@
-#ifndef SEU_UNIROBOT_ACTUATOR_LOOKAT_PLAN_HPP
-#define SEU_UNIROBOT_ACTUATOR_LOOKAT_PLAN_HPP
+#pragma once
 
 #include "plan.hpp"
 #include "robot/humanoid.hpp"
@@ -30,5 +29,3 @@ private:
     float yaw_;
     int act_time_;
 };
-
-#endif

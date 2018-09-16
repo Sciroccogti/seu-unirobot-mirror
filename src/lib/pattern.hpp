@@ -1,5 +1,4 @@
-#ifndef SEU_UNIROBOT_PATTERN_HPP
-#define SEU_UNIROBOT_PATTERN_HPP
+#pragma once
 
 #include <memory>
 #include <vector>
@@ -50,5 +49,3 @@ public:
 protected:
     std::vector<sub_ptr> subs_;
 };
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef SEU_UNIROBOT_SINGLETON_HPP
-#define SEU_UNIROBOT_SINGLETON_HPP
+#pragma once
 
 #include <memory>
 
@@ -23,4 +22,3 @@ protected:
 };
 
 template<class T> std::shared_ptr<T> singleton<T>::instance_ = nullptr;
-#endif

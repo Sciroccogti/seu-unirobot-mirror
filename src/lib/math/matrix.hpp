@@ -1,9 +1,8 @@
-#ifndef SEU_UNIROBOT_MATRIX_HPP
-#define SEU_UNIROBOT_MATRIX_HPP
+#pragma once
 
 #include <cmath>
 #include <eigen3/Eigen/Dense>
-#include "math_common.hpp"
+#include "number.hpp"
 
 namespace robot_math
 {
@@ -94,5 +93,3 @@ namespace robot_math
         }
     };
 }
-
-#endif

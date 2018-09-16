@@ -1,5 +1,4 @@
-#ifndef SEU_UNIROBOT_ACTUATOR_GAME_CTRL_HPP
-#define SEU_UNIROBOT_ACTUATOR_GAME_CTRL_HPP
+#pragma once
 
 #include <boost/asio.hpp>
 #include <memory>
@@ -74,5 +73,3 @@ private:
     boost::asio::ip::udp::endpoint recv_point_;
     boost::asio::ip::udp::endpoint send_point_;
 };
-
-#endif

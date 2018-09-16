@@ -1,5 +1,4 @@
-#ifndef SEU_UNIROBOT_MODEL_HPP
-#define SEU_UNIROBOT_MODEL_HPP
+#pragma once
 
 #include <string>
 #include <linux/videodev2.h>
@@ -33,5 +32,3 @@ struct camera_ctrl_info
 };
 
 enum { player_info_size = sizeof(player_info)};
-
-#endif

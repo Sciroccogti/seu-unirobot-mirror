@@ -1,5 +1,4 @@
-#ifndef SEU_UNIROBOT_DEBUGER_TEAM_MONITOR_HPP
-#define SEU_UNIROBOT_DEBUGER_TEAM_MONITOR_HPP
+#pragma once
 
 #include <QtWidgets>
 #include <boost/asio.hpp>
@@ -25,5 +24,3 @@ private:
     boost::asio::ip::udp::socket socket_;
     boost::asio::ip::udp::endpoint point_;
 };
-
-#endif

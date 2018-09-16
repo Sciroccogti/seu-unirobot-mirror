@@ -1,5 +1,4 @@
-#ifndef SEU_UNIROBOT_CONFIG_HPP
-#define SEU_UNIROBOT_CONFIG_HPP
+#pragma once
 
 #include "basic_parser.hpp"
 #include "class_exception.hpp"
@@ -128,5 +127,3 @@ namespace parser
         }
     };
 }
-
-#endif

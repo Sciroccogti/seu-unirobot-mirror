@@ -1,5 +1,4 @@
-#ifndef SEU_UNIROBOT_ACTUATOR_STATE_STANCE_HPP
-#define SEU_UNIROBOT_ACTUATOR_STATE_STANCE_HPP
+#pragma once
 
 #include "state.hpp"
 
@@ -20,4 +19,3 @@ namespace FSM
         }
     };
 }
-#endif

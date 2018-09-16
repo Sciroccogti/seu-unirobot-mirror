@@ -1,5 +1,4 @@
-#ifndef SEU_UNIROBOT_PLAYER_HPP
-#define SEU_UNIROBOT_PLAYER_HPP
+#pragma once
 
 #include <list>
 #include "timer.hpp"
@@ -44,5 +43,3 @@ private:
     std::map<std::string, sensor_ptr> sensors_;
     std::shared_ptr<FSM::fsm> fsm_;
 };
-
-#endif

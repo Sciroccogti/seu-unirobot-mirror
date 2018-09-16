@@ -1,5 +1,4 @@
-#ifndef SEU_UNIROBOT_ACTUATOR_OPTIONS_HPP
-#define SEU_UNIROBOT_ACTUATOR_OPTIONS_HPP
+#pragma once
 
 #include <boost/program_options.hpp>
 #include "singleton.hpp"
@@ -69,4 +68,3 @@ private:
 
 #define OPTS options::instance()
 
-#endif

@@ -1,5 +1,4 @@
-#ifndef SEU_UNIROBOT_CAMERA_PARSER_HPP
-#define SEU_UNIROBOT_CAMERA_PARSER_HPP
+#pragma once
 
 #include <vector>
 #include <string>
@@ -58,4 +57,3 @@ namespace parser
         }
     };
 }
-#endif

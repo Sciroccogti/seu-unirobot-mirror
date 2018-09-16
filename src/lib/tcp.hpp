@@ -1,5 +1,4 @@
-#ifndef SEU_UNIROBOT_TCP_HPP
-#define SEU_UNIROBOT_TCP_HPP
+#pragma once
 
 #include <functional>
 #include <string>
@@ -62,4 +61,3 @@ enum {max_data_size = MAX_CMD_LEN - data_offset};
 
 typedef std::function<void (const tcp_command)> tcp_callback;
 
-#endif

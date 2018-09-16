@@ -1,5 +1,4 @@
-#ifndef SEU_UNIROBOT_ACTUATOR_POLYNOM_HPP
-#define SEU_UNIROBOT_ACTUATOR_POLYNOM_HPP
+#pragma once
 
 #include <cstdlib>
 #include <vector>
@@ -73,6 +72,3 @@ namespace walk
     std::ostream &operator<<(std::ostream &os, const Polynom &p);
 
 }
-
-#endif
-

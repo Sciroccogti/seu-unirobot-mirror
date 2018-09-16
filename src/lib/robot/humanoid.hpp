@@ -1,5 +1,4 @@
-#ifndef SEU_UNIROBOT_HUMANOID_HPP
-#define SEU_UNIROBOT_HUMANOID_HPP
+#pragma once
 
 #include <string>
 #include <mutex>
@@ -21,15 +20,15 @@ namespace robot
         bool arm_inverse_kinematics(const Eigen::Vector3d &hand, std::vector<double> &deg)
         {
             double x = hand[0];
-            double z = hand[2] - (E() + F());
+            double z = hand[2] - (E_ + F_);
             double l = sqrt(x * x + z * z);
 
-            if (l > E() + F())
+            if (l > E_ + F_)
             {
                 return false;
             }
 
-            double q3t = acos((E() * E() + F() * F() - l * l) / (2 * E() * F()));
+            double q3t = acos((E_ * E_ + F_ * F_ - l * l) / (2 * E_ * F_));
             double q3 = M_PI - q3t;
             double q1t0 = atan2(z, x);
             double q1t1;
@@ -50,7 +49,7 @@ namespace robot
                 }
             }
 
-            double q1t2 = acos((E() * E() - F() * F() + l * l) / (2 * E() * l));
+            double q1t2 = acos((E_ * E_ - F_ * F_ + l * l) / (2 * E_ * l));
             double q1 = (q1t1 + q1t2);
             deg.clear();
             deg.push_back(q1);
@@ -88,7 +87,7 @@ namespace robot
             double sign = (left ? 1.0 : -1.0);
             Eigen::Vector3d tB = foot.p() + C_ * foot.a();
             Eigen::Vector3d r = foot.R().transpose() * (body.p() + body.R() * Eigen::Vector3d(0, sign * D_ / 2.0, 0) - tB);
-            double C = sqrt(r[0] * r[0] + r[1] * r[1] + r[2] * r[2]);
+            double C = r.norm();
 
             if (C > A_ + B_)
             {
@@ -251,4 +250,3 @@ namespace robot
 
 #define ROBOT humanoid::instance()
 }
-#endif

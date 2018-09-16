@@ -1,5 +1,4 @@
-#ifndef SEU_UNIROBOT_IMAGE_PROCESS_HPP
-#define SEU_UNIROBOT_IMAGE_PROCESS_HPP
+#pragma once
 
 #include <memory>
 #include <string>
@@ -88,5 +87,3 @@ namespace image
         }
     };
 }
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef SEU_UNIROBOT_DEBUGER_ROBOTGL_HPP
-#define SEU_UNIROBOT_DEBUGER_ROBOTGL_HPP
+#pragma once
 
 #include <QtWidgets>
 #include <QOpenGLWidget>
@@ -47,4 +46,3 @@ private:
     GLUquadricObj   *quad_obj;
 };
 
-#endif // CRobotDrawGL_H

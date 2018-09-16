@@ -1,5 +1,4 @@
-#ifndef SEU_UNIROBOT_ACTUATOR_JOINTS_PLAN_HPP
-#define SEU_UNIROBOT_ACTUATOR_JOINTS_PLAN_HPP
+#pragma once
 
 #include "plan.hpp"
 #include "robot/humanoid.hpp"
@@ -72,4 +71,3 @@ private:
     int act_time_;
 };
 
-#endif

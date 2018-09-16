@@ -1,5 +1,4 @@
-#ifndef SEU_UNIROBOT_CONFIGURATION_HPP
-#define SEU_UNIROBOT_CONFIGURATION_HPP
+#pragma once
 
 #include "parser/config_parser.hpp"
 #include "singleton.hpp"
@@ -65,4 +64,4 @@ private:
 };
 
 #define CONF configuration::instance()
-#endif
+

@@ -1,5 +1,4 @@
-#ifndef SEU_UNIROBOT_ACTUATOR_STATE_RESET_HPP
-#define SEU_UNIROBOT_ACTUATOR_STATE_RESET_HPP
+#pragma once
 
 #include "state.hpp"
 #include "plan/walk_plan.hpp"
@@ -22,5 +21,3 @@ namespace FSM
         }
     };
 }
-
-#endif

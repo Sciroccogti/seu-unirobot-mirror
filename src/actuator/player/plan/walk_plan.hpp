@@ -1,5 +1,4 @@
-#ifndef SEU_UNIROBOT_ACTUATOR_WALK_PLAN_HPP
-#define SEU_UNIROBOT_ACTUATOR_WALK_PLAN_HPP
+#pragma once
 
 #include "plan.hpp"
 #include "walk/WalkEngine.hpp"
@@ -27,4 +26,3 @@ private:
     Eigen::Vector4f params_;
 };
 
-#endif

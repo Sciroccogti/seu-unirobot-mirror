@@ -26,6 +26,11 @@ image_debuger::image_debuger()
     imageLayout->addWidget(srcLab);
     imageLayout->addWidget(dstLab);
 
+    funcBox = new QComboBox();
+    QStringList funclist;
+    funclist << "algorithm";
+    funclist << "sampling";
+    funcBox->addItems(funclist);
     btnLoad = new QPushButton("Load File");
     btnLast = new QPushButton("Last Frame");
     btnNext = new QPushButton("Next Frame");
@@ -34,6 +39,7 @@ image_debuger::image_debuger()
     delayEdit = new QLineEdit("1000");
     delayEdit->setFixedWidth(50);
     QHBoxLayout *ctrlLayout = new QHBoxLayout;
+    ctrlLayout->addWidget(funcBox);
     ctrlLayout->addWidget(btnLoad);
     ctrlLayout->addWidget(btnLast);
     ctrlLayout->addWidget(btnNext);
@@ -59,6 +65,21 @@ image_debuger::image_debuger()
     connect(btnNext, &QPushButton::clicked, this, &image_debuger::procBtnNext);
     connect(boxAuto, &QCheckBox::stateChanged, this, &image_debuger::procBoxAuto);
     connect(frmSlider, &QSlider::valueChanged, this, &image_debuger::procFrmSlider);
+    connect(srcLab, &ImageLabel::shot, this, &image_debuger::procShot);
+}
+
+void image_debuger::show_src()
+{
+    cvtColor(yuv_images_[curr_index_ - 1], rgb_src_, CV_YUV2RGB);
+    QImage srcImage(rgb_src_.data, rgb_src_.cols, rgb_src_.rows, QImage::Format_RGB888);
+    srcLab->set_image(srcImage);
+}
+
+void image_debuger::show_dst(Mat dst)
+{
+    QImage dstImage(dst.data, dst.cols, dst.rows,
+                    dst.channels() == 3 ? QImage::Format_RGB888 : QImage::Format_Grayscale8);
+    dstLab->set_image(dstImage);
 }
 
 void image_debuger::proc_image(const unsigned int &index)
@@ -71,17 +92,14 @@ void image_debuger::proc_image(const unsigned int &index)
     curr_index_ = index;
     infoLab->setText(QString::number(curr_index_) + "/" + QString::number(yuv_images_.size()));
     frmSlider->setValue(index);
-    Mat src, dst;
-    cvtColor(yuv_images_[curr_index_ - 1], src, CV_YUV2RGB);
-    QImage *srcImage = new QImage((const unsigned char *)(src.data), src.cols, src.rows, QImage::Format_RGB888);
-    srcLab->setPixmap(QPixmap::fromImage(srcImage->scaled(srcLab->size(), Qt::KeepAspectRatio)));
+    show_src();
 
-    cvtColor(src, dst, CV_RGB2BGR);
-    QImage *dstImage = new QImage((const unsigned char *)(dst.data), dst.cols, dst.rows,
-                                  dst.channels() == 3 ? QImage::Format_RGB888 : QImage::Format_Grayscale8);
-    dstLab->setPixmap(QPixmap::fromImage(dstImage->scaled(dstLab->size(), Qt::KeepAspectRatio)));
-    delete srcImage;
-    delete dstImage;
+    if (funcBox->currentIndex() == 0) //algorithm
+    {
+        Mat dst;
+        cvtColor(rgb_src_, dst, CV_RGB2GRAY);
+        show_dst(dst);
+    }
 }
 
 void image_debuger::procBtnLast()
@@ -146,6 +164,47 @@ void image_debuger::procBoxAuto()
     else
     {
         timer->stop();
+    }
+}
+
+void image_debuger::procShot(QRect rect)
+{
+    if (rect.width() > 10 && rect.height() > 10)
+    {
+        int x, y, w, h;
+        x = rect.left();
+        y = rect.top();
+        w = rect.width();
+        h = rect.height();
+
+        if (x + w < width_ && y + h < height_)
+        {
+            if (funcBox->currentIndex() == 1) // sampling
+            {
+                Rect mrect(x, y, w, h);
+                Mat roi = rgb_src_(mrect);
+                imwrite("test.jpg", roi);
+                Mat dst;
+                rgb_src_.copyTo(dst);
+
+                for (int j = 0; j < height_; j++)
+                {
+                    for (int i = 0; i < width_; i++)
+                    {
+                        if (j >= y && j < y + h && i >= x && i < x + w)
+                        {
+                            continue;
+                        }
+
+                        dst.data[j * width_ * 3 + i * 3] = 0;
+                        dst.data[j * width_ * 3 + i * 3 + 1] = 0;
+                        dst.data[j * width_ * 3 + i * 3 + 2] = 0;
+                    }
+                }
+
+                show_dst(dst);
+            }
+        }
     }
 }
 

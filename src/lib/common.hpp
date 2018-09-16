@@ -1,5 +1,4 @@
-#ifndef SEU_UNIROBOT_COMMON_HPP
-#define SEU_UNIROBOT_COMMON_HPP
+#pragma once
 
 #include <ctime>
 #include <cstdio>
@@ -14,4 +13,3 @@ inline std::string get_time()
     return std::string(tmp);
 }
 
-#endif

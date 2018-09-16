@@ -1,9 +1,7 @@
-#ifndef SEU_UNIROBOT_DEBUGER_IMAGE_DEBUGER_HPP
-#define SEU_UNIROBOT_DEBUGER_IMAGE_DEBUGER_HPP
+#pragma once
 
 #include <QtWidgets>
 #include "robot/humanoid.hpp"
-#include "tcp_client/tcp_client.hpp"
 #include "ui/ImageLabel.hpp"
 #include <opencv2/opencv.hpp>
 
@@ -18,9 +16,13 @@ public slots:
     void procBtnLast();
     void procBtnNext();
     void procBoxAuto();
+    void procShot(QRect rect);
     void procFrmSlider(int v);
 private:
     void proc_image(const unsigned int &index);
+    void show_src();
+    void show_dst(cv::Mat dst);
+
     QPushButton *btnLoad, *btnNext, *btnLast;
     QCheckBox *boxAuto;
     ImageLabel *srcLab, *dstLab;
@@ -28,11 +30,11 @@ private:
     QTimer *timer;
     QSlider *frmSlider;
     QLineEdit *delayEdit;
+    QComboBox *funcBox;
     unsigned int curr_index_;
     cv::Mat curr_image_;
     std::vector<cv::Mat> yuv_images_;
+    cv::Mat rgb_src_;
     int width_;
     int height_;
 };
-
-#endif

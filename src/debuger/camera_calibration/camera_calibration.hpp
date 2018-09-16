@@ -1,5 +1,4 @@
-#ifndef SEU_UNIROBOT_DEBUGER_CAMERA_CALIBRATION_HPP
-#define SEU_UNIROBOT_DEBUGER_CAMERA_CALIBRATION_HPP
+#pragma once
 
 #include <QtWidgets>
 #include "CameraDevice.hpp"
@@ -44,5 +43,3 @@ private:
     int pic_index;
 };
 
-
-#endif

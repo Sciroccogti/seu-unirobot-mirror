@@ -1,5 +1,4 @@
-#ifndef SEU_UNIROBOT_DEBUGER_IMAGE_MONITOR_HPP
-#define SEU_UNIROBOT_DEBUGER_IMAGE_MONITOR_HPP
+#pragma once
 
 #include <QtWidgets>
 #include "robot/humanoid.hpp"
@@ -19,6 +18,7 @@ public slots:
     void procPitchSlider(int v);
     void procBtnWR();
     void procBtnCS();
+    void procShot(QRect rect);
 
 protected:
     void closeEvent(QCloseEvent *event);
@@ -35,5 +35,3 @@ private:
     int width_;
     int height_;
 };
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef SEU_UNIROBOT_DEBUGER_WALK_REMOTE_HPP
-#define SEU_UNIROBOT_DEBUGER_WALK_REMOTE_HPP
+#pragma once
 
 #include <QtWidgets>
 #include "tcp_client/tcp_client.hpp"
@@ -31,5 +30,3 @@ private:
     tcp_client &client_;
     bool first_connect;
 };
-
-#endif

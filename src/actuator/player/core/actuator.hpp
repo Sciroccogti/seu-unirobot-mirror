@@ -1,5 +1,4 @@
-#ifndef SEU_UNIROBOT_ACTUATOR_ACTUATOR_HPP
-#define SEU_UNIROBOT_ACTUATOR_ACTUATOR_HPP
+#pragma once
 
 #include <iomanip>
 #include <iostream>
@@ -93,5 +92,3 @@ private:
 };
 
 typedef std::shared_ptr<actuator> actuator_ptr;
-
-#endif

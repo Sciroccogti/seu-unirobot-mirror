@@ -1,5 +1,4 @@
-#ifndef SEU_UNIROBOT_ACTUATOR_SMOOTHSPLINE_HPP
-#define SEU_UNIROBOT_ACTUATOR_SMOOTHSPLINE_HPP
+#pragma once
 
 #include "Spline.hpp"
 
@@ -70,6 +69,3 @@ namespace walk
     };
 
 }
-
-#endif
-

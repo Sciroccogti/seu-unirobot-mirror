@@ -1,5 +1,4 @@
-#ifndef SEU_UNIROBOT_ACTUATOR_MOTOR_HPP
-#define SEU_UNIROBOT_ACTUATOR_MOTOR_HPP
+#pragma once
 
 #include <memory>
 #include <list>
@@ -64,4 +63,3 @@ private:
     std::shared_ptr<tcp_server> dbg_;
 };
 
-#endif

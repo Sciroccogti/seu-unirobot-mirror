@@ -1,5 +1,4 @@
-#ifndef SEU_UNIROBOT_ACTUATOR_SPLINE_HPP
-#define SEU_UNIROBOT_ACTUATOR_SPLINE_HPP
+#pragma once
 
 #include <vector>
 #include <iostream>
@@ -85,6 +84,3 @@ namespace walk
     };
 
 }
-
-#endif
-

@@ -1,5 +1,4 @@
-#ifndef SEU_UNIROBOT_ACTUATOR_WALK_HPP
-#define SEU_UNIROBOT_ACTUATOR_WALK_HPP
+#pragma once
 
 #include <map>
 #include <thread>
@@ -204,7 +203,7 @@ namespace walk
         imu::imu_data imu_data_;
         mutable std::mutex para_mutex_, imu_mtx_, dxl_mtx_;
     };
+
 #define WE WalkEngine::instance()
 }
 
-#endif

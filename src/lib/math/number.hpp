@@ -1,5 +1,4 @@
-#ifndef SEU_UNIROBOT_MATH_COMMON_HPP
-#define SEU_UNIROBOT_MATH_COMMON_HPP
+#pragma once
 
 #include <eigen3/Eigen/Dense>
 #include <cmath>
@@ -78,4 +77,3 @@ namespace robot_math
     }
 }
 
-#endif //SEU_UNIROBOT_MATH_COMMON_HPP

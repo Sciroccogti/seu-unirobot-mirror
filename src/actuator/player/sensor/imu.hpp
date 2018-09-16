@@ -1,5 +1,4 @@
-#ifndef SEU_UNIROBOT_ACTUATOR_IMU_HPP
-#define SEU_UNIROBOT_ACTUATOR_IMU_HPP
+#pragma once
 
 #include <boost/asio.hpp>
 #include <memory>
@@ -44,5 +43,3 @@ private:
     boost::asio::serial_port serial_;
 
 };
-
-#endif

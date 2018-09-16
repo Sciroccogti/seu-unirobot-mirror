@@ -1,5 +1,4 @@
-#ifndef SEU_UNIROBOT_ACTUATOR_PLAN_HPP
-#define SEU_UNIROBOT_ACTUATOR_PLAN_HPP
+#pragma once
 
 #include <memory>
 #include "sensor/sensor.hpp"
@@ -30,5 +29,3 @@ protected:
 };
 
 typedef std::shared_ptr<plan> plan_ptr;
-
-#endif

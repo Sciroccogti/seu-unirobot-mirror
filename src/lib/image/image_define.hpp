@@ -1,5 +1,4 @@
-#ifndef SEU_UNIROBOT_IMAGE_DEFINE_HPP
-#define SEU_UNIROBOT_IMAGE_DEFINE_HPP
+#pragma once
 
 #include <stddef.h>
 #include <memory>
@@ -24,4 +23,3 @@ namespace image
     };
 
 }
-#endif

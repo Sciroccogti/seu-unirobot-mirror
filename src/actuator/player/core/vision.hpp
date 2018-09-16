@@ -1,5 +1,4 @@
-#ifndef SEU_UNIROBOT_ACTUATOR_VISION_HPP
-#define SEU_UNIROBOT_ACTUATOR_VISION_HPP
+#pragma once
 
 #include <mutex>
 #include <string>
@@ -67,6 +66,11 @@ private:
             cv::Mat yuv(frame_);
             frame_mutex_.unlock();
 
+            if (frame_.empty())
+            {
+                return;
+            }
+
             if (OPTS->image_record())
             {
                 image::image_process::save_yuv(yuv, filename_, std::ios::app);
@@ -80,11 +84,6 @@ private:
     }
     void send_image(const cv::Mat &yuvsrc)
     {
-        if (yuvsrc.empty())
-        {
-            return;
-        }
-
         cv::Mat bgr;
         cvtColor(yuvsrc, bgr, CV_YUV2BGR);
         std::vector<unsigned char> jpgbuf;
@@ -104,4 +103,3 @@ private:
 
 #define VISION Vision::instance()
 
-#endif

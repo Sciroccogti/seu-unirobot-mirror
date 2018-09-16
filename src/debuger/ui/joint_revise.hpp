@@ -1,5 +1,4 @@
-#ifndef SEU_UNIROBOT_DEBUGER_JOINT_REVISE_HPP
-#define SEU_UNIROBOT_DEBUGER_JOINT_REVISE_HPP
+#pragma once
 
 #include <QtWidgets>
 #include "robot/humanoid.hpp"
@@ -72,5 +71,3 @@ private:
     QString net_info;
     bool first_connect;
 };
-
-#endif

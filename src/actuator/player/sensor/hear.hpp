@@ -1,5 +1,4 @@
-#ifndef SEU_UNIROBOT_ACTUATOR_HEAR_HPP
-#define SEU_UNIROBOT_ACTUATOR_HEAR_HPP
+#pragma once
 
 #include <boost/asio.hpp>
 #include <thread>
@@ -29,4 +28,3 @@ private:
     player_info p_info_;
 };
 
-#endif

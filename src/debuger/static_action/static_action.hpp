@@ -1,5 +1,4 @@
-#ifndef SEU_UNIROBOT_DEBUGER_STATIIC_ACTION_HPP
-#define SEU_UNIROBOT_DEBUGER_STATIIC_ACTION_HPP
+#pragma once
 
 #include <QtWidgets>
 #include <map>
@@ -174,5 +173,3 @@ private:
     std::vector<CKSlider *> mKsliders;
     std::map<std::string, CJointDegWidget *> mJDInfos;
 };
-
-#endif

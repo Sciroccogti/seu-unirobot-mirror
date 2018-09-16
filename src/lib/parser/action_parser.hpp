@@ -1,5 +1,4 @@
-#ifndef SEU_UNIROBOT_ACTION_PARSER_HPP
-#define SEU_UNIROBOT_ACTION_PARSER_HPP
+#pragma once
 
 #include "basic_parser.hpp"
 #include "robot/robot_define.hpp"
@@ -177,6 +176,3 @@ namespace parser
         }
     };
 }
-
-#endif
-

@@ -1,5 +1,4 @@
-#ifndef SEU_UNIROBOT_DEBUGER_OPTIONS_HPP
-#define SEU_UNIROBOT_DEBUGER_OPTIONS_HPP
+#pragma once
 
 #include <boost/program_options.hpp>
 #include "singleton.hpp"
@@ -28,4 +27,3 @@ private:
 
 #define OPTS options::instance()
 
-#endif //SEU_UNIROBOT_DEBUGER_OPTIONS_HPP

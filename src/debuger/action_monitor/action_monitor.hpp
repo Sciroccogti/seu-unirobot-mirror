@@ -1,5 +1,4 @@
-#ifndef SEU_UNIROBOT_DEBUGER_ACTION_MONITOR_HPP
-#define SEU_UNIROBOT_DEBUGER_ACTION_MONITOR_HPP
+#pragma once
 
 #include <QtWidgets>
 #include "ui/RobotGL.hpp"
@@ -24,5 +23,3 @@ private:
     QString net_info;
     bool first_connect;
 };
-
-#endif //SEU_UNIROBOT_ACTION_MONITOR_HPP

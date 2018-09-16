@@ -1,5 +1,4 @@
-#ifndef SEU_UNIROBOT_ACTUATOR_ACTION_PLAN_HPP
-#define SEU_UNIROBOT_ACTUATOR_ACTION_PLAN_HPP
+#pragma once
 
 #include "plan.hpp"
 #include "robot/humanoid.hpp"
@@ -120,5 +119,3 @@ private:
     std::vector<int> pos_times_;
     bool set_head_;
 };
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef SEU_UNIROBOT_ACTUATOR_CAMERA_HPP
-#define SEU_UNIROBOT_ACTUATOR_CAMERA_HPP
+#pragma once
 
 #include <map>
 #include <thread>
@@ -66,5 +65,3 @@ private:
     int fd_;
     bool cap_opened_;
 };
-
-#endif

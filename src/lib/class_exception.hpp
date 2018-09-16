@@ -1,5 +1,4 @@
-#ifndef SEU_UNIROBOT_EXCEPTION_HPP
-#define SEU_UNIROBOT_EXCEPTION_HPP
+#pragma once
 
 #include <exception>
 #include <iostream>
@@ -28,5 +27,3 @@ private:
     std::string msg_;
     int id_;
 };
-
-#endif

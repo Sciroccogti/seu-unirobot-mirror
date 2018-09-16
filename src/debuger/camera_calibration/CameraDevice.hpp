@@ -1,5 +1,4 @@
-#ifndef SEU_UNIROBOT_DEBUGER_CAMERADEVICE_HPP
-#define SEU_UNIROBOT_DEBUGER_CAMERADEVICE_HPP
+#pragma once
 
 #include <QtWidgets>
 #include <opencv2/opencv.hpp>
@@ -30,6 +29,3 @@ private:
     QMutex img_mutex;
 };
 
-
-
-#endif //SEU_UNIROBOT_CAMERADEVICE_HPP

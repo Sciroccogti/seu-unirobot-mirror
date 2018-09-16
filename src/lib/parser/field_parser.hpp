@@ -1,5 +1,4 @@
-#ifndef SEU_UNIROBOT_FIELD_PARSER_HPP
-#define SEU_UNIROBOT_FIELD_PARSER_HPP
+#pragma once
 
 #include <map>
 #include "basic_parser.hpp"
@@ -34,4 +33,3 @@ namespace parser
     };
 }
 
-#endif //SEU_UNIROBOT_FIELD_PARSER_HPP

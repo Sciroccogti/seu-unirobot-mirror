@@ -1,5 +1,4 @@
-#ifndef SEU_UNIROBOT_TIMER_HPP
-#define SEU_UNIROBOT_TIMER_HPP
+#pragma once
 
 #include <stdio.h>
 #include <time.h>
@@ -84,5 +83,3 @@ protected:
     bool is_alive_;
     int period_ms_;
 };
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef SEU_UNIROBOT_DEBUGER_CAMERA_SETTER_HPP
-#define SEU_UNIROBOT_DEBUGER_CAMERA_SETTER_HPP
+#pragma once
 
 #include <QtWidgets>
 #include "model.hpp"
@@ -79,5 +78,3 @@ private:
     QString net_info;
     bool first_connect;
 };
-
-#endif

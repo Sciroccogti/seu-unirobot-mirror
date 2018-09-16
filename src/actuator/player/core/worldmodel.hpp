@@ -1,5 +1,4 @@
-#ifndef SEU_UNIROBOT_ACTUATOR_WORLD_MODEL_HPP
-#define SEU_UNIROBOT_ACTUATOR_WORLD_MODEL_HPP
+#pragma once
 
 #include <mutex>
 #include "pattern.hpp"
@@ -123,4 +122,3 @@ private:
 
 #define WM WorldModel::instance()
 
-#endif

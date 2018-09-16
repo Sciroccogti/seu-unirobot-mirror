@@ -1,5 +1,4 @@
-#ifndef SEU_UNIROBOT_ACTUATOR_SERVER_HPP
-#define SEU_UNIROBOT_ACTUATOR_SERVER_HPP
+#pragma once
 
 #include <boost/asio.hpp>
 #include <vector>
@@ -76,5 +75,3 @@ private:
     remote_data r_data_;
     int port_;
 };
-
-#endif

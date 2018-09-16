@@ -1,5 +1,4 @@
-#ifndef SEU_UNIROBOT_DEBUGER_TCP_CLIENT_HPP
-#define SEU_UNIROBOT_DEBUGER_TCP_CLIENT_HPP
+#pragma once
 
 #include <boost/asio.hpp>
 #include <map>
@@ -42,4 +41,3 @@ private:
     unsigned int recv_size_;
 };
 
-#endif

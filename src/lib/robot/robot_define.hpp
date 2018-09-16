@@ -1,5 +1,4 @@
-#ifndef SEU_UNIROBOT_ROBOT_DEFINE_HPP
-#define SEU_UNIROBOT_ROBOT_DEFINE_HPP
+#pragma once
 
 #include <string>
 #include <list>
@@ -157,5 +156,3 @@ namespace robot
     typedef std::map<std::string, robot_act> act_map;
     typedef std::map<std::string, robot_pos> pos_map;
 }
-
-#endif

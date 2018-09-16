@@ -65,6 +65,7 @@ image_monitor::image_monitor()
     connect(pitchSlider, &QSlider::valueChanged, this, &image_monitor::procPitchSlider);
     connect(btnWR, &QPushButton::clicked, this, &image_monitor::procBtnWR);
     connect(btnCS, &QPushButton::clicked, this, &image_monitor::procBtnCS);
+    connect(imageLab, &ImageLabel::shot, this, &image_monitor::procShot);
     client_.start();
     yawSlider->setEnabled(false);
     pitchSlider->setEnabled(false);
@@ -122,6 +123,19 @@ void image_monitor::procBtnCS()
 {
     camera_setter *cs = new camera_setter(client_, net_info, this);
     cs->show();
+}
+
+void image_monitor::procShot(QRect rect)
+{
+    if (rect.width() > 10 && rect.height())
+    {
+        int x, y, w, h;
+        x = rect.left();
+        y = rect.top();
+        w = rect.width();
+        h = rect.height();
+        cout << "x: " << x << " y: " << y << " w: " << w << " h: " << h << endl;
+    }
 }
 
 void image_monitor::procPitchSlider(int v)

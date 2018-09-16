@@ -1,5 +1,4 @@
-#ifndef SEU_UNIROBOT_ACTUATOR_FSM_HPP
-#define SEU_UNIROBOT_ACTUATOR_FSM_HPP
+#pragma once
 
 #include <memory>
 #include <map>
@@ -31,5 +30,3 @@ namespace FSM
         state_ptr curr_state_;
     };
 }
-
-#endif

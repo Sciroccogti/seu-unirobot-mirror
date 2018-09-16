@@ -1,5 +1,4 @@
-#ifndef SEU_UNIROBOT_ACTUATOR_ADAPTER_HPP
-#define SEU_UNIROBOT_ACTUATOR_ADAPTER_HPP
+#pragma once
 
 #include <mutex>
 #include <list>
@@ -143,4 +142,3 @@ private:
 
 #define MADT adapter::instance()
 
-#endif

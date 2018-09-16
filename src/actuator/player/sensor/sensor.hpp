@@ -1,5 +1,4 @@
-#ifndef SEU_UNIROBOT_SENSOR_HPP
-#define SEU_UNIROBOT_SENSOR_HPP
+#pragma once
 
 #include <iomanip>
 #include <memory>
@@ -44,4 +43,3 @@ protected:
 
 typedef std::shared_ptr<sensor> sensor_ptr;
 
-#endif

@@ -1,5 +1,4 @@
-#ifndef SEU_UNIROBOT_BASIC_PARSER_HPP
-#define SEU_UNIROBOT_BASIC_PARSER_HPP
+#pragma once
 
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
@@ -57,4 +56,3 @@ namespace parser
         }
     };
 }
-#endif

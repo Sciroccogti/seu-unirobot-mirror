@@ -1,5 +1,4 @@
-#ifndef SEU_UNIROBOT_ACTUATOR_STATE_HPP
-#define SEU_UNIROBOT_ACTUATOR_STATE_HPP
+#pragma once
 
 #include <list>
 #include <memory>
@@ -34,5 +33,3 @@ namespace FSM
 
     typedef std::shared_ptr<state> state_ptr;
 }
-
-#endif
