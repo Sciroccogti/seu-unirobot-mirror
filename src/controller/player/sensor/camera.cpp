@@ -95,12 +95,12 @@ void camera::get_ctrl_items()
         }
         else
         {
-            /*
+            
             printf("%-14s : id=%d, type=%d, minimum=%d, maximum=%d\n"
             "\t\t value = %d, step=%d, default_value=%d\n",
             info.qctrl.name, info.qctrl.id, info.qctrl.type, info.qctrl.minimum, info.qctrl.maximum,
             info.ctrl.value, info.qctrl.step, info.qctrl.default_value);
-            */
+            
             if (info.qctrl.type == V4L2_CTRL_TYPE_MENU)
             {
                 int idx;
@@ -126,7 +126,7 @@ void camera::get_ctrl_items()
         info.qctrl.id |= V4L2_CTRL_FLAG_NEXT_CTRL;
     }
 
-    //parser::camera_parser::save(cfg_.ctrl_file, ctrl_infos_);
+    parser::camera_parser::save(cfg_.ctrl_file, ctrl_infos_);
 }
 
 string camera::get_name_by_id(const unsigned int &id)
@@ -216,7 +216,7 @@ bool camera::open()
         return false;
     }
 
-    //print_camera_info();
+    print_camera_info();
     cap_opened_ = true;
     return true;
 }
@@ -314,7 +314,7 @@ bool camera::init()
     }
 
     get_ctrl_items();
-
+    //parser::camera_parser::save(cfg_.ctrl_file, ctrl_infos_);
     parser::camera_parser::parse(cfg_.ctrl_file, ctrl_infos_);
 
     for (auto it : ctrl_infos_)

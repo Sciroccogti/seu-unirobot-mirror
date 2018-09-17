@@ -80,9 +80,8 @@ void image_monitor::data_handler(const tcp_command cmd)
         Mat bgr = imdecode(buf, cv::IMREAD_COLOR);
         Mat dst;
         cvtColor(bgr, dst, CV_BGR2RGB);
-        QImage *disImage = new QImage((const unsigned char *)(dst.data), dst.cols, dst.rows, QImage::Format_RGB888);
-        imageLab->setPixmap(QPixmap::fromImage(disImage->scaled(imageLab->size(), Qt::KeepAspectRatio)));
-        delete disImage;
+        QImage dstImage((const unsigned char *)(dst.data), dst.cols, dst.rows, QImage::Format_RGB888);
+        imageLab->set_image(dstImage);
         bgr.release();
         dst.release();
     }
