@@ -79,13 +79,11 @@ void player::run()
     if (is_alive_)
     {
         period_count_++;
-
         if (WM->is_lost())
         {
             std::cout << "\033[31mmotor has no response!\033[0m\n";
             raise(SIGINT);
         }
-
         add_plans(think());
     }
 }
@@ -171,13 +169,13 @@ bool player::regist()
         return false;
     }
 
-    if (OPTS->use_robot())
-    {
+    //if (OPTS->use_robot())
+    //{
         sensors_["imu"] = std::make_shared<imu>();
         sensors_["imu"]->attach(WM);
         sensors_["imu"]->attach(WE);
         sensors_["imu"]->start();
-    }
+    //}
 
     if (OPTS->use_gc())
     {
