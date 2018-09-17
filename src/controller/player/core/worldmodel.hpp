@@ -47,6 +47,7 @@ public:
             imu_mtx_.lock();
             std::shared_ptr<imu> sptr = std::dynamic_pointer_cast<imu>(pub);
             imu_data_ = sptr->data();
+            sw_data_ = sptr->switch_data();
             imu_mtx_.unlock();
             return;
         }
@@ -83,6 +84,12 @@ public:
         return imu_data_;
     }
 
+    sw_data switch_data() const
+    {
+        std::lock_guard<std::mutex> lk(imu_mtx_);
+        return sw_data_;
+    }
+    
     std::map<int, player_info> players() const
     {
         std::lock_guard<std::mutex> lk(hear_mtx_);
@@ -116,6 +123,7 @@ private:
     std::map<int, player_info> players_;
     RoboCupGameControlData gc_data_;
     imu::imu_data imu_data_;
+    sw_data sw_data_;
     remote_data rmt_data_;
     mutable std::mutex gc_mtx_, imu_mtx_, rmt_mtx_, dxl_mtx_, hear_mtx_;
 };

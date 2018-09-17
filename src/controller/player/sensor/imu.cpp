@@ -6,7 +6,7 @@ using namespace std;
 using namespace boost::asio;
 
 boost::asio::io_service imu_service;
-unsigned char imu_header[] = {0x55, 0x51, 0x52, 0x53};
+unsigned char imu_header[] = {0x55, 0x51, 0x52, 0x53, 0x55};
 const float g_ = 9.8;
 struct SAcc
 {
@@ -23,21 +23,26 @@ struct SAngle
     short Angle[3];
     short T;
 };
+struct SDStatus
+{
+    short sDStatus[4];
+};
 SAcc        stcAcc;
 SGyro       stcGyro;
 SAngle      stcAngle;
+SDStatus    stcDStatus;
 
 #define DIN 0x01
 #define DOH 0x02
 #define DOL 0x03
-unsigned char IO[4] = {0x0e, 0x0f, 0x10, 0x11};
-unsigned char cmd[5] = {0xff, 0xaa, 0x00, 0x00, 0x00};
+unsigned char IO[] = {0x0e, 0x0f, 0x10, 0x11};
+unsigned char cmd[] = {0xff, 0xaa, 0x00, 0x00, 0x00};
 
 imu::imu(): sensor("imu"), timer(1000), serial_(imu_service)
 {
-    led1_ = 1;
-    led2_ = 0;
-    l_mode_ = LED_NORMAL;
+    led_ = 0;
+    l_state_ = LED_NORMAL;
+    reset_ = false;
 }
 
 bool imu::open()
@@ -88,38 +93,56 @@ void imu::run()
     if(timer::is_alive_)
     {
         led_mtx_.lock();
-        cmd[3] = led1_?DOL:DOH;
+        led_state state = l_state_;
+        bool rst = reset_;
         led_mtx_.unlock();
         auto self(shared_from_this());
-        cmd[2] = IO[2];
-        boost::asio::async_write(serial_, boost::asio::buffer(cmd, 5),
-                                [this, self](boost::system::error_code ec, std::size_t length){});
-        usleep(40000);
-        led_mtx_.lock();
-        cmd[3] = led2_?DOL:DOH;
-        led_mtx_.unlock();
-        cmd[2] = IO[3];
-        boost::asio::async_write(serial_, boost::asio::buffer(cmd, 5),
-                                [this, self](boost::system::error_code ec, std::size_t length){});
-        if(l_mode_ == LED_NORMAL)
+        if(state == LED_NORMAL)
         {
-            led1_ = 1-led1_;
-            led2_ = 1-led2_;
+            cmd[3] = led_?DOL:DOH;
+            cmd[2] = IO[2];
+            boost::asio::async_write(serial_, boost::asio::buffer(cmd, 5),
+                                    [this, self](boost::system::error_code ec, std::size_t length){});
+            usleep(40000);
+            cmd[3] = led_?DOH:DOL;
+            cmd[2] = IO[3];
+            boost::asio::async_write(serial_, boost::asio::buffer(cmd, 5),
+                                    [this, self](boost::system::error_code ec, std::size_t length){});
+            led_ = 1-led_;
         }
-        else if(l_mode_ == LED_ERROR)
+        else if(state == LED_WARNING)
         {
-            led1_ = 1;
-            led2_ = 1;
+            cmd[3] = led_?DOL:DOH;
+            cmd[2] = IO[2];
+            boost::asio::async_write(serial_, boost::asio::buffer(cmd, 5),
+                                    [this, self](boost::system::error_code ec, std::size_t length){});
+            usleep(40000);
+            cmd[2] = IO[3];
+            boost::asio::async_write(serial_, boost::asio::buffer(cmd, 5),
+                                    [this, self](boost::system::error_code ec, std::size_t length){});
+            led_ = 1-led_;
+        }
+        else if(state == LED_ERROR)
+        {
+            cmd[3] = DOL;
+            cmd[2] = IO[2];
+            boost::asio::async_write(serial_, boost::asio::buffer(cmd, 5),
+                                    [this, self](boost::system::error_code ec, std::size_t length){});
+            usleep(40000);
+            cmd[2] = IO[3];
+            boost::asio::async_write(serial_, boost::asio::buffer(cmd, 5),
+                                    [this, self](boost::system::error_code ec, std::size_t length){});
+        }
+        usleep(100000);
+        if(rst)
+        {
+            cmd[2] = 0x01;
+            cmd[3] = 0x04;
+            boost::asio::async_write(serial_, boost::asio::buffer(cmd, 5),
+                                    [this, self](boost::system::error_code ec, std::size_t length){});
+            reset_ = false;
         }
     }
-}
-
-void imu::set_led(unsigned char led1, unsigned char led2)
-{
-    led_mtx_.lock();
-    led1_ = led1;
-    led2_ = led2;
-    led_mtx_.unlock();
 }
 
 void imu::read_head0()
@@ -150,7 +173,7 @@ void imu::read_head1()
     {
         if (!ec)
         {
-            if (buff_[1] == imu_header[1] || buff_[1] == imu_header[2] || buff_[1] == imu_header[3])
+            if (buff_[1] == imu_header[1] || buff_[1] == imu_header[2] || buff_[1] == imu_header[3] || buff_[1] == imu_header[4])
             {
                 read_data();
             }
@@ -183,29 +206,32 @@ void imu::read_data()
                 {
                     case 0x51:
                         memcpy(&stcAcc, &buff_[2], 8);
-                        data_.ax = stcAcc.a[0] / 32768.0f * 16.0f * g_;
-                        data_.ay = stcAcc.a[1] / 32768.0f * 16.0f * g_;
-                        data_.az = stcAcc.a[2] / 32768.0f * 16.0f * g_;
+                        imu_data_.ax = stcAcc.a[0] / 32768.0f * 16.0f * g_;
+                        imu_data_.ay = stcAcc.a[1] / 32768.0f * 16.0f * g_;
+                        imu_data_.az = stcAcc.a[2] / 32768.0f * 16.0f * g_;
                         break;
 
                     case 0x52:
                         memcpy(&stcGyro, &buff_[2], 8);
-                        data_.wx = stcGyro.w[0] / 32768.0f * 2000.0f;
-                        data_.wy = stcGyro.w[1] / 32768.0f * 2000.0f;
-                        data_.wz = stcGyro.w[2] / 32768.0f * 2000.0f;
+                        imu_data_.wx = stcGyro.w[0] / 32768.0f * 2000.0f;
+                        imu_data_.wy = stcGyro.w[1] / 32768.0f * 2000.0f;
+                        imu_data_.wz = stcGyro.w[2] / 32768.0f * 2000.0f;
                         break;
 
                     case 0x53:
                         memcpy(&stcAngle, &buff_[2], 8);
-                        data_.roll = stcAngle.Angle[0] / 32768.0f * 180.0f;
-                        data_.pitch = stcAngle.Angle[1] / 32768.0f * 180.0f;
-                        data_.yaw = stcAngle.Angle[2] / 32768.0f * 180.0f;
+                        imu_data_.roll = stcAngle.Angle[0] / 32768.0f * 180.0f;
+                        imu_data_.pitch = stcAngle.Angle[1] / 32768.0f * 180.0f;
+                        imu_data_.yaw = stcAngle.Angle[2] / 32768.0f * 180.0f;
                         break;
 
+                    case 0x55:
+                        memcpy(&stcDStatus, &buff_[2], 8);
+                        sw_data_.sw1 = static_cast<bool>(stcDStatus.sDStatus[1]);
+                        sw_data_.sw2 = static_cast<bool>(stcDStatus.sDStatus[0]);
                     default:
                         break;
                 }
-
                 notify(SENSOR_IMU);
             }
 

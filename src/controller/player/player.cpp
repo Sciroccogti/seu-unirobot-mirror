@@ -84,6 +84,22 @@ void player::run()
             std::cout << "\033[31mmotor has no response!\033[0m\n";
             raise(SIGINT);
         }
+        if(WM->switch_data().sw1 && !WM->switch_data().sw2)
+        {
+            dynamic_pointer_cast<imu>(get_sensor("imu"))->set_led_state(LED_WARNING);
+        }
+        else if(WM->switch_data().sw2 && !WM->switch_data().sw1)
+        {
+            dynamic_pointer_cast<imu>(get_sensor("imu"))->set_led_state(LED_ERROR);
+        }
+        else
+        {
+            if(WM->switch_data().sw2 && WM->switch_data().sw1)
+            {
+                dynamic_pointer_cast<imu>(get_sensor("imu"))->set_zero();
+            }
+            dynamic_pointer_cast<imu>(get_sensor("imu"))->set_led_state(LED_NORMAL);
+        }
         add_plans(think());
     }
 }

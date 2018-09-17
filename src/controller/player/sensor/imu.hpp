@@ -8,6 +8,19 @@
 #include "sensor.hpp"
 #include "timer.hpp"
 
+enum led_state
+{
+    LED_NORMAL = 1,
+    LED_WARNING = 2,
+    LED_ERROR = 3
+};
+
+struct sw_data
+{
+    bool sw1=false;
+    bool sw2=false;
+};
+    
 class imu: public sensor, public timer
 {
 public:
@@ -23,13 +36,27 @@ public:
 
     bool start();
     void stop();
-    void set_led(unsigned char led1=0, unsigned char led2=0);
 
+    void set_led_state(const led_state &s)
+    {
+        led_mtx_.lock();
+        l_state_ = s;
+        led_mtx_.unlock();
+    }
+    void set_zero()
+    {
+        led_mtx_.lock();
+        reset_ = true;
+        led_mtx_.unlock();
+    }
     imu_data data() const
     {
-        return data_;
+        return imu_data_;
     }
-
+    sw_data switch_data() const
+    {
+        return sw_data_;
+    }
 private:
     bool open();
     void read_head0();
@@ -37,19 +64,16 @@ private:
     void read_data();
     void io_init();
     void run();
-    enum led_mode
-    {
-        LED_NORMAL = 1,
-        LED_ERROR = 2
-    };
 
     enum {imu_data_size = sizeof(imu_data)};
     enum {imu_len = 11};
     unsigned char buff_[imu_len];
-    imu_data data_;
+    imu_data imu_data_;
+    sw_data sw_data_;
     std::thread td_;
     std::mutex led_mtx_;
     boost::asio::serial_port serial_;
-    unsigned char led1_, led2_;
-    led_mode l_mode_;
+    unsigned char led_;
+    led_state l_state_;
+    bool reset_;
 };
