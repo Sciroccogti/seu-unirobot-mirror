@@ -37,23 +37,23 @@ public:
     bool start();
     void stop();
 
-    void set_led_state(const led_state &s)
+    inline void set_led_state(const led_state &s)
     {
         led_mtx_.lock();
         l_state_ = s;
         led_mtx_.unlock();
     }
-    void set_zero()
+    inline void set_zero()
     {
         led_mtx_.lock();
         reset_ = true;
         led_mtx_.unlock();
     }
-    imu_data data() const
+    inline imu_data data() const
     {
         return imu_data_;
     }
-    sw_data switch_data() const
+    inline sw_data switch_data() const
     {
         return sw_data_;
     }

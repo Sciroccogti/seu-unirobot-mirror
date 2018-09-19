@@ -20,7 +20,7 @@ public:
     {
         act_mode_ = MODE_NONE;
     }
-    std::map<int, float> get_degs()
+    inline std::map<int, float> get_degs()
     {
         std::map<int, float> degs;
         degs.clear();
@@ -44,21 +44,21 @@ public:
         hd_mutex_.unlock();
         return degs;
     }
-    std::map<int, float> get_body_degs()
+    inline std::map<int, float> get_body_degs() const
     {
         bd_mutex_.lock();
         std::map<int, float> res = latest_body_deg;
         bd_mutex_.unlock();
         return res;
     }
-    std::map<int, float> get_head_degs()
+    inline std::map<int, float> get_head_degs() const
     {
         hd_mutex_.lock();
         std::map<int, float> res = latest_head_deg;
         hd_mutex_.unlock();
         return res;
     }
-    bool add_body_degs(const std::map<int, float> &jdmap)
+    inline bool add_body_degs(const std::map<int, float> &jdmap)
     {
         if (!is_alive_)
         {
@@ -71,7 +71,7 @@ public:
         bd_mutex_.unlock();
         return true;
     }
-    bool add_head_degs(const std::map<int, float> &jdmap)
+    inline bool add_head_degs(const std::map<int, float> &jdmap)
     {
         if (!is_alive_)
         {
@@ -85,7 +85,7 @@ public:
         return true;
     }
 
-    bool body_empty() const
+    inline bool body_empty() const
     {
         bd_mutex_.lock();
         bool res = body_degs_list.empty();
@@ -93,7 +93,7 @@ public:
         return res;
     }
 
-    bool head_empty() const
+    inline bool head_empty() const
     {
         hd_mutex_.lock();
         bool res = head_degs_list.empty();

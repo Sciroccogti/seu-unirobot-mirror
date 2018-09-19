@@ -15,7 +15,7 @@ public:
     void stop();
     void send(const player_info &pinfo);
 
-    player_info info() const
+    inline player_info info() const
     {
         return p_info_;
     }

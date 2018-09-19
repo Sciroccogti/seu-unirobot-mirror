@@ -72,48 +72,48 @@ public:
         }
     }
 
-    RoboCupGameControlData gc_data() const
+    inline RoboCupGameControlData gc_data() const
     {
         std::lock_guard<std::mutex> lk(gc_mtx_);
         return gc_data_;
     }
 
-    imu::imu_data imu_data() const
+    inline imu::imu_data imu_data() const
     {
         std::lock_guard<std::mutex> lk(imu_mtx_);
         return imu_data_;
     }
 
-    sw_data switch_data() const
+    inline sw_data switch_data() const
     {
         std::lock_guard<std::mutex> lk(imu_mtx_);
         return sw_data_;
     }
     
-    std::map<int, player_info> players() const
+    inline std::map<int, player_info> players() const
     {
         std::lock_guard<std::mutex> lk(hear_mtx_);
         return players_;
     }
 
-    remote_data rmt_data() const
+    inline remote_data rmt_data() const
     {
         std::lock_guard<std::mutex> lk(rmt_mtx_);
         return rmt_data_;
     }
 
-    void reset_rmt_data()
+    inline void reset_rmt_data()
     {
         std::lock_guard<std::mutex> lk(rmt_mtx_);
         rmt_data_.type = NON_DATA;
         rmt_data_.size = 0;
     }
 
-    bool low_power() const
+    inline bool low_power() const
     {
         return low_power_;
     }
-    bool is_lost() const
+    inline bool is_lost() const
     {
         return is_lost_;
     }

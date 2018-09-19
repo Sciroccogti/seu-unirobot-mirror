@@ -34,42 +34,42 @@ namespace robot_math
             this->w() = w;
         }
 
-        T x() const
+        inline T x() const
         {
             return this->data()[0];
         }
 
-        T &x()
+        inline T &x()
         {
             return this->data()[0];
         }
 
-        T y() const
+        inline T y() const
         {
             return this->data()[1];
         }
 
-        T &y()
+        inline T &y()
         {
             return this->data()[1];
         }
 
-        T z() const
+        inline T z() const
         {
             return this->data()[2];
         }
 
-        T &z()
+        inline T &z()
         {
             return this->data()[2];
         }
 
-        T w() const
+        inline T w() const
         {
             return this->data()[3];
         }
 
-        T &w()
+        inline T &w()
         {
             return this->data()[3];
         }
@@ -84,7 +84,7 @@ namespace robot_math
             return *this;
         }
 
-        double length() const
+        inline double length() const
         {
             return this->norm();
         }

@@ -51,12 +51,12 @@ motor::motor(sensor_ptr dbg): sensor("motor"), timer(CONF->get_config_value<int>
     }
 }
 
-uint32_t float2pos(const float &deg)
+inline uint32_t float2pos(const float &deg)
 {
     return static_cast<uint32_t>(deg / (360.0f / (float)(MAX_POS - MIN_POS)) + ZERO_POS);
 }
 
-float pos2float(const uint32_t &pos)
+inline float pos2float(const uint32_t &pos)
 {
     return (float)(pos - ZERO_POS) * (360.0f / (float)(MAX_POS - MIN_POS));
 }

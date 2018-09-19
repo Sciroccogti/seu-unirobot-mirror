@@ -10,12 +10,6 @@
 class camera: public sensor
 {
 public:
-    struct v4l2_ctrl_item
-    {
-        v4l2_queryctrl qctrl;
-        v4l2_querymenu qmenu[10];
-        v4l2_control control;
-    };
     camera();
     ~camera();
 
@@ -27,12 +21,12 @@ public:
 
     bool set_ctrl_item(const camera_ctrl_info &info);
 
-    image::VideoBufferInfo buff_info() const
+    inline image::VideoBufferInfo buff_info() const
     {
         return buffer_info_;
     }
 
-    image::VideoBuffer *buffer() const
+    inline image::VideoBuffer *buffer() const
     {
         return &(buffers_[num_bufs_]);
     }

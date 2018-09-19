@@ -51,37 +51,37 @@ namespace robot_math
             }
         }
 
-        Eigen::Matrix3d R() const
+        inline Eigen::Matrix3d R() const
         {
             return this->block<3, 3>(0, 0);
         }
 
-        Eigen::Vector3d p() const
+        inline Eigen::Vector3d p() const
         {
             return this->block<3, 1>(0, 3);
         }
 
-        Eigen::Vector3d n() const
+        inline Eigen::Vector3d n() const
         {
             return this->block<3, 1>(0, 0);
         }
 
-        Eigen::Vector3d o() const
+        inline Eigen::Vector3d o() const
         {
             return this->block<3, 1>(0, 1);
         }
 
-        Eigen::Vector3d a() const
+        inline Eigen::Vector3d a() const
         {
             return this->block<3, 1>(0, 2);
         }
 
-        void set_p(const Eigen::Vector3d &p)
+        inline void set_p(const Eigen::Vector3d &p)
         {
             this->block<3, 1>(0, 3) = p;
         }
 
-        void set_R(const Eigen::Matrix3d &r)
+        inline void set_R(const Eigen::Matrix3d &r)
         {
             this->block<3, 3>(0, 0) = r;
         }

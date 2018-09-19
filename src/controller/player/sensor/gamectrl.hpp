@@ -55,7 +55,7 @@ public:
     bool start();
     void stop();
 
-    RoboCupGameControlData data() const
+    inline RoboCupGameControlData data() const
     {
         return data_;
     }

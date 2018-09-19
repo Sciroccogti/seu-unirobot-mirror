@@ -17,19 +17,19 @@ public:
     void stop();
     bool start();
     void run();
-    double freq() const
+    inline double freq() const
     {
         return 1000.0 / (double)period_ms_;
     }
-    float low_power() const
+    inline float low_power() const
     {
         return (voltage_ / 10.0f) < min_volt_ ? true : false;
     }
-    bool is_connected() const
+    inline bool is_connected() const
     {
         return is_connected_;
     }
-    bool is_lost() const
+    inline bool is_lost() const
     {
         return is_lost_;
     }

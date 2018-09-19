@@ -14,12 +14,12 @@ public:
 
     ~class_exception() {};
 
-    const char *what() const
+    inline char *what() const
     {
         return msg_.c_str();
     }
 
-    int err_no() const
+    inline int err_no() const
     {
         return id_;
     }

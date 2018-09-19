@@ -30,7 +30,7 @@ public:
     virtual bool start() = 0;
     virtual void stop() = 0;
 
-    bool is_open() const
+    inline bool is_open() const
     {
         return is_open_;
     }

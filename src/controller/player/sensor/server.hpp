@@ -32,7 +32,7 @@ public:
     void stop();
     void deliver(const tcp_command &cmd);
     bool check_type(const tcp_cmd_type &t);
-    std::string info() const
+    inline std::string info() const
     {
         return info_;
     }
@@ -59,7 +59,7 @@ public:
     bool start();
     void stop();
     void write(const tcp_command &cmd);
-    remote_data r_data() const
+    inline remote_data r_data() const
     {
         return r_data_;
     }

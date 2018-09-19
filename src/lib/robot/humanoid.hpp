@@ -171,68 +171,68 @@ namespace robot
             throw class_exception<humanoid>("cannot find joint by name: " + name);
         }
 
-        double A() const
+        inline double A() const
         {
             return A_;
         }
-        double B() const
+        inline double B() const
         {
             return B_;
         }
-        double C() const
+        inline double C() const
         {
             return C_;
         }
-        double D() const
+        inline double D() const
         {
             return D_;
         }
-        double E() const
+        inline double E() const
         {
             return E_;
         }
-        double F() const
+        inline double F() const
         {
             return F_;
         }
-        double leg_length() const
+        inline double leg_length() const
         {
             return A_ + B_ + C_;
         }
 
-        joint_map &get_joint_map()
+        inline joint_map &get_joint_map()
         {
             return joint_map_;
         }
-        joint_map get_joint_map() const
+        inline joint_map get_joint_map() const
         {
             return joint_map_;
         }
-        bone_map &get_bone_map()
+        inline bone_map &get_bone_map()
         {
             return bone_map_;
         }
-        bone_map get_bone_map() const
+        inline bone_map get_bone_map() const
         {
             return bone_map_;
         }
-        act_map &get_act_map()
+        inline act_map &get_act_map()
         {
             return act_map_;
         }
-        act_map get_act_map() const
+        inline act_map get_act_map() const
         {
             return act_map_;
         }
-        pos_map &get_pos_map()
+        inline pos_map &get_pos_map()
         {
             return pos_map_;
         }
-        pos_map get_pos_map() const
+        inline pos_map get_pos_map() const
         {
             return pos_map_;
         }
-        bone_ptr get_main_bone()
+        inline bone_ptr get_main_bone()
         {
             return main_bone_;
         }

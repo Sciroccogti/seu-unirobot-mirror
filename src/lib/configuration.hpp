@@ -20,7 +20,7 @@ public:
     }
 
     template<typename T>
-    T get_config_value(const std::string &keyword) const
+    inline T get_config_value(const std::string &keyword) const
     {
         try
         {
@@ -32,27 +32,27 @@ public:
         }
     }
 
-    int id() const
+    inline int id() const
     {
         return id_;
     }
-    std::string player() const
+    inline std::string player() const
     {
         return player_;
     };
-    std::string field_file() const
+    inline std::string field_file() const
     {
         return config_tree_.get<std::string>("field_file");
     }
-    std::string robot_file() const
+    inline std::string robot_file() const
     {
         return config_tree_.get<std::string>(player_ + ".robot_file");
     }
-    std::string offset_file() const
+    inline std::string offset_file() const
     {
         return config_tree_.get<std::string>(player_ + ".offset_file");
     }
-    std::string action_file() const
+    inline std::string action_file() const
     {
         return config_tree_.get<std::string>(player_ + ".action_file");
     }
