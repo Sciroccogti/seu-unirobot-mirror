@@ -8,6 +8,8 @@
 #include <cmath>
 #include <fstream>
 #include "core/adapter.hpp"
+#include "sensor/motor.hpp"
+#include "core/worldmodel.hpp"
 
 namespace walk
 {
@@ -66,7 +68,6 @@ namespace walk
 
         phase_ = 0.0;
         dt_ = 0.0;
-        support_foot_ = DOUBLE_SUPPORT;
     }
 
     void WalkEngine::updata(const pro_ptr &pub, const int &type)
@@ -211,11 +212,11 @@ namespace walk
 
                     if (phaseLeft < 0.5)
                     {
-                        support_foot_ = LEFT_SUPPORT;
+                        WM->set_support_foot(LEFT_SUPPORT); 
                     }
                     else
                     {
-                        support_foot_ = RIGHT_SUPPORT;
+                        WM->set_support_foot(RIGHT_SUPPORT);
                     }
 
                     para_mutex_.lock();
@@ -353,10 +354,6 @@ namespace walk
                         jdegs[ROBOT->get_joint("jlankle2")->jid_] = rad2deg(degs[4]);
                         jdegs[ROBOT->get_joint("jlankle1")->jid_] = rad2deg(degs[5]);
 
-                        if (support_foot_ == LEFT_SUPPORT)
-                        {
-                            ROBOT->leg_forward_kinematics(degs, true);
-                        }
                     }
                     else
                     {
@@ -371,11 +368,6 @@ namespace walk
                         jdegs[ROBOT->get_joint("jrknee")->jid_] = rad2deg(degs[3]);
                         jdegs[ROBOT->get_joint("jrankle2")->jid_] = rad2deg(degs[4]);
                         jdegs[ROBOT->get_joint("jrankle1")->jid_] = rad2deg(degs[5]);
-
-                        if (support_foot_ == RIGHT_SUPPORT)
-                        {
-                            ROBOT->leg_forward_kinematics(degs, false);
-                        }
                     }
                     else
                     {

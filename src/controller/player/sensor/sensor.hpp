@@ -16,7 +16,8 @@ public:
         SENSOR_HEAR = 3,
         SENSOR_IMU = 4,
         SENSOR_MOTOR = 5,
-        SENSOR_CAMERA = 6
+        SENSOR_CAMERA = 6,
+        SENSOR_END = 10
     };
     sensor(const std::string &name): name_(name)
     {

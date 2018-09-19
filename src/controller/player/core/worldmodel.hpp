@@ -15,6 +15,7 @@ class WorldModel: public subscriber, public singleton<WorldModel>
 public:
     WorldModel()
     {
+        support_foot_ = robot::DOUBLE_SUPPORT;
         rmt_data_.type = NON_DATA;
         rmt_data_.size = 0;
         low_power_ = false;
@@ -70,6 +71,19 @@ public:
             rmt_mtx_.unlock();
             return;
         }
+        
+    }
+    
+    inline robot::support_foot get_support_foot() const
+    {
+        std::lock_guard<std::mutex> lk(sf_mtx_);
+        return support_foot_;
+    }
+    
+    inline void set_support_foot(const robot::support_foot &sf)
+    {
+        std::lock_guard<std::mutex> lk(sf_mtx_);
+        support_foot_ = sf;
     }
 
     inline RoboCupGameControlData gc_data() const
@@ -111,10 +125,12 @@ public:
 
     inline bool low_power() const
     {
+        std::lock_guard<std::mutex> lk(dxl_mtx_);
         return low_power_;
     }
     inline bool is_lost() const
     {
+        std::lock_guard<std::mutex> lk(dxl_mtx_);
         return is_lost_;
     }
 
@@ -125,7 +141,8 @@ private:
     imu::imu_data imu_data_;
     sw_data sw_data_;
     remote_data rmt_data_;
-    mutable std::mutex gc_mtx_, imu_mtx_, rmt_mtx_, dxl_mtx_, hear_mtx_;
+    robot::support_foot support_foot_;
+    mutable std::mutex gc_mtx_, imu_mtx_, rmt_mtx_, dxl_mtx_, hear_mtx_, sf_mtx_;
 };
 
 #define WM WorldModel::instance()

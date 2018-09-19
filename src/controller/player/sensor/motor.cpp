@@ -3,6 +3,8 @@
 #include "core/adapter.hpp"
 #include "options/options.hpp"
 #include "class_exception.hpp"
+#include "core/worldmodel.hpp"
+#include "math/math.hpp"
 
 #define ZERO_POS 2048
 #define MAX_POS  4096
@@ -25,6 +27,7 @@
 using namespace std;
 using namespace robot;
 using namespace dynamixel;
+using namespace robot_math;
 
 motor::motor(sensor_ptr dbg): sensor("motor"), timer(CONF->get_config_value<int>("hardware.motor.period"))
 {
@@ -91,7 +94,15 @@ void motor::run()
         {
             real_act();
         }
-
+        bool left = (WM->get_support_foot()==LEFT_SUPPORT)?true:false;
+        int i = ROBOT->get_joint(left?"jlhip3":"jrhip3")->jid_;
+        vector<double> degs;
+        degs.clear();
+        for(int j=i;j<i+6;j++)
+            degs.push_back(static_cast<double>(ROBOT->get_joint(j)->get_deg()));
+        transform_matrix bd = ROBOT->leg_forward_kinematics(degs, left);
+        //cout<<bd<<endl;
+        notify(SENSOR_MOTOR);
         p_count_++;
     }
 }
@@ -177,16 +188,12 @@ void motor::real_act()
             {
                 is_lost_ = true;
             }
-
-            //throw class_exception<motor>("motor time out!");
         }
 
         if ((p_count_ * period_ms_ % 10000) == 0)
         {
             read_voltage();
         }
-
-        notify(SENSOR_MOTOR);
     }
 }
 

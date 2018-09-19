@@ -86,6 +86,13 @@ namespace robot
         MOTION_LEFT_FOOT    = 5,
         MOTION_HEAD         = 6
     };
+    
+    enum support_foot
+    {
+        DOUBLE_SUPPORT = 0,
+        LEFT_SUPPORT = 1,
+        RIGHT_SUPPORT = 2
+    };
 
     static const std::map<std::string, robot_motion> name_motion_map = {{"none", MOTION_NONE},
         {"right_hand", MOTION_RIGHT_HAND},

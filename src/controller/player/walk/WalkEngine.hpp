@@ -4,9 +4,10 @@
 #include <thread>
 #include <mutex>
 #include <eigen3/Eigen/Dense>
-#include "sensor/motor.hpp"
 #include "pattern.hpp"
 #include "sensor/imu.hpp"
+#include "robot/robot_define.hpp"
+#include "singleton.hpp"
 
 namespace walk
 {
@@ -175,12 +176,6 @@ namespace walk
     class WalkEngine: public subscriber, public singleton<WalkEngine>
     {
     public:
-        enum support_foot
-        {
-            DOUBLE_SUPPORT = 0,
-            LEFT_SUPPORT = 1,
-            RIGHT_SUPPORT = 2
-        };
         WalkEngine();
         ~WalkEngine();
         void start();
@@ -190,11 +185,11 @@ namespace walk
         }
         void set_params(const Eigen::Vector4f &params);
         void updata(const pro_ptr &pub, const int &type);
+
     private:
         static void boundPhase(double &phase);
 
         double phase_, dt_;
-        support_foot support_foot_;
         void run();
         WalkParameters params_;
         std::thread td_;
