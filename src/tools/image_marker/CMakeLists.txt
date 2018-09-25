@@ -1,14 +1,16 @@
 include_directories(${Qt5Widgets_INCLUDE_DIRS})
 
-set(TARGET_NAME team_monitor)
+find_package(OpenCV REQUIRED)
+
+set(TARGET_NAME image_marker)
 
 add_executable(${TARGET_NAME}
         main.cpp
-        team_monitor.cpp)
+        ${TARGET_NAME}.cpp)
 
 target_link_libraries(${TARGET_NAME}
-        boost_system
-        pthread
+        ${OpenCV_LIBS}
+        ui
         Qt5::Widgets
         Qt5::Core
         Qt5::Gui)

@@ -2,15 +2,17 @@ include_directories(${Qt5Widgets_INCLUDE_DIRS})
 
 find_package(OpenCV REQUIRED)
 
-set(TARGET_NAME camera_calibration)
+set(TARGET_NAME image_monitor)
 
 add_executable(${TARGET_NAME}
         main.cpp
-        CameraDevice.cpp
-        camera_calibration.cpp)
+        ${TARGET_NAME}.cpp)
 
 target_link_libraries(${TARGET_NAME}
         ${OpenCV_LIBS}
+        ui
+        tcp_client
+        debuger_options
         Qt5::Widgets
         Qt5::Core
         Qt5::Gui)

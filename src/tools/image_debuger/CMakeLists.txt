@@ -6,7 +6,7 @@ set(TARGET_NAME image_debuger)
 
 add_executable(${TARGET_NAME}
         main.cpp
-        image_debuger.cpp)
+        ${TARGET_NAME}.cpp)
 
 target_link_libraries(${TARGET_NAME}
         ${OpenCV_LIBS}

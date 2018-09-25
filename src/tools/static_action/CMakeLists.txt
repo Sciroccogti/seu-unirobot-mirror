@@ -4,7 +4,7 @@ set(TARGET_NAME static_action)
 
 add_executable(${TARGET_NAME}
                 main.cpp
-                static_action.cpp)
+                ${TARGET_NAME}.cpp)
 
 target_link_libraries(${TARGET_NAME}
                 ui

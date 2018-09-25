@@ -4,7 +4,7 @@ set(TARGET_NAME action_monitor)
 
 add_executable(${TARGET_NAME}
         main.cpp
-        action_monitor.cpp)
+        ${TARGET_NAME}.cpp)
 
 target_link_libraries(${TARGET_NAME}
         ui

@@ -1,8 +1,8 @@
 include_directories(./lib)
 find_package(OpenCV REQUIRED)
 add_subdirectory(controller)
-if(BUILD_DEBUER)
-    add_subdirectory(debuger)
+if(BUILD_TOOLS)
+    add_subdirectory(tools)
 endif()
 
 set(CMAKE_INSTALL_PREFIX "${CMAKE_SOURCE_DIR}/bin")
