@@ -152,8 +152,10 @@ void image_marker::procShot(QRect rect, bool finish)
 
 void image_marker::procBtnCL()
 {
-    ImageSampleInfo &sp = sample_infos[curr_id_];
-    sp.samples.clear();
+    sample_infos[curr_id_-1].samples.clear();
+    Mat tmp;
+    curr_image_.copyTo(tmp);
+    show_image(tmp);
 }
 
 void image_marker::procBtnSV()
@@ -230,7 +232,9 @@ void image_marker::keyPressEvent(QKeyEvent* event)
         else if(curr_id_>sample_infos.size()) curr_id_ = 1;
         infoLab->setText(QString::number(curr_id_)+"/"+QString::number(sample_infos.size()));
         curr_image_ = imread(String(sample_infos[curr_id_-1].image_name.c_str()));
-        show_image(curr_image_);
+        Mat tmp;
+        curr_image_.copyTo(tmp);
+        show_image(tmp);
     }
     else curr_id_ = 0;
 }

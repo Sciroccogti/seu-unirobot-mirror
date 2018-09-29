@@ -1,4 +1,4 @@
-set(TARGET_NAME test)
+set(TARGET_NAME demo)
 
 add_executable(${TARGET_NAME}
         main.cpp)

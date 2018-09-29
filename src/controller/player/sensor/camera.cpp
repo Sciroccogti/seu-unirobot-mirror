@@ -7,6 +7,7 @@
 #include "class_exception.hpp"
 #include "parser/camera_parser.hpp"
 #include <sstream>
+#include <fcntl.h>
 
 using namespace std;
 using namespace image;
