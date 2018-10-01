@@ -86,7 +86,7 @@ namespace robot
         MOTION_LEFT_FOOT    = 5,
         MOTION_HEAD         = 6
     };
-    
+
     enum support_foot
     {
         DOUBLE_SUPPORT = 0,

@@ -79,30 +79,34 @@ void player::run()
     if (is_alive_)
     {
         period_count_++;
+
         if (WM->is_lost())
         {
             std::cout << "\033[31mmotor has no response!\033[0m\n";
             raise(SIGINT);
         }
-        if(OPTS->use_robot())
+
+        if (OPTS->use_robot())
         {
-            if(WM->switch_data().sw1 && !WM->switch_data().sw2)
+            if (WM->switch_data().sw1 && !WM->switch_data().sw2)
             {
                 dynamic_pointer_cast<imu>(get_sensor("imu"))->set_led_state(LED_WARNING);
             }
-            else if(WM->switch_data().sw2 && !WM->switch_data().sw1)
+            else if (WM->switch_data().sw2 && !WM->switch_data().sw1)
             {
                 dynamic_pointer_cast<imu>(get_sensor("imu"))->set_led_state(LED_ERROR);
             }
             else
             {
-                if(WM->switch_data().sw2 && WM->switch_data().sw1)
+                if (WM->switch_data().sw2 && WM->switch_data().sw1)
                 {
                     dynamic_pointer_cast<imu>(get_sensor("imu"))->set_zero();
                 }
+
                 dynamic_pointer_cast<imu>(get_sensor("imu"))->set_led_state(LED_NORMAL);
             }
         }
+
         add_plans(think());
     }
 }
@@ -223,6 +227,7 @@ bool player::regist()
             std::cout << "say_hear: " << e.what() << "\n";
         }
     }
+
     return true;
 }
 

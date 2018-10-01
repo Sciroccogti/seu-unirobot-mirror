@@ -94,12 +94,17 @@ void motor::run()
         {
             real_act();
         }
-        bool left = (WM->get_support_foot()==LEFT_SUPPORT)?true:false;
-        int i = ROBOT->get_joint(left?"jlhip3":"jrhip3")->jid_;
+
+        bool left = (WM->get_support_foot() == LEFT_SUPPORT) ? true : false;
+        int i = ROBOT->get_joint(left ? "jlhip3" : "jrhip3")->jid_;
         vector<double> degs;
         degs.clear();
-        for(int j=i;j<i+6;j++)
+
+        for (int j = i; j < i + 6; j++)
+        {
             degs.push_back(static_cast<double>(ROBOT->get_joint(j)->get_deg()));
+        }
+
         transform_matrix bd = ROBOT->leg_forward_kinematics(degs, left);
         //cout<<bd<<endl;
         notify(SENSOR_MOTOR);

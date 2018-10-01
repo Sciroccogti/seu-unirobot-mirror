@@ -6,16 +6,16 @@
 struct ObjInfo
 {
     int id;
-    float x,y;
-    float w,h;
-    ObjInfo(int i, float xx, float yy, float ww, float hh): id(i), x(xx), y(yy), w(ww), h(hh){}
+    float x, y;
+    float w, h;
+    ObjInfo(int i, float xx, float yy, float ww, float hh): id(i), x(xx), y(yy), w(ww), h(hh) {}
 };
 
 struct ImageSampleInfo
 {
     std::string image_name;
     std::vector<ObjInfo> samples;
-    ImageSampleInfo(std::string name): image_name(name){}
+    ImageSampleInfo(std::string name): image_name(name) {}
 };
 
 class ImgLabel: public QLabel
@@ -63,7 +63,7 @@ private:
     QString names_filename_, image_folder_;
     cv::Mat curr_image_;
     std::vector<ImageSampleInfo> sample_infos;
-    
+
     int curr_id_;
     int width_;
     int height_;

@@ -71,15 +71,15 @@ public:
             rmt_mtx_.unlock();
             return;
         }
-        
+
     }
-    
+
     inline robot::support_foot get_support_foot() const
     {
         std::lock_guard<std::mutex> lk(sf_mtx_);
         return support_foot_;
     }
-    
+
     inline void set_support_foot(const robot::support_foot &sf)
     {
         std::lock_guard<std::mutex> lk(sf_mtx_);
@@ -103,7 +103,7 @@ public:
         std::lock_guard<std::mutex> lk(imu_mtx_);
         return sw_data_;
     }
-    
+
     inline std::map<int, player_info> players() const
     {
         std::lock_guard<std::mutex> lk(hear_mtx_);

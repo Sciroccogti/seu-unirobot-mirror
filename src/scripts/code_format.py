@@ -20,7 +20,7 @@ if __name__ == '__main__':
     code_dir = config.project_dir + '/src'
     code_files = list_dir(code_dir)
     for code_file in code_files:
-        if os.path.splitext(code_file)[1] in ['.h', '.hpp', '.cpp']:
+        if os.path.splitext(code_file)[1] in ['.c', '.h', '.hpp', '.cpp']:
             cmd = '''astyle --mode=c --style=ansi --indent=spaces=4 --add-brackets \
             --convert-tabs --indent-preprocessor --align-pointer=name --pad-oper \
             --pad-header --break-blocks --suffix=none --indent-switches \

@@ -10,13 +10,12 @@ Vision::Vision(): timer(CONF->get_config_value<int>("vision_period"))
     gpu_index = 0;
     cuda_set_device(gpu_index);
 }
-    
+
 Vision::~Vision()
 {
     std::cout << "\033[32malgorithm:[Vision]   end!\033[0m\n";
-    //free_network(net_);
 }
-    
+
 void Vision::run()
 {
     if (is_alive_)
@@ -57,9 +56,10 @@ void Vision::send_image(const cv::Mat &yuvsrc)
     server_->write(cmd);
 }
 
-void Vision::updata(const pro_ptr& pub, const int& type)
+void Vision::updata(const pro_ptr &pub, const int &type)
 {
     shared_ptr<camera> sptr = dynamic_pointer_cast<camera>(pub);
+
     if (type == sensor::SENSOR_CAMERA)
     {
         frame_mutex_.lock();
@@ -68,12 +68,12 @@ void Vision::updata(const pro_ptr& pub, const int& type)
     }
 }
 
-bool Vision::start(const sensor_ptr& s)
+bool Vision::start(const sensor_ptr &s)
 {
     server_ = std::dynamic_pointer_cast<tcp_server>(s);
     is_alive_ = true;
-    net_ = load_network((char*)CONF->get_config_value<string>("net_cfg_file").c_str(),
-            (char*)CONF->get_config_value<string>("net_weights_file").c_str(), 0);
+    net_ = load_network((char *)CONF->get_config_value<string>("net_cfg_file").c_str(),
+                        (char *)CONF->get_config_value<string>("net_weights_file").c_str(), 0);
     set_batch_network(net_, 1);
     srand(2222222);
     start_timer();
@@ -83,10 +83,12 @@ bool Vision::start(const sensor_ptr& s)
 void Vision::stop()
 {
     free_network(net_);
+
     if (is_alive_)
     {
         delete_timer();
     }
+
     is_alive_ = false;
 }
 

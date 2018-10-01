@@ -17,6 +17,8 @@ camera::camera(): sensor("camera")
     format_map_["V4L2_PIX_FMT_YUYV"] = V4L2_PIX_FMT_YUYV;
     format_map_["V4L2_PIX_FMT_MJPEG"] = V4L2_PIX_FMT_MJPEG;
     format_map_["V4L2_PIX_FMT_JPEG"] = V4L2_PIX_FMT_JPEG;
+    format_map_["V4L2_PIX_FMT_BGR24"] = V4L2_PIX_FMT_BGR24;
+    format_map_["V4L2_PIX_FMT_RGB24"] = V4L2_PIX_FMT_RGB24;
     cfg_.dev_name = CONF->get_config_value<string>("video.dev_name");
     cfg_.buff_num = CONF->get_config_value<int>("video.buff_num");
     cfg_.format = CONF->get_config_value<string>("video.format");
@@ -96,12 +98,12 @@ void camera::get_ctrl_items()
         }
         else
         {
-            
+
             printf("%-14s : id=%d, type=%d, minimum=%d, maximum=%d\n"
-            "\t\t value = %d, step=%d, default_value=%d\n",
-            info.qctrl.name, info.qctrl.id, info.qctrl.type, info.qctrl.minimum, info.qctrl.maximum,
-            info.ctrl.value, info.qctrl.step, info.qctrl.default_value);
-            
+                   "\t\t value = %d, step=%d, default_value=%d\n",
+                   info.qctrl.name, info.qctrl.id, info.qctrl.type, info.qctrl.minimum, info.qctrl.maximum,
+                   info.ctrl.value, info.qctrl.step, info.qctrl.default_value);
+
             if (info.qctrl.type == V4L2_CTRL_TYPE_MENU)
             {
                 int idx;
@@ -217,7 +219,7 @@ bool camera::open()
         return false;
     }
 
-    print_camera_info();
+    //print_camera_info();
     cap_opened_ = true;
     return true;
 }
@@ -314,7 +316,7 @@ bool camera::init()
         return false;
     }
 
-    get_ctrl_items();
+    //get_ctrl_items();
     //parser::camera_parser::save(cfg_.ctrl_file, ctrl_infos_);
     parser::camera_parser::parse(cfg_.ctrl_file, ctrl_infos_);
 

@@ -212,7 +212,7 @@ namespace walk
 
                     if (phaseLeft < 0.5)
                     {
-                        WM->set_support_foot(LEFT_SUPPORT); 
+                        WM->set_support_foot(LEFT_SUPPORT);
                     }
                     else
                     {

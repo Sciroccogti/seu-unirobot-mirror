@@ -17,10 +17,10 @@ enum led_state
 
 struct sw_data
 {
-    bool sw1=false;
-    bool sw2=false;
+    bool sw1 = false;
+    bool sw2 = false;
 };
-    
+
 class imu: public sensor, public timer
 {
 public:

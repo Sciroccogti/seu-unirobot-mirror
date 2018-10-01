@@ -71,12 +71,15 @@ int main(int argc, char *argv[])
 
     ROBOT->init(CONF->robot_file(), CONF->action_file(), CONF->offset_file());
     maxwell = make_shared<player>();
+
     if (!maxwell->init())
     {
         std::cout << "\033[31mrobot init failed\n\033[0m";
         return 3;
     }
+
     greeting();
+
     while (maxwell->is_alive())
     {
         sleep(2);
