@@ -7,7 +7,7 @@
 #include <linux/videodev2.h>
 #include "image_define.hpp"
 
-namespace image
+namespace imageproc
 {
     class image_process
     {

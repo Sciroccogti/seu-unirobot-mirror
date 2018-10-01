@@ -3,7 +3,7 @@
 #include <stddef.h>
 #include <memory>
 
-namespace image
+namespace imageproc
 {
     struct VideoBuffer
     {

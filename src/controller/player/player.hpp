@@ -13,7 +13,7 @@
 #include "sensor/server.hpp"
 #include "sensor/hear.hpp"
 #include "walk/WalkEngine.hpp"
-#include "core/vision.hpp"
+#include "vision/vision.hpp"
 
 class player: public timer, public std::enable_shared_from_this<player>
 {

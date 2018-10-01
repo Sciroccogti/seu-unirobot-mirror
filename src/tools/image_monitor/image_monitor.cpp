@@ -73,7 +73,7 @@ image_monitor::image_monitor()
 
 void image_monitor::data_handler(const tcp_command cmd)
 {
-    if (cmd.type == IMAGE_DATA)
+    if (cmd.type == IMG_DATA)
     {
         vector<unsigned char> buf(cmd.size);
         memcpy(&buf[0], cmd.data.c_str(), cmd.size);
@@ -93,7 +93,7 @@ void image_monitor::procTimer()
     {
         if (first_connect)
         {
-            client_.regist(IMAGE_DATA, DIR_APPLY);
+            client_.regist(IMG_DATA, DIR_APPLY);
             usleep(10000);
             client_.regist(REMOTE_DATA, DIR_SUPPLY);
         }

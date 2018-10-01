@@ -8,7 +8,7 @@
 using namespace cv;
 using namespace std;
 using namespace robot;
-using namespace image;
+using namespace imageproc;
 
 image_debuger::image_debuger()
 {

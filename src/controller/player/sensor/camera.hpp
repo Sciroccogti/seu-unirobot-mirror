@@ -21,12 +21,12 @@ public:
 
     bool set_ctrl_item(const camera_ctrl_info &info);
 
-    inline image::VideoBufferInfo buff_info() const
+    inline imageproc::VideoBufferInfo buff_info() const
     {
         return buffer_info_;
     }
 
-    inline image::VideoBuffer *buffer() const
+    inline imageproc::VideoBuffer *buffer() const
     {
         return &(buffers_[num_bufs_]);
     }
@@ -51,8 +51,8 @@ private:
     std::thread td_;
     std::vector<camera_ctrl_info> ctrl_infos_;
     std::map<std::string, unsigned int> format_map_;
-    image::VideoBufferInfo buffer_info_;
-    image::VideoBuffer *buffers_;
+    imageproc::VideoBufferInfo buffer_info_;
+    imageproc::VideoBuffer *buffers_;
     camera_cfg cfg_;
     v4l2_buffer buf_;
     unsigned int num_bufs_;

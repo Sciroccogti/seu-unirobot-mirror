@@ -20,7 +20,7 @@ enum tcp_cmd_type
     TEST_DATA = 5,
     JOINT_DATA = 6,
     REMOTE_DATA = 7,
-    IMAGE_DATA = 8
+    IMG_DATA = 8
 };
 
 struct tcp_command

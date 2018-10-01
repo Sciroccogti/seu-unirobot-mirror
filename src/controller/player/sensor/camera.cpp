@@ -10,7 +10,7 @@
 #include <fcntl.h>
 
 using namespace std;
-using namespace image;
+using namespace imageproc;
 
 camera::camera(): sensor("camera")
 {
