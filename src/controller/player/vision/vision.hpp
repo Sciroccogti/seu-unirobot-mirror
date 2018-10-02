@@ -27,7 +27,7 @@ public:
     mutable std::mutex frame_mutex_;
 private:
     void run();
-    void send_image(const cv::Mat &yuvsrc);
+    void send_image(const cv::Mat &src, const unsigned int &fmt = V4L2_PIX_FMT_YUV444);
     cv::Mat frame_;
     std::shared_ptr<tcp_server> server_;
     int p_count_;

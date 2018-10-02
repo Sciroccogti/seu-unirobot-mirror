@@ -12,7 +12,7 @@ namespace imageproc
     class image_process
     {
     public:
-        static cv::Mat buff2yuv_mat(const VideoBuffer *buf640x480, const VideoBufferInfo &info)
+        static cv::Mat buff2mat(const VideoBuffer *buf640x480, const VideoBufferInfo &info)
         {
             cv::Mat dst640x480x3;
 
@@ -46,6 +46,11 @@ namespace imageproc
                         *(dst_ptr + dst_offset + 5) = *(src_ptr + src_offset + 3);
                     }
                 }
+            }
+            
+            else if(info.format == V4L2_PIX_FMT_BGR24 || info.format == V4L2_PIX_FMT_RGB24)
+            {
+                memcpy(dst640x480x3.data, buf640x480->start, height*width*3);
             }
 
             return dst640x480x3;

@@ -57,7 +57,6 @@ image_marker::image_marker()
 
     btnOpenImageFolder = new QPushButton("Choose Image Folder");
     btnOpenNameFile = new QPushButton("Choose Names File");
-    \
     btnSave = new QPushButton("Save");
     btnClear = new QPushButton("Clear");
     classesBox = new QComboBox();
