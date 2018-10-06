@@ -137,7 +137,7 @@ void image_debuger::procBtnLoad()
     }
 
     yuv_images_.clear();
-    yuv_images_ = image_process::read_yuv(filename.toStdString());
+    yuv_images_ = read_yuv(filename.toStdString());
 
     if (!yuv_images_.empty())
     {

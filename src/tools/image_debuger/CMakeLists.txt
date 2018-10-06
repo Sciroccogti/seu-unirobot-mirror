@@ -11,6 +11,7 @@ add_executable(${TARGET_NAME}
 target_link_libraries(${TARGET_NAME}
         ${OpenCV_LIBS}
         ui
+        imageproc
         debuger_options
         Qt5::Widgets
         Qt5::Core

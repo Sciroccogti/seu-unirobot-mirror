@@ -33,6 +33,8 @@ private:
     int p_count_;
     std::string filename_;
     network *net_;
+    image src_im_;
+    int w_, h_;
 };
 
 #define VISION Vision::instance()

@@ -8,6 +8,10 @@ Vision::Vision(): timer(CONF->get_config_value<int>("vision_period"))
 {
     p_count_ = 0;
     filename_ = get_time() + ".yuv";
+    w_ = CONF->get_config_value<int>("video.width");
+    h_ = CONF->get_config_value<int>("video.height");
+    src_im_ = make_image(w_, h_, 3);
+    frame_.create(h_, w_, CV_8UC3);
     gpu_index = 0;
     cuda_set_device(gpu_index);
 }
@@ -27,57 +31,33 @@ void Vision::run()
         
         frame_mutex_.lock();
         cv::Mat src;
-        cvtColor(frame_, src, CV_YUV2BGR);
+        frame_.copyTo(src);
         frame_mutex_.unlock();
 
-        if (frame_.empty())
-        {
-            return;
-        }
+        if(src.empty()) return;
+        cudaBGRPacked2RGBPlanar(src.data, src_im_.data, w_, h_);
 
-        if (OPTS->image_record())
-        {
-            image_process::save_yuv(src, filename_, ios::app);
-        }
-        
-        int h = src.size().height;
-        int w = src.size().width;
-        int c = src.channels();
-        image im = make_image(w, h, c);
-        unsigned char *data = src.data;
-        int step = w*c;
-        int i, j, k;
-
-        for(i = 0; i < h; ++i){
-            for(k= 0; k < c; ++k){
-                for(j = 0; j < w; ++j){
-                    im.data[k*w*h + i*w + j] = data[i*step + j*c + k]/255.;
-                }
-            }
-        }
-        rgbgr_image(im);
-        start=clock();
-        image sized = letterbox_image(im, net_->w, net_->h);
+        image sized = letterbox_image(src_im_, net_->w, net_->h);
         layer l = net_->layers[net_->n-1];
         float *X = sized.data;
+        start=clock();
         network_predict(net_, X);
         int nboxes = 0;
         float nms=.45;
-        detection *dets = get_network_boxes(net_, im.w, im.h, 0.5, 0.5, 0, 1, &nboxes);
-        if (nms) do_nms_sort(dets, nboxes, l.classes, nms);
-        /*
-        for(int i=0;i<nboxes;i++)
-        {
-            rectangle(src, Point((dets[i].bbox.x-dets[i].bbox.w/2.0)*w, (dets[i].bbox.y-dets[i].bbox.h/2.0)*h), 
-                Point((dets[i].bbox.x+dets[i].bbox.w/2.0)*w, (dets[i].bbox.y+dets[i].bbox.h/2.0)*h), Scalar(255, 0, 0, 0));
-        }
-        */
-        free_detections(dets, nboxes);
-        free_image(im);
-        free_image(sized);
+        detection *dets = get_network_boxes(net_, src_im_.w, src_im_.h, 0.5, 0.5, 0, 1, &nboxes);
         finish = clock();
         totaltime=(double)(finish-start)/CLOCKS_PER_SEC;
         cout<<"use time: "<<totaltime<<endl;
+        if (nms) do_nms_sort(dets, nboxes, l.classes, nms);
+
+        for(int i=0;i<nboxes;i++)
+        {
+            rectangle(src, Point((dets[i].bbox.x-dets[i].bbox.w/2.0)*w_, (dets[i].bbox.y-dets[i].bbox.h/2.0)*h_),
+                Point((dets[i].bbox.x+dets[i].bbox.w/2.0)*w_, (dets[i].bbox.y+dets[i].bbox.h/2.0)*h_), Scalar(255, 0, 0, 0));
+        }
+
+        free_detections(dets, nboxes);
+        free_image(sized);
         if (OPTS->use_debug())
         {
             send_image(src, V4L2_PIX_FMT_BGR24);
@@ -110,7 +90,8 @@ void Vision::updata(const pro_ptr &pub, const int &type)
     if (type == sensor::SENSOR_CAMERA)
     {
         frame_mutex_.lock();
-        frame_ = imageproc::image_process::buff2mat(sptr->buffer(), sptr->buff_info());
+        if(sptr->buff_info().format == V4L2_PIX_FMT_BGR24 || sptr->buff_info().format == V4L2_PIX_FMT_RGB24)
+            memcpy(frame_.data, sptr->buffer()->start, w_*h_*3);
         frame_mutex_.unlock();
     }
 }
