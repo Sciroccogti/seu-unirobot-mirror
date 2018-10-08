@@ -14,7 +14,7 @@ ImageLabel::ImageLabel(const int &w, const int &h)
 void ImageLabel::set_image(QImage im)
 {
     image = QImage(im);
-    this->repaint();
+    this->update();
 }
 
 void ImageLabel::mousePressEvent(QMouseEvent *event)

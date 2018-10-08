@@ -5,7 +5,9 @@ project(seu-unirobot)
 set(CMAKE_BUILD_TYPE "Release") 
 set(CMAKE_CXX_FLAGS_DEBUG "$ENV{CXXFLAGS} -O0 -Wall -g -ggdb")
 set(CMAKE_CXX_FLAGS_RELEASE "$ENV{CXXFLAGS} -O3")
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+set(CUDA_NVCC_FLAGS -gencode arch=compute_50,code=sm_50;-G;-g)
+
 option(BUILD_TOOLS "Build Tools" ON)
 
 add_subdirectory(src)

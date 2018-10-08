@@ -4,60 +4,6 @@ using namespace cv;
 
 namespace imageproc
 {
-    bool cudaBuff2Image(const VideoBuffer *buff, const VideoBufferInfo &info, image &dst)
-    {
-        if(dst.data == nullptr) return false;
-        int w = info.width, h = info.height;
-        if(dst.h != h || dst.w != w) return false;
-        unsigned char *dev_src;
-        float *dev_dst;
-        cudaError_t err;
-        bool res = true;
-        int src_size;
-        int dst_size = h*w*3*sizeof(float);
-
-        if(info.format == V4L2_PIX_FMT_YUYV)
-            src_size = h*w*2*sizeof(unsigned char);
-        else
-            src_size = h*w*3*sizeof(unsigned char);
-
-        err = cudaMalloc((void**)&dev_src, src_size);
-        if(err != cudaSuccess)
-        {
-            res = false;
-            goto cudaBUff2MatEnd;
-        }
-        err = cudaMalloc((void**)&dev_dst, dst_size);
-        if(err != cudaSuccess)
-        {
-            res = false;
-            goto cudaBUff2MatEnd;
-        }
-        err = cudaMemcpy(dev_src, buff->start, src_size, cudaMemcpyHostToDevice);
-        if(err != cudaSuccess)
-        {
-            res = false;
-            goto cudaBUff2MatEnd;
-        }
-        if(info.format == V4L2_PIX_FMT_YUYV)
-            cudaYUYVPacked2YUVPlanar(dev_src, dev_dst, w, h);
-        else if(info.format == V4L2_PIX_FMT_RGB24)
-            cudaRGBPacked2RGBPlanar(dev_src, dev_dst, w, h);
-        else if(info.format == V4L2_PIX_FMT_BGR24)
-            cudaBGRPacked2RGBPlanar(dev_src, dev_dst, w, h);
-        err = cudaMemcpy(dst.data, dev_dst, dst_size, cudaMemcpyDeviceToHost);
-        if(err != cudaSuccess)
-        {
-            res = false;
-            goto cudaBUff2MatEnd;
-        }
-        goto cudaBUff2MatEnd;
-
-        cudaBUff2MatEnd:
-        if(dev_src!=nullptr) cudaFree(dev_src);
-        if(dev_dst!=nullptr) cudaFree(dev_dst);
-        return res;
-    }
 
     Mat buff2mat(const VideoBuffer *buf640x480, const VideoBufferInfo &info)
     {
@@ -95,12 +41,35 @@ namespace imageproc
             }
         }
 
-        else if(info.format == V4L2_PIX_FMT_BGR24 || info.format == V4L2_PIX_FMT_RGB24)
-        {
-            memcpy(dst640x480x3.data, buf640x480->start, height*width*3);
-        }
-
         return dst640x480x3;
+    }
+
+    Mat cudaBuff2YUV(const VideoBuffer *buff, const VideoBufferInfo &info)
+    {
+        int w = info.width, h = info.height;
+        Mat dst(h,w,CV_8UC3);
+
+        static unsigned char *dev_src, *dev_dst;
+        static bool malloced=false;
+        int src_size = h*w*2*sizeof(unsigned char);
+        int dst_size = h*w*3* sizeof(unsigned char);
+        if(!malloced)
+        {
+            cudaMallocManaged((void**)&dev_src, src_size);
+            cudaMallocManaged((void**)&dev_dst, dst_size);
+            malloced = true;
+        }
+        memcpy(dev_src, buff->start, src_size);
+
+        //cudaMemcpy(dev_src, buff->start, src_size, cudaMemcpyHostToDevice);
+        cudaYUYV2YUV(dev_src, dev_dst, w, h);
+        //cudaMemcpy(dst.data, dev_dst, dst_size, cudaMemcpyDeviceToHost);
+
+        cudaDeviceSynchronize();
+        memcpy(dst.data, dev_dst, dst_size);
+        //if(dev_src!=nullptr) cudaFree(dev_src);
+        //if(dev_dst!=nullptr) cudaFree(dev_dst);
+        return dst;
     }
 }
 

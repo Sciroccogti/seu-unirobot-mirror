@@ -8,6 +8,7 @@
 #include "parser/camera_parser.hpp"
 #include <sstream>
 #include <fcntl.h>
+#include <sys/ioctl.h>
 
 using namespace std;
 using namespace imageproc;
@@ -16,9 +17,6 @@ camera::camera(): sensor("camera")
 {
     format_map_["V4L2_PIX_FMT_YUYV"] = V4L2_PIX_FMT_YUYV;
     format_map_["V4L2_PIX_FMT_MJPEG"] = V4L2_PIX_FMT_MJPEG;
-    format_map_["V4L2_PIX_FMT_JPEG"] = V4L2_PIX_FMT_JPEG;
-    format_map_["V4L2_PIX_FMT_BGR24"] = V4L2_PIX_FMT_BGR24;
-    format_map_["V4L2_PIX_FMT_RGB24"] = V4L2_PIX_FMT_RGB24;
     cfg_.dev_name = CONF->get_config_value<string>("video.dev_name");
     cfg_.buff_num = CONF->get_config_value<int>("video.buff_num");
     cfg_.format = CONF->get_config_value<string>("video.format");
@@ -51,7 +49,7 @@ void camera::run()
 
     while (is_alive_)
     {
-        if (v4l2_ioctl(fd_, VIDIOC_DQBUF, &buf_) == -1)
+        if (ioctl(fd_, VIDIOC_DQBUF, &buf_) == -1)
         {
             std::cout << "VIDIOC_DQBUF failed.\n";
             break;
@@ -63,7 +61,7 @@ void camera::run()
         buffers_[num_bufs_].offset = buf_.m.offset;
         notify(SENSOR_CAMERA);
 
-        if (v4l2_ioctl(fd_, VIDIOC_QBUF, &buf_) == -1)
+        if (ioctl(fd_, VIDIOC_QBUF, &buf_) == -1)
         {
             std::cout << "VIDIOC_QBUF error\n";
             break;
@@ -87,12 +85,12 @@ void camera::get_ctrl_items()
     camera_ctrl_info info;
     info.qctrl.id = V4L2_CTRL_FLAG_NEXT_CTRL;
 
-    while (v4l2_ioctl(fd_, VIDIOC_QUERYCTRL, &(info.qctrl)) == 0)
+    while (ioctl(fd_, VIDIOC_QUERYCTRL, &(info.qctrl)) == 0)
     {
         info.ctrl.id = info.qctrl.id;
         info.menu.clear();
 
-        if (v4l2_ioctl(fd_, VIDIOC_G_CTRL, &(info.ctrl)) < 0)
+        if (ioctl(fd_, VIDIOC_G_CTRL, &(info.ctrl)) < 0)
         {
             std::cout << "\033[31mget " << info.qctrl.name << " failed\033[0m\n";
         }
@@ -114,7 +112,7 @@ void camera::get_ctrl_items()
                     menu.id = info.qctrl.id;
                     menu.index = idx;
 
-                    if (v4l2_ioctl(fd_, VIDIOC_QUERYMENU, &menu) == 0)
+                    if (ioctl(fd_, VIDIOC_QUERYMENU, &menu) == 0)
                     {
                         stringstream ss;
                         ss << menu.index << ": " << menu.name << "; ";
@@ -145,7 +143,7 @@ string camera::get_name_by_id(const unsigned int &id)
 
 bool camera::set_ctrl_item(const camera_ctrl_info &info)
 {
-    if (v4l2_ioctl(fd_, VIDIOC_S_CTRL, &(info.ctrl)) == -1)
+    if (ioctl(fd_, VIDIOC_S_CTRL, &(info.ctrl)) == -1)
     {
         std::cout << "\033[33mUnable to set: " << get_name_by_id(info.ctrl.id) << " => " << strerror(errno) << "\033[0m" << std::endl;
         return false;
@@ -163,7 +161,7 @@ void camera::close()
             enum v4l2_buf_type type;
             type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 
-            if (v4l2_ioctl(fd_, VIDIOC_STREAMOFF, &type))
+            if (ioctl(fd_, VIDIOC_STREAMOFF, &type))
             {
                 std::cout << "VIDIOC_STREAMOFF error\n";
                 return;
@@ -179,7 +177,7 @@ void camera::close()
             buffers_ = nullptr;
         }
 
-        v4l2_close(fd_);
+        ::close(fd_);
     }
 }
 
@@ -188,7 +186,7 @@ void camera::print_camera_info()
     v4l2_capability vc;
     memset(&vc, 0, sizeof(v4l2_capability));
 
-    if (v4l2_ioctl(fd_, VIDIOC_QUERYCAP, &vc) != -1)
+    if (ioctl(fd_, VIDIOC_QUERYCAP, &vc) != -1)
     {
         std::cout << "driver:\t" << vc.driver << "\n";
         std::cout << "card:\t" << vc.card << "\n";
@@ -201,7 +199,7 @@ void camera::print_camera_info()
     fmtdesc.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     std::cout << "Support format:\n";
 
-    while (v4l2_ioctl(fd_, VIDIOC_ENUM_FMT, &fmtdesc) != -1)
+    while (ioctl(fd_, VIDIOC_ENUM_FMT, &fmtdesc) != -1)
     {
         std::cout << '\t' << fmtdesc.index << ". " << fmtdesc.description << "\n";
         fmtdesc.index++;
@@ -211,7 +209,7 @@ void camera::print_camera_info()
 bool camera::open()
 {
 
-    fd_ = v4l2_open(cfg_.dev_name.c_str(), O_RDWR, 0);
+    fd_ = ::open(cfg_.dev_name.c_str(), O_RDWR, 0);
 
     if (fd_ < 0)
     {
@@ -219,7 +217,7 @@ bool camera::open()
         return false;
     }
 
-    //print_camera_info();
+    print_camera_info();
     cap_opened_ = true;
     return true;
 }
@@ -238,14 +236,22 @@ bool camera::init()
     fmt.fmt.pix.width = cfg_.width;
     fmt.fmt.pix.height = cfg_.height;
     fmt.fmt.pix.field = V4L2_FIELD_INTERLACED;
-
-    if (v4l2_ioctl(fd_, VIDIOC_S_FMT, &fmt) == -1)
+/*
+    if (ioctl(fd_, VIDIOC_G_FMT, &fmt) == -1)
+    {
+        std::cout << "get format failed\n";
+        return false;
+    }
+    std::cout << "current format: " << (char)(fmt.fmt.pix.pixelformat & 0xFF) << (char)((fmt.fmt.pix.pixelformat >> 8)
+        & 0xFF) << (char)((fmt.fmt.pix.pixelformat >> 16) & 0xFF) << (char)((fmt.fmt.pix.pixelformat >> 24) & 0xFF);
+*/
+    if (ioctl(fd_, VIDIOC_S_FMT, &fmt) < 0)
     {
         std::cout << "set format failed\n";
         return false;
     }
 
-    if (v4l2_ioctl(fd_, VIDIOC_G_FMT, &fmt) == -1)
+    if (ioctl(fd_, VIDIOC_G_FMT, &fmt) < 0)
     {
         std::cout << "get format failed\n";
         return false;
@@ -269,7 +275,7 @@ bool camera::init()
     req.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     req.memory = V4L2_MEMORY_MMAP;
 
-    if (v4l2_ioctl(fd_, VIDIOC_REQBUFS, &req) == -1)
+    if (ioctl(fd_, VIDIOC_REQBUFS, &req) == -1)
     {
         std::cout << "request buffer error \n";
         return false;
@@ -283,7 +289,7 @@ bool camera::init()
         buf_.memory = V4L2_MEMORY_MMAP;
         buf_.index = num_bufs_;
 
-        if (v4l2_ioctl(fd_, VIDIOC_QUERYBUF, &buf_) == -1)
+        if (ioctl(fd_, VIDIOC_QUERYBUF, &buf_) == -1)
         {
             std::cout << "query buffer error\n";
             return false;
@@ -296,11 +302,12 @@ bool camera::init()
 
         if (buffers_[num_bufs_].start == MAP_FAILED)
         {
-            std::cout << "buffer map error\n";
+            int err = errno;
+            std::cout << "buffer map error: "<<err<<"\n";
             return false;
         }
 
-        if (v4l2_ioctl(fd_, VIDIOC_QBUF, &buf_) == -1)
+        if (ioctl(fd_, VIDIOC_QBUF, &buf_) == -1)
         {
             std::cout << "VIDIOC_QBUF error\n";
             return false;
@@ -310,7 +317,7 @@ bool camera::init()
     enum v4l2_buf_type type;
     type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 
-    if (v4l2_ioctl(fd_, VIDIOC_STREAMON, &type) == -1)
+    if (ioctl(fd_, VIDIOC_STREAMON, &type) == -1)
     {
         std::cout << "VIDIOC_STREAMON error\n";
         return false;
@@ -318,13 +325,14 @@ bool camera::init()
 
     //get_ctrl_items();
     //parser::camera_parser::save(cfg_.ctrl_file, ctrl_infos_);
+    /*
     parser::camera_parser::parse(cfg_.ctrl_file, ctrl_infos_);
 
     for (auto it : ctrl_infos_)
     {
         set_ctrl_item(it);
     }
-
+    */
     is_open_ = true;
     return true;
 }

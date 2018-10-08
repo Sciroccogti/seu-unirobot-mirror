@@ -10,10 +10,9 @@ Vision::Vision(): timer(CONF->get_config_value<int>("vision_period"))
     filename_ = get_time() + ".yuv";
     w_ = CONF->get_config_value<int>("video.width");
     h_ = CONF->get_config_value<int>("video.height");
-    src_im_ = make_image(w_, h_, 3);
     frame_.create(h_, w_, CV_8UC3);
-    gpu_index = 0;
-    cuda_set_device(gpu_index);
+    cudaSetDevice(0);
+    cudaSetDeviceFlags(cudaDeviceMapHost);
 }
 
 Vision::~Vision()
@@ -26,17 +25,38 @@ void Vision::run()
     if (is_alive_)
     {
         p_count_ ++;
-        clock_t start,finish;
-        double totaltime;
         
         frame_mutex_.lock();
         cv::Mat src;
-        frame_.copyTo(src);
+        //frame_.copyTo(src);
+        //src_gpu_mat_.download(frame_);
+        //double start=clock();
+        //cuda::cvtColor(src_gpu_mat_, dst_gpu_mat_, CV_YUV2BGR);
+        //dst_gpu_mat_.download(src);
+        cvtColor(frame_, src, CV_YUV2BGR);
+        //double finish = clock();
+        //std::cout<<"gpu: "<<(finish-start)/CLOCKS_PER_SEC<<std::endl;
         frame_mutex_.unlock();
 
         if(src.empty()) return;
-        cudaBGRPacked2RGBPlanar(src.data, src_im_.data, w_, h_);
+/*
+        //cudaBGRPacked2RGBPlanar(src.data, src_im_.data, w_, h_);
+        int h = src.size().height;
+        int w = src.size().width;
+        int c = src.channels();
+        image im = make_image(w, h, c);
+        unsigned char *data = src.data;
+        int step = w*c;
+        int i, j, k;
 
+        for(i = 0; i < h; ++i){
+            for(k= 0; k < c; ++k){
+                    for(j = 0; j < w; ++j){
+                            im.data[k*w*h + i*w + j] = data[i*step + j*c + k]/255.;
+                        }
+                }
+        }
+        rgbgr_image(im);
         image sized = letterbox_image(src_im_, net_->w, net_->h);
         layer l = net_->layers[net_->n-1];
         float *X = sized.data;
@@ -45,9 +65,6 @@ void Vision::run()
         int nboxes = 0;
         float nms=.45;
         detection *dets = get_network_boxes(net_, src_im_.w, src_im_.h, 0.5, 0.5, 0, 1, &nboxes);
-        finish = clock();
-        totaltime=(double)(finish-start)/CLOCKS_PER_SEC;
-        cout<<"use time: "<<totaltime<<endl;
         if (nms) do_nms_sort(dets, nboxes, l.classes, nms);
 
         for(int i=0;i<nboxes;i++)
@@ -57,22 +74,19 @@ void Vision::run()
         }
 
         free_detections(dets, nboxes);
-        free_image(sized);
+        free_image(im);
+        free_image(sized);*/
         if (OPTS->use_debug())
         {
-            send_image(src, V4L2_PIX_FMT_BGR24);
+            send_image(src);
         }
     }
 }
 
-void Vision::send_image(const cv::Mat &src, const unsigned int &fmt)
+void Vision::send_image(const cv::Mat &src)
 {
     cv::Mat bgr;
-    if(fmt == V4L2_PIX_FMT_YUV444)
-        cvtColor(src, bgr, CV_YUV2BGR);
-    else if(fmt == V4L2_PIX_FMT_BGR24)
-        src.copyTo(bgr);
-    else return;
+    src.copyTo(bgr);
     std::vector<unsigned char> jpgbuf;
     cv::imencode(".jpg", bgr, jpgbuf);
     bgr.release();
@@ -90,8 +104,13 @@ void Vision::updata(const pro_ptr &pub, const int &type)
     if (type == sensor::SENSOR_CAMERA)
     {
         frame_mutex_.lock();
-        if(sptr->buff_info().format == V4L2_PIX_FMT_BGR24 || sptr->buff_info().format == V4L2_PIX_FMT_RGB24)
-            memcpy(frame_.data, sptr->buffer()->start, w_*h_*3);
+        //double start=clock();
+        frame_ = cudaBuff2YUV(sptr->buffer(), sptr->buff_info());
+        //Mat tmp = buff2mat(sptr->buffer(), sptr->buff_info());
+        //cvtColor(tmp, frame_, CV_YUV2BGR);
+        //yuyv2rgb(sptr->buffer()->start);
+        //double finish = clock();
+        //std::cout<<"cpu cvt: "<<(finish-start)/CLOCKS_PER_SEC<<std::endl;
         frame_mutex_.unlock();
     }
 }
@@ -100,18 +119,12 @@ bool Vision::start(const sensor_ptr &s)
 {
     server_ = std::dynamic_pointer_cast<tcp_server>(s);
     is_alive_ = true;
-    net_ = load_network((char *)CONF->get_config_value<string>("net_cfg_file").c_str(),
-                        (char *)CONF->get_config_value<string>("net_weights_file").c_str(), 0);
-    set_batch_network(net_, 1);
-    srand(2222222);
     start_timer();
     return true;
 }
 
 void Vision::stop()
 {
-    free_network(net_);
-
     if (is_alive_)
     {
         delete_timer();
