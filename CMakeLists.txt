@@ -1,13 +1,15 @@
 cmake_minimum_required(VERSION 3.0)
 project(seu-unirobot)
 
-# add_definitions("-std=c++11")
 set(CMAKE_BUILD_TYPE "Release") 
 set(CMAKE_CXX_FLAGS_DEBUG "$ENV{CXXFLAGS} -O0 -Wall -g -ggdb")
 set(CMAKE_CXX_FLAGS_RELEASE "$ENV{CXXFLAGS} -O3")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-set(CUDA_NVCC_FLAGS -gencode arch=compute_50,code=sm_50;-G;-g)
+set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -gencode arch=compute_50,code=sm_50;-G;-g")
 
-option(BUILD_TOOLS "Build Tools" ON)
-
+if("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "x86_64")
+    option(BUILD_TOOLS "Build Tools" ON)
+else()
+    option(BUILD_TOOLS "Build Tools" OFF)
+endif()
 add_subdirectory(src)

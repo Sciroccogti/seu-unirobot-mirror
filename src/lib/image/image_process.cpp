@@ -1,6 +1,7 @@
 #include "image_process.hpp"
 
 using namespace cv;
+using namespace std;
 
 namespace imageproc
 {
@@ -63,6 +64,36 @@ namespace imageproc
 
         //cudaMemcpy(dev_src, buff->start, src_size, cudaMemcpyHostToDevice);
         cudaYUYV2YUV(dev_src, dev_dst, w, h);
+        //cudaMemcpy(dst.data, dev_dst, dst_size, cudaMemcpyDeviceToHost);
+
+        cudaDeviceSynchronize();
+        memcpy(dst.data, dev_dst, dst_size);
+        //if(dev_src!=nullptr) cudaFree(dev_src);
+        //if(dev_dst!=nullptr) cudaFree(dev_dst);
+        return dst;
+    }
+
+    Mat cudaBuff2BGR(const VideoBuffer *buff, const VideoBufferInfo &info)
+    {
+        int w = info.width, h = info.height;
+        Mat dst(h,w,CV_8UC3);
+
+        static unsigned char *dev_src, *dev_dst;
+        static bool malloced=false;
+        int src_size = h*w*2*sizeof(unsigned char);
+        int dst_size = h*w*3* sizeof(unsigned char);
+        if(!malloced)
+        {
+            cudaMallocManaged((void**)&dev_src, src_size);
+            cudaMallocManaged((void**)&dev_dst, dst_size);
+            malloced = true;
+        }
+        memcpy(dev_src, buff->start, src_size);
+
+        //cudaMemcpy(dev_src, buff->start, src_size, cudaMemcpyHostToDevice);
+        double t1 = clock();
+        cudaYUYV2BGR(dev_src, dev_dst, w, h);
+        cout<<(clock()-t1)/CLOCKS_PER_SEC<<endl;
         //cudaMemcpy(dst.data, dev_dst, dst_size, cudaMemcpyDeviceToHost);
 
         cudaDeviceSynchronize();

@@ -10,9 +10,13 @@
 #include "darknet/darknet.h"
 
 void cudaYUYV2YUV(unsigned char *in, unsigned char *out, const unsigned int &w, const unsigned int &h);
+void cudaYUYV2BGR(unsigned char *in, unsigned char *out, const unsigned int &w, const unsigned int &h);
+void cudaYUYV2RGBPF(unsigned char *in, unsigned char *out, const unsigned int &w, const unsigned int &h);
+
 namespace imageproc
 {
     cv::Mat cudaBuff2YUV(const VideoBuffer *buff, const VideoBufferInfo &info);
+    cv::Mat cudaBuff2BGR(const VideoBuffer *buff, const VideoBufferInfo &info);
     cv::Mat buff2mat(const VideoBuffer *buf640x480, const VideoBufferInfo &info);
 }
 

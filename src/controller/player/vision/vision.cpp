@@ -28,12 +28,12 @@ void Vision::run()
         
         frame_mutex_.lock();
         cv::Mat src;
-        //frame_.copyTo(src);
+        frame_.copyTo(src);
         //src_gpu_mat_.download(frame_);
         //double start=clock();
         //cuda::cvtColor(src_gpu_mat_, dst_gpu_mat_, CV_YUV2BGR);
         //dst_gpu_mat_.download(src);
-        cvtColor(frame_, src, CV_YUV2BGR);
+        //cvtColor(frame_, src, CV_YUV2BGR);
         //double finish = clock();
         //std::cout<<"gpu: "<<(finish-start)/CLOCKS_PER_SEC<<std::endl;
         frame_mutex_.unlock();
@@ -105,7 +105,8 @@ void Vision::updata(const pro_ptr &pub, const int &type)
     {
         frame_mutex_.lock();
         //double start=clock();
-        frame_ = cudaBuff2YUV(sptr->buffer(), sptr->buff_info());
+
+        frame_ = cudaBuff2BGR(sptr->buffer(), sptr->buff_info());
         //Mat tmp = buff2mat(sptr->buffer(), sptr->buff_info());
         //cvtColor(tmp, frame_, CV_YUV2BGR);
         //yuyv2rgb(sptr->buffer()->start);
