@@ -2,9 +2,7 @@
 #include "curand.h"
 #include "cublas_v2.h"
 
-#ifdef CUDNN
-#pragma comment(lib, "cudnn.lib")
-#endif
+
 
 extern "C" {
 #include "convolutional_layer.h"
@@ -289,7 +287,7 @@ void forward_convolutional_layer_gpu(convolutional_layer l, network_state state)
             float one = 1;
             float zero = 0;
             // Batch-normalization can still take FP16 inputs and outputs, saving half the bandwidth
-            // compared to FP32, it’s just that the statistics and value adjustment should be done in FP32.
+            // compared to FP32, itï¿½s just that the statistics and value adjustment should be done in FP32.
             cudnnBatchNormalizationForwardTraining(cudnn_handle(),
                 CUDNN_BATCHNORM_SPATIAL,
                 &one,

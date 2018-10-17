@@ -79,7 +79,6 @@ protected:
 
                 plist_.pop_front();
             }
-
             plist_mutex_.unlock();
         }
     }

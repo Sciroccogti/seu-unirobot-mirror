@@ -23,7 +23,6 @@ typedef struct{
 } kvp;
 
 
-clist *read_data_cfg(char *filename);
 int read_option(char *s, clist *options);
 void option_insert(clist *l, char *key, char *val);
 char *option_find(clist *l, char *key);
@@ -39,6 +38,5 @@ typedef struct {
 	char **names;
 } metadata;
 
-YOLODLL_API metadata get_metadata(char *file);
 
 #endif

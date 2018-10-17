@@ -531,10 +531,10 @@ void top_predictions(network net, int k, int *index)
 }
 
 
-float *network_predict(network net, float *input)
+float *network_predict(network net, float *input, int gpu)
 {
 #ifdef GPU
-    if(gpu_index >= 0)  return network_predict_gpu(net, input, 0);
+    if(gpu_index >= 0)  return network_predict_gpu(net, input, gpu);
 #endif
 
     network_state state;
@@ -654,7 +654,7 @@ float *network_predict_image(network *net, image im)
     //image imr = letterbox_image(im, net->w, net->h);
     image imr = resize_image(im, net->w, net->h);
     set_batch_network(net, 1);
-    float *p = network_predict(*net, imr.data);
+    float *p = network_predict(*net, imr.data, 0);
     free_image(imr);
     return p;
 }
@@ -674,7 +674,7 @@ matrix network_predict_data_multi(network net, data test, int n)
             memcpy(X+b*test.X.cols, test.X.vals[i+b], test.X.cols*sizeof(float));
         }
         for(m = 0; m < n; ++m){
-            float *out = network_predict(net, X);
+            float *out = network_predict(net, X, 0);
             for(b = 0; b < net.batch; ++b){
                 if(i+b == test.X.rows) break;
                 for(j = 0; j < k; ++j){
@@ -698,7 +698,7 @@ matrix network_predict_data(network net, data test)
             if(i+b == test.X.rows) break;
             memcpy(X+b*test.X.cols, test.X.vals[i+b], test.X.cols*sizeof(float));
         }
-        float *out = network_predict(net, X);
+        float *out = network_predict(net, X, 0);
         for(b = 0; b < net.batch; ++b){
             if(i+b == test.X.rows) break;
             for(j = 0; j < k; ++j){

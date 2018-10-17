@@ -8,9 +8,6 @@
 #include <stdio.h>
 #include <time.h>
 
-#ifdef CUDNN
-#pragma comment(lib, "cudnn.lib")
-#endif
 
 #ifdef AI2
 #include "xnor_layer.h"
@@ -971,7 +968,6 @@ image *get_weights(convolutional_layer l)
 image *visualize_convolutional_layer(convolutional_layer l, char *window, image *prev_weights)
 {
     image *single_weights = get_weights(l);
-    show_images(single_weights, l.n, window);
 
     image delta = get_convolutional_image(l);
     image dc = collapse_image_layers(delta, 1);

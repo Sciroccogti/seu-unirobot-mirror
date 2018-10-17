@@ -116,7 +116,7 @@ float train_network_sgd(network net, data d, int n);
 float train_network_datum(network net, float *x, float *y);
 
 matrix network_predict_data(network net, data test);
-YOLODLL_API float *network_predict(network net, float *input);
+YOLODLL_API float *network_predict(network net, float *input, int gpu);
 float network_accuracy(network net, data d);
 float *network_accuracies(network net, data d, int n);
 float network_accuracy_multi(network net, data d, int n);

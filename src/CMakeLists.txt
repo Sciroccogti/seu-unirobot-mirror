@@ -5,7 +5,8 @@ add_definitions(-DCUDNN_HALF)
 find_package(OpenCV REQUIRED)
 find_package(CUDA REQUIRED)
 include_directories(${CUDA_INCLUDE_DIRS})
-set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -gencode arch=compute_50,code=sm_50")
+
+set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -g -G -gencode=arch=compute_61,code=sm_61")
 set(CMAKE_INSTALL_PREFIX "${CMAKE_SOURCE_DIR}/bin")
 
 add_subdirectory(lib)

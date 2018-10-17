@@ -36,11 +36,6 @@ extern "C" {
 #include "blas.h"
 }
 
-#ifdef OPENCV
-#include "opencv2/highgui/highgui_c.h"
-#endif
-
-#include "http_stream.h"
 
 float * get_network_output_gpu_layer(network net, int i);
 float * get_network_delta_gpu_layer(network net, int i);

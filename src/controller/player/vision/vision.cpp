@@ -1,4 +1,6 @@
 #include "vision.hpp"
+#include "darknet/parser.h"
+#include <cuda_runtime.h>
 
 using namespace imageproc;
 using namespace std;
@@ -10,14 +12,35 @@ Vision::Vision(): timer(CONF->get_config_value<int>("vision_period"))
     filename_ = get_time() + ".yuv";
     w_ = CONF->get_config_value<int>("video.width");
     h_ = CONF->get_config_value<int>("video.height");
-    frame_.create(h_, w_, CV_8UC3);
-    cudaSetDevice(0);
-    cudaSetDeviceFlags(cudaDeviceMapHost);
+    src_size_ = w_*h_*2*sizeof(unsigned char);
+    bgr_size_ = w_*h_*3*sizeof(unsigned char);
+    rgbf_size_ = w_*h_*3*sizeof(float);
+
+    yuyv_ = (unsigned char*)malloc(src_size_);
+    cudaError_t err;
+    err = cudaMallocManaged((void**)&dev_src_, src_size_);
+    check_error(err);
+    err = cudaMallocManaged((void**)&dev_bgr_, bgr_size_);
+    check_error(err);
+    err = cudaMallocManaged((void**)&dev_rgbf_, rgbf_size_);
+    check_error(err);
 }
 
 Vision::~Vision()
 {
     std::cout << "\033[32malgorithm:[Vision]   end!\033[0m\n";
+    free(yuyv_);
+    cudaFree(dev_src_);
+    cudaFree(dev_bgr_);
+    cudaFree(dev_rgbf_);
+    cudaFree(dev_sized_);
+}
+
+void Vision::yuyv2dst()
+{
+    memcpy(dev_src_, yuyv_, src_size_);
+    cudaYUYV2DST(dev_src_, dev_bgr_, dev_rgbf_, w_, h_);
+    cudaDeviceSynchronize();
 }
 
 void Vision::run()
@@ -25,60 +48,50 @@ void Vision::run()
     if (is_alive_)
     {
         p_count_ ++;
-        
+        int h = h_;
+        int w = w_;
+        int c = 3;
+        //image im = make_image(w, h, c);
         frame_mutex_.lock();
-        cv::Mat src;
-        frame_.copyTo(src);
-        //src_gpu_mat_.download(frame_);
-        //double start=clock();
-        //cuda::cvtColor(src_gpu_mat_, dst_gpu_mat_, CV_YUV2BGR);
-        //dst_gpu_mat_.download(src);
-        //cvtColor(frame_, src, CV_YUV2BGR);
-        //double finish = clock();
-        //std::cout<<"gpu: "<<(finish-start)/CLOCKS_PER_SEC<<std::endl;
+        yuyv2dst();
+        Mat bgr(h_, w_, CV_8UC3);
+        memcpy(bgr.data, dev_bgr_, bgr_size_);
+        //memcpy(im.data, dev_rgbf_, rgbf_size_);
+        cudaResize(dev_rgbf_, w_, h_, dev_sized_, net_.w, net_.h);
         frame_mutex_.unlock();
+        if(bgr.empty()) return;
 
-        if(src.empty()) return;
-/*
-        //cudaBGRPacked2RGBPlanar(src.data, src_im_.data, w_, h_);
-        int h = src.size().height;
-        int w = src.size().width;
-        int c = src.channels();
-        image im = make_image(w, h, c);
-        unsigned char *data = src.data;
-        int step = w*c;
-        int i, j, k;
+        //image sized = resize_image(im, net_.w, net_.h);
 
-        for(i = 0; i < h; ++i){
-            for(k= 0; k < c; ++k){
-                    for(j = 0; j < w; ++j){
-                            im.data[k*w*h + i*w + j] = data[i*step + j*c + k]/255.;
-                        }
-                }
-        }
-        rgbgr_image(im);
-        image sized = letterbox_image(src_im_, net_->w, net_->h);
-        layer l = net_->layers[net_->n-1];
-        float *X = sized.data;
-        start=clock();
-        network_predict(net_, X);
+        layer l = net_.layers[net_.n-1];
+        //float *X = sized.data;
+        double t1 = clock();
+        network_predict(net_, dev_sized_, 1);
         int nboxes = 0;
         float nms=.45;
-        detection *dets = get_network_boxes(net_, src_im_.w, src_im_.h, 0.5, 0.5, 0, 1, &nboxes);
+        detection *dets = get_network_boxes(&net_, w_, h_, 0.5, 0.5, 0, 1, &nboxes, 0);
         if (nms) do_nms_sort(dets, nboxes, l.classes, nms);
-
+        cout<<(clock()-t1)/CLOCKS_PER_SEC<<endl;
         for(int i=0;i<nboxes;i++)
         {
-            rectangle(src, Point((dets[i].bbox.x-dets[i].bbox.w/2.0)*w_, (dets[i].bbox.y-dets[i].bbox.h/2.0)*h_),
-                Point((dets[i].bbox.x+dets[i].bbox.w/2.0)*w_, (dets[i].bbox.y+dets[i].bbox.h/2.0)*h_), Scalar(255, 0, 0, 0));
+            rectangle(bgr, Point((dets[i].bbox.x-dets[i].bbox.w/2.0)*w, (dets[i].bbox.y-dets[i].bbox.h/2.0)*h),
+                Point((dets[i].bbox.x+dets[i].bbox.w/2.0)*w, (dets[i].bbox.y+dets[i].bbox.h/2.0)*h), Scalar(255, 0, 0, 0));
+            for(int j=0;j<l.classes;j++)
+            {
+                if(dets[i].prob[j]>0.2)
+                {
+                    putText(bgr, names_[j], Point(dets[i].bbox.x*w, dets[i].bbox.y*h), FONT_HERSHEY_SIMPLEX,1,Scalar(255,23,0),1,8);
+                }
+            }
         }
 
         free_detections(dets, nboxes);
-        free_image(im);
-        free_image(sized);*/
+        //free_image(im);
+        //free_image(sized);
+
         if (OPTS->use_debug())
         {
-            send_image(src);
+            send_image(bgr);
         }
     }
 }
@@ -104,14 +117,7 @@ void Vision::updata(const pro_ptr &pub, const int &type)
     if (type == sensor::SENSOR_CAMERA)
     {
         frame_mutex_.lock();
-        //double start=clock();
-
-        frame_ = cudaBuff2BGR(sptr->buffer(), sptr->buff_info());
-        //Mat tmp = buff2mat(sptr->buffer(), sptr->buff_info());
-        //cvtColor(tmp, frame_, CV_YUV2BGR);
-        //yuyv2rgb(sptr->buffer()->start);
-        //double finish = clock();
-        //std::cout<<"cpu cvt: "<<(finish-start)/CLOCKS_PER_SEC<<std::endl;
+        memcpy(yuyv_, sptr->buffer()->start, src_size_);
         frame_mutex_.unlock();
     }
 }
@@ -119,6 +125,26 @@ void Vision::updata(const pro_ptr &pub, const int &type)
 bool Vision::start(const sensor_ptr &s)
 {
     server_ = std::dynamic_pointer_cast<tcp_server>(s);
+    names_.clear();
+    ifstream ifs(CONF->get_config_value<string>("net_names_file"));
+    while(!ifs.eof())
+    {
+        string s;
+        ifs>>s;
+        names_.push_back(s);
+    }
+    ifs.close();
+    net_.gpu_index = 0;
+    net_ = parse_network_cfg_custom((char*)CONF->get_config_value<string>("net_cfg_file").c_str(), 1);
+    load_weights(&net_, (char*)CONF->get_config_value<string>("net_weights_file").c_str());
+    set_batch_network(&net_, 1);
+    fuse_conv_batchnorm(net_);
+    calculate_binary_weights(net_);
+    srand(2222222);
+    sized_size_ = net_.w*net_.h*3* sizeof(float);
+    cudaError_t err;
+    err = cudaMallocManaged((void**)&dev_sized_, sized_size_);
+    check_error(err);
     is_alive_ = true;
     start_timer();
     return true;
@@ -130,7 +156,7 @@ void Vision::stop()
     {
         delete_timer();
     }
-
+    free_network(net_);
     is_alive_ = false;
 }
 

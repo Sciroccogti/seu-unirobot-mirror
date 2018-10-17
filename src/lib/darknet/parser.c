@@ -1180,7 +1180,6 @@ void load_weights_upto(network *net, char *filename, int cutoff)
         fread(net->seen, sizeof(int), 1, fp);
     }
     int transpose = (major > 1000) || (minor > 1000);
-
     int i;
     for(i = 0; i < net->n && i < cutoff; ++i){
         layer l = net->layers[i];

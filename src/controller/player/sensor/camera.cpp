@@ -217,7 +217,7 @@ bool camera::open()
         return false;
     }
 
-    print_camera_info();
+    //print_camera_info();
     cap_opened_ = true;
     return true;
 }

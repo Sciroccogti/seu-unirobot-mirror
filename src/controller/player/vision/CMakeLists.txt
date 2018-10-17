@@ -1,4 +1,4 @@
-add_library(vision 
+add_library(vision
         vision.cpp)
 
 target_link_libraries(vision 

@@ -48,7 +48,6 @@ void saturate_exposure_image(image im, float sat, float exposure);
 void hsv_to_rgb(image im);
 YOLODLL_API void rgbgr_image(image im);
 void constrain_image(image im);
-void composite_3d(char *f1, char *f2, char *out, int delta);
 int best_3d_shift_r(image a, image b, int min, int max);
 
 image grayscale_image(image im);
@@ -58,24 +57,13 @@ image collapse_image_layers(image source, int border);
 image collapse_images_horz(image *ims, int n);
 image collapse_images_vert(image *ims, int n);
 
-void show_image(image p, const char *name);
-void show_image_normalized(image im, const char *name);
-void save_image_png(image im, const char *name);
-void save_image(image p, const char *name);
-void show_images(image *ims, int n, char *window);
-void show_image_layers(image p, char *name);
-void show_image_collapsed(image p, char *name);
-
-void print_image(image m);
 
 YOLODLL_API image make_image(int w, int h, int c);
 image make_random_image(int w, int h, int c);
 image make_empty_image(int w, int h, int c);
 image float_to_image(int w, int h, int c, float *data);
 image copy_image(image p);
-image load_image(char *filename, int w, int h, int c);
-YOLODLL_API image load_image_color(char *filename, int w, int h);
-image **load_alphabet();
+
 
 //float get_pixel(image m, int x, int y, int c);
 //float get_pixel_extend(image m, int x, int y, int c);
@@ -86,6 +74,6 @@ float bilinear_interpolate(image im, float x, float y, int c);
 image get_image_layer(image m, int l);
 
 YOLODLL_API void free_image(image m);
-void test_resize(char *filename);
+
 #endif
 
