@@ -1,6 +1,7 @@
-include_directories(./lib)
+include_directories(lib)
 add_definitions(-DGPU)
 add_definitions(-DCUDNN)
+add_definitions(-DCUDNN_HALF)
 find_package(OpenCV REQUIRED)
 find_package(CUDA REQUIRED)
 include_directories(${CUDA_INCLUDE_DIRS})

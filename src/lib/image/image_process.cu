@@ -120,6 +120,12 @@ __global__ void yuyv2all_kernal(unsigned char *in, unsigned char *yuv, unsigned 
     rgbpf[2*planesize+tmp+x] = b/255.0f;
 }
 
+
+__global__ void resize_kernal(float *in, unsigned int iw, unsigned int ih, float *out, unsigned int ow, unsigned oh)
+{
+
+}
+
 void cudaYUYV2YUV(unsigned char *in, unsigned char *out, const unsigned int &w, const unsigned int &h)
 {
     yuyv2yuv_kernal<<<h, w, w*2>>>(in,out,w);
@@ -133,4 +139,10 @@ void cudaYUYV2BGR(unsigned char *in, unsigned char *out, const unsigned int &w, 
 void cudaYUYV2RGBPF(unsigned char *in, float *out, const unsigned int &w, const unsigned int &h)
 {
     yuyv2rgbpf_kernal<<<h, w, w*2>>>(in,out,w,h);
+}
+
+
+void cudaResize(float *in, unsigned int iw, unsigned int ih, float *out, unsigned int ow, unsigned oh)
+{
+    resize_kernal<<<oh, ow>>>(in, iw, ih, out, ow, oh);
 }
