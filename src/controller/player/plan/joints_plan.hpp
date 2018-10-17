@@ -1,5 +1,6 @@
 #pragma once
 
+#include <unistd.h>
 #include "plan.hpp"
 #include "robot/humanoid.hpp"
 #include "sensor/motor.hpp"
@@ -46,7 +47,10 @@ public:
 
             if (actuator_name_ == "body")
             {
-                while (!MADT->body_empty());
+                while (!MADT->body_empty())
+                {
+                    usleep(1000);
+                }
 
                 if (!MADT->add_body_degs(jdmap))
                 {
@@ -55,7 +59,10 @@ public:
             }
             else if (actuator_name_ == "head")
             {
-                while (!MADT->head_empty());
+                while (!MADT->head_empty())
+                {
+                    usleep(1000);
+                }
 
                 if (!MADT->add_head_degs(jdmap))
                 {

@@ -6,14 +6,15 @@
 #include <thread>
 #include <mutex>
 #include <list>
+#import <unistd.h>
 #include "plan/plan.hpp"
 #include "sensor/sensor.hpp"
 
 class actuator
 {
 public:
-    actuator(const std::string &name, const int &max_len = 1)
-        : name_(name), max_len_(max_len)
+    actuator(const std::string &name, const int &max_len=1, const int us=1000)
+        : name_(name), max_len_(max_len), us_(us)
     {
         is_alive_ = false;
     }
@@ -80,6 +81,7 @@ protected:
                 plist_.pop_front();
             }
             plist_mutex_.unlock();
+            usleep(us_);
         }
     }
 private:
@@ -87,6 +89,7 @@ private:
     size_t max_len_;
     std::thread td_;
     bool is_alive_;
+    int us_;
     std::list<plan_ptr> plist_;
 };
 

@@ -392,7 +392,10 @@ namespace walk
                         jdegs[ROBOT->get_joint("jrelbow")->jid_] = rad2deg(degs[2]);
                     }
 
-                    while (!MADT->body_empty());
+                    while (!MADT->body_empty())
+                    {
+                        usleep(1000);
+                    }
 
                     if (!MADT->add_body_degs(jdegs))
                     {

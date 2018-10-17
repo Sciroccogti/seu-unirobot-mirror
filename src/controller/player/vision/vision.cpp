@@ -39,8 +39,8 @@ Vision::~Vision()
 void Vision::yuyv2dst()
 {
     memcpy(dev_src_, yuyv_, src_size_);
-    cudaYUYV2DST(dev_src_, dev_bgr_, dev_rgbf_, w_, h_);
-    cudaDeviceSynchronize();
+    //cudaYUYV2DST(dev_src_, dev_bgr_, dev_rgbf_, w_, h_);
+    //cudaDeviceSynchronize();
 }
 
 void Vision::run()
@@ -53,14 +53,15 @@ void Vision::run()
         int c = 3;
         //image im = make_image(w, h, c);
         frame_mutex_.lock();
+        cout<<src_size_<<endl;
         yuyv2dst();
-        Mat bgr(h_, w_, CV_8UC3);
-        memcpy(bgr.data, dev_bgr_, bgr_size_);
+        //Mat bgr(h_, w_, CV_8UC3);
+        //memcpy(bgr.data, dev_bgr_, bgr_size_);
         //memcpy(im.data, dev_rgbf_, rgbf_size_);
-        cudaResize(dev_rgbf_, w_, h_, dev_sized_, net_.w, net_.h);
+        //cudaResize(dev_rgbf_, w_, h_, dev_sized_, net_.w, net_.h);
         frame_mutex_.unlock();
-        if(bgr.empty()) return;
-
+        //if(bgr.empty()) return;
+/*
         //image sized = resize_image(im, net_.w, net_.h);
 
         layer l = net_.layers[net_.n-1];
@@ -88,11 +89,11 @@ void Vision::run()
         free_detections(dets, nboxes);
         //free_image(im);
         //free_image(sized);
-
-        if (OPTS->use_debug())
-        {
-            send_image(bgr);
-        }
+*/
+        //if (OPTS->use_debug())
+        //{
+        //    send_image(bgr);
+        //}
     }
 }
 

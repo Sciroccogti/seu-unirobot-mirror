@@ -66,8 +66,8 @@ void camera::run()
             std::cout << "VIDIOC_QBUF error\n";
             break;
         }
-
         num_bufs_ = buf_.index;
+        usleep(10000);
     }
 }
 
