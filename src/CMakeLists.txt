@@ -26,7 +26,7 @@ function(detect_installed_gpus out_variable)
                 "  {\n"
                 "    cudaDeviceProp prop;\n"
                 "    if (cudaSuccess == cudaGetDeviceProperties(&prop, device))\n"
-                "      std::printf(\"%d.%d \", prop.major, prop.minor);\n"
+                "      std::printf(\"%d%d \", prop.major, prop.minor);\n"
                 "  }\n"
                 "  return 0;\n"
                 "}\n")
@@ -51,7 +51,6 @@ function(detect_installed_gpus out_variable)
 endfunction()
 
 detect_installed_gpus(__cuda_arch_bin)
-string(REGEX REPLACE "\\." "" __cuda_arch_bin "${__cuda_arch_bin}")
 
 set(CUDA_NVCC_FLAGS "-g -G -gencode arch=compute_${__cuda_arch_bin},code=[sm_${__cuda_arch_bin},compute_${__cuda_arch_bin}]")
 message(STATUS "NVCC_FLAGS: ${CUDA_NVCC_FLAGS}")

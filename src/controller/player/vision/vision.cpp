@@ -61,7 +61,7 @@ void Vision::run()
         check_error(err);
         //memcpy(bgr.data, dev_bgr_, bgr_size_);
         //memcpy(im.data, dev_rgbf_, rgbf_size_);
-        //cudaResize(dev_rgbf_, w_, h_, dev_sized_, net_.w, net_.h);
+        cudaResize(dev_rgbf_, w_, h_, dev_sized_, net_.w, net_.h);
         frame_mutex_.unlock();
         //if(bgr.empty()) return;
 
