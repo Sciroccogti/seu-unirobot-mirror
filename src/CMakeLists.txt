@@ -38,7 +38,7 @@ function(detect_installed_gpus out_variable)
 
         if(__nvcc_res EQUAL 0)
             string(REPLACE "2.1" "2.1(2.0)" __nvcc_out "${__nvcc_out}")
-            set(CUDA_gpu_detect_output ${__nvcc_out} CACHE INTERNAL "Returned GPU architetures from caffe_detect_gpus tool" FORCE)
+            set(CUDA_gpu_detect_output ${__nvcc_out} CACHE INTERNAL "Returned GPU architetures from detect_gpus tool" FORCE)
         endif()
     endif()
 

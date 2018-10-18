@@ -18,11 +18,11 @@ Vision::Vision(): timer(CONF->get_config_value<int>("vision_period"))
 
     yuyv_ = (unsigned char*)malloc(src_size_);
     cudaError_t err;
-    err = cudaMallocManaged((void**)&dev_src_, src_size_);
+    err = cudaMalloc((void**)&dev_src_, src_size_);
     check_error(err);
-    err = cudaMallocManaged((void**)&dev_bgr_, bgr_size_);
+    err = cudaMalloc((void**)&dev_bgr_, bgr_size_);
     check_error(err);
-    err = cudaMallocManaged((void**)&dev_rgbf_, rgbf_size_);
+    err = cudaMalloc((void**)&dev_rgbf_, rgbf_size_);
     check_error(err);
 }
 
@@ -38,9 +38,10 @@ Vision::~Vision()
 
 void Vision::yuyv2dst()
 {
-    memcpy(dev_src_, yuyv_, src_size_);
-    //cudaYUYV2DST(dev_src_, dev_bgr_, dev_rgbf_, w_, h_);
-    //cudaDeviceSynchronize();
+    cudaError_t err;
+    err = cudaMemcpy(dev_src_, yuyv_, src_size_, cudaMemcpyHostToDevice);
+    check_error(err);
+    cudaYUYV2DST(dev_src_, dev_bgr_, dev_rgbf_, w_, h_);
 }
 
 void Vision::run()
@@ -53,15 +54,17 @@ void Vision::run()
         int c = 3;
         //image im = make_image(w, h, c);
         frame_mutex_.lock();
-        cout<<src_size_<<endl;
         yuyv2dst();
-        //Mat bgr(h_, w_, CV_8UC3);
+        Mat bgr(h_, w_, CV_8UC3);
+        cudaError_t err;
+        err = cudaMemcpy(bgr.data, dev_bgr_, bgr_size_, cudaMemcpyDeviceToHost);
+        check_error(err);
         //memcpy(bgr.data, dev_bgr_, bgr_size_);
         //memcpy(im.data, dev_rgbf_, rgbf_size_);
         //cudaResize(dev_rgbf_, w_, h_, dev_sized_, net_.w, net_.h);
         frame_mutex_.unlock();
         //if(bgr.empty()) return;
-/*
+
         //image sized = resize_image(im, net_.w, net_.h);
 
         layer l = net_.layers[net_.n-1];
@@ -85,15 +88,14 @@ void Vision::run()
                 }
             }
         }
-
         free_detections(dets, nboxes);
         //free_image(im);
         //free_image(sized);
-*/
-        //if (OPTS->use_debug())
-        //{
-        //    send_image(bgr);
-        //}
+
+        if (OPTS->use_debug())
+        {
+            send_image(bgr);
+        }
     }
 }
 

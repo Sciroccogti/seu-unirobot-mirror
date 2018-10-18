@@ -161,7 +161,7 @@ __global__ void resize_kernal(float *src, unsigned int iw, unsigned int ih, floa
     int planesizeo = ow*oh;
     int planesizei = iw*ih;
     int tmpo = y*ow;
-    /*
+
     int tmpi = y*iw;
     float w_scale = (float)(iw)/(ow);
     float h_scale = (float)(ih)/(oh);
@@ -183,9 +183,9 @@ __global__ void resize_kernal(float *src, unsigned int iw, unsigned int ih, floa
         dst[2*planesizeo+tmpo+x] = (((1-dx) * src[2*planesizei+tmpi+ix] + dx * src[2*planesizei+tmpi+ix+1])
                 +((1-dy) * src[2*planesizei+tmpi1+x] + dy * src[2*planesizei+tmpi2+x]))/2.0f;
     }
-    */
 
 
+/*
     double fRows = oh / (float)ih;
     double fCols = ow / (float)iw;
     int pX = 0;
@@ -200,6 +200,7 @@ __global__ void resize_kernal(float *src, unsigned int iw, unsigned int ih, floa
         dst[planesizeo+tmpo+x] = src[planesizei+tmpi+pX];
         dst[2*planesizeo+tmpo+x] = src[2*planesizei+tmpi+pX];
     }
+    */
 }
 
 void cudaYUYV2YUV(unsigned char *in, unsigned char *out, const unsigned int &w, const unsigned int &h)
