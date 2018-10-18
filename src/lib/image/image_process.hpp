@@ -13,7 +13,7 @@ void cudaYUYV2BGR(unsigned char *in, unsigned char *out, const unsigned int &w, 
 void cudaYUYV2RGBPF(unsigned char *in, unsigned char *out, const unsigned int &w, const unsigned int &h);
 
 void cudaYUYV2DST(unsigned char *in, unsigned char *bgr, float *rgb, const unsigned int &w, const unsigned int &h);
-void cudaResize(float *in, unsigned int iw, unsigned int ih, float *out, unsigned int ow, unsigned oh);
+void cudaResize(float *in, int iw, int ih, float *sizedw, float *sized, int ow, int oh);
 
 namespace imageproc
 {

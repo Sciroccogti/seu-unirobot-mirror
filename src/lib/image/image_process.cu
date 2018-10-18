@@ -154,27 +154,45 @@ __global__ void yuyv2dst_kernal(unsigned char *in, unsigned char *bgr, float *rg
     rgb[2*planesize+tmp+x] = b/255.0f;
 }
 
-__global__ void resize_kernal(float *src, unsigned int iw, unsigned int ih, float *dst, unsigned int ow, unsigned oh)
+__global__ void resizew_kernal(float *src, int iw, int ih, float *dst, int ow, int oh)
 {
     int y = blockIdx.x;
     int x = threadIdx.x;
     int planesizeo = ow*oh;
     int planesizei = iw*ih;
     int tmpo = y*ow;
-
-    double fRows = oh / (float)ih;
-    double fCols = ow / (float)iw;
-    int pX = 0;
-    int pY = 0;
-    pX = (int)(x / fCols);
-    pY = (int)(y / fRows);
-    int tmpi = pY*iw;
-
-    if (pY < ih && pY >= 0 && pX < iw && pX >= 0)
+    int tmpi = y*iw;
+    float w_scale = (float)(iw-1)/(ow-1);
+    float sx = x*w_scale;
+    int ix = (int) sx;
+    float dx = sx - ix;
+    if(ix<iw-1)
     {
-        dst[tmpo+x] = src[tmpi+pX];
-        dst[planesizeo+tmpo+x] = src[planesizei+tmpi+pX];
-        dst[2*planesizeo+tmpo+x] = src[2*planesizei+tmpi+pX];
+        dst[tmpo+x] = (1-dx)*src[tmpi+ix]+dx*src[tmpi+ix+1];
+        dst[planesizeo+tmpo+x] = (1-dx)*src[planesizei+tmpi+ix]+dx*src[planesizei+tmpi+ix+1];
+        dst[2*planesizeo+tmpo+x] = (1-dx)*src[2*planesizei+tmpi+ix]+dx*src[2*planesizei+tmpi+ix+1];
+    }
+}
+
+__global__ void resizeh_kernal(float *src, int iw, int ih, float *dst, int ow, int oh)
+{
+    int y = blockIdx.x;
+    int x = threadIdx.x;
+    int planesizeo = ow*oh;
+    int planesizei = iw*ih;
+    int tmpo = y*ow;
+    float h_scale = (float)(ih-1)/(oh-1);
+
+    float sy = y*h_scale;
+    int iy = (int) sy;
+    float dy = sy - iy;
+    int tmpi1 = iy*iw;
+    int tmpi2 = (iy+1)*iw;
+    if(iy<ih-1)
+    {
+        dst[tmpo+x] = (1-dy)*src[tmpi1+x]+dy*src[tmpi2+x];
+        dst[planesizeo+tmpo+x] = (1-dy)*src[planesizei+tmpi1+x]+dy*src[planesizei+tmpi2+x];
+        dst[2*planesizeo+tmpo+x] = (1-dy)*src[2*planesizei+tmpi1+x]+dy*src[2*planesizei+tmpi2+x];
     }
 }
 
@@ -198,7 +216,8 @@ void cudaYUYV2DST(unsigned char *in, unsigned char *bgr, float *rgb, const unsig
     yuyv2dst_kernal<<<h,w,w*2>>>(in, bgr, rgb, w, h);
 }
 
-void cudaResize(float *in, unsigned int iw, unsigned int ih, float *out, unsigned int ow, unsigned oh)
+void cudaResize(float *in, int iw, int ih, float *sizedw, float *sized, int ow, int oh)
 {
-    resize_kernal<<<oh, ow>>>(in, iw, ih, out, ow, oh);
+    resizew_kernal<<<ih, ow>>>(in, iw, ih, sizedw, ow, ih);
+    resizeh_kernal<<<oh, ow>>>(sizedw, ow, ih, sized, ow, oh);
 }

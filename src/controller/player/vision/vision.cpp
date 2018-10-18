@@ -34,6 +34,7 @@ Vision::~Vision()
     cudaFree(dev_bgr_);
     cudaFree(dev_rgbf_);
     cudaFree(dev_sized_);
+    cudaFree(dev_wsized_);
 }
 
 void Vision::yuyv2dst()
@@ -49,42 +50,35 @@ void Vision::run()
     if (is_alive_)
     {
         p_count_ ++;
-        int h = h_;
-        int w = w_;
-        int c = 3;
-        //image im = make_image(w, h, c);
+
         frame_mutex_.lock();
         yuyv2dst();
         Mat bgr(h_, w_, CV_8UC3);
         cudaError_t err;
         err = cudaMemcpy(bgr.data, dev_bgr_, bgr_size_, cudaMemcpyDeviceToHost);
         check_error(err);
-        //memcpy(bgr.data, dev_bgr_, bgr_size_);
-        //memcpy(im.data, dev_rgbf_, rgbf_size_);
-        cudaResize(dev_rgbf_, w_, h_, dev_sized_, net_.w, net_.h);
+        cudaResize(dev_rgbf_, w_, h_, dev_wsized_, dev_sized_, net_.w, net_.h);
         frame_mutex_.unlock();
         //if(bgr.empty()) return;
 
-        //image sized = resize_image(im, net_.w, net_.h);
-
         layer l = net_.layers[net_.n-1];
-        //float *X = sized.data;
-        double t1 = clock();
+        //double t1 = clock();
         network_predict(net_, dev_sized_, 1);
         int nboxes = 0;
         float nms=.45;
         detection *dets = get_network_boxes(&net_, w_, h_, 0.5, 0.5, 0, 1, &nboxes, 0);
         if (nms) do_nms_sort(dets, nboxes, l.classes, nms);
-        cout<<(clock()-t1)/CLOCKS_PER_SEC<<endl;
+        //cout<<(clock()-t1)/CLOCKS_PER_SEC<<endl;
         for(int i=0;i<nboxes;i++)
         {
-            rectangle(bgr, Point((dets[i].bbox.x-dets[i].bbox.w/2.0)*w, (dets[i].bbox.y-dets[i].bbox.h/2.0)*h),
-                Point((dets[i].bbox.x+dets[i].bbox.w/2.0)*w, (dets[i].bbox.y+dets[i].bbox.h/2.0)*h), Scalar(255, 0, 0, 0));
+            rectangle(bgr, Point((dets[i].bbox.x-dets[i].bbox.w/2.0)*w_, (dets[i].bbox.y-dets[i].bbox.h/2.0)*h_),
+                Point((dets[i].bbox.x+dets[i].bbox.w/2.0)*w_, (dets[i].bbox.y+dets[i].bbox.h/2.0)*h_), Scalar(255, 0, 0, 0));
             for(int j=0;j<l.classes;j++)
             {
                 if(dets[i].prob[j]>0.2)
                 {
-                    putText(bgr, names_[j], Point(dets[i].bbox.x*w, dets[i].bbox.y*h), FONT_HERSHEY_SIMPLEX,1,Scalar(255,23,0),1,8);
+                    putText(bgr, names_[j], Point(dets[i].bbox.x*w_, dets[i].bbox.y*h_),
+                            FONT_HERSHEY_SIMPLEX,1,Scalar(255,23,0),1,8);
                 }
             }
         }
@@ -144,8 +138,11 @@ bool Vision::start(const sensor_ptr &s)
     fuse_conv_batchnorm(net_);
     calculate_binary_weights(net_);
     srand(2222222);
-    sized_size_ = net_.w*net_.h*3* sizeof(float);
+    sized_size_ = net_.w*net_.h*3*sizeof(float);
+    sizew_size_ = net_.w*h_*3*sizeof(float);
     cudaError_t err;
+    err = cudaMallocManaged((void**)&dev_wsized_, sizew_size_);
+    check_error(err);
     err = cudaMallocManaged((void**)&dev_sized_, sized_size_);
     check_error(err);
     is_alive_ = true;

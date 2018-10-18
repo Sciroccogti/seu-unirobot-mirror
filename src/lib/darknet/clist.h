@@ -1,5 +1,5 @@
-#ifndef LIST_H
-#define LIST_H
+#ifndef CLIST_H
+#define CLIST_H
 
 typedef struct node{
     void *val;
