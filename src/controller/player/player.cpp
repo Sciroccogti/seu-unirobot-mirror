@@ -81,9 +81,10 @@ void player::run()
     {
         period_count_++;
 
-        if (WM->is_lost())
+
+        if (WM->lost())
         {
-            std::cout << "\033[31mmotor has no response!\033[0m\n";
+            std::cout << "\033[31mhardware has no response!\033[0m\n";
             raise(SIGINT);
         }
 

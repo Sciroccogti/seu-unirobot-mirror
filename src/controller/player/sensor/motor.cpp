@@ -42,8 +42,6 @@ motor::motor(sensor_ptr dbg): sensor("motor"), timer(CONF->get_config_value<int>
 
     ping_id_ = static_cast<uint8_t>(ROBOT->get_joint("jrhip3")->jid_);
     is_connected_ = false;
-    is_lost_ = false;
-    lost_count_ = 0;
     min_volt_ = CONF->get_config_value<float>("hardware.battery.min_volt");
     max_volt_ = CONF->get_config_value<float>("hardware.battery.max_volt");
     voltage_ = static_cast<uint16_t>(max_volt_ * 10);
@@ -168,33 +166,11 @@ void motor::real_act()
     else
     {
         set_gpos();
-
         if ((p_count_ * period_ms_ % 990) == 0)
         {
             led_status_ = 1 - led_status_;
             set_led(led_status_);
         }
-
-        if ((p_count_ * period_ms_ % 1010) == 0)
-        {
-            dxl_comm_result = packetHandler_->ping(portHandler_, ping_id_, &dxl_model_number, &dxl_error);
-            not_alert_error = dxl_error & ~128;
-
-            if (dxl_comm_result == COMM_SUCCESS && not_alert_error == 0)
-            {
-                lost_count_ = 0;
-            }
-            else
-            {
-                lost_count_++;
-            }
-
-            if (lost_count_ > 5)
-            {
-                is_lost_ = true;
-            }
-        }
-
         if ((p_count_ * period_ms_ % 10000) == 0)
         {
             read_voltage();

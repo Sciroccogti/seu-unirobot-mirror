@@ -106,11 +106,11 @@ signals:
     void valueChanged(int value);
 };
 
-class static_action: public QMainWindow
+class action_debuger: public QMainWindow
 {
     Q_OBJECT
 public:
-    static_action();
+    action_debuger();
     void initStatusBar();
 protected:
     void closeEvent(QCloseEvent *event);

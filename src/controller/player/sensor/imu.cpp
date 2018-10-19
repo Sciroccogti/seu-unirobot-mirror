@@ -43,6 +43,10 @@ imu::imu(): sensor("imu"), timer(1000), serial_(imu_service)
     led_ = 0;
     l_state_ = LED_NORMAL;
     reset_ = false;
+    count_ = 0;
+    p_count_ = 0;
+    lost_ = false;
+    freq_ = CONF->get_config_value<unsigned int>("hardware.imu.freq");
 }
 
 bool imu::open()
@@ -145,6 +149,7 @@ void imu::run()
             [this, self](boost::system::error_code ec, std::size_t length) {});
             reset_ = false;
         }
+        p_count_++;
     }
 }
 
@@ -236,7 +241,11 @@ void imu::read_data()
                     default:
                         break;
                 }
-
+                count_++;
+                if(abs(freq_*p_count_-count_)>5*freq_)
+                {
+                    lost_ = true;
+                }
                 notify(SENSOR_IMU);
             }
 

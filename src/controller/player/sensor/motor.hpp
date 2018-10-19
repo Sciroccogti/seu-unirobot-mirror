@@ -29,10 +29,7 @@ public:
     {
         return is_connected_;
     }
-    inline bool is_lost() const
-    {
-        return is_lost_;
-    }
+
 private:
     bool open();
     void close();
@@ -47,9 +44,8 @@ private:
 private:
     unsigned long p_count_;
     uint16_t voltage_;
-    bool is_connected_, is_lost_;
+    bool is_connected_;
     uint8_t ping_id_;
-    int lost_count_;
     uint8_t led_status_;
     std::map<int, float> curr_degs_;
     float min_volt_, max_volt_;

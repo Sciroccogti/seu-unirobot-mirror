@@ -1,5 +1,5 @@
 #include <QApplication>
-#include "static_action.hpp"
+#include "action_debuger.hpp"
 #include "configuration.hpp"
 #include "options/options.hpp"
 
@@ -24,7 +24,7 @@ int main(int argc, char **argv)
 
     QApplication app(argc, argv);
     glutInit(&argc, argv);
-    static_action foo;
+    action_debuger foo;
     //foo.showMaximized();
     foo.show();
     return app.exec();

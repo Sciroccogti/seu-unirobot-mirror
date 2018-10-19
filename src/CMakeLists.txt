@@ -1,11 +1,8 @@
-
-include_directories(lib)
 add_definitions(-DGPU)
 add_definitions(-DCUDNN)
 add_definitions(-DCUDNN_HALF)
 find_package(OpenCV REQUIRED)
 find_package(CUDA REQUIRED)
-include_directories(${CUDA_INCLUDE_DIRS})
 
 ################################################################################################
 # A function for automatic detection of GPUs installed  (if autodetection is enabled)
@@ -52,10 +49,12 @@ endfunction()
 
 detect_installed_gpus(__cuda_arch_bin)
 
-set(CUDA_NVCC_FLAGS "-g -G -gencode arch=compute_${__cuda_arch_bin},code=[sm_${__cuda_arch_bin},compute_${__cuda_arch_bin}]")
-message(STATUS "NVCC_FLAGS: ${CUDA_NVCC_FLAGS}")
+set(CMAKE_CUDA_FLAGS " -gencode arch=compute_${__cuda_arch_bin},code=[sm_${__cuda_arch_bin},compute_${__cuda_arch_bin}]")
+message(STATUS "CUDA_FLAGS: ${CMAKE_CUDA_FLAGS}")
 set(CMAKE_INSTALL_PREFIX "${CMAKE_SOURCE_DIR}/bin")
 
+include_directories(lib)
+include_directories(${CUDA_INCLUDE_DIRS})
 add_subdirectory(lib)
 add_subdirectory(controller)
 if(BUILD_TOOLS)

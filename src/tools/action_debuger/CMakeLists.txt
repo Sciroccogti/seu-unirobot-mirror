@@ -1,6 +1,6 @@
 include_directories(${Qt5Widgets_INCLUDE_DIRS})
 
-set(TARGET_NAME static_action)
+set(TARGET_NAME action_debuger)
 
 add_executable(${TARGET_NAME}
                 main.cpp

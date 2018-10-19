@@ -53,6 +53,10 @@ public:
     {
         return imu_data_;
     }
+    inline bool lost() const
+    {
+        return lost_;
+    }
     inline sw_data switch_data() const
     {
         return sw_data_;
@@ -76,4 +80,8 @@ private:
     unsigned char led_;
     led_state l_state_;
     bool reset_;
+    bool lost_;
+    unsigned int count_;
+    unsigned int freq_;
+    unsigned int p_count_;
 };

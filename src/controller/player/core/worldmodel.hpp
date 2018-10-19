@@ -19,7 +19,7 @@ public:
         rmt_data_.type = NON_DATA;
         rmt_data_.size = 0;
         low_power_ = false;
-        is_lost_ = false;
+        lost_ = false;
     }
 
     void updata(const pro_ptr &pub, const int &type)
@@ -49,6 +49,7 @@ public:
             std::shared_ptr<imu> sptr = std::dynamic_pointer_cast<imu>(pub);
             imu_data_ = sptr->data();
             sw_data_ = sptr->switch_data();
+            lost_ = sptr->lost();
             imu_mtx_.unlock();
             return;
         }
@@ -58,7 +59,6 @@ public:
             dxl_mtx_.lock();
             std::shared_ptr<motor> sptr = std::dynamic_pointer_cast<motor>(pub);
             low_power_ = sptr->low_power();
-            is_lost_ = sptr->is_lost();
             dxl_mtx_.unlock();
             return;
         }
@@ -128,14 +128,15 @@ public:
         std::lock_guard<std::mutex> lk(dxl_mtx_);
         return low_power_;
     }
-    inline bool is_lost() const
+
+    inline bool lost() const
     {
-        std::lock_guard<std::mutex> lk(dxl_mtx_);
-        return is_lost_;
+        std::lock_guard<std::mutex> lk(imu_mtx_);
+        return lost_;
     }
 
 private:
-    bool low_power_, is_lost_;
+    bool low_power_, lost_;
     std::map<int, player_info> players_;
     RoboCupGameControlData gc_data_;
     imu::imu_data imu_data_;
