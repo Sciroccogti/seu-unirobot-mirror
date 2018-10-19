@@ -5,6 +5,7 @@
 #include <string>
 #include <thread>
 #include <mutex>
+#include <atomic>
 #include "sensor.hpp"
 #include "timer.hpp"
 
@@ -80,8 +81,7 @@ private:
     unsigned char led_;
     led_state l_state_;
     bool reset_;
-    bool lost_;
-    unsigned int count_;
-    unsigned int freq_;
-    unsigned int p_count_;
+    std::atomic_bool lost_;
+    std::atomic_bool connected_;
+    std::atomic_int count_;
 };

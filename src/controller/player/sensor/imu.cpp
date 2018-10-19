@@ -44,9 +44,8 @@ imu::imu(): sensor("imu"), timer(1000), serial_(imu_service)
     l_state_ = LED_NORMAL;
     reset_ = false;
     count_ = 0;
-    p_count_ = 0;
     lost_ = false;
-    freq_ = CONF->get_config_value<unsigned int>("hardware.imu.freq");
+    connected_ = false;
 }
 
 bool imu::open()
@@ -96,6 +95,19 @@ void imu::run()
 {
     if (timer::is_alive_)
     {
+        if(connected_)
+        {
+            if(count_<10)
+            {
+                lost_ = true;
+                notify(SENSOR_IMU);
+            }
+            else
+            {
+                lost_ = false;
+            }
+            count_ = 0;
+        }
         led_mtx_.lock();
         led_state state = l_state_;
         bool rst = reset_;
@@ -149,7 +161,6 @@ void imu::run()
             [this, self](boost::system::error_code ec, std::size_t length) {});
             reset_ = false;
         }
-        p_count_++;
     }
 }
 
@@ -202,7 +213,6 @@ void imu::read_data()
         if (!ec)
         {
             unsigned char sum = 0;
-
             for (int i = 0; i < imu_len - 1; i++)
             {
                 sum += buff_[i];
@@ -210,6 +220,7 @@ void imu::read_data()
 
             if (sum == buff_[imu_len - 1])
             {
+                connected_ = true;
                 switch (buff_[1])
                 {
                     case 0x51:
@@ -242,10 +253,6 @@ void imu::read_data()
                         break;
                 }
                 count_++;
-                if(abs(freq_*p_count_-count_)>5*freq_)
-                {
-                    lost_ = true;
-                }
                 notify(SENSOR_IMU);
             }
 
