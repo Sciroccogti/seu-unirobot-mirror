@@ -3,6 +3,7 @@
 import subprocess
 import json
 import config
+import os
 
 def get_json_from_conf(confname=''):
     json_data = ''
@@ -17,22 +18,14 @@ def get_json_from_conf(confname=''):
     return json_data
 
 
-def run_cmd(cmd):
+def run_cmd(cmd, prt=True):
     p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
     while p.poll() is None:
-        print(p.stdout.readline())
+        print(p.stdout.readline().strip('\n'))
     if p.poll() == 0:
         return True
     else:
         return False
-
-
-def build_project(build_debuger=False):
-    if build_debuger:
-        cmd = 'cd %s/build; cmake -DBUILD_DEBUER=ON ..; make install'%config.project_dir
-    else:
-        cmd = 'cd %s/build; cmake -DBUILD_DEBUER=OFF ..; make install'%config.project_dir
-    return run_cmd(cmd)
 
 
 def check_id(id):
@@ -56,8 +49,17 @@ def get_ip(id):
 
 
 def compress_files():
-    cmd = 'cd %s/bin; tar zcvf %s %s data'%(config.project_dir, config.compress_file_name, config.exec_file_name)
-    return run_cmd(cmd)
+    if os.path.exists(config.local_dir+config.code_dir):
+        cmd = 'cd %s; rm -rf %s'%(config.project_dir, config.code_dir)
+        run_cmd(cmd)
+    if os.path.exists(config.local_dir+config.compress_file_name):
+        cmd = 'cd %s; rm -rf %s'%(config.local_dir, config.compress_file_name)
+        run_cmd(cmd)
+    print('removed old files!')
+    cmd = 'cd %s; mkdir %s; cp -r %s/src %s/CMakeLists.txt %s; tar zcvf %s %s'\
+          %(config.local_dir, config.code_dir, config.project_name, config.project_name,\
+            config.code_dir, config.compress_file_name, config.code_dir)
+    return run_cmd(cmd, False)
 
 
 def parse_argv(argv=[], start=2):
