@@ -32,7 +32,6 @@ private:
 
     void yuyv2dst();
 
-    cv::Mat frame_;
     std::shared_ptr<tcp_server> server_;
     int p_count_;
     std::string filename_;

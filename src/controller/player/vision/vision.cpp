@@ -53,13 +53,10 @@ void Vision::run()
 
         frame_mutex_.lock();
         yuyv2dst();
-        Mat bgr(h_, w_, CV_8UC3);
         cudaError_t err;
-        err = cudaMemcpy(bgr.data, dev_bgr_, bgr_size_, cudaMemcpyDeviceToHost);
         check_error(err);
         cudaResize(dev_rgbf_, w_, h_, dev_wsized_, dev_sized_, net_.w, net_.h);
         frame_mutex_.unlock();
-        //if(bgr.empty()) return;
 
         layer l = net_.layers[net_.n-1];
         //double t1 = clock();
@@ -69,27 +66,28 @@ void Vision::run()
         detection *dets = get_network_boxes(&net_, w_, h_, 0.5, 0.5, 0, 1, &nboxes, 0);
         if (nms) do_nms_sort(dets, nboxes, l.classes, nms);
         //cout<<(clock()-t1)/CLOCKS_PER_SEC<<endl;
-        for(int i=0;i<nboxes;i++)
-        {
-            rectangle(bgr, Point((dets[i].bbox.x-dets[i].bbox.w/2.0)*w_, (dets[i].bbox.y-dets[i].bbox.h/2.0)*h_),
-                Point((dets[i].bbox.x+dets[i].bbox.w/2.0)*w_, (dets[i].bbox.y+dets[i].bbox.h/2.0)*h_), Scalar(255, 0, 0, 0));
-            for(int j=0;j<l.classes;j++)
-            {
-                if(dets[i].prob[j]>0.2)
-                {
-                    putText(bgr, names_[j], Point(dets[i].bbox.x*w_, dets[i].bbox.y*h_),
-                            FONT_HERSHEY_SIMPLEX,1,Scalar(255,23,0),1,8);
-                }
-            }
-        }
-        free_detections(dets, nboxes);
-        //free_image(im);
-        //free_image(sized);
+
 
         if (OPTS->use_debug())
         {
+            Mat bgr(h_, w_, CV_8UC3);
+            err = cudaMemcpy(bgr.data, dev_bgr_, bgr_size_, cudaMemcpyDeviceToHost);
+            for(int i=0;i<nboxes;i++)
+            {
+                rectangle(bgr, Point((dets[i].bbox.x-dets[i].bbox.w/2.0)*w_, (dets[i].bbox.y-dets[i].bbox.h/2.0)*h_),
+                          Point((dets[i].bbox.x+dets[i].bbox.w/2.0)*w_, (dets[i].bbox.y+dets[i].bbox.h/2.0)*h_), Scalar(255, 0, 0, 0));
+                for(int j=0;j<l.classes;j++)
+                {
+                    if(dets[i].prob[j]>0.2)
+                    {
+                        putText(bgr, names_[j], Point(dets[i].bbox.x*w_, dets[i].bbox.y*h_),
+                                FONT_HERSHEY_SIMPLEX,1,Scalar(255,23,0),1,8);
+                    }
+                }
+            }
             send_image(bgr);
         }
+        free_detections(dets, nboxes);
     }
 }
 
