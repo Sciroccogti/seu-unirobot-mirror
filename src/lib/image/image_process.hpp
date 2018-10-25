@@ -10,9 +10,8 @@
 
 void cudaYUYV2YUV(unsigned char *in, unsigned char *out, const unsigned int &w, const unsigned int &h);
 void cudaYUYV2BGR(unsigned char *in, unsigned char *out, const unsigned int &w, const unsigned int &h);
-void cudaYUYV2RGBPF(unsigned char *in, unsigned char *out, const unsigned int &w, const unsigned int &h);
+void cudaYUYV2DST(unsigned char *in, unsigned char *bgr, float *rgb, float *hsi, const unsigned int &w, const unsigned int &h);
 
-void cudaYUYV2DST(unsigned char *in, unsigned char *bgr, float *rgb, const unsigned int &w, const unsigned int &h);
 void cudaResize(float *in, int iw, int ih, float *sizedw, float *sized, int ow, int oh);
 
 namespace imageproc

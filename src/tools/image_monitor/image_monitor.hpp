@@ -27,6 +27,8 @@ private:
     ImageLabel *imageLab;
     QLabel *yawLab, *pitchLab, *netLab;
     QSlider *pitchSlider, *yawSlider;
+    QComboBox *colorBox;
+    QCheckBox *colorCheck;
     QTimer *timer;
     tcp_client client_;
     QString net_info;

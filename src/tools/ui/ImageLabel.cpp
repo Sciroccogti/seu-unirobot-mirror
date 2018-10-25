@@ -45,6 +45,8 @@ void ImageLabel::mouseReleaseEvent(QMouseEvent *event)
         emit shot(shotRect);
         drawing = false;
         this->update();
+        shotRect.setWidth(0);
+        shotRect.setHeight(0);
     }
 }
 
@@ -59,6 +61,7 @@ void ImageLabel::paintEvent(QPaintEvent *event)
 
         if (drawing)
         {
+            painter.setPen(QPen(Qt::red, 4, Qt::SolidLine, Qt::FlatCap));
             painter.drawRect(shotRect);
         }
     }

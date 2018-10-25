@@ -4,7 +4,7 @@
 #include "plan/lookat_plan.hpp"
 #include "plan/walk_plan.hpp"
 #include "tcp.hpp"
-
+#include "image/image_define.hpp"
 using namespace robot;
 using namespace std;
 
@@ -75,6 +75,16 @@ list<plan_ptr> player::play_with_remote()
         memcpy(&(info.ctrl.value), rdata.data.c_str() + int_size, int_size);
         shared_ptr<camera> cm = dynamic_pointer_cast<camera>(get_sensor("camera"));
         cm->set_ctrl_item(info);
+    }
+    else if (rdata.type == COLOR_SAMPLE)
+    {
+        int c,x,y,w,h;
+        memcpy(&c, rdata.data.c_str(), int_size);
+        memcpy(&(x), rdata.data.c_str()+int_size, int_size);
+        memcpy(&(y), rdata.data.c_str()+2*int_size, int_size);
+        memcpy(&(w), rdata.data.c_str()+3*int_size, int_size);
+        memcpy(&(h), rdata.data.c_str()+4*int_size, int_size);
+        VISION->caculateColor(static_cast<imageproc::Color>(c), x, y, w, h);
     }
 
     WM->reset_rmt_data();

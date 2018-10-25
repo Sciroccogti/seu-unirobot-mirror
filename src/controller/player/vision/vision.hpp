@@ -15,6 +15,7 @@
 #include "singleton.hpp"
 #include "darknet/network.h"
 #include "image/image_define.hpp"
+#include "parser/color_parser.hpp"
 
 class Vision: public timer, public subscriber, public singleton<Vision>
 {
@@ -25,11 +26,11 @@ public:
     void updata(const pro_ptr &pub, const int &type);
     bool start(const sensor_ptr &s = nullptr);
     void stop();
+    void caculateColor(imageproc::Color c, int x, int y, int w, int h);
     mutable std::mutex frame_mutex_;
 private:
     void run();
     void send_image(const cv::Mat &src);
-
     void yuyv2dst();
 
     std::shared_ptr<tcp_server> server_;
@@ -37,21 +38,25 @@ private:
     std::string filename_;
     int w_, h_;
     network net_;
+    bool is_busy_;
 
     unsigned char *dev_src_;
     unsigned char *dev_bgr_;
     float *dev_rgbf_;
     float *dev_wsized_;
     float *dev_sized_;
+    float *dev_hsi_;
 
     int src_size_;
     int bgr_size_;
     int rgbf_size_;
     int sizew_size_;
     int sized_size_;
+    int hsi_size_;
 
     unsigned char *yuyv_;
     std::vector<std::string> names_;
+    std::map<imageproc::Color, imageproc::ColorHSI> colors_;
 };
 
 #define VISION Vision::instance()

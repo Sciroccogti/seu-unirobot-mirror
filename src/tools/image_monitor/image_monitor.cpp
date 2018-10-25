@@ -3,10 +3,12 @@
 #include "ui/walk_remote.hpp"
 #include "ui/camera_setter.hpp"
 #include <opencv2/opencv.hpp>
+#include "parser/color_parser.hpp"
 
 using namespace cv;
 using namespace std;
 using namespace robot;
+using namespace imageproc;
 
 image_monitor::image_monitor()
     : client_(CONF->get_config_value<string>(CONF->player() + ".address"), CONF->get_config_value<int>("net.tcp.port"),
@@ -27,6 +29,20 @@ image_monitor::image_monitor()
     btnWR = new QPushButton("Walk Remote");
     btnCS = new QPushButton("Camera Setting");
 
+    colorBox = new QComboBox();
+    colorCheck = new QCheckBox("Color");
+    map<Color, ColorHSI> colors;
+    parser::color_parser::parse(CONF->get_config_value<string>(CONF->player()+".color_file"), colors);
+    QStringList clrs;
+    for(auto c: colors)
+    {
+        clrs<<QString::fromStdString(get_name_by_color(c.first));
+    }
+    colorBox->addItems(clrs);
+    QHBoxLayout *colorLayout = new QHBoxLayout();
+    colorLayout->addWidget(colorCheck);
+    colorLayout->addWidget(colorBox);
+
     QVBoxLayout *leftLayout = new QVBoxLayout();
     leftLayout->addWidget(imageLab);
     leftLayout->addWidget(yawSlider);
@@ -34,6 +50,7 @@ image_monitor::image_monitor()
     QVBoxLayout *ctrlLayout = new QVBoxLayout;
     ctrlLayout->addWidget(btnWR);
     ctrlLayout->addWidget(btnCS);
+    ctrlLayout->addLayout(colorLayout);
 
     QHBoxLayout *mainLayout = new QHBoxLayout();
     mainLayout->addLayout(leftLayout);
@@ -102,6 +119,7 @@ void image_monitor::procTimer()
         netLab->setStyleSheet("background-color:green");
         yawSlider->setEnabled(true);
         pitchSlider->setEnabled(true);
+        colorCheck->setEnabled(true);
     }
     else
     {
@@ -109,6 +127,8 @@ void image_monitor::procTimer()
         netLab->setStyleSheet("background-color:red");
         yawSlider->setEnabled(false);
         pitchSlider->setEnabled(false);
+        colorCheck->setChecked(false);
+        colorCheck->setEnabled(false);
     }
 }
 
@@ -126,14 +146,29 @@ void image_monitor::procBtnCS()
 
 void image_monitor::procShot(QRect rect)
 {
-    if (rect.width() > 10 && rect.height())
+    if (rect.width() > 5 && rect.height()>5)
     {
         int x, y, w, h;
         x = rect.left();
         y = rect.top();
         w = rect.width();
         h = rect.height();
-        cout << "x: " << x << " y: " << y << " w: " << w << " h: " << h << endl;
+        if(colorCheck->isChecked())
+        {
+            int c = colorBox->currentIndex();
+            remote_data_type t = COLOR_SAMPLE;
+            tcp_command cmd;
+            cmd.type = REMOTE_DATA;
+            cmd.size = 5 * int_size + rmt_type_size;
+            cmd.data.clear();
+            cmd.data.append((char *)(&t), rmt_type_size);
+            cmd.data.append((char *)(&c), int_size);
+            cmd.data.append((char *)(&x), int_size);
+            cmd.data.append((char *)(&y), int_size);
+            cmd.data.append((char *)(&w), int_size);
+            cmd.data.append((char *)(&h), int_size);
+            client_.write(cmd);
+        }
     }
 }
 
