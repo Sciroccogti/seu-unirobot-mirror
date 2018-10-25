@@ -27,6 +27,10 @@ public:
     bool start(const sensor_ptr &s = nullptr);
     void stop();
     void caculateColor(imageproc::Color c, int x, int y, int w, int h);
+    void set_img_send_type(image_send_type t)
+    {
+        img_sd_type_ = t;
+    }
     mutable std::mutex frame_mutex_;
 private:
     void run();
@@ -39,6 +43,7 @@ private:
     int w_, h_;
     network net_;
     bool is_busy_;
+    image_send_type img_sd_type_;
 
     unsigned char *dev_src_;
     unsigned char *dev_bgr_;

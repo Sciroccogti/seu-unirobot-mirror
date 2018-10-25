@@ -48,6 +48,17 @@ def get_ip(id):
         return None
 
 
+def get_config(key=''):
+    conf = json.loads(get_json_from_conf(config.config_file_name))
+    keys = key.split('.')
+    try:
+        for k in keys:
+            conf = conf.get(k)
+        return conf
+    except:
+        return None
+
+
 def compress_files():
     if os.path.exists(config.local_dir+config.code_dir):
         cmd = 'cd %s; rm -rf %s'%(config.project_dir, config.code_dir)

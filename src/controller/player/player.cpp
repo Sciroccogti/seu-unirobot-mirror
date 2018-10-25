@@ -46,7 +46,7 @@ bool player::init()
         a.second->start();
     }
 
-    action_plan p("ready", true);
+    action_plan p("reset", true);
     p.perform();
 
     fsm_ = make_shared<fsm>();

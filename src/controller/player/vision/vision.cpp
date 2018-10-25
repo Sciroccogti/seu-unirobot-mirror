@@ -15,6 +15,7 @@ Vision::Vision(): timer(CONF->get_config_value<int>("vision_period"))
     w_ = CONF->get_config_value<int>("video.width");
     h_ = CONF->get_config_value<int>("video.height");
     parser::color_parser::parse(CONF->get_config_value<string>(CONF->player()+".color_file"), colors_);
+    img_sd_type_ = IMAGE_SEND_RESULT;
 }
 
 Vision::~Vision()
@@ -57,58 +58,67 @@ void Vision::run()
             Mat bgr(h_, w_, CV_8UC3);
             err = cudaMemcpy(bgr.data, dev_bgr_, bgr_size_, cudaMemcpyDeviceToHost);
             check_error(err);
-            float *hsi;
-            hsi = (float*)malloc(hsi_size_);
-            err = cudaMemcpy(hsi, dev_hsi_, hsi_size_, cudaMemcpyDeviceToHost);
-            int i,j;
-            check_error(err);
-            int planesize = w_*h_;
-            for(j=0;j<h_;j++)
+            if(img_sd_type_ == IMAGE_SEND_ORIGIN)
+                send_image(bgr);
+            else if(img_sd_type_ == IMAGE_SEND_COLOR)
             {
-                for(i=0;i<w_;i++)
+                float *hsi;
+                hsi = (float*)malloc(hsi_size_);
+                err = cudaMemcpy(hsi, dev_hsi_, hsi_size_, cudaMemcpyDeviceToHost);
+                int i,j;
+                check_error(err);
+                int planesize = w_*h_;
+                for(j=0;j<h_;j++)
                 {
-                    if(hsi[j*w_+i] >= colors_[COLOR_GREEN].H.minimum&&hsi[j*w_+i] <= colors_[COLOR_GREEN].H.maximum
-                    &&hsi[planesize+j*w_+i] >= colors_[COLOR_GREEN].S.minimum&&hsi[planesize+j*w_+i] <= colors_[COLOR_GREEN].S.maximum
-                    &&hsi[2*planesize+j*w_+i] >= colors_[COLOR_GREEN].I.minimum&&hsi[2*planesize+j*w_+i] <= colors_[COLOR_GREEN].I.maximum)
+                    for(i=0;i<w_;i++)
                     {
-                        bgr.data[j*w_*3+i*3] = 0;
-                        bgr.data[j*w_*3+i*3+1] = 255;
-                        bgr.data[j*w_*3+i*3+2] = 0;
-                    }
-                    else if(hsi[j*w_+i] >= colors_[COLOR_WHITE].H.minimum&&hsi[j*w_+i] <= colors_[COLOR_WHITE].H.maximum
-                              &&hsi[planesize+j*w_+i] >= colors_[COLOR_WHITE].S.minimum&&hsi[planesize+j*w_+i] <= colors_[COLOR_WHITE].S.maximum
-                              &&hsi[2*planesize+j*w_+i] >= colors_[COLOR_WHITE].I.minimum&&hsi[2*planesize+j*w_+i] <= colors_[COLOR_WHITE].I.maximum)
-                    {
-                        bgr.data[j*w_*3+i*3] = 255;
-                        bgr.data[j*w_*3+i*3+1] = 255;
-                        bgr.data[j*w_*3+i*3+2] = 255;
-                    }
-                    else
-                    {
-                        bgr.data[j*w_*3+i*3] = 0;
-                        bgr.data[j*w_*3+i*3+1] = 0;
-                        bgr.data[j*w_*3+i*3+2] = 0;
+                        if(hsi[j*w_+i] >= colors_[COLOR_GREEN].H.minimum&&hsi[j*w_+i] <= colors_[COLOR_GREEN].H.maximum
+                           &&hsi[planesize+j*w_+i] >= colors_[COLOR_GREEN].S.minimum&&hsi[planesize+j*w_+i] <= colors_[COLOR_GREEN].S.maximum
+                           &&hsi[2*planesize+j*w_+i] >= colors_[COLOR_GREEN].I.minimum&&hsi[2*planesize+j*w_+i] <= colors_[COLOR_GREEN].I.maximum)
+                        {
+                            bgr.data[j*w_*3+i*3] = 0;
+                            bgr.data[j*w_*3+i*3+1] = 255;
+                            bgr.data[j*w_*3+i*3+2] = 0;
+                        }
+                        else if(hsi[j*w_+i] >= colors_[COLOR_WHITE].H.minimum&&hsi[j*w_+i] <= colors_[COLOR_WHITE].H.maximum
+                                &&hsi[planesize+j*w_+i] >= colors_[COLOR_WHITE].S.minimum&&hsi[planesize+j*w_+i] <= colors_[COLOR_WHITE].S.maximum
+                                &&hsi[2*planesize+j*w_+i] >= colors_[COLOR_WHITE].I.minimum&&hsi[2*planesize+j*w_+i] <= colors_[COLOR_WHITE].I.maximum)
+                        {
+                            bgr.data[j*w_*3+i*3] = 255;
+                            bgr.data[j*w_*3+i*3+1] = 255;
+                            bgr.data[j*w_*3+i*3+2] = 255;
+                        }
+                        else
+                        {
+                            bgr.data[j*w_*3+i*3] = 0;
+                            bgr.data[j*w_*3+i*3+1] = 0;
+                            bgr.data[j*w_*3+i*3+2] = 0;
+                        }
                     }
                 }
+                free(hsi);
+                send_image(bgr);
             }
-            free(hsi);
-            /*
-            for(int i=0;i<nboxes;i++)
+            else
             {
-                rectangle(bgr, Point((dets[i].bbox.x-dets[i].bbox.w/2.0)*w_, (dets[i].bbox.y-dets[i].bbox.h/2.0)*h_),
-                          Point((dets[i].bbox.x+dets[i].bbox.w/2.0)*w_, (dets[i].bbox.y+dets[i].bbox.h/2.0)*h_),
-                          Scalar(255, 0, 0, 0));
-                for(int j=0;j<l.classes;j++)
+                /*
+                for(int i=0;i<nboxes;i++)
                 {
-                    if(dets[i].prob[j]>0.2)
+                    rectangle(bgr, Point((dets[i].bbox.x-dets[i].bbox.w/2.0)*w_, (dets[i].bbox.y-dets[i].bbox.h/2.0)*h_),
+                              Point((dets[i].bbox.x+dets[i].bbox.w/2.0)*w_, (dets[i].bbox.y+dets[i].bbox.h/2.0)*h_),
+                              Scalar(255, 0, 0, 0));
+                    for(int j=0;j<l.classes;j++)
                     {
-                        putText(bgr, names_[j], Point(dets[i].bbox.x*w_, dets[i].bbox.y*h_),
-                                FONT_HERSHEY_SIMPLEX,1,Scalar(255,23,0),1,8);
+                        if(dets[i].prob[j]>0.2)
+                        {
+                            putText(bgr, names_[j], Point(dets[i].bbox.x*w_, dets[i].bbox.y*h_),
+                                    FONT_HERSHEY_SIMPLEX,1,Scalar(255,23,0),1,8);
+                        }
                     }
                 }
+                */
+                send_image(bgr);
             }
-            */
-            send_image(bgr);
         }
         //free_detections(dets, nboxes);
         is_busy_ = false;

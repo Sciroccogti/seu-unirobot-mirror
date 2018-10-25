@@ -31,17 +31,33 @@ image_monitor::image_monitor()
 
     colorBox = new QComboBox();
     colorCheck = new QCheckBox("Color");
-    map<Color, ColorHSI> colors;
-    parser::color_parser::parse(CONF->get_config_value<string>(CONF->player()+".color_file"), colors);
+
     QStringList clrs;
-    for(auto c: colors)
+    for(auto c: imageproc::color_name_map)
     {
-        clrs<<QString::fromStdString(get_name_by_color(c.first));
+        clrs<<QString::fromStdString(c.first);
     }
     colorBox->addItems(clrs);
     QHBoxLayout *colorLayout = new QHBoxLayout();
     colorLayout->addWidget(colorCheck);
     colorLayout->addWidget(colorBox);
+
+    imageBox = new QComboBox();
+    map<image_send_type, string> image_send_types = {
+            {IMAGE_SEND_ORIGIN, "origin"},
+            {IMAGE_SEND_COLOR, "color"},
+            {IMAGE_SEND_RESULT, "result"}
+    };
+    clrs.clear();
+    for(auto ist: image_send_types)
+    {
+        clrs<<QString::fromStdString(ist.second);
+    }
+    imageBox->addItems(clrs);
+    imageBox->setCurrentIndex(IMAGE_SEND_RESULT);
+    QHBoxLayout *imageLayout = new QHBoxLayout();
+    imageLayout->addWidget(new QLabel("image"));
+    imageLayout->addWidget(imageBox);
 
     QVBoxLayout *leftLayout = new QVBoxLayout();
     leftLayout->addWidget(imageLab);
@@ -50,6 +66,7 @@ image_monitor::image_monitor()
     QVBoxLayout *ctrlLayout = new QVBoxLayout;
     ctrlLayout->addWidget(btnWR);
     ctrlLayout->addWidget(btnCS);
+    ctrlLayout->addLayout(imageLayout);
     ctrlLayout->addLayout(colorLayout);
 
     QHBoxLayout *mainLayout = new QHBoxLayout();
@@ -83,6 +100,7 @@ image_monitor::image_monitor()
     connect(btnWR, &QPushButton::clicked, this, &image_monitor::procBtnWR);
     connect(btnCS, &QPushButton::clicked, this, &image_monitor::procBtnCS);
     connect(imageLab, &ImageLabel::shot, this, &image_monitor::procShot);
+    connect(imageBox, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this, &image_monitor::procImageBox);
     client_.start();
     yawSlider->setEnabled(false);
     pitchSlider->setEnabled(false);
@@ -120,6 +138,7 @@ void image_monitor::procTimer()
         yawSlider->setEnabled(true);
         pitchSlider->setEnabled(true);
         colorCheck->setEnabled(true);
+        imageBox->setEnabled(true);
     }
     else
     {
@@ -129,6 +148,7 @@ void image_monitor::procTimer()
         pitchSlider->setEnabled(false);
         colorCheck->setChecked(false);
         colorCheck->setEnabled(false);
+        imageBox->setEnabled(false);
     }
 }
 
@@ -170,6 +190,18 @@ void image_monitor::procShot(QRect rect)
             client_.write(cmd);
         }
     }
+}
+
+void image_monitor::procImageBox(int idx)
+{
+    remote_data_type t = IMAGE_SEND_TYPE;
+    tcp_command cmd;
+    cmd.type = REMOTE_DATA;
+    cmd.size = int_size + rmt_type_size;
+    cmd.data.clear();
+    cmd.data.append((char *)(&t), rmt_type_size);
+    cmd.data.append((char *)(&idx), int_size);
+    client_.write(cmd);
 }
 
 void image_monitor::procPitchSlider(int v)

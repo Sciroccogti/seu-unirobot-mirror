@@ -39,7 +39,15 @@ enum remote_data_type
     LOOKAT_DATA = 3,
     JOINT_OFFSET = 4,
     CAMERA_SET = 10,
-    COLOR_SAMPLE = 11
+    COLOR_SAMPLE = 11,
+    IMAGE_SEND_TYPE = 12,
+};
+
+enum image_send_type
+{
+    IMAGE_SEND_ORIGIN=0,
+    IMAGE_SEND_COLOR=1,
+    IMAGE_SEND_RESULT=2
 };
 
 struct remote_data

@@ -5,7 +5,7 @@
 #include "class_exception.hpp"
 #include "core/worldmodel.hpp"
 #include "math/math.hpp"
-
+#include <fstream>
 #define ZERO_POS 2048
 #define MAX_POS  4096
 #define MIN_POS  0
@@ -82,6 +82,15 @@ void motor::run()
     if (timer::is_alive_)
     {
         ROBOT->set_degs(MADT->get_degs());
+        /*
+        ofstream ofs("res.txt", ios::app);
+        ofs<<p_count_*0.01<<'\t';
+        for(int id=11;id<=22;id++)
+        {
+            ofs<<ROBOT->get_joint(id)->inverse_*ROBOT->get_joint(id)->get_deg()/180.0f*M_PI<<'\t';
+        }
+        ofs<<endl;
+         */
 
         if (OPTS->use_debug())
         {

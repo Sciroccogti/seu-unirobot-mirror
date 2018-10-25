@@ -86,6 +86,12 @@ list<plan_ptr> player::play_with_remote()
         memcpy(&(h), rdata.data.c_str()+4*int_size, int_size);
         VISION->caculateColor(static_cast<imageproc::Color>(c), x, y, w, h);
     }
+    else if(rdata.type == IMAGE_SEND_TYPE)
+    {
+        int t;
+        memcpy(&t,rdata.data.c_str(), int_size);
+        VISION->set_img_send_type(static_cast<image_send_type>(t));
+    }
 
     WM->reset_rmt_data();
     return plist;
