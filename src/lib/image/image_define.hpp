@@ -23,20 +23,20 @@ namespace imageproc
         unsigned int format;
     };
 
-    enum Color
+    enum ColorType
     {
         COLOR_CLEAN = 0,
         COLOR_GREEN = 1,
         COLOR_WHITE = 2
     };
 
-    static const std::map<std::string, Color> color_name_map = {
+    static const std::map<std::string, ColorType> color_name_map = {
         {"clean", COLOR_CLEAN},
         {"green", COLOR_GREEN},
         {"white", COLOR_WHITE}
     };
 
-    inline std::string get_name_by_color(Color c)
+    inline std::string get_name_by_color(ColorType c)
     {
         for (auto &nm : color_name_map)
         {
@@ -48,7 +48,7 @@ namespace imageproc
         return "clean";
     }
 
-    inline Color get_color_by_name(std::string name)
+    inline ColorType get_color_by_name(std::string name)
     {
         for (auto &nm : color_name_map)
         {
@@ -65,8 +65,9 @@ namespace imageproc
         float minimum;
         float maximum;
     };
-    struct ColorHSI
+    struct Color
     {
+        ColorType c;
         MinMax H;
         MinMax S;
         MinMax I;

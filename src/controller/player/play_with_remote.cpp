@@ -84,7 +84,7 @@ list<plan_ptr> player::play_with_remote()
         memcpy(&(y), rdata.data.c_str()+2*int_size, int_size);
         memcpy(&(w), rdata.data.c_str()+3*int_size, int_size);
         memcpy(&(h), rdata.data.c_str()+4*int_size, int_size);
-        VISION->caculateColor(static_cast<imageproc::Color>(c), x, y, w, h);
+        VISION->caculateColor(static_cast<imageproc::ColorType>(c), x, y, w, h);
     }
     else if(rdata.type == IMAGE_SEND_TYPE)
     {

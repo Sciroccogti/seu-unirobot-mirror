@@ -67,7 +67,9 @@ __global__ void yuyv2bgr_kernal(unsigned char *in, unsigned char *out, unsigned 
     out[tmp*3+dst_offset+0] = (unsigned char)(b);
 }
 
-__global__ void yuyv2dst_kernal(unsigned char *in, unsigned char *bgr, float *rgb, float *hsi, unsigned int w, unsigned int h)
+__global__ void yuyv2dst_kernal(unsigned char *in, unsigned char *bgr, float *rgb, unsigned char *color, unsigned int w, unsigned int h,
+                                unsigned char color1, float c1hl, float c1hh, float c1sl, float c1sh, float c1il, float c1ih,
+                                unsigned char color2, float c2hl, float c2hh, float c2sl, float c2sh, float c2il, float c2ih)
 {
     int y=blockIdx.x;
     int x=threadIdx.x;
@@ -107,10 +109,22 @@ __global__ void yuyv2dst_kernal(unsigned char *in, unsigned char *bgr, float *rg
 
     H = acos(0.5*(rn-gn+rn-bn)/sqrt((rn-gn)*(rn-gn)+(rn-bn)*(gn-bn)+eps));
     if(bn>gn) H = 2*M_PI-H;
-    hsi[tmp+x] = H*180.0f/M_PI;
-    hsi[planesize+tmp+x] = S*100.0f;
-    hsi[2*planesize+tmp+x] = I*100.0f;
+    H = H*180.0f/M_PI;
+    S = S*100.0f;
+    I = I*100.0f;
 
+    if(H >= c1hl && H <= c1hh && S >= c1sl && S <= c1sh && I >= c1il && I <= c1ih)
+    {
+        color[tmp+x] = color1;
+    }
+    else if(H >= c2hl && H <= c2hh && S >= c2sl && S <= c2sh && I >= c2il && I <= c2ih)
+    {
+        color[tmp+x] = color2;
+    }
+    else
+    {
+        color[tmp+x] = 0;
+    }
     bgr[tmp*3+dst_offset+0] = (unsigned char)b;
     bgr[tmp*3+dst_offset+1] = (unsigned char)g;
     bgr[tmp*3+dst_offset+2] = (unsigned char)r;
@@ -173,9 +187,14 @@ void cudaYUYV2BGR(unsigned char *in, unsigned char *out, const unsigned int &w, 
     yuyv2bgr_kernal<<<h, w, w*2>>>(in,out,w);
 }
 
-void cudaYUYV2DST(unsigned char *in, unsigned char *bgr, float *rgb, float *hsi, const unsigned int &w, const unsigned int &h)
+void cudaYUYV2DST(unsigned char *in, unsigned char *bgr, float *rgb, unsigned char *color, const unsigned int &w, const unsigned int &h,
+                  unsigned char color1, float c1hl, float c1hh, float c1sl, float c1sh, float c1il, float c1ih,
+                  unsigned char color2, float c2hl, float c2hh, float c2sl, float c2sh, float c2il, float c2ih)
 {
-    yuyv2dst_kernal<<<h,w,w*2>>>(in, bgr, rgb, hsi, w, h);
+    yuyv2dst_kernal<<<h,w,w*2>>>(in, bgr, rgb, color, w, h,
+            color1, c1hl, c1hh, c1sl, c1sh, c1il, c1ih,
+            color2, c2hl, c2hh, c2sl, c2sh, c2il, c2ih);
+    //colors[1].H.minimum, colors[1].H.maximum, colors[1].S.minimum, colors[1].S.maximum, colors[1].I.minimum, colors[1].I.maximum);
 }
 
 void cudaResize(float *in, int iw, int ih, float *sizedw, float *sized, int ow, int oh)
