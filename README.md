@@ -23,7 +23,7 @@ This project is a controller of seu-robocup kidszie team.
 * qt5-default
 * astyle
 
-### python
+### python libraries
 * paramiko
 
 ## Recommend OS
