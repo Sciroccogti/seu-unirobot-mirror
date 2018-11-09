@@ -4,6 +4,7 @@
 #include "ui/joint_revise.hpp"
 #include "math/math.hpp"
 #include "configuration.hpp"
+#include "parser/action_parser.hpp"
 
 #define SCALE_K  0.001f
 #define DEG_RANGE 180.0f

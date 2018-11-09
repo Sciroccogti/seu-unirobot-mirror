@@ -12,6 +12,7 @@ add_executable(${TARGET_NAME}
 target_link_libraries(${TARGET_NAME}
                 pthread
                 v4l2
+                robot
                 controller_options
                 player)
 
