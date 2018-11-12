@@ -48,7 +48,7 @@ void RobotGL::paintGL()
     glMatrixMode (GL_PROJECTION);
     glLoadIdentity ();
     setUserView();
-    draw_3d_ground();
+    //draw_3d_ground();
     //draw_3d_axe(NORMAL_SIZE_AXE);
     draw_3d_bone(main_bone_);
     glFlush();
