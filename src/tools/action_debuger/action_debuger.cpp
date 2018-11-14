@@ -189,7 +189,7 @@ void action_debuger::procPosNameChanged(int id)
             pCur_PosWidget->pos_name->setText(QString::fromStdString(old_name));
             return;
         }
-
+        pCur_PosWidget->pos_name->setText(QString::fromStdString(new_name));
         robot_pos tempPos;
         tempPos.name = new_name;
         tempPos.pose_info = ROBOT->get_pos_map()[old_name].pose_info;

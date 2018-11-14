@@ -101,7 +101,7 @@ void motor::run()
         {
             real_act();
         }
-
+/*
         bool left = (WM->get_support_foot() == LEFT_SUPPORT) ? true : false;
         int i = ROBOT->get_joint(left ? "jlhip3" : "jrhip3")->jid_;
         vector<double> degs;
@@ -114,6 +114,7 @@ void motor::run()
 
         transform_matrix bd = ROBOT->leg_forward_kinematics(degs, left);
         //cout<<bd<<endl;
+        */
         notify(SENSOR_MOTOR);
         p_count_++;
     }
@@ -160,14 +161,14 @@ void motor::real_act()
                 std::cout << "\033[31mcan not start because the voltage(" << voltage_ / 10.0f << "V) is too low!\033[0m\n";
                 raise(SIGINT);
             }
-
+            /*
             read_pos();
 
             for (auto &cd : curr_degs_)
             {
                 ROBOT->get_joint(cd.first)->set_deg(cd.second);
             }
-
+            */
             set_torq(1);
             is_connected_ = true;
         }
