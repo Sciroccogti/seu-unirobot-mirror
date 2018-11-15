@@ -24,29 +24,29 @@ list<plan_ptr> player::play_with_remote()
     }
     else if (rdata.type == ACT_DATA)
     {
-        int blksz = int_size + ROBOT->get_joint_map().size() * (int_size + float_size);
+        int blksz = int_size + 5 * sizeof(robot_pose);
         int pos_count = rdata.size / blksz;
-        int j_count = ROBOT->get_joint_map().size();
-        map<int, float> jdmap;
         int act_t;
-        int id;
-        float deg;
-        vector< map<int, float> > poses;
+        robot_pose temp_pose;
+        map<robot_motion, robot_pose> posesinfo;
+        vector< map<robot_motion, robot_pose> > poses;
         vector<int> pos_times;
 
         for (int i = 0; i < pos_count; i++)
         {
             memcpy(&act_t, rdata.data.c_str() + i * blksz, int_size);
-
-            for (int k = 0; k < j_count; k++)
+            posesinfo.clear();
+            int j=0;
+            for(auto nmm: name_motion_map)
             {
-                memcpy(&id, rdata.data.c_str() + i * blksz + int_size + k * (int_size + float_size),  int_size);
-                memcpy(&deg, rdata.data.c_str() + i * blksz + int_size + k * (int_size + float_size) + int_size,  float_size);
-                jdmap[id] = deg;
+                if(nmm.second != MOTION_HEAD && nmm.second != MOTION_NONE)
+                {
+                    memcpy(&temp_pose, rdata.data.c_str()+j*sizeof(robot_pose), sizeof(robot_pose));
+                    posesinfo[nmm.second] = temp_pose;
+                }
             }
-
             pos_times.push_back(act_t);
-            poses.push_back(jdmap);
+            poses.push_back(posesinfo);
         }
 
         plist.push_back(make_shared<action_plan>(poses, pos_times));

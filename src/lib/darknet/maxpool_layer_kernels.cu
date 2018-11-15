@@ -88,7 +88,7 @@ extern "C" void forward_maxpool_layer_gpu(maxpool_layer layer, network_state sta
 {
 
 #ifdef CUDNN
-    if (!state.train) {// && layer.stride == layer.size) {
+    if (!state.train && layer.stride == layer.size) {
         // cudnnPoolingBackward
         cudnnStatus_t maxpool_status;
 

@@ -157,6 +157,9 @@ void cudnn_convolutional_setup(layer *l, int cudnn_preference)
     // 3. FP32 Master Copy of Weights
     // More: http://docs.nvidia.com/deeplearning/sdk/cudnn-developer-guide/index.html#tensor_ops
     cudnnSetConvolutionMathType(l->convDesc, CUDNN_TENSOR_OP_MATH);
+#if((CUDNN_MAJOR*10 + CUDNN_MINOR) >= 72)   // cuDNN >= 7.2
+    cudnnSetConvolutionMathType(l->convDesc, CUDNN_TENSOR_OP_MATH_ALLOW_CONVERSION);
+#endif
 #endif
 
     // INT8_CONFIG, INT8_EXT_CONFIG, INT8x4_CONFIG and INT8x4_EXT_CONFIG are only supported
@@ -308,6 +311,7 @@ convolutional_layer make_convolutional_layer(int batch, int h, int w, int c, int
         int align = 32;// 8;
         int src_align = l.out_h*l.out_w;
         l.bit_align = src_align + (align - src_align % align);
+        l.mean_arr = calloc(l.n, sizeof(float));
     }
 
     if(batch_normalize){
@@ -363,6 +367,7 @@ convolutional_layer make_convolutional_layer(int batch, int h, int w, int c, int
         }
         if(xnor){
             l.binary_weights_gpu = cuda_make_array(l.weights, c*n*size*size);
+            l.mean_arr_gpu = cuda_make_array(0, l.n);
             l.binary_input_gpu = cuda_make_array(0, l.inputs*l.batch);
         }
 
@@ -609,7 +614,7 @@ void binary_align_weights(convolutional_layer *l)
     binarize_weights(l->weights, m, k, l->binary_weights);
 
     size_t align_weights_size = new_lda * m;
-    l->align_bit_weights_size = align_weights_size / 8;// +1;
+    l->align_bit_weights_size = align_weights_size / 8 + 1;
     float *align_weights = calloc(align_weights_size, sizeof(float));
     l->align_bit_weights = calloc(l->align_bit_weights_size, sizeof(char));
 
@@ -622,7 +627,7 @@ void binary_align_weights(convolutional_layer *l)
     }
     float_to_bit(align_weights, l->align_bit_weights, align_weights_size);
 
-    l->mean_arr = calloc(l->n, sizeof(float));
+    //l->mean_arr = calloc(l->n, sizeof(float));
     get_mean_array(align_weights, align_weights_size, l->n, l->mean_arr);
 
 #ifdef GPU
@@ -640,7 +645,8 @@ void binary_align_weights(convolutional_layer *l)
     status = cudaMemcpy(l->binary_weights_gpu, l->binary_weights, m*k*sizeof(float), cudaMemcpyHostToDevice);
     check_error(status);
 
-    l->mean_arr_gpu = cuda_make_array(l->mean_arr, l->n);
+    //l->mean_arr_gpu = cuda_make_array(l->mean_arr, l->n);
+    cuda_push_array(l->mean_arr_gpu, l->mean_arr, l->n);
     cudaDeviceSynchronize();
 #endif // GPU
 
@@ -651,7 +657,7 @@ void binary_align_weights(convolutional_layer *l)
 size_t binary_transpose_align_input(int k, int n, float *b, char **t_bit_input, size_t ldb_align, int bit_align)
 {
     size_t new_ldb = k + (ldb_align - k%ldb_align); // (k / 8 + 1) * 8;
-    size_t t_intput_size = new_ldb * n;
+    size_t t_intput_size = new_ldb * bit_align;// n;
     size_t t_bit_input_size = t_intput_size / 8;// +1;
 
     *t_bit_input = calloc(t_bit_input_size, sizeof(char));

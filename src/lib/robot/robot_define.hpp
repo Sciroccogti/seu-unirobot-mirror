@@ -139,7 +139,6 @@ namespace robot
     {
         std::string name;
         std::map<robot_motion, robot_pose> pose_info;
-        std::map<std::string, float> joints_deg;
     };
 
     struct robot_one_pos

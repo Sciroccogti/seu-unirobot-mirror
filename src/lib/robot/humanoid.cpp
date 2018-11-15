@@ -9,6 +9,37 @@ namespace robot
     using namespace Eigen;
     using namespace robot_math;
 
+    transform_matrix humanoid::get_foot_mat_from_pose(const robot_pose &pose, bool left)
+    {
+        double sg = (left ? 1.0 : -1.0);
+        transform_matrix foot_mat;
+        Quaternion<double> quat;
+        AngleAxisd yawRot, pitchRot, rollRot;
+
+        yawRot = AngleAxisd(deg2rad(pose.yaw), Vector3d::UnitZ());
+        pitchRot = AngleAxisd(deg2rad(pose.pitch), Vector3d::UnitY());
+        rollRot = AngleAxisd(deg2rad(pose.roll), Vector3d::UnitX());
+        quat = rollRot * pitchRot * yawRot;
+        foot_mat.set_p(Vector3d(pose.x, pose.y + sg*D_ / 2.0, pose.z));
+        foot_mat.set_R(quat.matrix());
+        return foot_mat;
+    }
+
+    transform_matrix humanoid::get_body_mat_from_pose(const robot_pose &pose)
+    {
+        transform_matrix body_mat;
+        Quaternion<double> quat;
+        AngleAxisd yawRot, pitchRot, rollRot;
+
+        yawRot = AngleAxisd(deg2rad(pose.yaw), Vector3d::UnitZ());
+        pitchRot = AngleAxisd(deg2rad(pose.pitch), Vector3d::UnitY());
+        rollRot = AngleAxisd(deg2rad(pose.roll), Vector3d::UnitX());
+        quat = rollRot * pitchRot * yawRot;
+        body_mat.set_p(Vector3d(pose.x, pose.y, pose.z + leg_length()));
+        body_mat.set_R(quat.matrix());
+        return body_mat;
+    }
+
     bool humanoid::arm_inverse_kinematics(const Vector3d &hand, vector<double> &deg)
     {
         double x = hand[0];

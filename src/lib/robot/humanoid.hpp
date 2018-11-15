@@ -14,6 +14,9 @@ namespace robot
     class humanoid: public singleton<humanoid>
     {
     public:
+        robot_math::transform_matrix get_foot_mat_from_pose(const robot_pose &pose, bool left);
+        robot_math::transform_matrix get_body_mat_from_pose(const robot_pose &pose);
+
         bool arm_inverse_kinematics(const Eigen::Vector3d &hand, std::vector<double> &deg);
 
         robot_math::transform_matrix leg_forward_kinematics(std::vector<double> &deg, const bool &left);

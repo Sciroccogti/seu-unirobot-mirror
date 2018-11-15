@@ -193,7 +193,6 @@ void action_debuger::procPosNameChanged(int id)
         robot_pos tempPos;
         tempPos.name = new_name;
         tempPos.pose_info = ROBOT->get_pos_map()[old_name].pose_info;
-        tempPos.joints_deg = ROBOT->get_pos_map()[old_name].joints_deg;
         ROBOT->get_pos_map()[new_name] = tempPos;
     }
 
@@ -395,29 +394,9 @@ bool action_debuger::turn_joint()
     lefthand[2] = pose_map_[MOTION_LEFT_HAND].z;
 
     transform_matrix body_mat, leftfoot_mat, rightfoot_mat;
-    Quaternion<double> quat;
-    AngleAxisd yawRot, pitchRot, rollRot;
-
-    yawRot = AngleAxisd(deg2rad(pose_map_[MOTION_BODY].yaw), Vector3d::UnitZ());
-    pitchRot = AngleAxisd(deg2rad(pose_map_[MOTION_BODY].pitch), Vector3d::UnitY());
-    rollRot = AngleAxisd(deg2rad(pose_map_[MOTION_BODY].roll), Vector3d::UnitX());
-    quat = rollRot * pitchRot * yawRot;
-    body_mat.set_p(Vector3d(pose_map_[MOTION_BODY].x, pose_map_[MOTION_BODY].y, pose_map_[MOTION_BODY].z + ROBOT->leg_length()));
-    body_mat.set_R(quat.matrix());
-
-    yawRot = AngleAxisd(deg2rad(pose_map_[MOTION_LEFT_FOOT].yaw), Vector3d::UnitZ());
-    pitchRot = AngleAxisd(deg2rad(pose_map_[MOTION_LEFT_FOOT].pitch), Vector3d::UnitY());
-    rollRot = AngleAxisd(deg2rad(pose_map_[MOTION_LEFT_FOOT].roll), Vector3d::UnitX());
-    quat = rollRot * pitchRot * yawRot;
-    leftfoot_mat.set_p(Vector3d(pose_map_[MOTION_LEFT_FOOT].x, pose_map_[MOTION_LEFT_FOOT].y + ROBOT->D() / 2.0, pose_map_[MOTION_LEFT_FOOT].z));
-    leftfoot_mat.set_R(quat.matrix());
-
-    yawRot = AngleAxisd(deg2rad(pose_map_[MOTION_RIGHT_FOOT].yaw), Vector3d::UnitZ());
-    pitchRot = AngleAxisd(deg2rad(pose_map_[MOTION_RIGHT_FOOT].pitch), Vector3d::UnitY());
-    rollRot = AngleAxisd(deg2rad(pose_map_[MOTION_RIGHT_FOOT].roll), Vector3d::UnitX());
-    quat = rollRot * pitchRot * yawRot;
-    rightfoot_mat.set_p(Vector3d(pose_map_[MOTION_RIGHT_FOOT].x, pose_map_[MOTION_RIGHT_FOOT].y - ROBOT->D() / 2.0, pose_map_[MOTION_RIGHT_FOOT].z));
-    rightfoot_mat.set_R(quat.matrix());
+    body_mat = ROBOT->get_body_mat_from_pose(pose_map_[MOTION_BODY]);
+    leftfoot_mat = ROBOT->get_foot_mat_from_pose(pose_map_[MOTION_LEFT_FOOT], true);
+    rightfoot_mat = ROBOT->get_foot_mat_from_pose(pose_map_[MOTION_RIGHT_FOOT], false);
 
     vector<double> degs;
 
@@ -735,21 +714,8 @@ void action_debuger::procPosSelect(QListWidgetItem *item)
     currposlab->setText(QString::fromStdString(pos_name));
     valuelab->setText("");
     pose_map_ = ROBOT->get_pos_map()[pos_name].pose_info;
-    joint_degs_.clear();
-
-    for (auto &jd : ROBOT->get_pos_map()[pos_name].joints_deg)
-    {
-        joint_degs_[ROBOT->get_joint(jd.first)->jid_] = jd.second;
-    }
-
-    for (auto &jd : joint_degs_)
-    {
-        ROBOT->get_joint(jd.first)->set_deg(jd.second);
-    }
-
-    updateJDInfo();
     updateSlider(static_cast<int>(motion_));
-    robot_gl_->turn_joint(joint_degs_);
+    turn_joint();
     mSliderGroup->setEnabled(true);
     last_pos_id = m_pPosListWidget->currentRow();
 }
@@ -801,7 +767,6 @@ void action_debuger::procButtonInsertPosFront()
     pos.name = new_pos_name;
     CPosListWidget *pCur_PosWidget = (CPosListWidget *) m_pPosListWidget->itemWidget(m_pPosListWidget->currentItem());
     string pos_name = pCur_PosWidget->pos_name_;
-    pos.joints_deg = ROBOT->get_pos_map()[pos_name].joints_deg;
     pos.pose_info = ROBOT->get_pos_map()[pos_name].pose_info;
     int id = pCur_PosWidget->m_id->text().toInt();
     ROBOT->get_act_map()[act_name].poses.insert(ROBOT->get_act_map()[act_name].poses.begin() + id - 1, one_pos);
@@ -862,18 +827,12 @@ void action_debuger::procButtonInsertPosBack()
             pos.pose_info[static_cast<robot_motion >(i)] = pose;
         }
 
-        for (auto &j : ROBOT->get_joint_map())
-        {
-            pos.joints_deg[j.first] = 0.0;
-        }
-
         ROBOT->get_act_map()[act_name].poses.push_back(one_pos);
     }
     else
     {
         CPosListWidget *pCur_PosWidget = (CPosListWidget *) m_pPosListWidget->itemWidget(m_pPosListWidget->currentItem());
         string pos_name = pCur_PosWidget->pos_name_;
-        pos.joints_deg = ROBOT->get_pos_map()[pos_name].joints_deg;
         pos.pose_info = ROBOT->get_pos_map()[pos_name].pose_info;
         int id = pCur_PosWidget->m_id->text().toInt();
         ROBOT->get_act_map()[act_name].poses.insert(ROBOT->get_act_map()[act_name].poses.begin() + id, one_pos);
@@ -919,13 +878,6 @@ void action_debuger::procButtonSavePos()
     if (reply != QMessageBox::StandardButton::Yes)
     {
         return;
-    }
-
-    ROBOT->get_pos_map()[pos_name].joints_deg.clear();
-
-    for (auto &jd : joint_degs_)
-    {
-        ROBOT->get_pos_map()[pos_name].joints_deg[ROBOT->get_joint(jd.first)->name_] = jd.second;
     }
 
     ROBOT->get_pos_map()[pos_name].pose_info = pose_map_;
@@ -1058,16 +1010,15 @@ void action_debuger::procButtonRunPos()
         cmd.data.append((char *)(&(act.poses[i].act_time)), int_size);
         size += int_size;
         pos = ROBOT->get_pos_map()[act.poses[i].pos_name];
-
-        for (auto &j : pos.joints_deg)
+        for(auto nmm: name_motion_map)
         {
-            cmd.data.append((char *)(&(ROBOT->get_joint(j.first)->jid_)), int_size);
-            size += int_size;
-            cmd.data.append((char *)(&(j.second)), float_size);
-            size += float_size;
+            if(nmm.second != MOTION_HEAD && nmm.second != MOTION_NONE)
+            {
+                cmd.data.append((char*)(&pos.pose_info[nmm.second]), sizeof(robot_pose));
+                size += sizeof(robot_pose);
+            }
         }
     }
-
     cmd.size = size;
     client_.write(cmd);
 }

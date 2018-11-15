@@ -647,7 +647,13 @@ __device__ __host__ unsigned char reverse_byte_2(unsigned char a)
     return ((a * 0x0802LU & 0x22110LU) | (a * 0x8020LU & 0x88440LU)) * 0x10101LU >> 16;
 }
 
-__device__ __host__ void transpose8rS32_reversed_diagonale(unsigned char* A, int m, int n, unsigned char* B)
+__device__ unsigned char reverse_byte_CUDA(unsigned char a)
+{
+    uint32_t tmp = __brev(a);
+    return tmp >> 24;
+}
+
+__device__ void transpose8rS32_reversed_diagonale(unsigned char* A, unsigned char* B, int m, int n)
 {
     unsigned x, y, t;
 
@@ -665,8 +671,8 @@ __device__ __host__ void transpose8rS32_reversed_diagonale(unsigned char* A, int
     y = ((x << 4) & 0xF0F0F0F0) | (y & 0x0F0F0F0F);
     x = t;
 
-    B[7 * n] = reverse_byte(x >> 24);  B[6 * n] = reverse_byte(x >> 16);  B[5 * n] = reverse_byte(x >> 8);  B[4 * n] = reverse_byte(x);
-    B[3 * n] = reverse_byte(y >> 24);  B[2 * n] = reverse_byte(y >> 16);  B[1 * n] = reverse_byte(y >> 8);  B[0 * n] = reverse_byte(y);
+    B[7 * n] = reverse_byte_CUDA(x >> 24);  B[6 * n] = reverse_byte_CUDA(x >> 16);  B[5 * n] = reverse_byte_CUDA(x >> 8);  B[4 * n] = reverse_byte_CUDA(x);
+    B[3 * n] = reverse_byte_CUDA(y >> 24);  B[2 * n] = reverse_byte_CUDA(y >> 16);  B[1 * n] = reverse_byte_CUDA(y >> 8);  B[0 * n] = reverse_byte_CUDA(y);
 
     //__device__ ​ unsigned int 	__brev(unsigned int  x)
     //Reverse the bit order of a 32 bit unsigned integer.
@@ -674,6 +680,7 @@ __device__ __host__ void transpose8rS32_reversed_diagonale(unsigned char* A, int
 }
 
 
+// transpose 8x8 bit
 __global__ void transpose_bin_gpu_kernel(unsigned char *A, unsigned char *B, const int n, const int m,
     const int lda, const int ldb, const int block_size)
 {
@@ -687,28 +694,135 @@ __global__ void transpose_bin_gpu_kernel(unsigned char *A, unsigned char *B, con
         //for (j = 0; j < m - 8; j += 8)
         {
             j = ((index * 8) / n) * 8;
-            if (j < m - 8) {
+            if (j < m) {
                 int a_index = i*lda + j;
                 int b_index = j*ldb + i;
-                transpose8rS32_reversed_diagonale(&A[a_index / 8], lda / 8, ldb / 8, &B[b_index / 8]);
+                transpose8rS32_reversed_diagonale(&A[a_index / 8], &B[b_index / 8], lda / 8, ldb / 8);
             }
-            else if (j < m) {
-                for (; j < m; ++j) {
-                    if (get_bit(A, i*lda + j)) set_bit(B, j*ldb + i);
-                    else remove_bit(B, j*ldb + i);
-                }
+//            else if (j < m) {
+//                for (; j < m; ++j) {
+//                    if (get_bit(A, i*lda + j)) set_bit(B, j*ldb + i);
+//                    else remove_bit(B, j*ldb + i);
+//                }
+//            }
+        }
+    }
+}
+
+__device__ __host__ uint8_t reverse_8_bit(uint8_t a) {
+    return ((a * 0x0802LU & 0x22110LU) | (a * 0x8020LU & 0x88440LU)) * 0x10101LU >> 16;
+}
+
+__device__ uint32_t reverse_32_bit(uint32_t a)
+{
+    // __device__ ​ unsigned int __brev(unsigned int  x) // CUDA
+    // unsigned int __rbit(unsigned int val) // for ARM    //__asm__("rbit %0, %1\n" : "=r"(output) : "r"(input));
+    return __brev(a);
+    //return (reverse_8_bit(a >> 24) << 0) |
+    //    (reverse_8_bit(a >> 16) << 8) |
+    //    (reverse_8_bit(a >> 8) << 16) |
+    //    (reverse_8_bit(a >> 0) << 24);
+}
+
+#define swap(a0, a1, j, m) t = (a0 ^ (a1 >>j)) & m; a0 = a0 ^ t; a1 = a1 ^ (t << j);
+
+__device__ void transpose32_optimized(uint32_t A[32]) {
+    int j, k;
+    unsigned m, t;
+
+    //m = 0x0000FFFF;
+    //for (j = 16; j != 0; j = j >> 1, m = m ^ (m << j)) {
+    //    for (k = 0; k < 32; k = (k + j + 1) & ~j) {
+    //        t = (A[k] ^ (A[k + j] >> j)) & m;
+    //        A[k] = A[k] ^ t;
+    //        A[k + j] = A[k + j] ^ (t << j);
+    //    }
+    //}
+
+    j = 16;
+    m = 0x0000FFFF;
+    for (k = 0; k < 32; k = (k + j + 1) & ~j) { swap(A[k], A[k + j], j, m); }
+
+    j = 8;
+    m = 0x00ff00ff;
+    for (k = 0; k < 32; k = (k + j + 1) & ~j) { swap(A[k], A[k + j], j, m); }
+
+    j = 4;
+    m = 0x0f0f0f0f;
+    for (k = 0; k < 32; k = (k + j + 1) & ~j) { swap(A[k], A[k + j], j, m); }
+
+    j = 2;
+    m = 0x33333333;
+    for (k = 0; k < 32; k = (k + j + 1) & ~j) { swap(A[k], A[k + j], j, m); }
+
+    j = 1;
+    m = 0x55555555;
+    for (k = 0; k < 32; k = (k + j + 1) & ~j) { swap(A[k], A[k + j], j, m); }
+
+    // reverse Y
+    for (j = 0; j < 16; ++j) {
+        uint32_t tmp = A[j];
+        A[j] = reverse_32_bit(A[31 - j]);
+        A[31 - j] = reverse_32_bit(tmp);
+    }
+}
+
+#define BLOCK_TRANSPOSE32 256
+
+__device__ void transpose_32x32_bits_reversed_diagonale(uint32_t *A, uint32_t *B, int m, int n)
+{
+    //unsigned A_tmp[32];
+    //int i;
+    //#pragma unroll
+    //for (i = 0; i < 32; ++i) A_tmp[i] = A[i * m];
+    //transpose32_optimized(A_tmp);
+    //#pragma unroll
+    //for (i = 0; i < 32; ++i) B[i*n] = A_tmp[i];
+
+    __shared__ uint32_t A_shared[32 * BLOCK_TRANSPOSE32];
+    uint32_t *A_tmp = &A_shared[32 * threadIdx.x];
+
+    int i;
+#pragma unroll 32
+    for (i = 0; i < 32; ++i) A_tmp[i] = A[i * m];
+    transpose32_optimized(A_tmp);
+#pragma unroll 32
+    for (i = 0; i < 32; ++i) B[i*n] = A_tmp[i];
+}
+
+
+// transpose 32x32 bit
+__global__ void transpose_bin_gpu_kernel_32(uint32_t *A, uint32_t *B, const int n, const int m,
+                                            const int lda, const int ldb, const int block_size)
+{
+    int i;
+    int index = (blockIdx.x*blockDim.x + threadIdx.x) * 32;
+
+    //for (i = 0; i < n; i += 8)
+    {
+        i = index % n;
+        int j;
+        //for (j = 0; j < m - 8; j += 8)
+        {
+            j = (index / n) * 32;
+            if (j < m) {
+                int a_index = i*lda + j;
+                int b_index = j*ldb + i;
+                transpose_32x32_bits_reversed_diagonale(&A[a_index / 32], &B[b_index / 32], lda / 32, ldb / 32);
             }
         }
     }
 }
 
-
 void transpose_bin_gpu(unsigned char *A, unsigned char *B, const int n, const int m,
     const int lda, const int ldb, const int block_size)
 {
-    size_t size = n*m/64 + 1;
+    size_t size = n*m/ (8*8) + 1;
+    size_t size32 = n*m / (32*32) + 1;
     const int num_blocks = size / BLOCK + 1;
-    transpose_bin_gpu_kernel << <num_blocks, BLOCK, 0, get_cuda_stream() >> >(A, B, n, m, lda, ldb, block_size);
+    const int num_blocks32 = size32 / BLOCK_TRANSPOSE32 + 1;
+    transpose_bin_gpu_kernel_32 << <num_blocks32, BLOCK_TRANSPOSE32, 0, get_cuda_stream() >> >((uint32_t *)A, (uint32_t *)B, n, m, lda, ldb, block_size);
+    //transpose_bin_gpu_kernel << <num_blocks, BLOCK, 0, get_cuda_stream() >> >(A, B, n, m, lda, ldb, block_size);
 }
 // --------------------------------
 
@@ -1006,6 +1120,38 @@ __global__ void gemm_nn_custom_bin_mean_transposed_gpu_kernel(int M, int N, int 
         {
             int count = 0;
             k = 0;
+
+#ifdef NOT_USED
+            // 32 thread X 256 bit = 8192 bit
+            for (; k < (K - 8192); k += 8192) {   // l.size*l.size*l.c - one filter size [27 - 9216]
+                ulonglong4 c_bit256;
+
+                //int64_t A_cur_index = (i*lda + k) / 8;
+                int64_t A_cur_index = (local_i*lda + k) / 8;
+                int64_t B_cur_index = (j*ldb + k) / 8;
+                if (i >= M) A_cur_index = 0;
+
+                #pragma unroll
+                for (int t = 0; t < WARP_SIZE; ++t) {
+                    const int lane_id = threadIdx.x % WARP_SIZE;
+
+                    const int64_t A_i = __shfl(A_cur_index, t) + 32 * lane_id;
+                    const int64_t B_i = __shfl(B_cur_index, t) + 32 * lane_id;
+
+                    {
+                        //ulonglong4 a_bit256 = *((ulonglong4 *)(A + A_i));    // weights
+                        ulonglong4 a_bit256 = *((ulonglong4 *)(A_s + A_i));    // weights
+                        ulonglong4 b_bit256 = *((ulonglong4 *)(B + B_i));    // input
+                        c_bit256 = xnor_int256(a_bit256, b_bit256);
+                        int tmp_count = __popcll(c_bit256.w) + __popcll(c_bit256.x) +
+                                __popcll(c_bit256.y) + __popcll(c_bit256.z);
+
+                        int sum_count = warpAllReduceSum(tmp_count);
+                        if (lane_id == t) count += sum_count;
+                    }
+                }
+            }
+#endif
 
 //#ifdef NOT_USED
             // 32 thread X 64 bit = 2048 bit
@@ -1690,10 +1836,10 @@ __global__ void convolve_bin_gpu_kernel(float *input, float *weights, float *out
         //const int weights_size = size*size*in_c/8;
         const int weights_size = size*size*in_c / 32 + 1;
 
-        for (int fil = min_fil; fil <= max_fil; fil++) {
+        for (int fili = min_fil; fili <= max_fil; fili++) {
             for (int s = threadIdx.x; s < weights_size; s += blockDim.x) {
                 //weights_shared[s + (fil - min_fil)*new_lda / 8] = ((uint8_t *)weights)[fil*new_lda / 8 + s];
-                weights_shared[s + (fil - min_fil)*new_lda/32] = ((uint32_t *)weights)[fil*new_lda / 32 + s];
+                weights_shared[s + (fili - min_fil)*new_lda/32] = ((uint32_t *)weights)[fili*new_lda / 32 + s];
             }
         }
         __syncthreads();

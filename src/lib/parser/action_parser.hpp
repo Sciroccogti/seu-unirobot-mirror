@@ -8,7 +8,6 @@ namespace parser
 {
 #define acts_key_ "acts"
 #define poses_key_ "poses"
-#define jd_key_ "joint_deg"
 
     class action_parser: public basic_parser
     {
@@ -37,28 +36,16 @@ namespace parser
             }
 
             robot::robot_pos t_pos;
-            bpt::ptree deg_pt;
 
             for (auto &pos : pos_pt)
             {
                 t_pos.name.clear();
                 t_pos.pose_info.clear();
-                t_pos.joints_deg.clear();
                 t_pos.name = pos.first;
 
                 for (auto &info : pos.second)
                 {
-                    if (info.first != jd_key_)
-                    {
-                        t_pos.pose_info[robot::get_motion_by_name(info.first)] = get_pose_from_tree(info.second);
-                    }
-                    else
-                    {
-                        for (auto &j_deg : info.second)
-                        {
-                            t_pos.joints_deg[j_deg.first] = j_deg.second.get_value<float>();
-                        }
-                    }
+                    t_pos.pose_info[robot::get_motion_by_name(info.first)] = get_pose_from_tree(info.second);
                 }
 
                 poses[t_pos.name] = t_pos;
@@ -113,24 +100,17 @@ namespace parser
             }
 
             pt.add_child(acts_key_, act_pt);
-            bpt::ptree pos_info_child, deg_pt;
+            bpt::ptree pos_info_child;
 
             for (auto &pos : poses)
             {
                 pos_info_child.clear();
-                deg_pt.clear();
 
                 for (auto &p_info : pos.second.pose_info)
                 {
                     pos_info_child.add_child(robot::get_name_by_motion(p_info.first), get_tree_from_pose(p_info.second));
                 }
 
-                for (auto &j_deg : pos.second.joints_deg)
-                {
-                    deg_pt.add<float>(j_deg.first, j_deg.second);
-                }
-
-                pos_info_child.add_child(jd_key_, deg_pt);
                 pos_pt.add_child(pos.second.name, pos_info_child);
             }
 
