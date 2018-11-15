@@ -26,6 +26,7 @@ list<plan_ptr> player::play_with_remote()
     {
         int blksz = int_size + 5 * sizeof(robot_pose);
         int pos_count = rdata.size / blksz;
+
         int act_t;
         robot_pose temp_pose;
         map<robot_motion, robot_pose> posesinfo;
@@ -41,8 +42,11 @@ list<plan_ptr> player::play_with_remote()
             {
                 if(nmm.second != MOTION_HEAD && nmm.second != MOTION_NONE)
                 {
-                    memcpy(&temp_pose, rdata.data.c_str()+j*sizeof(robot_pose), sizeof(robot_pose));
+                    memcpy(&temp_pose, rdata.data.c_str()+int_size+j*sizeof(robot_pose), sizeof(robot_pose));
+                    cout<<temp_pose.x<<'\t'<<temp_pose.y<<'\t'<<temp_pose.z<<'\t'
+                        <<temp_pose.pitch<<'\t'<<temp_pose.roll<<'\t'<<temp_pose.yaw<<endl;
                     posesinfo[nmm.second] = temp_pose;
+                    j++;
                 }
             }
             pos_times.push_back(act_t);
