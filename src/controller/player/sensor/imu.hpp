@@ -67,7 +67,6 @@ private:
     void read_head0();
     void read_head1();
     void read_data();
-    void io_init();
     void run();
 
     enum {imu_data_size = sizeof(imu_data)};

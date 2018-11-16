@@ -67,25 +67,6 @@ bool imu::open()
     }
 }
 
-void imu::io_init()
-{
-    auto self(shared_from_this());
-    cmd[3] = DIN;
-    cmd[2] = IO[0];
-    boost::asio::async_write(serial_, boost::asio::buffer(cmd, 5),
-    [this, self](boost::system::error_code ec, std::size_t length) {});
-    sleep(1);
-    cmd[3] = DIN;
-    cmd[2] = IO[1];
-    boost::asio::async_write(serial_, boost::asio::buffer(cmd, 5),
-    [this, self](boost::system::error_code ec, std::size_t length) {});
-    sleep(1);
-    cmd[3] = DOL;
-    cmd[2] = IO[3];
-    boost::asio::async_write(serial_, boost::asio::buffer(cmd, 5),
-    [this, self](boost::system::error_code ec, std::size_t length) {});
-}
-
 void imu::run()
 {
     if (timer::is_alive_)

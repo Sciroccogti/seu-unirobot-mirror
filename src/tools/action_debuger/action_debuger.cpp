@@ -1014,9 +1014,7 @@ void action_debuger::procButtonRunPos()
         {
             if(nmm.second != MOTION_HEAD && nmm.second != MOTION_NONE)
             {
-                cmd.data.append((char*)(&pos.pose_info[nmm.second]), sizeof(robot_pose));
-                cout<<pos.pose_info[nmm.second].x<<'\t'<<pos.pose_info[nmm.second].y<<'\t'<<pos.pose_info[nmm.second].z<<'\t'
-                <<pos.pose_info[nmm.second].pitch<<'\t'<<pos.pose_info[nmm.second].roll<<'\t'<<pos.pose_info[nmm.second].yaw<<endl;
+                cmd.data.append((char*)(&(pos.pose_info[nmm.second])), sizeof(robot_pose));
                 size += sizeof(robot_pose);
             }
         }

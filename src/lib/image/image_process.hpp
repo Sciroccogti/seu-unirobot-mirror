@@ -6,7 +6,6 @@
 #include <opencv2/opencv.hpp>
 #include <linux/videodev2.h>
 #include "image_define.hpp"
-#include <cuda_runtime.h>
 
 void cudaYUYV2YUV(unsigned char *in, unsigned char *out, const unsigned int &w, const unsigned int &h);
 void cudaYUYV2BGR(unsigned char *in, unsigned char *out, const unsigned int &w, const unsigned int &h);

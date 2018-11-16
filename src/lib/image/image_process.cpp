@@ -1,4 +1,5 @@
 #include "image_process.hpp"
+#include <cuda_runtime.h>
 
 using namespace cv;
 using namespace std;

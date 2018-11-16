@@ -38,13 +38,12 @@ list<plan_ptr> player::play_with_remote()
             memcpy(&act_t, rdata.data.c_str() + i * blksz, int_size);
             posesinfo.clear();
             int j=0;
+
             for(auto nmm: name_motion_map)
             {
                 if(nmm.second != MOTION_HEAD && nmm.second != MOTION_NONE)
                 {
-                    memcpy(&temp_pose, rdata.data.c_str()+int_size+j*sizeof(robot_pose), sizeof(robot_pose));
-                    cout<<temp_pose.x<<'\t'<<temp_pose.y<<'\t'<<temp_pose.z<<'\t'
-                        <<temp_pose.pitch<<'\t'<<temp_pose.roll<<'\t'<<temp_pose.yaw<<endl;
+                    memcpy(&temp_pose, rdata.data.c_str()+i*blksz+int_size+j*sizeof(robot_pose), sizeof(robot_pose));
                     posesinfo[nmm.second] = temp_pose;
                     j++;
                 }
@@ -52,7 +51,6 @@ list<plan_ptr> player::play_with_remote()
             pos_times.push_back(act_t);
             poses.push_back(posesinfo);
         }
-
         plist.push_back(make_shared<action_plan>(poses, pos_times));
     }
     else if (rdata.type == LOOKAT_DATA)
