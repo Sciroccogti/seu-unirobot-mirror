@@ -26,20 +26,22 @@ namespace parser
             {
                 count_of_quotatuion = 0;
 
-                for (auto &c : line)
+                for(int i=0;i<line.size();i++)
                 {
-                    if (c == '\'' || c == '\"')
+                    if (line[i] == '\'' || line[i] == '\"')
                     {
                         count_of_quotatuion++;
                     }
-
-                    if (c == '#' && count_of_quotatuion % 2 == 0)
+                    if(i<line.size()-2)
                     {
-                        break;
+                        if(line[i] == '/' && line[i+1] == '/' && count_of_quotatuion % 2 == 0)
+                        {
+                            break;
+                        }
                     }
-
-                    json_data << c;
+                    json_data << line[i];
                 }
+                line.clear();
             }
 
             bpt::read_json(json_data, pt);
