@@ -5,7 +5,7 @@
 #include "clist.h"
 
 #if defined(_MSC_VER) && _MSC_VER < 1900
-	#define snprintf(buf,len, format,...) _snprintf_s(buf, len,len, format, __VA_ARGS__)
+#define snprintf(buf,len, format,...) _snprintf_s(buf, len,len, format, __VA_ARGS__)
 #endif
 
 #define SECRET_NUM -1234
@@ -13,7 +13,7 @@
 
 #ifdef YOLODLL_EXPORTS
 #if defined(_MSC_VER)
-#define YOLODLL_API __declspec(dllexport) 
+#define YOLODLL_API __declspec(dllexport)
 #else
 #define YOLODLL_API __attribute__((visibility("default")))
 #endif
@@ -76,7 +76,7 @@ float **one_hot_encode(float *a, int n, int k);
 float sec(clock_t clocks);
 int find_int_arg(int argc, char **argv, char *arg, int def);
 float find_float_arg(int argc, char **argv, char *arg, float def);
-int find_arg(int argc, char* argv[], char *arg);
+int find_arg(int argc, char *argv[], char *arg);
 char *find_char_arg(int argc, char **argv, char *arg, char *def);
 int sample_array(float *a, int n);
 void print_statistics(float *a, int n);

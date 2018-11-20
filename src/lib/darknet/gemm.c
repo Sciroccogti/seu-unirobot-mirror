@@ -17,17 +17,26 @@ void gemm_bin(int M, int N, int K, float ALPHA,
               float *B, int ldb,
               float *C, int ldc)
 {
-    int i,j,k;
-    for(i = 0; i < M; ++i){
-        for(k = 0; k < K; ++k){
-            char A_PART = A[i*lda+k];
-            if(A_PART){
-                for(j = 0; j < N; ++j){
-                    C[i*ldc+j] += B[k*ldb+j];
+    int i, j, k;
+
+    for (i = 0; i < M; ++i)
+    {
+        for (k = 0; k < K; ++k)
+        {
+            char A_PART = A[i * lda + k];
+
+            if (A_PART)
+            {
+                for (j = 0; j < N; ++j)
+                {
+                    C[i * ldc + j] += B[k * ldb + j];
                 }
-            } else {
-                for(j = 0; j < N; ++j){
-                    C[i*ldc+j] -= B[k*ldb+j];
+            }
+            else
+            {
+                for (j = 0; j < N; ++j)
+                {
+                    C[i * ldc + j] -= B[k * ldb + j];
                 }
             }
         }
@@ -37,32 +46,54 @@ void gemm_bin(int M, int N, int K, float ALPHA,
 float *random_matrix(int rows, int cols)
 {
     int i;
-    float *m = calloc(rows*cols, sizeof(float));
-    for(i = 0; i < rows*cols; ++i){
-        m[i] = (float)rand()/RAND_MAX;
+    float *m = calloc(rows * cols, sizeof(float));
+
+    for (i = 0; i < rows * cols; ++i)
+    {
+        m[i] = (float)rand() / RAND_MAX;
     }
+
     return m;
 }
 
 void time_random_matrix(int TA, int TB, int m, int k, int n)
 {
     float *a;
-    if(!TA) a = random_matrix(m,k);
-    else a = random_matrix(k,m);
-    int lda = (!TA)?k:m;
-    float *b;
-    if(!TB) b = random_matrix(k,n);
-    else b = random_matrix(n,k);
-    int ldb = (!TB)?n:k;
 
-    float *c = random_matrix(m,n);
+    if (!TA)
+    {
+        a = random_matrix(m, k);
+    }
+    else
+    {
+        a = random_matrix(k, m);
+    }
+
+    int lda = (!TA) ? k : m;
+    float *b;
+
+    if (!TB)
+    {
+        b = random_matrix(k, n);
+    }
+    else
+    {
+        b = random_matrix(n, k);
+    }
+
+    int ldb = (!TB) ? n : k;
+
+    float *c = random_matrix(m, n);
     int i;
     clock_t start = clock(), end;
-    for(i = 0; i<10; ++i){
-        gemm_cpu(TA,TB,m,n,k,1,a,lda,b,ldb,1,c,n);
+
+    for (i = 0; i < 10; ++i)
+    {
+        gemm_cpu(TA, TB, m, n, k, 1, a, lda, b, ldb, 1, c, n);
     }
+
     end = clock();
-    printf("Matrix Multiplication %dx%d * %dx%d, TA=%d, TB=%d: %lf ms\n",m,k,k,n, TA, TB, (float)(end-start)/CLOCKS_PER_SEC);
+    printf("Matrix Multiplication %dx%d * %dx%d, TA=%d, TB=%d: %lf ms\n", m, k, k, n, TA, TB, (float)(end - start) / CLOCKS_PER_SEC);
     free(a);
     free(b);
     free(c);
@@ -75,7 +106,7 @@ void gemm(int TA, int TB, int M, int N, int K, float ALPHA,
           float BETA,
           float *C, int ldc)
 {
-    gemm_cpu( TA,  TB,  M, N, K, ALPHA,A,lda, B, ldb,BETA,C,ldc);
+    gemm_cpu( TA,  TB,  M, N, K, ALPHA, A, lda, B, ldb, BETA, C, ldc);
 }
 
 
@@ -85,55 +116,95 @@ void gemm(int TA, int TB, int M, int N, int K, float ALPHA,
 
 #include <stdint.h>
 
-static inline unsigned char xnor(unsigned char a, unsigned char b) {
+static inline unsigned char xnor(unsigned char a, unsigned char b)
+{
     //return a == b;
-    return !(a^b);
+    return !(a ^ b);
 }
 
 // INT-32
-static inline uint32_t get_bit_int32(uint32_t const*const src, size_t index) {
+static inline uint32_t get_bit_int32(uint32_t const *const src, size_t index)
+{
     size_t src_i = index / 32;
     int src_shift = index % 32;
     unsigned char val = (src[src_i] & (1 << src_shift)) > 0;
     return val;
 }
 
-static inline uint32_t xnor_int32(uint32_t a, uint32_t b) {
-    return ~(a^b);
+static inline uint32_t xnor_int32(uint32_t a, uint32_t b)
+{
+    return ~(a ^ b);
 }
 
-static inline uint64_t xnor_int64(uint64_t a, uint64_t b) {
-    return ~(a^b);
+static inline uint64_t xnor_int64(uint64_t a, uint64_t b)
+{
+    return ~(a ^ b);
 }
 
 
-static inline uint32_t fill_bit_int32(char src) {
-    if (src == 0) return 0x00000000;
-    else return  0xFFFFFFFF;
+static inline uint32_t fill_bit_int32(char src)
+{
+    if (src == 0)
+    {
+        return 0x00000000;
+    }
+    else
+    {
+        return  0xFFFFFFFF;
+    }
 }
 
-static inline uint64_t fill_bit_int64(char src) {
-    if (src == 0) return 0x0000000000000000;
-    else return  0xFFFFFFFFFFFFFFFF;
+static inline uint64_t fill_bit_int64(char src)
+{
+    if (src == 0)
+    {
+        return 0x0000000000000000;
+    }
+    else
+    {
+        return  0xFFFFFFFFFFFFFFFF;
+    }
 }
 
-void binary_int32_printf(uint32_t src) {
+void binary_int32_printf(uint32_t src)
+{
     int i;
-    for (i = 0; i < 32; ++i) {
-        if (src & 1) printf("1");
-        else printf("0");
+
+    for (i = 0; i < 32; ++i)
+    {
+        if (src & 1)
+        {
+            printf("1");
+        }
+        else
+        {
+            printf("0");
+        }
+
         src = src >> 1;
     }
+
     printf("\n");
 }
 
-void binary_int64_printf(uint64_t src) {
+void binary_int64_printf(uint64_t src)
+{
     int i;
-    for (i = 0; i < 64; ++i) {
-        if (src & 1) printf("1");
-        else printf("0");
+
+    for (i = 0; i < 64; ++i)
+    {
+        if (src & 1)
+        {
+            printf("1");
+        }
+        else
+        {
+            printf("0");
+        }
+
         src = src >> 1;
     }
+
     printf("\n");
 }
 
@@ -311,14 +382,21 @@ void gemm_nn_custom_bin_mean_transposed(int M, int N, int K, float ALPHA_UNUSED,
 void transpose_32x32_bits_my(uint32_t *A, uint32_t *B, int lda, int ldb)
 {
     unsigned x, y, t;
-    for (y = 0; y < 32; ++y) {
-        for (x = 0; x < 32; ++x) {
-            if (A[y * lda] & (1 << x)) B[x * ldb] |= (uint32_t)1 << y;
+
+    for (y = 0; y < 32; ++y)
+    {
+        for (x = 0; x < 32; ++x)
+        {
+            if (A[y * lda] & (1 << x))
+            {
+                B[x * ldb] |= (uint32_t)1 << y;
+            }
         }
     }
 }
 
-uint8_t reverse_8_bit(uint8_t a) {
+uint8_t reverse_8_bit(uint8_t a)
+{
     return ((a * 0x0802LU & 0x22110LU) | (a * 0x8020LU & 0x88440LU)) * 0x10101LU >> 16;
 }
 
@@ -333,7 +411,8 @@ uint32_t reverse_32_bit(uint32_t a)
 
 #define swap(a0, a1, j, m) t = (a0 ^ (a1 >>j)) & m; a0 = a0 ^ t; a1 = a1 ^ (t << j);
 
-void transpose32_optimized(uint32_t A[32]) {
+void transpose32_optimized(uint32_t A[32])
+{
     int j, k;
     unsigned m, t;
 
@@ -348,26 +427,47 @@ void transpose32_optimized(uint32_t A[32]) {
 
     j = 16;
     m = 0x0000FFFF;
-    for (k = 0; k < 32; k = (k + j + 1) & ~j) { swap(A[k], A[k + j], j, m); }
+
+    for (k = 0; k < 32; k = (k + j + 1) & ~j)
+    {
+        swap(A[k], A[k + j], j, m);
+    }
 
     j = 8;
     m = 0x00ff00ff;
-    for (k = 0; k < 32; k = (k + j + 1) & ~j) { swap(A[k], A[k + j], j, m); }
+
+    for (k = 0; k < 32; k = (k + j + 1) & ~j)
+    {
+        swap(A[k], A[k + j], j, m);
+    }
 
     j = 4;
     m = 0x0f0f0f0f;
-    for (k = 0; k < 32; k = (k + j + 1) & ~j) { swap(A[k], A[k + j], j, m); }
+
+    for (k = 0; k < 32; k = (k + j + 1) & ~j)
+    {
+        swap(A[k], A[k + j], j, m);
+    }
 
     j = 2;
     m = 0x33333333;
-    for (k = 0; k < 32; k = (k + j + 1) & ~j) { swap(A[k], A[k + j], j, m); }
+
+    for (k = 0; k < 32; k = (k + j + 1) & ~j)
+    {
+        swap(A[k], A[k + j], j, m);
+    }
 
     j = 1;
     m = 0x55555555;
-    for (k = 0; k < 32; k = (k + j + 1) & ~j) { swap(A[k], A[k + j], j, m); }
+
+    for (k = 0; k < 32; k = (k + j + 1) & ~j)
+    {
+        swap(A[k], A[k + j], j, m);
+    }
 
     // reverse Y
-    for (j = 0; j < 16; ++j) {
+    for (j = 0; j < 16; ++j)
+    {
         uint32_t tmp = A[j];
         A[j] = reverse_32_bit(A[31 - j]);
         A[31 - j] = reverse_32_bit(tmp);
@@ -379,19 +479,34 @@ void transpose_32x32_bits_reversed_diagonale(uint32_t *A, uint32_t *B, int m, in
     unsigned A_tmp[32];
     int i;
 #pragma unroll
-    for (i = 0; i < 32; ++i) A_tmp[i] = A[i * m];
+
+    for (i = 0; i < 32; ++i)
+    {
+        A_tmp[i] = A[i * m];
+    }
+
     transpose32_optimized(A_tmp);
 #pragma unroll
-    for (i = 0; i < 32; ++i) B[i*n] = A_tmp[i];
+
+    for (i = 0; i < 32; ++i)
+    {
+        B[i * n] = A_tmp[i];
+    }
 }
 
 
 void transpose_8x8_bits_my(unsigned char *A, unsigned char *B, int lda, int ldb)
 {
     unsigned x, y, t;
-    for (y = 0; y < 8; ++y) {
-        for (x = 0; x < 8; ++x) {
-            if (A[y * lda] & (1 << x)) B[x * ldb] |= 1 << y;
+
+    for (y = 0; y < 8; ++y)
+    {
+        for (x = 0; x < 8; ++x)
+        {
+            if (A[y * lda] & (1 << x))
+            {
+                B[x * ldb] |= 1 << y;
+            }
         }
     }
 }
@@ -409,17 +524,20 @@ unsigned char reverse_byte(unsigned char a)
     return ((a * 0x0802LU & 0x22110LU) | (a * 0x8020LU & 0x88440LU)) * 0x10101LU >> 16;
 }
 
-static unsigned char lookup[16] = {
-        0x0, 0x8, 0x4, 0xc, 0x2, 0xa, 0x6, 0xe,
-        0x1, 0x9, 0x5, 0xd, 0x3, 0xb, 0x7, 0xf, };
+static unsigned char lookup[16] =
+{
+    0x0, 0x8, 0x4, 0xc, 0x2, 0xa, 0x6, 0xe,
+    0x1, 0x9, 0x5, 0xd, 0x3, 0xb, 0x7, 0xf,
+};
 
-unsigned char reverse_byte_3(unsigned char n) {
+unsigned char reverse_byte_3(unsigned char n)
+{
     // Reverse the top and bottom nibble then swap them.
     return (lookup[n & 0b1111] << 4) | lookup[n >> 4];
 }
 
 
-void transpose8rS32_reversed_diagonale(unsigned char* A, unsigned char* B, int m, int n)
+void transpose8rS32_reversed_diagonale(unsigned char *A, unsigned char *B, int m, int n)
 {
     unsigned x, y, t;
 
@@ -428,18 +546,28 @@ void transpose8rS32_reversed_diagonale(unsigned char* A, unsigned char* B, int m
     //x = (A[0] << 24) | (A[m] << 16) | (A[2 * m] << 8) | A[3 * m];
     //y = (A[4 * m] << 24) | (A[5 * m] << 16) | (A[6 * m] << 8) | A[7 * m];
 
-    t = (x ^ (x >> 7)) & 0x00AA00AA;  x = x ^ t ^ (t << 7);
-    t = (y ^ (y >> 7)) & 0x00AA00AA;  y = y ^ t ^ (t << 7);
+    t = (x ^ (x >> 7)) & 0x00AA00AA;
+    x = x ^ t ^ (t << 7);
+    t = (y ^ (y >> 7)) & 0x00AA00AA;
+    y = y ^ t ^ (t << 7);
 
-    t = (x ^ (x >> 14)) & 0x0000CCCC;  x = x ^ t ^ (t << 14);
-    t = (y ^ (y >> 14)) & 0x0000CCCC;  y = y ^ t ^ (t << 14);
+    t = (x ^ (x >> 14)) & 0x0000CCCC;
+    x = x ^ t ^ (t << 14);
+    t = (y ^ (y >> 14)) & 0x0000CCCC;
+    y = y ^ t ^ (t << 14);
 
     t = (x & 0xF0F0F0F0) | ((y >> 4) & 0x0F0F0F0F);
     y = ((x << 4) & 0xF0F0F0F0) | (y & 0x0F0F0F0F);
     x = t;
 
-    B[7 * n] = reverse_byte(x >> 24);  B[6 * n] = reverse_byte(x >> 16);  B[5 * n] = reverse_byte(x >> 8);  B[4 * n] = reverse_byte(x);
-    B[3 * n] = reverse_byte(y >> 24);  B[2 * n] = reverse_byte(y >> 16);  B[1 * n] = reverse_byte(y >> 8);  B[0 * n] = reverse_byte(y);
+    B[7 * n] = reverse_byte(x >> 24);
+    B[6 * n] = reverse_byte(x >> 16);
+    B[5 * n] = reverse_byte(x >> 8);
+    B[4 * n] = reverse_byte(x);
+    B[3 * n] = reverse_byte(y >> 24);
+    B[2 * n] = reverse_byte(y >> 16);
+    B[1 * n] = reverse_byte(y >> 8);
+    B[0 * n] = reverse_byte(y);
 }
 
 /*
@@ -473,17 +601,26 @@ void transpose_bin(uint32_t *A, uint32_t *B, const int n, const int m,
     //printf("\n n = %d (n mod 32 = %d), m = %d (m mod 32 = %d) \n", n, n % 32, m, m % 32);
     //printf("\n lda = %d (lda mod 32 = %d), ldb = %d (ldb mod 32 = %d) \n", lda, lda % 32, ldb, ldb % 32);
     int i;
-#pragma omp parallel for
-    for (i = 0; i < n; i += 32) {
+    #pragma omp parallel for
+
+    for (i = 0; i < n; i += 32)
+    {
         int j;
-        for (j = 0; j < m; j += 32) {
-            int a_index = i*lda + j;
-            int b_index = j*ldb + i;
+
+        for (j = 0; j < m; j += 32)
+        {
+            int a_index = i * lda + j;
+            int b_index = j * ldb + i;
             transpose_32x32_bits_reversed_diagonale(&A[a_index / 32], &B[b_index / 32], lda / 32, ldb / 32);
             //transpose_32x32_bits_my(&A[a_index/32], &B[b_index/32], lda/32, ldb/32);
         }
-        for (; j < m; ++j) {
-            if (get_bit(A, i*lda + j)) set_bit(B, j*ldb + i);
+
+        for (; j < m; ++j)
+        {
+            if (get_bit(A, i * lda + j))
+            {
+                set_bit(B, j * ldb + i);
+            }
         }
     }
 }
@@ -499,20 +636,24 @@ void transpose_bin(uint32_t *A, uint32_t *B, const int n, const int m,
 #include <smmintrin.h>
 
 #if defined(_MSC_VER) && _MSC_VER <= 1900
-static inline __int32 _mm256_extract_epi64(__m256i a, const int index) {
+static inline __int32 _mm256_extract_epi64(__m256i a, const int index)
+{
     return a.m256i_i64[index];
 }
 
-static inline __int32 _mm256_extract_epi32(__m256i a, const int index) {
+static inline __int32 _mm256_extract_epi32(__m256i a, const int index)
+{
     return a.m256i_i32[index];
 }
 #endif
 
-static inline float _castu32_f32(uint32_t a) {
+static inline float _castu32_f32(uint32_t a)
+{
     return *((float *)&a);
 }
 
-static inline float _mm256_extract_float32(__m256 a, const int index) {
+static inline float _mm256_extract_float32(__m256 a, const int index)
+{
     return a.m256_f32[index];
 }
 
@@ -523,24 +664,26 @@ static inline float _mm256_extract_float32(__m256 a, const int index) {
 #include <smmintrin.h>
 #include <cpuid.h>
 
-static inline float _castu32_f32(uint32_t a) {
+static inline float _castu32_f32(uint32_t a)
+{
     return *((float *)&a);
 }
 
-static inline float _mm256_extract_float32(__m256 a, const int index) {
+static inline float _mm256_extract_float32(__m256 a, const int index)
+{
     return _castu32_f32(_mm256_extract_epi32(_mm256_castps_si256(a), index));
 }
 
-void asm_cpuid(uint32_t* abcd, uint32_t eax)
+void asm_cpuid(uint32_t *abcd, uint32_t eax)
 {
     uint32_t ebx = 0, edx = 0, ecx = 0;
 
     // EBX is saved to EDI and later restored
     __asm__("movl %%ebx, %%edi;"
-        "cpuid;"
-        "xchgl %%ebx, %%edi;"
-        : "=D"(ebx),
-        "+a"(eax), "+c"(ecx), "=d"(edx));
+            "cpuid;"
+            "xchgl %%ebx, %%edi;"
+            : "=D"(ebx),
+            "+a"(eax), "+c"(ecx), "=d"(edx));
 
     abcd[0] = eax;
     abcd[1] = ebx;
@@ -556,7 +699,8 @@ void asm_cpuid(uint32_t* abcd, uint32_t eax)
 #define cpuid(info, x)    __cpuidex(info, x, 0)
 #else
 //  GCC Intrinsics
-void cpuid(int info[4], int InfoType) {
+void cpuid(int info[4], int InfoType)
+{
     __cpuid_count(InfoType, 0, info[0], info[1], info[2], info[3]);
 }
 #endif
@@ -584,7 +728,8 @@ static int HW_AVX512IFMA; //  AVX512 Integer 52-bit Fused Multiply-Add
 static int HW_AVX512VBMI; //  AVX512 Vector Byte Manipulation Instructions
 
 // https://stackoverflow.com/questions/6121792/how-to-check-if-a-cpu-supports-the-sse3-instruction-set
-void check_cpu_features(void) {
+void check_cpu_features(void)
+{
     int info[4];
     cpuid(info, 0);
     int nIds = info[0];
@@ -593,7 +738,8 @@ void check_cpu_features(void) {
     unsigned nExIds = info[0];
 
     //  Detect Features
-    if (nIds >= 0x00000001) {
+    if (nIds >= 0x00000001)
+    {
         cpuid(info, 0x00000001);
         HW_MMX = (info[3] & ((int)1 << 23)) != 0;
         HW_SSE = (info[3] & ((int)1 << 25)) != 0;
@@ -610,7 +756,9 @@ void check_cpu_features(void) {
 
         HW_RDRAND = (info[2] & ((int)1 << 30)) != 0;
     }
-    if (nIds >= 0x00000007) {
+
+    if (nIds >= 0x00000007)
+    {
         cpuid(info, 0x00000007);
         HW_AVX2 = (info[1] & ((int)1 << 5)) != 0;
 
@@ -630,7 +778,9 @@ void check_cpu_features(void) {
         HW_AVX512IFMA = (info[1] & ((int)1 << 21)) != 0;
         HW_AVX512VBMI = (info[2] & ((int)1 << 1)) != 0;
     }
-    if (nExIds >= 0x80000001) {
+
+    if (nExIds >= 0x80000001)
+    {
         cpuid(info, 0x80000001);
         HW_x64 = (info[3] & ((int)1 << 29)) != 0;
         HW_ABM = (info[2] & ((int)1 << 5)) != 0;
@@ -640,64 +790,101 @@ void check_cpu_features(void) {
     }
 }
 
-int is_avx() {
+int is_avx()
+{
     static int result = -1;
-    if (result == -1) {
+
+    if (result == -1)
+    {
         check_cpu_features();
         result = HW_AVX;
-        if (result == 1) printf(" Used AVX \n");
-        else printf(" Not used AVX \n");
+
+        if (result == 1)
+        {
+            printf(" Used AVX \n");
+        }
+        else
+        {
+            printf(" Not used AVX \n");
+        }
     }
+
     return result;
 }
 
-int is_fma_avx2() {
+int is_fma_avx2()
+{
     static int result = -1;
-    if (result == -1) {
+
+    if (result == -1)
+    {
         check_cpu_features();
         result = HW_FMA3 && HW_AVX2;
-        if (result == 1) printf(" Used FMA & AVX2 \n");
-        else printf(" Not used FMA & AVX2 \n");
+
+        if (result == 1)
+        {
+            printf(" Used FMA & AVX2 \n");
+        }
+        else
+        {
+            printf(" Not used FMA & AVX2 \n");
+        }
     }
+
     return result;
 }
 
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide
 void gemm_nn(int M, int N, int K, float ALPHA,
-    float *A, int lda,
-    float *B, int ldb,
-    float *C, int ldc)
+             float *A, int lda,
+             float *B, int ldb,
+             float *C, int ldc)
 {
     int i, j, k;
-    if (is_avx() == 1) {    // AVX
-        for (i = 0; i < M; ++i) {
-            for (k = 0; k < K; ++k) {
-                float A_PART = ALPHA*A[i*lda + k];
+
+    if (is_avx() == 1)      // AVX
+    {
+        for (i = 0; i < M; ++i)
+        {
+            for (k = 0; k < K; ++k)
+            {
+                float A_PART = ALPHA * A[i * lda + k];
                 __m256 a256, b256, c256, result256;    // AVX
                 a256 = _mm256_set1_ps(A_PART);
-                for (j = 0; j < N - 8; j += 8) {
-                    b256 = _mm256_loadu_ps(&B[k*ldb + j]);
-                    c256 = _mm256_loadu_ps(&C[i*ldc + j]);
+
+                for (j = 0; j < N - 8; j += 8)
+                {
+                    b256 = _mm256_loadu_ps(&B[k * ldb + j]);
+                    c256 = _mm256_loadu_ps(&C[i * ldc + j]);
                     // FMA - Intel Haswell (2013), AMD Piledriver (2012)
                     //result256 = _mm256_fmadd_ps(a256, b256, c256);
                     result256 = _mm256_mul_ps(a256, b256);
                     result256 = _mm256_add_ps(result256, c256);
-                    _mm256_storeu_ps(&C[i*ldc + j], result256);
+                    _mm256_storeu_ps(&C[i * ldc + j], result256);
                 }
 
                 int prev_end = (N % 8 == 0) ? (N - 8) : (N / 8) * 8;
+
                 for (j = prev_end; j < N; ++j)
-                    C[i*ldc + j] += A_PART*B[k*ldb + j];
+                {
+                    C[i * ldc + j] += A_PART * B[k * ldb + j];
+                }
             }
         }
     }
-    else {
-        for (i = 0; i < M; ++i) {
-            for (k = 0; k < K; ++k) {
-                register float A_PART = ALPHA*A[i*lda + k];
-                for (j = 0; j < N; ++j) {
-                    C[i*ldc + j] += A_PART*B[k*ldb + j];
+    else
+    {
+        for (i = 0; i < M; ++i)
+        {
+            for (k = 0; k < K; ++k)
+            {
+                register float A_PART = ALPHA * A[i * lda + k];
+
+                for (j = 0; j < N; ++j)
+                {
+                    C[i * ldc + j] += A_PART * B[k * ldb + j];
                 }
+
                 /* // SSE
                 __m128 a128, b128, c128, result128;    // SSE
                 a128 = _mm_set1_ps(A_PART);
@@ -722,7 +909,7 @@ void gemm_nn(int M, int N, int K, float ALPHA,
 
 
 void convolution_2d_old(int w, int h, int ksize, int n, int c, int pad, int stride,
-    float *weights, float *input, float *output)
+                        float *weights, float *input, float *output)
 {
     const int out_h = (h + 2 * pad - ksize) / stride + 1;    // output_height=input_height for stride=1 and pad=1
     const int out_w = (w + 2 * pad - ksize) / stride + 1;    // output_width=input_width for stride=1 and pad=1
@@ -730,37 +917,48 @@ void convolution_2d_old(int w, int h, int ksize, int n, int c, int pad, int stri
     int fil;
     // filter index
     #pragma omp parallel for      // "omp parallel for" - automatic parallelization of loop by using OpenMP
-    for (fil = 0; fil < n; ++fil) {
+
+    for (fil = 0; fil < n; ++fil)
+    {
         //int i, f, j;
         int chan, y, x, f_y, f_x;
+
         // channel index
         for (chan = 0; chan < c; ++chan)
+
             // input - y
             for (y = 0; y < h; ++y)
+
                 // input - x
                 for (x = 0; x < w; ++x)
                 {
-                    int const output_index = fil*w*h + y*w + x;
-                    int const weights_pre_index = fil*c*ksize*ksize + chan*ksize*ksize;
-                    int const input_pre_index = chan*w*h;
+                    int const output_index = fil * w * h + y * w + x;
+                    int const weights_pre_index = fil * c * ksize * ksize + chan * ksize * ksize;
+                    int const input_pre_index = chan * w * h;
                     float sum = 0;
 
                     // filter - y
                     for (f_y = 0; f_y < ksize; ++f_y)
                     {
                         int input_y = y + f_y - pad;
+
                         // filter - x
                         for (f_x = 0; f_x < ksize; ++f_x)
                         {
                             int input_x = x + f_x - pad;
-                            if (input_y < 0 || input_x < 0 || input_y >= h || input_x >= w) continue;
 
-                            int input_index = input_pre_index + input_y*w + input_x;
-                            int weights_index = weights_pre_index + f_y*ksize + f_x;
+                            if (input_y < 0 || input_x < 0 || input_y >= h || input_x >= w)
+                            {
+                                continue;
+                            }
+
+                            int input_index = input_pre_index + input_y * w + input_x;
+                            int weights_index = weights_pre_index + f_y * ksize + f_x;
 
                             sum += input[input_index] * weights[weights_index];
                         }
                     }
+
                     // l.output[filters][width][height] +=
                     //        state.input[channels][width][height] *
                     //        l.weights[filters][channels][filter_width][filter_height];
@@ -770,7 +968,7 @@ void convolution_2d_old(int w, int h, int ksize, int n, int c, int pad, int stri
 }
 
 void convolution_2d(int w, int h, int ksize, int n, int c, int pad, int stride,
-    float *weights, float *input, float *output, float *mean)
+                    float *weights, float *input, float *output, float *mean)
 {
     const int out_h = (h + 2 * pad - ksize) / stride + 1;    // output_height=input_height for stride=1 and pad=1
     const int out_w = (w + 2 * pad - ksize) / stride + 1;    // output_width=input_width for stride=1 and pad=1
@@ -778,21 +976,26 @@ void convolution_2d(int w, int h, int ksize, int n, int c, int pad, int stride,
 
 #if defined(_OPENMP)
     static int max_num_threads = 0;
-    if (max_num_threads == 0) {
+
+    if (max_num_threads == 0)
+    {
         max_num_threads = omp_get_max_threads();
         //omp_set_num_threads( max_num_threads / 2);
     }
+
 #endif
 
     //convolution_2d_old(w, h, ksize, n, c, pad, stride, weights, input, output);
 
     __m256i all256_sing1 = _mm256_set_epi32(0x80000000, 0x80000000, 0x80000000, 0x80000000, 0x80000000, 0x80000000, 0x80000000, 0x80000000);
-    for (i = 0; i < ksize*ksize*n*c; i+=8) {
-        *((__m256*)&weights[i]) = _mm256_and_ps(*((__m256*)&weights[i]), _mm256_castsi256_ps(all256_sing1));
+
+    for (i = 0; i < ksize * ksize * n * c; i += 8)
+    {
+        *((__m256 *)&weights[i]) = _mm256_and_ps(*((__m256 *)&weights[i]), _mm256_castsi256_ps(all256_sing1));
     }
 
     //for (i = 0; i < w*h*c; i += 8) {
-        //*((__m256*)&input[i]) = _mm256_and_ps(*((__m256*)&input[i]), _mm256_castsi256_ps(all256_sing1));
+    //*((__m256*)&input[i]) = _mm256_and_ps(*((__m256*)&input[i]), _mm256_castsi256_ps(all256_sing1));
     //}
 
 
@@ -812,84 +1015,96 @@ void convolution_2d(int w, int h, int ksize, int n, int c, int pad, int stride,
     int fil;
     // filter index
     #pragma omp parallel for      // "omp parallel for" - automatic parallelization of loop by using OpenMP
-    for (fil = 0; fil < n; ++fil) {
+
+    for (fil = 0; fil < n; ++fil)
+    {
         int chan, y, x, f_y, f_x;
         float cur_mean = fabs(mean[fil]);
         __m256 mean256 = _mm256_set1_ps(cur_mean);
+
         // channel index
         //for (chan = 0; chan < c; ++chan)
-            // input - y
-            for (y = 0; y < h; ++y)
-                // input - x
-                for (x = 0; x < w-8; x+=8)
+        // input - y
+        for (y = 0; y < h; ++y)
+
+            // input - x
+            for (x = 0; x < w - 8; x += 8)
+            {
+                int const output_index = fil * w * h + y * w + x;
+                float sum = 0;
+                __m256 sum256 = _mm256_set1_ps(0);
+
+                for (chan = 0; chan < c; ++chan)
                 {
-                    int const output_index = fil*w*h + y*w + x;
-                    float sum = 0;
-                    __m256 sum256 = _mm256_set1_ps(0);
-
-                    for (chan = 0; chan < c; ++chan) {
-                        int const weights_pre_index = fil*c*ksize*ksize + chan*ksize*ksize;
-                        int const input_pre_index = chan*w*h;
+                    int const weights_pre_index = fil * c * ksize * ksize + chan * ksize * ksize;
+                    int const input_pre_index = chan * w * h;
 
 
-                        // filter - y
-                        for (f_y = 0; f_y < ksize; ++f_y)
+                    // filter - y
+                    for (f_y = 0; f_y < ksize; ++f_y)
+                    {
+                        int input_y = y + f_y - pad;
+
+                        //__m256 in = *((__m256*)&input[input_pre_index + input_y*w]);
+                        if (input_y < 0 || input_y >= h)
                         {
-                            int input_y = y + f_y - pad;
-                            //__m256 in = *((__m256*)&input[input_pre_index + input_y*w]);
-                            if (input_y < 0 || input_y >= h) continue;
-                            //__m256 in = _mm256_loadu_ps(&input[input_pre_index + input_y*w + x - pad]);
+                            continue;
+                        }
 
-                            // filter - x
-                            for (f_x = 0; f_x < ksize; ++f_x)
+                        //__m256 in = _mm256_loadu_ps(&input[input_pre_index + input_y*w + x - pad]);
+
+                        // filter - x
+                        for (f_x = 0; f_x < ksize; ++f_x)
+                        {
+                            int input_x = x + f_x - pad;
+                            //if (input_y < 0 || input_x < 0 || input_y >= h || input_x >= w) continue;
+
+                            int input_index = input_pre_index + input_y * w + input_x;
+                            int weights_index = weights_pre_index + f_y * ksize + f_x;
+                            //if (input_y < 0 || input_y >= h) continue;
+
+                            //sum += input[input_index] * weights[weights_index];
+
+                            __m256 in = *((__m256 *)&input[input_index]);
+                            __m256 w = _mm256_set1_ps(weights[weights_index]);
+                            //__m256 w_sign = _mm256_and_ps(w, _mm256_castsi256_ps(all256_sing1)); // check sign in 8 x 32-bit floats
+                            __m256 xor256 = _mm256_xor_ps(w, in);
+                            //printf("\n xor256_1 = %f, xor256_2 = %f \n", xor256.m256_f32[0], xor256.m256_f32[1]);
+                            //printf("\n in = %f, w = %f, xor256 = %f \n", in.m256_f32[0], w_sign.m256_f32[0], xor256.m256_f32[0]);
+
+                            //__m256 pn1 = _mm256_and_ps(_mm256_castsi256_ps(all256i_one), xor256);
+
+
+                            //sum256 = xor256;
+                            sum256 = _mm256_add_ps(xor256, sum256);
+                            //printf("\n --- \n");
+                            //printf("\n 0 = %f, 1 = %f, 2 = %f, 3 = %f, 4 = %f, 5 = %f, 6 = %f, 7 = %f \n", in.m256_f32[0], in.m256_f32[1], in.m256_f32[2], in.m256_f32[3], in.m256_f32[4], in.m256_f32[5], in.m256_f32[6], in.m256_f32[7]);
+
+                            if (f_x < ksize - 1)
                             {
-                                int input_x = x + f_x - pad;
-                                //if (input_y < 0 || input_x < 0 || input_y >= h || input_x >= w) continue;
-
-                                int input_index = input_pre_index + input_y*w + input_x;
-                                int weights_index = weights_pre_index + f_y*ksize + f_x;
-                                //if (input_y < 0 || input_y >= h) continue;
-
-                                //sum += input[input_index] * weights[weights_index];
-
-                                __m256 in = *((__m256*)&input[input_index]);
-                                __m256 w = _mm256_set1_ps(weights[weights_index]);
-                                //__m256 w_sign = _mm256_and_ps(w, _mm256_castsi256_ps(all256_sing1)); // check sign in 8 x 32-bit floats
-                                __m256 xor256 = _mm256_xor_ps(w, in);
-                                //printf("\n xor256_1 = %f, xor256_2 = %f \n", xor256.m256_f32[0], xor256.m256_f32[1]);
-                                //printf("\n in = %f, w = %f, xor256 = %f \n", in.m256_f32[0], w_sign.m256_f32[0], xor256.m256_f32[0]);
-
-                                //__m256 pn1 = _mm256_and_ps(_mm256_castsi256_ps(all256i_one), xor256);
-
-
-                                //sum256 = xor256;
-                                sum256 = _mm256_add_ps(xor256, sum256);
-                                //printf("\n --- \n");
-                                //printf("\n 0 = %f, 1 = %f, 2 = %f, 3 = %f, 4 = %f, 5 = %f, 6 = %f, 7 = %f \n", in.m256_f32[0], in.m256_f32[1], in.m256_f32[2], in.m256_f32[3], in.m256_f32[4], in.m256_f32[5], in.m256_f32[6], in.m256_f32[7]);
-
-                                if (f_x < ksize-1) {
-                                    //in = _mm256_permutevar8x32_ps(in, idx256);
-                                    //in = _mm256_and_ps(in, _mm256_castsi256_ps(all256_last_zero));
-                                }
+                                //in = _mm256_permutevar8x32_ps(in, idx256);
+                                //in = _mm256_and_ps(in, _mm256_castsi256_ps(all256_last_zero));
                             }
                         }
                     }
-                    // l.output[filters][width][height] +=
-                    //        state.input[channels][width][height] *
-                    //        l.weights[filters][channels][filter_width][filter_height];
-                    //output[output_index] += sum;
-
-                    sum256 = _mm256_mul_ps(sum256, mean256);
-                    //printf("\n cur_mean = %f, sum256 = %f, sum256 = %f, in = %f \n",
-                    //    cur_mean, sum256.m256_f32[0], sum256.m256_f32[1], input[input_pre_index]);
-
-                    //__m256 out = *((__m256*)&output[output_index]);
-                    //out = _mm256_add_ps(out, sum256);
-                    //*((__m256*)&output[output_index]) = out;
-                    *((__m256*)&output[output_index]) = sum256;
-
-                    //_mm256_storeu_ps(&C[i*ldc + j], result256);
                 }
+
+                // l.output[filters][width][height] +=
+                //        state.input[channels][width][height] *
+                //        l.weights[filters][channels][filter_width][filter_height];
+                //output[output_index] += sum;
+
+                sum256 = _mm256_mul_ps(sum256, mean256);
+                //printf("\n cur_mean = %f, sum256 = %f, sum256 = %f, in = %f \n",
+                //    cur_mean, sum256.m256_f32[0], sum256.m256_f32[1], input[input_pre_index]);
+
+                //__m256 out = *((__m256*)&output[output_index]);
+                //out = _mm256_add_ps(out, sum256);
+                //*((__m256*)&output[output_index]) = out;
+                *((__m256 *)&output[output_index]) = sum256;
+
+                //_mm256_storeu_ps(&C[i*ldc + j], result256);
+            }
     }
 }
 
@@ -899,7 +1114,8 @@ void convolution_2d(int w, int h, int ksize, int n, int c, int pad, int stride,
 // https://stackoverflow.com/questions/17354971/fast-counting-the-number-of-set-bits-in-m128i-register
 // https://arxiv.org/pdf/1611.07612.pdf
 
-static inline int popcnt128(__m128i n) {
+static inline int popcnt128(__m128i n)
+{
     const __m128i n_hi = _mm_unpackhi_epi64(n, n);
 #ifdef _MSC_VER
     return __popcnt64(_mm_cvtsi128_si64(n)) + __popcnt64(_mm_cvtsi128_si64(n_hi));
@@ -908,15 +1124,17 @@ static inline int popcnt128(__m128i n) {
 #endif
 }
 
-static inline int popcnt256(__m256i n) {
+static inline int popcnt256(__m256i n)
+{
     return popcnt128(_mm256_extractf128_si256(n, 0)) + popcnt128(_mm256_extractf128_si256(n, 1));
 }
 
-static inline __m256i count256(__m256i v) {
+static inline __m256i count256(__m256i v)
+{
     __m256i lookup =
         _mm256_setr_epi8(0, 1, 1, 2, 1, 2, 2, 3, 1, 2,
-            2, 3, 2, 3, 3, 4, 0, 1, 1, 2, 1, 2, 2, 3,
-            1, 2, 2, 3, 2, 3, 3, 4);
+                         2, 3, 2, 3, 3, 4, 0, 1, 1, 2, 1, 2, 2, 3,
+                         1, 2, 2, 3, 2, 3, 3, 4);
 
     __m256i low_mask = _mm256_set1_epi8(0x0f);
 
@@ -929,7 +1147,8 @@ static inline __m256i count256(__m256i v) {
     return _mm256_sad_epu8(total, _mm256_setzero_si256());
 }
 
-static inline int popcnt256_custom(__m256i n) {
+static inline int popcnt256_custom(__m256i n)
+{
     __m256i val = count256(n);
 
     //return val.m256i_i64[0] +
@@ -937,43 +1156,50 @@ static inline int popcnt256_custom(__m256i n) {
     //val.m256i_i64[2] +
     //val.m256i_i64[3];
     return _mm256_extract_epi64(val, 0)
-        + _mm256_extract_epi64(val, 1)
-        + _mm256_extract_epi64(val, 2)
-        + _mm256_extract_epi64(val, 3);
+           + _mm256_extract_epi64(val, 1)
+           + _mm256_extract_epi64(val, 2)
+           + _mm256_extract_epi64(val, 3);
 }
 
 // 5x times faster than gemm()-float32
 // further optimizations: do mean-mult only for the last layer
 void gemm_nn_custom_bin_mean_transposed(int M, int N, int K, float ALPHA_UNUSED,
-    unsigned char *A, int lda,
-    unsigned char *B, int ldb,
-    float *C, int ldc, float *mean_arr)
+                                        unsigned char *A, int lda,
+                                        unsigned char *B, int ldb,
+                                        float *C, int ldc, float *mean_arr)
 {
     int i;
 
 #if defined(_OPENMP)
     static int max_num_threads = 0;
-    if (max_num_threads == 0) {
+
+    if (max_num_threads == 0)
+    {
         max_num_threads = omp_get_max_threads();
         //omp_set_num_threads(max_num_threads / 2);
     }
+
 #endif
 
     #pragma omp parallel for
+
     for (i = 0; i < M; ++i)
-    {   // l.n - filters [16 - 55 - 1024]
+    {
+        // l.n - filters [16 - 55 - 1024]
         float mean_val = mean_arr[i];
         int j, k;
         __m256i all_1 = _mm256_set1_epi8(255);
 
-        for (j = 0; j < N; ++j) { // out_h*out_w - one channel output size [169 - 173056]
+        for (j = 0; j < N; ++j)   // out_h*out_w - one channel output size [169 - 173056]
+        {
             int count = 0;
             const int bit_step = 256;
             __m256i count_sum = _mm256_set1_epi8(0);
 
-            for (k = 0; k < K; k += bit_step) {   // l.size*l.size*l.c - one filter size [27 - 9216]
-                __m256i a_bit256 = _mm256_loadu_si256((__m256i *)(A + (i*lda + k) / 8));
-                __m256i b_bit256 = _mm256_loadu_si256((__m256i *)(B + (j*ldb + k) / 8));
+            for (k = 0; k < K; k += bit_step)     // l.size*l.size*l.c - one filter size [27 - 9216]
+            {
+                __m256i a_bit256 = _mm256_loadu_si256((__m256i *)(A + (i * lda + k) / 8));
+                __m256i b_bit256 = _mm256_loadu_si256((__m256i *)(B + (j * ldb + k) / 8));
                 __m256i xor256 = _mm256_xor_si256(a_bit256, b_bit256);  // xnor = not(xor(a,b))
                 __m256i c_bit256 = _mm256_andnot_si256(xor256, all_1);  // can be optimized - we can do other NOT for wegihts once and do not do this NOT
 
@@ -989,37 +1215,41 @@ void gemm_nn_custom_bin_mean_transposed(int M, int N, int K, float ALPHA_UNUSED,
             //count = count_sum.m256i_i64[0] +
             //    count_sum.m256i_i64[1] +
             //    count_sum.m256i_i64[2] +
-             //   count_sum.m256i_i64[3];
+            //   count_sum.m256i_i64[3];
             count = _mm256_extract_epi64(count_sum, 0)
-                + _mm256_extract_epi64(count_sum, 1)
-                + _mm256_extract_epi64(count_sum, 2)
-                + _mm256_extract_epi64(count_sum, 3);
+                    + _mm256_extract_epi64(count_sum, 1)
+                    + _mm256_extract_epi64(count_sum, 2)
+                    + _mm256_extract_epi64(count_sum, 3);
 
             int f1 = (K % bit_step == 0) ? 0 : (bit_step - (K % bit_step));
             count = count - f1;    // remove extra bits (from empty space for align only)
 
-            C[i*ldc + j] = (2 * count - K) * mean_val;
+            C[i * ldc + j] = (2 * count - K) * mean_val;
         }
     }
 }
 
 
 static inline float im2col_get_pixel(float *im, int height, int width, int channels,
-    int row, int col, int channel, int pad)
+                                     int row, int col, int channel, int pad)
 {
     row -= pad;
     col -= pad;
 
     if (row < 0 || col < 0 ||
-        row >= height || col >= width) return 0;
-    return im[col + width*(row + height*channel)];
+        row >= height || col >= width)
+    {
+        return 0;
+    }
+
+    return im[col + width * (row + height * channel)];
 }
 
 //From Berkeley Vision's Caffe!
 //https://github.com/BVLC/caffe/blob/master/LICENSE
-void im2col_cpu_custom_transpose(float* data_im,
-    int channels, int height, int width,
-    int ksize, int stride, int pad, float* data_col, int ldb_align)
+void im2col_cpu_custom_transpose(float *data_im,
+                                 int channels, int height, int width,
+                                 int ksize, int stride, int pad, float *data_col, int ldb_align)
 {
     const int height_col = (height + 2 * pad - ksize) / stride + 1;
     const int width_col = (width + 2 * pad - ksize) / stride + 1;
@@ -1030,20 +1260,25 @@ void im2col_cpu_custom_transpose(float* data_im,
     if (height_col == height && width_col == width && stride == 1 && pad == 1)
     {
         #pragma omp parallel for
-        for (c = 0; c < channels_col; ++c) {
+
+        for (c = 0; c < channels_col; ++c)
+        {
             int h, w;
             int w_offset = c % ksize;
             int h_offset = (c / ksize) % ksize;
             int c_im = c / ksize / ksize;
-            for (h = pad; h < height_col - pad; ++h) {
-                for (w = pad; w < width_col - pad - 4; w+=8) {
+
+            for (h = pad; h < height_col - pad; ++h)
+            {
+                for (w = pad; w < width_col - pad - 4; w += 8)
+                {
                     int im_row = h_offset + h - pad;
                     int im_col = w_offset + w - pad;
                     //int col_index = (c * height_col + h) * width_col + w;
-                    int col_index = (h * width_col + w)*ldb_align + c;   // transposed & aligned
+                    int col_index = (h * width_col + w) * ldb_align + c; // transposed & aligned
 
                     //data_col[col_index] = data_im[im_col + width*(im_row + height*c_im)];
-                    __m256 src256 = _mm256_loadu_ps((float *)(&data_im[im_col + width*(im_row + height*c_im)]));
+                    __m256 src256 = _mm256_loadu_ps((float *)(&data_im[im_col + width * (im_row + height * c_im)]));
                     data_col[col_index + ldb_align * 0] = _mm256_extract_float32(src256, 0);// src256.m256_f32[0];
                     data_col[col_index + ldb_align * 1] = _mm256_extract_float32(src256, 1);// src256.m256_f32[1];
                     data_col[col_index + ldb_align * 2] = _mm256_extract_float32(src256, 2);// src256.m256_f32[2];
@@ -1056,75 +1291,90 @@ void im2col_cpu_custom_transpose(float* data_im,
                     //_mm256_storeu_ps(&data_col[col_index], src256);
                 }
 
-                for (; w < width_col - pad; ++w) {
+                for (; w < width_col - pad; ++w)
+                {
                     int im_row = h_offset + h - pad;
                     int im_col = w_offset + w - pad;
-                    int col_index = (h * width_col + w)*ldb_align + c;   // transposed & aligned
-                    data_col[col_index] = data_im[im_col + width*(im_row + height*c_im)];
+                    int col_index = (h * width_col + w) * ldb_align + c; // transposed & aligned
+                    data_col[col_index] = data_im[im_col + width * (im_row + height * c_im)];
                 }
             }
 
             {
                 w = 0;
-                for (h = 0; h < height_col; ++h) {
+
+                for (h = 0; h < height_col; ++h)
+                {
                     int im_row = h_offset + h;
                     int im_col = w_offset + w;
-                    int col_index = (h * width_col + w)*ldb_align + c;   // transposed & aligned
+                    int col_index = (h * width_col + w) * ldb_align + c; // transposed & aligned
                     data_col[col_index] = im2col_get_pixel(data_im, height, width, channels,
-                        im_row, im_col, c_im, pad);
+                                                           im_row, im_col, c_im, pad);
                 }
             }
 
             {
                 w = width_col - 1;
-                for (h = 0; h < height_col; ++h) {
+
+                for (h = 0; h < height_col; ++h)
+                {
                     int im_row = h_offset + h;
                     int im_col = w_offset + w;
-                    int col_index = (h * width_col + w)*ldb_align + c;   // transposed & aligned
+                    int col_index = (h * width_col + w) * ldb_align + c; // transposed & aligned
                     data_col[col_index] = im2col_get_pixel(data_im, height, width, channels,
-                        im_row, im_col, c_im, pad);
+                                                           im_row, im_col, c_im, pad);
                 }
             }
 
             {
                 h = 0;
-                for (w = 0; w < width_col; ++w) {
+
+                for (w = 0; w < width_col; ++w)
+                {
                     int im_row = h_offset + h;
                     int im_col = w_offset + w;
-                    int col_index = (h * width_col + w)*ldb_align + c;   // transposed & aligned
+                    int col_index = (h * width_col + w) * ldb_align + c; // transposed & aligned
                     data_col[col_index] = im2col_get_pixel(data_im, height, width, channels,
-                        im_row, im_col, c_im, pad);
+                                                           im_row, im_col, c_im, pad);
                 }
             }
 
             {
                 h = height_col - 1;
-                for (w = 0; w < width_col; ++w) {
+
+                for (w = 0; w < width_col; ++w)
+                {
                     int im_row = h_offset + h;
                     int im_col = w_offset + w;
-                    int col_index = (h * width_col + w)*ldb_align + c;   // transposed & aligned
+                    int col_index = (h * width_col + w) * ldb_align + c; // transposed & aligned
                     data_col[col_index] = im2col_get_pixel(data_im, height, width, channels,
-                        im_row, im_col, c_im, pad);
+                                                           im_row, im_col, c_im, pad);
                 }
             }
         }
 
     }
-    else {
+    else
+    {
         #pragma omp parallel for
-        for (c = 0; c < channels_col; ++c) {
+
+        for (c = 0; c < channels_col; ++c)
+        {
             int h, w;
             int w_offset = c % ksize;
             int h_offset = (c / ksize) % ksize;
             int c_im = c / ksize / ksize;
-            for (h = 0; h < height_col; ++h) {
-                for (w = 0; w < width_col; ++w) {
+
+            for (h = 0; h < height_col; ++h)
+            {
+                for (w = 0; w < width_col; ++w)
+                {
                     int im_row = h_offset + h * stride;
                     int im_col = w_offset + w * stride;
 
-                    int col_index = (h * width_col + w)*ldb_align + c;   // transposed & aligned
+                    int col_index = (h * width_col + w) * ldb_align + c; // transposed & aligned
                     data_col[col_index] = im2col_get_pixel(data_im, height, width, channels,
-                        im_row, im_col, c_im, pad);
+                                                           im_row, im_col, c_im, pad);
                 }
             }
         }
@@ -1134,9 +1384,9 @@ void im2col_cpu_custom_transpose(float* data_im,
 
 //From Berkeley Vision's Caffe!
 //https://github.com/BVLC/caffe/blob/master/LICENSE
-void im2col_cpu_custom(float* data_im,
-    int channels, int height, int width,
-    int ksize, int stride, int pad, float* data_col)
+void im2col_cpu_custom(float *data_im,
+                       int channels, int height, int width,
+                       int ksize, int stride, int pad, float *data_col)
 {
     int c;
     const int height_col = (height + 2 * pad - ksize) / stride + 1;
@@ -1147,78 +1397,93 @@ void im2col_cpu_custom(float* data_im,
     if (height_col == height && width_col == width && stride == 1 && pad == 1 && is_fma_avx2())
     {
         #pragma omp parallel for
-        for (c = 0; c < channels_col; ++c) {
+
+        for (c = 0; c < channels_col; ++c)
+        {
             int h, w;
             int w_offset = c % ksize;
             int h_offset = (c / ksize) % ksize;
             int c_im = c / ksize / ksize;
-            for (h = pad; h < height_col-pad; ++h) {
-                for (w = pad; w < width_col-pad-8; w += 8) {
+
+            for (h = pad; h < height_col - pad; ++h)
+            {
+                for (w = pad; w < width_col - pad - 8; w += 8)
+                {
                     int im_row = h_offset + h - pad;
                     int im_col = w_offset + w - pad;
                     int col_index = (c * height_col + h) * width_col + w;
 
                     //data_col[col_index] = data_im[im_col + width*(im_row + height*c_im)];
-                    __m256 src256 = _mm256_loadu_ps((float *)(&data_im[im_col + width*(im_row + height*c_im)]));
+                    __m256 src256 = _mm256_loadu_ps((float *)(&data_im[im_col + width * (im_row + height * c_im)]));
                     _mm256_storeu_ps(&data_col[col_index], src256);
                 }
 
-                for (; w < width_col - pad; ++w) {
+                for (; w < width_col - pad; ++w)
+                {
                     int im_row = h_offset + h - pad;
                     int im_col = w_offset + w - pad;
                     int col_index = (c * height_col + h) * width_col + w;
 
-                    data_col[col_index] = data_im[im_col + width*(im_row + height*c_im)];
+                    data_col[col_index] = data_im[im_col + width * (im_row + height * c_im)];
                 }
             }
 
             {
                 w = 0;
-                for (h = 0; h < height_col; ++h) {
+
+                for (h = 0; h < height_col; ++h)
+                {
                     int im_row = h_offset + h;
                     int im_col = w_offset + w;
                     int col_index = (c * height_col + h) * width_col + w;
                     data_col[col_index] = im2col_get_pixel(data_im, height, width, channels,
-                        im_row, im_col, c_im, pad);
+                                                           im_row, im_col, c_im, pad);
                 }
             }
 
             {
-                w = width_col-1;
-                for (h = 0; h < height_col; ++h) {
+                w = width_col - 1;
+
+                for (h = 0; h < height_col; ++h)
+                {
                     int im_row = h_offset + h;
                     int im_col = w_offset + w;
                     int col_index = (c * height_col + h) * width_col + w;
                     data_col[col_index] = im2col_get_pixel(data_im, height, width, channels,
-                        im_row, im_col, c_im, pad);
+                                                           im_row, im_col, c_im, pad);
                 }
             }
 
             {
                 h = 0;
-                for (w = 0; w < width_col; ++w) {
+
+                for (w = 0; w < width_col; ++w)
+                {
                     int im_row = h_offset + h;
                     int im_col = w_offset + w;
                     int col_index = (c * height_col + h) * width_col + w;
                     data_col[col_index] = im2col_get_pixel(data_im, height, width, channels,
-                            im_row, im_col, c_im, pad);
+                                                           im_row, im_col, c_im, pad);
                 }
             }
 
             {
-                h = height_col-1;
-                for (w = 0; w < width_col; ++w) {
+                h = height_col - 1;
+
+                for (w = 0; w < width_col; ++w)
+                {
                     int im_row = h_offset + h;
                     int im_col = w_offset + w;
                     int col_index = (c * height_col + h) * width_col + w;
                     data_col[col_index] = im2col_get_pixel(data_im, height, width, channels,
-                        im_row, im_col, c_im, pad);
+                                                           im_row, im_col, c_im, pad);
                 }
             }
         }
 
     }
-    else {
+    else
+    {
         //printf("\n Error: is no non-optimized version \n");
         im2col_cpu(data_im, channels, height, width, ksize, stride, pad, data_col);
     }
@@ -1226,9 +1491,9 @@ void im2col_cpu_custom(float* data_im,
 
 //From Berkeley Vision's Caffe!
 //https://github.com/BVLC/caffe/blob/master/LICENSE
-void im2col_cpu_custom_align(float* data_im,
-    int channels, int height, int width,
-    int ksize, int stride, int pad, float* data_col, int bit_align)
+void im2col_cpu_custom_align(float *data_im,
+                             int channels, int height, int width,
+                             int ksize, int stride, int pad, float *data_col, int bit_align)
 {
     int c;
     const int height_col = (height + 2 * pad - ksize) / stride + 1;
@@ -1241,35 +1506,43 @@ void im2col_cpu_custom_align(float* data_im,
         int new_ldb = bit_align;
 
         #pragma omp parallel for
-        for (c = 0; c < channels_col; ++c) {
+
+        for (c = 0; c < channels_col; ++c)
+        {
             int h, w;
             int w_offset = c % ksize;
             int h_offset = (c / ksize) % ksize;
             int c_im = c / ksize / ksize;
-            for (h = pad; h < height_col - pad; ++h) {
-                for (w = pad; w < width_col - pad - 8; w += 8) {
+
+            for (h = pad; h < height_col - pad; ++h)
+            {
+                for (w = pad; w < width_col - pad - 8; w += 8)
+                {
                     int im_row = h_offset + h - pad;
                     int im_col = w_offset + w - pad;
                     //int col_index = (c * height_col + h) * width_col + w;
                     int col_index = c * new_ldb + h * width_col + w;
 
                     //data_col[col_index] = data_im[im_col + width*(im_row + height*c_im)];
-                    __m256 src256 = _mm256_loadu_ps((float *)(&data_im[im_col + width*(im_row + height*c_im)]));
+                    __m256 src256 = _mm256_loadu_ps((float *)(&data_im[im_col + width * (im_row + height * c_im)]));
                     _mm256_storeu_ps(&data_col[col_index], src256);
                 }
 
-                for (; w < width_col - pad; ++w) {
+                for (; w < width_col - pad; ++w)
+                {
                     int im_row = h_offset + h - pad;
                     int im_col = w_offset + w - pad;
                     //int col_index = (c * height_col + h) * width_col + w;
                     int col_index = c * new_ldb + h * width_col + w;
-                    data_col[col_index] = data_im[im_col + width*(im_row + height*c_im)];
+                    data_col[col_index] = data_im[im_col + width * (im_row + height * c_im)];
                 }
             }
 
             {
                 w = 0;
-                for (h = 0; h < height_col; ++h) {
+
+                for (h = 0; h < height_col; ++h)
+                {
                     int im_row = h_offset + h;
                     int im_col = w_offset + w;
                     //int col_index = (c * height_col + h) * width_col + w;
@@ -1280,7 +1553,9 @@ void im2col_cpu_custom_align(float* data_im,
 
             {
                 w = width_col - 1;
-                for (h = 0; h < height_col; ++h) {
+
+                for (h = 0; h < height_col; ++h)
+                {
                     int im_row = h_offset + h;
                     int im_col = w_offset + w;
                     //int col_index = (c * height_col + h) * width_col + w;
@@ -1291,7 +1566,9 @@ void im2col_cpu_custom_align(float* data_im,
 
             {
                 h = 0;
-                for (w = 0; w < width_col; ++w) {
+
+                for (w = 0; w < width_col; ++w)
+                {
                     int im_row = h_offset + h;
                     int im_col = w_offset + w;
                     //int col_index = (c * height_col + h) * width_col + w;
@@ -1302,7 +1579,9 @@ void im2col_cpu_custom_align(float* data_im,
 
             {
                 h = height_col - 1;
-                for (w = 0; w < width_col; ++w) {
+
+                for (w = 0; w < width_col; ++w)
+                {
                     int im_row = h_offset + h;
                     int im_col = w_offset + w;
                     //int col_index = (c * height_col + h) * width_col + w;
@@ -1313,7 +1592,8 @@ void im2col_cpu_custom_align(float* data_im,
         }
 
     }
-    else {
+    else
+    {
         printf("\n Error: is no non-optimized version \n");
         //im2col_cpu(data_im, channels, height, width, ksize, stride, pad, data_col); // must be aligned for transpose after float_to_bin
         // float_to_bit(b, t_input, src_size);
@@ -1324,9 +1604,9 @@ void im2col_cpu_custom_align(float* data_im,
 
 //From Berkeley Vision's Caffe!
 //https://github.com/BVLC/caffe/blob/master/LICENSE
-void im2col_cpu_custom_bin(float* data_im,
-    int channels, int height, int width,
-    int ksize, int stride, int pad, float* data_col, int bit_align)
+void im2col_cpu_custom_bin(float *data_im,
+                           int channels, int height, int width,
+                           int ksize, int stride, int pad, float *data_col, int bit_align)
 {
     int c;
     const int height_col = (height + 2 * pad - ksize) / stride + 1;
@@ -1342,13 +1622,18 @@ void im2col_cpu_custom_bin(float* data_im,
         int new_ldb = bit_align;
 
         #pragma omp parallel for
-        for (c = 0; c < channels_col; ++c) {
+
+        for (c = 0; c < channels_col; ++c)
+        {
             int h, w;
             int w_offset = c % ksize;
             int h_offset = (c / ksize) % ksize;
             int c_im = c / ksize / ksize;
-            for (h = pad; h < height_col - pad; ++h) {
-                for (w = pad; w < width_col - pad - 8; w += 8) {
+
+            for (h = pad; h < height_col - pad; ++h)
+            {
+                for (w = pad; w < width_col - pad - 8; w += 8)
+                {
                     int im_row = h_offset + h - pad;
                     int im_col = w_offset + w - pad;
                     //int col_index = (c * height_col + h) * width_col + w;
@@ -1359,29 +1644,36 @@ void im2col_cpu_custom_bin(float* data_im,
                     //uint16_t mask = _mm256_movemask_ps(_mm256_castsi256_ps(result256)); // (val >= 0) ? 0 : 1
                     //mask = ~mask;   // inverse mask,  (val >= 0) ? 1 : 0
 
-                    __m256 src256 = _mm256_loadu_ps((float *)(&data_im[im_col + width*(im_row + height*c_im)]));
+                    __m256 src256 = _mm256_loadu_ps((float *)(&data_im[im_col + width * (im_row + height * c_im)]));
                     __m256 result256 = _mm256_cmp_ps(src256, float_zero256, _CMP_GT_OS);
                     uint16_t mask = _mm256_movemask_ps(result256); // (val > 0) ? 0 : 1
 
-                    uint16_t *dst_ptr = &((unsigned char*)data_col)[col_index / 8];
+                    uint16_t *dst_ptr = &((unsigned char *)data_col)[col_index / 8];
                     *dst_ptr |= (mask << (col_index % 8));
                 }
 
-                for (; w < width_col - pad; ++w) {
+                for (; w < width_col - pad; ++w)
+                {
                     int im_row = h_offset + h - pad;
                     int im_col = w_offset + w - pad;
                     //int col_index = (c * height_col + h) * width_col + w;
                     int col_index = c * new_ldb + h * width_col + w;
 
                     //data_col[col_index] = data_im[im_col + width*(im_row + height*c_im)];
-                    float val = data_im[im_col + width*(im_row + height*c_im)];
-                    if(val > 0) set_bit(data_col, col_index);
+                    float val = data_im[im_col + width * (im_row + height * c_im)];
+
+                    if (val > 0)
+                    {
+                        set_bit(data_col, col_index);
+                    }
                 }
             }
 
             {
                 w = 0;
-                for (h = 0; h < height_col; ++h) {
+
+                for (h = 0; h < height_col; ++h)
+                {
                     int im_row = h_offset + h;
                     int im_col = w_offset + w;
                     //int col_index = (c * height_col + h) * width_col + w;
@@ -1389,13 +1681,19 @@ void im2col_cpu_custom_bin(float* data_im,
 
                     //data_col[col_index] = im2col_get_pixel(data_im, height, width, channels, im_row, im_col, c_im, pad);
                     float val = im2col_get_pixel(data_im, height, width, channels, im_row, im_col, c_im, pad);
-                    if (val > 0) set_bit(data_col, col_index);
+
+                    if (val > 0)
+                    {
+                        set_bit(data_col, col_index);
+                    }
                 }
             }
 
             {
                 w = width_col - 1;
-                for (h = 0; h < height_col; ++h) {
+
+                for (h = 0; h < height_col; ++h)
+                {
                     int im_row = h_offset + h;
                     int im_col = w_offset + w;
                     //int col_index = (c * height_col + h) * width_col + w;
@@ -1403,13 +1701,19 @@ void im2col_cpu_custom_bin(float* data_im,
 
                     //data_col[col_index] = im2col_get_pixel(data_im, height, width, channels, im_row, im_col, c_im, pad);
                     float val = im2col_get_pixel(data_im, height, width, channels, im_row, im_col, c_im, pad);
-                    if (val > 0) set_bit(data_col, col_index);
+
+                    if (val > 0)
+                    {
+                        set_bit(data_col, col_index);
+                    }
                 }
             }
 
             {
                 h = 0;
-                for (w = 0; w < width_col; ++w) {
+
+                for (w = 0; w < width_col; ++w)
+                {
                     int im_row = h_offset + h;
                     int im_col = w_offset + w;
                     //int col_index = (c * height_col + h) * width_col + w;
@@ -1417,13 +1721,19 @@ void im2col_cpu_custom_bin(float* data_im,
 
                     //data_col[col_index] = im2col_get_pixel(data_im, height, width, channels, im_row, im_col, c_im, pad);
                     float val = im2col_get_pixel(data_im, height, width, channels, im_row, im_col, c_im, pad);
-                    if (val > 0) set_bit(data_col, col_index);
+
+                    if (val > 0)
+                    {
+                        set_bit(data_col, col_index);
+                    }
                 }
             }
 
             {
                 h = height_col - 1;
-                for (w = 0; w < width_col; ++w) {
+
+                for (w = 0; w < width_col; ++w)
+                {
                     int im_row = h_offset + h;
                     int im_col = w_offset + w;
                     //int col_index = (c * height_col + h) * width_col + w;
@@ -1431,13 +1741,18 @@ void im2col_cpu_custom_bin(float* data_im,
 
                     //data_col[col_index] = im2col_get_pixel(data_im, height, width, channels, im_row, im_col, c_im, pad);
                     float val = im2col_get_pixel(data_im, height, width, channels, im_row, im_col, c_im, pad);
-                    if (val > 0) set_bit(data_col, col_index);
+
+                    if (val > 0)
+                    {
+                        set_bit(data_col, col_index);
+                    }
                 }
             }
         }
 
     }
-    else {
+    else
+    {
         printf("\n Error: is no non-optimized version \n");
         //im2col_cpu(data_im, channels, height, width, ksize, stride, pad, data_col); // must be aligned for transpose after float_to_bin
         // float_to_bit(b, t_input, src_size);
@@ -1449,15 +1764,18 @@ void im2col_cpu_custom_bin(float* data_im,
 void activate_array_cpu_custom(float *x, const int n, const ACTIVATION a)
 {
     int i = 0;
+
     if (a == LINEAR)
     {}
     else if (a == LEAKY)
     {
-        if (is_fma_avx2()) {
+        if (is_fma_avx2())
+        {
             __m256i all256_sing1 = _mm256_set_epi32(0x80000000, 0x80000000, 0x80000000, 0x80000000, 0x80000000, 0x80000000, 0x80000000, 0x80000000);
             __m256 all256_01 = _mm256_set1_ps(0.1F);
 
-            for (i = 0; i < n - 8; i += 8) {
+            for (i = 0; i < n - 8; i += 8)
+            {
                 //x[i] = (x[i]>0) ? x[i] : .1*x[i];
 
                 __m256 src256 = _mm256_loadu_ps(&x[i]);
@@ -1470,12 +1788,15 @@ void activate_array_cpu_custom(float *x, const int n, const ACTIVATION a)
             }
         }
 
-        for (; i < n; ++i) {
-            x[i] = (x[i]>0) ? x[i] : .1*x[i];
+        for (; i < n; ++i)
+        {
+            x[i] = (x[i] > 0) ? x[i] : .1 * x[i];
         }
     }
-    else {
-        for (i = 0; i < n; ++i) {
+    else
+    {
+        for (i = 0; i < n; ++i)
+        {
             x[i] = activate(x[i], a);
         }
     }
@@ -1490,7 +1811,7 @@ void float_to_bit(float *src, unsigned char *dst, size_t size)
     __m256i all256_sing1 = _mm256_set_epi32(0x80000000, 0x80000000, 0x80000000, 0x80000000, 0x80000000, 0x80000000, 0x80000000, 0x80000000);
     __m256 float_zero256 = _mm256_set1_ps(0.0);
 
-    for (i = 0; i < size; i+=8)
+    for (i = 0; i < size; i += 8)
     {
         //__m256i src256 = _mm256_loadu_si256((__m256i *)(&src[i]));
         //__m256i result256 = _mm256_and_si256(src256, all256_sing1); // check sign in 8 x 32-bit floats
@@ -1519,38 +1840,54 @@ static inline void transpose4x4_SSE(float *A, float *B, const int lda, const int
 }
 
 void transpose_block_SSE4x4(float *A, float *B, const int n, const int m,
-    const int lda, const int ldb, const int block_size)
+                            const int lda, const int ldb, const int block_size)
 {
     int i;
     #pragma omp parallel for
-    for (i = 0; i < n; i += block_size) {
+
+    for (i = 0; i < n; i += block_size)
+    {
         int j, i2, j2;
+
         //int max_i2 = (i + block_size < n) ? (i + block_size) : n;
-        if (i + block_size < n) {
+        if (i + block_size < n)
+        {
             int max_i2 = i + block_size;
-            for (j = 0; j < m; j += block_size) {
+
+            for (j = 0; j < m; j += block_size)
+            {
                 //int max_j2 = (j + block_size < m) ? (j + block_size) : m;
-                if (j + block_size < m) {
+                if (j + block_size < m)
+                {
                     int max_j2 = j + block_size;
-                    for (i2 = i; i2 < max_i2; i2 += 4) {
-                        for (j2 = j; j2 < max_j2; j2 += 4) {
-                            transpose4x4_SSE(&A[i2*lda + j2], &B[j2*ldb + i2], lda, ldb);
+
+                    for (i2 = i; i2 < max_i2; i2 += 4)
+                    {
+                        for (j2 = j; j2 < max_j2; j2 += 4)
+                        {
+                            transpose4x4_SSE(&A[i2 * lda + j2], &B[j2 * ldb + i2], lda, ldb);
                         }
                     }
                 }
-                else {
-                    for (i2 = i; i2 < max_i2; ++i2) {
-                        for (j2 = j; j2 < m; ++j2) {
-                            B[j2*ldb + i2] = A[i2*lda + j2];
+                else
+                {
+                    for (i2 = i; i2 < max_i2; ++i2)
+                    {
+                        for (j2 = j; j2 < m; ++j2)
+                        {
+                            B[j2 * ldb + i2] = A[i2 * lda + j2];
                         }
                     }
                 }
             }
         }
-        else {
-            for (i2 = i; i2 < n; ++i2) {
-                for (j2 = 0; j2 < m; ++j2) {
-                    B[j2*ldb + i2] = A[i2*lda + j2];
+        else
+        {
+            for (i2 = i; i2 < n; ++i2)
+            {
+                for (j2 = 0; j2 < m; ++j2)
+                {
+                    B[j2 * ldb + i2] = A[i2 * lda + j2];
                 }
             }
         }
@@ -1559,59 +1896,81 @@ void transpose_block_SSE4x4(float *A, float *B, const int n, const int m,
 
 
 void forward_maxpool_layer_avx(float *src, float *dst, int *indexes, int size, int w, int h, int out_w, int out_h, int c,
-    int pad, int stride, int batch)
+                               int pad, int stride, int batch)
 {
 
     const int w_offset = -pad / 2;
     const int h_offset = -pad / 2;
     int b, k;
 
-    for (b = 0; b < batch; ++b) {
+    for (b = 0; b < batch; ++b)
+    {
         #pragma omp parallel for
-        for (k = 0; k < c; ++k) {
+
+        for (k = 0; k < c; ++k)
+        {
             int i, j, m, n;
-            for (i = 0; i < out_h; ++i) {
+
+            for (i = 0; i < out_h; ++i)
+            {
                 //for (j = 0; j < out_w; ++j) {
                 j = 0;
 
-                if(stride == 1 && is_avx() == 1) {
-                    for (j = 0; j < out_w - 8 - (size - 1); j += 8) {
-                        int out_index = j + out_w*(i + out_h*(k + c*b));
+                if (stride == 1 && is_avx() == 1)
+                {
+                    for (j = 0; j < out_w - 8 - (size - 1); j += 8)
+                    {
+                        int out_index = j + out_w * (i + out_h * (k + c * b));
                         __m256 max256 = _mm256_set1_ps(-FLT_MAX);
-                        for (n = 0; n < size; ++n) {
-                            for (m = 0; m < size; ++m) {
-                                int cur_h = h_offset + i*stride + n;
-                                int cur_w = w_offset + j*stride + m;
-                                int index = cur_w + w*(cur_h + h*(k + b*c));
+
+                        for (n = 0; n < size; ++n)
+                        {
+                            for (m = 0; m < size; ++m)
+                            {
+                                int cur_h = h_offset + i * stride + n;
+                                int cur_w = w_offset + j * stride + m;
+                                int index = cur_w + w * (cur_h + h * (k + b * c));
                                 int valid = (cur_h >= 0 && cur_h < h &&
-                                    cur_w >= 0 && cur_w < w);
-                                if (!valid) continue;
+                                             cur_w >= 0 && cur_w < w);
+
+                                if (!valid)
+                                {
+                                    continue;
+                                }
 
                                 __m256 src256 = _mm256_loadu_ps(&src[index]);
                                 max256 = _mm256_max_ps(src256, max256);
                             }
                         }
+
                         _mm256_storeu_ps(&dst[out_index], max256);
 
                     }
                 }
-                else if (size == 2 && stride == 2 && is_avx() == 1) {
-                    for (j = 0; j < out_w - 4; j += 4) {
-                        int out_index = j + out_w*(i + out_h*(k + c*b));
+                else if (size == 2 && stride == 2 && is_avx() == 1)
+                {
+                    for (j = 0; j < out_w - 4; j += 4)
+                    {
+                        int out_index = j + out_w * (i + out_h * (k + c * b));
                         float max = -FLT_MAX;
                         int max_i = -1;
                         __m128 max128 = _mm_set1_ps(-FLT_MAX);
 
-                        for (n = 0; n < size; ++n) {
+                        for (n = 0; n < size; ++n)
+                        {
                             //for (m = 0; m < size; ++m)
                             m = 0;
                             {
-                                int cur_h = h_offset + i*stride + n;
-                                int cur_w = w_offset + j*stride + m;
-                                int index = cur_w + w*(cur_h + h*(k + b*c));
+                                int cur_h = h_offset + i * stride + n;
+                                int cur_w = w_offset + j * stride + m;
+                                int index = cur_w + w * (cur_h + h * (k + b * c));
                                 int valid = (cur_h >= 0 && cur_h < h &&
-                                    cur_w >= 0 && cur_w < w);
-                                if (!valid) continue;
+                                             cur_w >= 0 && cur_w < w);
+
+                                if (!valid)
+                                {
+                                    continue;
+                                }
 
                                 __m256 src256 = _mm256_loadu_ps(&src[index]);
                                 __m256 src256_2 = _mm256_permute_ps(src256, (1 << 0) | (3 << 4));
@@ -1624,26 +1983,32 @@ void forward_maxpool_layer_avx(float *src, float *dst, int *indexes, int size, i
                                 max128 = _mm_max_ps(src128, max128);
                             }
                         }
+
                         _mm_storeu_ps(&dst[out_index], max128);
                     }
                 }
 
-                for (; j < out_w; ++j) {
-                    int out_index = j + out_w*(i + out_h*(k + c*b));
+                for (; j < out_w; ++j)
+                {
+                    int out_index = j + out_w * (i + out_h * (k + c * b));
                     float max = -FLT_MAX;
                     int max_i = -1;
-                    for (n = 0; n < size; ++n) {
-                        for (m = 0; m < size; ++m) {
-                            int cur_h = h_offset + i*stride + n;
-                            int cur_w = w_offset + j*stride + m;
-                            int index = cur_w + w*(cur_h + h*(k + b*c));
+
+                    for (n = 0; n < size; ++n)
+                    {
+                        for (m = 0; m < size; ++m)
+                        {
+                            int cur_h = h_offset + i * stride + n;
+                            int cur_w = w_offset + j * stride + m;
+                            int index = cur_w + w * (cur_h + h * (k + b * c));
                             int valid = (cur_h >= 0 && cur_h < h &&
-                                cur_w >= 0 && cur_w < w);
+                                         cur_w >= 0 && cur_w < w);
                             float val = (valid != 0) ? src[index] : -FLT_MAX;
                             max_i = (val > max) ? index : max_i;
                             max = (val > max) ? val : max;
                         }
                     }
+
                     dst[out_index] = max;
                     indexes[out_index] = max_i;
                 }
@@ -1660,11 +2025,16 @@ void gemm_nn(int M, int N, int K, float ALPHA,
              float *C, int ldc)
 {
     int i, j, k;
-    for (i = 0; i < M; ++i) {
-        for (k = 0; k < K; ++k) {
-            register float A_PART = ALPHA*A[i*lda + k];
-            for (j = 0; j < N; ++j) {
-                C[i*ldc + j] += A_PART*B[k*ldb + j];
+
+    for (i = 0; i < M; ++i)
+    {
+        for (k = 0; k < K; ++k)
+        {
+            register float A_PART = ALPHA * A[i * lda + k];
+
+            for (j = 0; j < N; ++j)
+            {
+                C[i * ldc + j] += A_PART * B[k * ldb + j];
             }
         }
     }
@@ -1680,37 +2050,48 @@ void convolution_2d(int w, int h, int ksize, int n, int c, int pad, int stride,
 
     int fil;
     // filter index
-#pragma omp parallel for      // "omp parallel for" - automatic parallelization of loop by using OpenMP
-    for (fil = 0; fil < n; ++fil) {
+    #pragma omp parallel for      // "omp parallel for" - automatic parallelization of loop by using OpenMP
+
+    for (fil = 0; fil < n; ++fil)
+    {
         int chan, y, x, f_y, f_x;
+
         // channel index
         for (chan = 0; chan < c; ++chan)
+
             // input - y
             for (y = 0; y < h; ++y)
+
                 // input - x
                 for (x = 0; x < w; ++x)
                 {
-                    int const output_index = fil*w*h + y*w + x;
-                    int const weights_pre_index = fil*c*ksize*ksize + chan*ksize*ksize;
-                    int const input_pre_index = chan*w*h;
+                    int const output_index = fil * w * h + y * w + x;
+                    int const weights_pre_index = fil * c * ksize * ksize + chan * ksize * ksize;
+                    int const input_pre_index = chan * w * h;
                     float sum = 0;
 
                     // filter - y
                     for (f_y = 0; f_y < ksize; ++f_y)
                     {
                         int input_y = y + f_y - pad;
+
                         // filter - x
                         for (f_x = 0; f_x < ksize; ++f_x)
                         {
                             int input_x = x + f_x - pad;
-                            if (input_y < 0 || input_x < 0 || input_y >= h || input_x >= w) continue;
 
-                            int input_index = input_pre_index + input_y*w + input_x;
-                            int weights_index = weights_pre_index + f_y*ksize + f_x;
+                            if (input_y < 0 || input_x < 0 || input_y >= h || input_x >= w)
+                            {
+                                continue;
+                            }
+
+                            int input_index = input_pre_index + input_y * w + input_x;
+                            int weights_index = weights_pre_index + f_y * ksize + f_x;
 
                             sum += input[input_index] * weights[weights_index];
                         }
                     }
+
                     // l.output[filters][width][height] +=
                     //        state.input[channels][width][height] *
                     //        l.weights[filters][channels][filter_width][filter_height];
@@ -1719,9 +2100,10 @@ void convolution_2d(int w, int h, int ksize, int n, int c, int pad, int stride,
     }
 }
 
-static inline int popcnt_64(uint64_t val64) {
+static inline int popcnt_64(uint64_t val64)
+{
 #ifdef WIN32  // Windows
-    #ifdef _WIN64 // Windows 64-bit
+#ifdef _WIN64 // Windows 64-bit
     int tmp_count = __popcnt64(val64);
 #else         // Windows 32-bit
     int tmp_count = __popcnt(val64);
@@ -1745,44 +2127,52 @@ void gemm_nn_custom_bin_mean_transposed(int M, int N, int K, float ALPHA_UNUSED,
 {
     int i;
 
-#pragma omp parallel for
-    for (i = 0; i < M; ++i) {   // l.n - filters [16 - 55 - 1024]
+    #pragma omp parallel for
+
+    for (i = 0; i < M; ++i)     // l.n - filters [16 - 55 - 1024]
+    {
         int j, k;
         float mean_val = mean_arr[i];
 
-        for (j = 0; j < N; ++j) { // out_h*out_w - one channel output size [169 - 173056]
+        for (j = 0; j < N; ++j)   // out_h*out_w - one channel output size [169 - 173056]
+        {
             int count = 0;
 
-            for (k = 0; k < K; k += 64) {   // l.size*l.size*l.c - one filter size [27 - 9216]
-                uint64_t a_bit64 = *((uint64_t *)(A + (i*lda + k) / 8));
-                uint64_t b_bit64 = *((uint64_t *)(B + (j*ldb + k) / 8));
+            for (k = 0; k < K; k += 64)     // l.size*l.size*l.c - one filter size [27 - 9216]
+            {
+                uint64_t a_bit64 = *((uint64_t *)(A + (i * lda + k) / 8));
+                uint64_t b_bit64 = *((uint64_t *)(B + (j * ldb + k) / 8));
                 uint64_t c_bit64 = xnor_int64(a_bit64, b_bit64);
 
                 int tmp_count = popcnt_64(c_bit64);
 
-                if (K - k < 64)  tmp_count = tmp_count - (64 - (K - k));    // remove extra bits
+                if (K - k < 64)
+                {
+                    tmp_count = tmp_count - (64 - (K - k));    // remove extra bits
+                }
+
                 count += tmp_count;
                 //binary_int64_printf(c_bit64);
                 //printf(", count = %d \n\n", tmp_count);
             }
 
-            C[i*ldc + j] = (2 * count - K) * mean_val;
+            C[i * ldc + j] = (2 * count - K) * mean_val;
         }
     }
 }
 
-void im2col_cpu_custom_transpose(float* data_im,
+void im2col_cpu_custom_transpose(float *data_im,
                                  int channels, int height, int width,
-                                 int ksize, int stride, int pad, float* data_col, int ldb_align)
+                                 int ksize, int stride, int pad, float *data_col, int ldb_align)
 {
     printf("\n im2col_cpu_custom_transpose() isn't implemented without AVX \n");
 }
 
 //From Berkeley Vision's Caffe!
 //https://github.com/BVLC/caffe/blob/master/LICENSE
-void im2col_cpu_custom(float* data_im,
+void im2col_cpu_custom(float *data_im,
                        int channels, int height, int width,
-                       int ksize, int stride, int pad, float* data_col)
+                       int ksize, int stride, int pad, float *data_col)
 {
     im2col_cpu(data_im, channels, height, width, ksize, stride, pad, data_col);
     return;
@@ -1795,33 +2185,41 @@ void im2col_cpu_custom(float* data_im,
     // optimized version
     if (height_col == height && width_col == width && stride == 1 && pad == 1)
     {
-#pragma omp parallel for
-        for (c = 0; c < channels_col; ++c) {
+        #pragma omp parallel for
+
+        for (c = 0; c < channels_col; ++c)
+        {
             int h, w;
             int w_offset = c % ksize;
             int h_offset = (c / ksize) % ksize;
             int c_im = c / ksize / ksize;
-            for (h = pad; h < height_col - pad; ++h) {
-                for (w = pad; w < width_col - pad; ++w) {
+
+            for (h = pad; h < height_col - pad; ++h)
+            {
+                for (w = pad; w < width_col - pad; ++w)
+                {
                     int im_row = h_offset + h - pad;
                     int im_col = w_offset + w - pad;
                     int col_index = (c * height_col + h) * width_col + w;
 
-                    data_col[col_index] = data_im[im_col + width*(im_row + height*c_im)];
+                    data_col[col_index] = data_im[im_col + width * (im_row + height * c_im)];
                 }
 
-                for (; w < width_col - pad; ++w) {
+                for (; w < width_col - pad; ++w)
+                {
                     int im_row = h_offset + h - pad;
                     int im_col = w_offset + w - pad;
                     int col_index = (c * height_col + h) * width_col + w;
 
-                    data_col[col_index] = data_im[im_col + width*(im_row + height*c_im)];
+                    data_col[col_index] = data_im[im_col + width * (im_row + height * c_im)];
                 }
             }
 
             {
                 w = 0;
-                for (h = 0; h < height_col; ++h) {
+
+                for (h = 0; h < height_col; ++h)
+                {
                     int im_row = h_offset + h;
                     int im_col = w_offset + w;
                     int col_index = (c * height_col + h) * width_col + w;
@@ -1832,7 +2230,9 @@ void im2col_cpu_custom(float* data_im,
 
             {
                 w = width_col - 1;
-                for (h = 0; h < height_col; ++h) {
+
+                for (h = 0; h < height_col; ++h)
+                {
                     int im_row = h_offset + h;
                     int im_col = w_offset + w;
                     int col_index = (c * height_col + h) * width_col + w;
@@ -1843,7 +2243,9 @@ void im2col_cpu_custom(float* data_im,
 
             {
                 h = 0;
-                for (w = 0; w < width_col; ++w) {
+
+                for (w = 0; w < width_col; ++w)
+                {
                     int im_row = h_offset + h;
                     int im_col = w_offset + w;
                     int col_index = (c * height_col + h) * width_col + w;
@@ -1854,7 +2256,9 @@ void im2col_cpu_custom(float* data_im,
 
             {
                 h = height_col - 1;
-                for (w = 0; w < width_col; ++w) {
+
+                for (w = 0; w < width_col; ++w)
+                {
                     int im_row = h_offset + h;
                     int im_col = w_offset + w;
                     int col_index = (c * height_col + h) * width_col + w;
@@ -1865,7 +2269,8 @@ void im2col_cpu_custom(float* data_im,
         }
 
     }
-    else {
+    else
+    {
         //printf("\n Error: is no non-optimized version \n");
         im2col_cpu(data_im, channels, height, width, ksize, stride, pad, data_col);
     }
@@ -1874,9 +2279,9 @@ void im2col_cpu_custom(float* data_im,
 
 //From Berkeley Vision's Caffe!
 //https://github.com/BVLC/caffe/blob/master/LICENSE
-void im2col_cpu_custom_bin(float* data_im,
+void im2col_cpu_custom_bin(float *data_im,
                            int channels, int height, int width,
-                           int ksize, int stride, int pad, float* data_col, int bit_align)
+                           int ksize, int stride, int pad, float *data_col, int bit_align)
 {
     int c;
     const int height_col = (height + 2 * pad - ksize) / stride + 1;
@@ -1888,38 +2293,54 @@ void im2col_cpu_custom_bin(float* data_im,
     {
         int new_ldb = bit_align;
 
-#pragma omp parallel for
-        for (c = 0; c < channels_col; ++c) {
+        #pragma omp parallel for
+
+        for (c = 0; c < channels_col; ++c)
+        {
             int h, w;
             int w_offset = c % ksize;
             int h_offset = (c / ksize) % ksize;
             int c_im = c / ksize / ksize;
-            for (h = pad; h < height_col - pad; ++h) {
-                for (w = pad; w < width_col - pad - 8; w += 1) {
+
+            for (h = pad; h < height_col - pad; ++h)
+            {
+                for (w = pad; w < width_col - pad - 8; w += 1)
+                {
                     int im_row = h_offset + h - pad;
                     int im_col = w_offset + w - pad;
                     //int col_index = (c * height_col + h) * width_col + w;
                     int col_index = c * new_ldb + h * width_col + w;
 
-                    float val = data_im[im_col + width*(im_row + height*c_im)];
-                    if (val > 0) set_bit(data_col, col_index);
+                    float val = data_im[im_col + width * (im_row + height * c_im)];
+
+                    if (val > 0)
+                    {
+                        set_bit(data_col, col_index);
+                    }
                 }
 
-                for (; w < width_col - pad; ++w) {
+                for (; w < width_col - pad; ++w)
+                {
                     int im_row = h_offset + h - pad;
                     int im_col = w_offset + w - pad;
                     //int col_index = (c * height_col + h) * width_col + w;
                     int col_index = c * new_ldb + h * width_col + w;
 
                     //data_col[col_index] = data_im[im_col + width*(im_row + height*c_im)];
-                    float val = data_im[im_col + width*(im_row + height*c_im)];
-                    if (val > 0) set_bit(data_col, col_index);
+                    float val = data_im[im_col + width * (im_row + height * c_im)];
+
+                    if (val > 0)
+                    {
+                        set_bit(data_col, col_index);
+                    }
                 }
             }
 
             {
                 w = 0;
-                for (h = 0; h < height_col; ++h) {
+
+                for (h = 0; h < height_col; ++h)
+                {
                     int im_row = h_offset + h;
                     int im_col = w_offset + w;
                     //int col_index = (c * height_col + h) * width_col + w;
@@ -1927,13 +2348,19 @@ void im2col_cpu_custom_bin(float* data_im,
 
                     //data_col[col_index] = im2col_get_pixel(data_im, height, width, channels, im_row, im_col, c_im, pad);
                     float val = im2col_get_pixel(data_im, height, width, channels, im_row, im_col, c_im, pad);
-                    if (val > 0) set_bit(data_col, col_index);
+
+                    if (val > 0)
+                    {
+                        set_bit(data_col, col_index);
+                    }
                 }
             }
 
             {
                 w = width_col - 1;
-                for (h = 0; h < height_col; ++h) {
+
+                for (h = 0; h < height_col; ++h)
+                {
                     int im_row = h_offset + h;
                     int im_col = w_offset + w;
                     //int col_index = (c * height_col + h) * width_col + w;
@@ -1941,13 +2368,19 @@ void im2col_cpu_custom_bin(float* data_im,
 
                     //data_col[col_index] = im2col_get_pixel(data_im, height, width, channels, im_row, im_col, c_im, pad);
                     float val = im2col_get_pixel(data_im, height, width, channels, im_row, im_col, c_im, pad);
-                    if (val > 0) set_bit(data_col, col_index);
+
+                    if (val > 0)
+                    {
+                        set_bit(data_col, col_index);
+                    }
                 }
             }
 
             {
                 h = 0;
-                for (w = 0; w < width_col; ++w) {
+
+                for (w = 0; w < width_col; ++w)
+                {
                     int im_row = h_offset + h;
                     int im_col = w_offset + w;
                     //int col_index = (c * height_col + h) * width_col + w;
@@ -1955,13 +2388,19 @@ void im2col_cpu_custom_bin(float* data_im,
 
                     //data_col[col_index] = im2col_get_pixel(data_im, height, width, channels, im_row, im_col, c_im, pad);
                     float val = im2col_get_pixel(data_im, height, width, channels, im_row, im_col, c_im, pad);
-                    if (val > 0) set_bit(data_col, col_index);
+
+                    if (val > 0)
+                    {
+                        set_bit(data_col, col_index);
+                    }
                 }
             }
 
             {
                 h = height_col - 1;
-                for (w = 0; w < width_col; ++w) {
+
+                for (w = 0; w < width_col; ++w)
+                {
                     int im_row = h_offset + h;
                     int im_col = w_offset + w;
                     //int col_index = (c * height_col + h) * width_col + w;
@@ -1969,13 +2408,18 @@ void im2col_cpu_custom_bin(float* data_im,
 
                     //data_col[col_index] = im2col_get_pixel(data_im, height, width, channels, im_row, im_col, c_im, pad);
                     float val = im2col_get_pixel(data_im, height, width, channels, im_row, im_col, c_im, pad);
-                    if (val > 0) set_bit(data_col, col_index);
+
+                    if (val > 0)
+                    {
+                        set_bit(data_col, col_index);
+                    }
                 }
             }
         }
 
     }
-    else {
+    else
+    {
         printf("\n Error: is no non-optimized version \n");
         //im2col_cpu(data_im, channels, height, width, ksize, stride, pad, data_col); // must be aligned for transpose after float_to_bin
         // float_to_bit(b, t_input, src_size);
@@ -1987,17 +2431,21 @@ void im2col_cpu_custom_bin(float* data_im,
 void activate_array_cpu_custom(float *x, const int n, const ACTIVATION a)
 {
     int i;
+
     if (a == LINEAR)
     {
     }
     else if (a == LEAKY)
     {
-        for (i = 0; i < n; ++i) {
-            x[i] = (x[i]>0) ? x[i] : .1*x[i];
+        for (i = 0; i < n; ++i)
+        {
+            x[i] = (x[i] > 0) ? x[i] : .1 * x[i];
         }
     }
-    else {
-        for (i = 0; i < n; ++i) {
+    else
+    {
+        for (i = 0; i < n; ++i)
+        {
             x[i] = activate(x[i], a);
         }
     }
@@ -2010,15 +2458,21 @@ void float_to_bit(float *src, unsigned char *dst, size_t size)
 
     size_t i;
     char *byte_arr = calloc(size, sizeof(char));
-    for (i = 0; i < size; ++i) {
-        if (src[i] > 0) byte_arr[i] = 1;
+
+    for (i = 0; i < size; ++i)
+    {
+        if (src[i] > 0)
+        {
+            byte_arr[i] = 1;
+        }
     }
 
     //for (i = 0; i < size; ++i) {
     //    dst[i / 8] |= byte_arr[i] << (i % 8);
     //}
 
-    for (i = 0; i < size; i += 8) {
+    for (i = 0; i < size; i += 8)
+    {
         char dst_tmp = 0;
         dst_tmp |= byte_arr[i + 0] << 0;
         dst_tmp |= byte_arr[i + 1] << 1;
@@ -2030,17 +2484,22 @@ void float_to_bit(float *src, unsigned char *dst, size_t size)
         dst_tmp |= byte_arr[i + 7] << 7;
         dst[i / 8] = dst_tmp;
     }
+
     free(byte_arr);
 }
 
 static inline void transpose_scalar_block(float *A, float *B, const int lda, const int ldb, const int block_size)
 {
     int i;
+
     //#pragma omp parallel for
-    for (i = 0; i<block_size; i++) {
+    for (i = 0; i < block_size; i++)
+    {
         int j;
-        for (j = 0; j<block_size; j++) {
-            B[j*ldb + i] = A[i*lda + j];
+
+        for (j = 0; j < block_size; j++)
+        {
+            B[j * ldb + i] = A[i * lda + j];
         }
     }
 }
@@ -2049,15 +2508,22 @@ void transpose_block_SSE4x4(float *A, float *B, const int n, const int m,
                             const int lda, const int ldb, const int block_size)
 {
     int i;
-#pragma omp parallel for
-    for (i = 0; i < n; i += block_size) {
+    #pragma omp parallel for
+
+    for (i = 0; i < n; i += block_size)
+    {
         int j, i2, j2;
-        for (j = 0; j < m; j += block_size) {
+
+        for (j = 0; j < m; j += block_size)
+        {
             int max_i2 = i + block_size < n ? i + block_size : n;
             int max_j2 = j + block_size < m ? j + block_size : m;
-            for (i2 = i; i2 < max_i2; ++i2) {
-                for (j2 = j; j2 < max_j2; ++j2) {
-                    B[j2*ldb + i2] = A[i2*lda + j2];
+
+            for (i2 = i; i2 < max_i2; ++i2)
+            {
+                for (j2 = j; j2 < max_j2; ++j2)
+                {
+                    B[j2 * ldb + i2] = A[i2 * lda + j2];
                 }
             }
         }
@@ -2071,20 +2537,29 @@ void forward_maxpool_layer_avx(float *src, float *dst, int *indexes, int size, i
     const int w_offset = -pad / 2;
     const int h_offset = -pad / 2;
 
-    for (b = 0; b < batch; ++b) {
-#pragma omp parallel for
-        for (k = 0; k < c; ++k) {
+    for (b = 0; b < batch; ++b)
+    {
+        #pragma omp parallel for
+
+        for (k = 0; k < c; ++k)
+        {
             int i, j, m, n;
-            for (i = 0; i < out_h; ++i) {
-                for (j = 0; j < out_w; ++j) {
-                    int out_index = j + out_w*(i + out_h*(k + c*b));
+
+            for (i = 0; i < out_h; ++i)
+            {
+                for (j = 0; j < out_w; ++j)
+                {
+                    int out_index = j + out_w * (i + out_h * (k + c * b));
                     float max = -FLT_MAX;
                     int max_i = -1;
-                    for (n = 0; n < size; ++n) {
-                        for (m = 0; m < size; ++m) {
-                            int cur_h = h_offset + i*stride + n;
-                            int cur_w = w_offset + j*stride + m;
-                            int index = cur_w + w*(cur_h + h*(k + b*c));
+
+                    for (n = 0; n < size; ++n)
+                    {
+                        for (m = 0; m < size; ++m)
+                        {
+                            int cur_h = h_offset + i * stride + n;
+                            int cur_w = w_offset + j * stride + m;
+                            int index = cur_w + w * (cur_h + h * (k + b * c));
                             int valid = (cur_h >= 0 && cur_h < h &&
                                          cur_w >= 0 && cur_w < w);
                             float val = (valid != 0) ? src[index] : -FLT_MAX;
@@ -2092,6 +2567,7 @@ void forward_maxpool_layer_avx(float *src, float *dst, int *indexes, int size, i
                             max = (val > max) ? val : max;
                         }
                     }
+
                     dst[out_index] = max;
                     indexes[out_index] = max_i;
                 }
@@ -2107,14 +2583,20 @@ void gemm_nt(int M, int N, int K, float ALPHA,
              float *B, int ldb,
              float *C, int ldc)
 {
-    int i,j,k;
-    for(i = 0; i < M; ++i){
-        for(j = 0; j < N; ++j){
+    int i, j, k;
+
+    for (i = 0; i < M; ++i)
+    {
+        for (j = 0; j < N; ++j)
+        {
             register float sum = 0;
-            for(k = 0; k < K; ++k){
-                sum += ALPHA*A[i*lda+k]*B[j*ldb + k];
+
+            for (k = 0; k < K; ++k)
+            {
+                sum += ALPHA * A[i * lda + k] * B[j * ldb + k];
             }
-            C[i*ldc+j] += sum;
+
+            C[i * ldc + j] += sum;
         }
     }
 }
@@ -2124,12 +2606,17 @@ void gemm_tn(int M, int N, int K, float ALPHA,
              float *B, int ldb,
              float *C, int ldc)
 {
-    int i,j,k;
-    for(i = 0; i < M; ++i){
-        for(k = 0; k < K; ++k){
-            register float A_PART = ALPHA*A[k*lda+i];
-            for(j = 0; j < N; ++j){
-                C[i*ldc+j] += A_PART*B[k*ldb+j];
+    int i, j, k;
+
+    for (i = 0; i < M; ++i)
+    {
+        for (k = 0; k < K; ++k)
+        {
+            register float A_PART = ALPHA * A[k * lda + i];
+
+            for (j = 0; j < N; ++j)
+            {
+                C[i * ldc + j] += A_PART * B[k * ldb + j];
             }
         }
     }
@@ -2140,14 +2627,20 @@ void gemm_tt(int M, int N, int K, float ALPHA,
              float *B, int ldb,
              float *C, int ldc)
 {
-    int i,j,k;
-    for(i = 0; i < M; ++i){
-        for(j = 0; j < N; ++j){
+    int i, j, k;
+
+    for (i = 0; i < M; ++i)
+    {
+        for (j = 0; j < N; ++j)
+        {
             register float sum = 0;
-            for(k = 0; k < K; ++k){
-                sum += ALPHA*A[i+k*lda]*B[k+j*ldb];
+
+            for (k = 0; k < K; ++k)
+            {
+                sum += ALPHA * A[i + k * lda] * B[k + j * ldb];
             }
-            C[i*ldc+j] += sum;
+
+            C[i * ldc + j] += sum;
         }
     }
 }
@@ -2160,26 +2653,40 @@ void gemm_cpu(int TA, int TB, int M, int N, int K, float ALPHA,
               float *C, int ldc)
 {
     //printf("cpu: %d %d %d %d %d %f %d %d %f %d\n",TA, TB, M, N, K, ALPHA, lda, ldb, BETA, ldc);
-    if (BETA != 1){
+    if (BETA != 1)
+    {
         int i, j;
-        for(i = 0; i < M; ++i){
-            for(j = 0; j < N; ++j){
-                C[i*ldc + j] *= BETA;
+
+        for (i = 0; i < M; ++i)
+        {
+            for (j = 0; j < N; ++j)
+            {
+                C[i * ldc + j] *= BETA;
             }
         }
     }
 
     int t;
-#pragma omp parallel for
-    for (t = 0; t < M; ++t) {
+    #pragma omp parallel for
+
+    for (t = 0; t < M; ++t)
+    {
         if (!TA && !TB)
-            gemm_nn(1, N, K, ALPHA, A + t*lda, lda, B, ldb, C + t*ldc, ldc);
+        {
+            gemm_nn(1, N, K, ALPHA, A + t * lda, lda, B, ldb, C + t * ldc, ldc);
+        }
         else if (TA && !TB)
-            gemm_tn(1, N, K, ALPHA, A + t, lda, B, ldb, C + t*ldc, ldc);
+        {
+            gemm_tn(1, N, K, ALPHA, A + t, lda, B, ldb, C + t * ldc, ldc);
+        }
         else if (!TA && TB)
-            gemm_nt(1, N, K, ALPHA, A + t*lda, lda, B, ldb, C + t*ldc, ldc);
+        {
+            gemm_nt(1, N, K, ALPHA, A + t * lda, lda, B, ldb, C + t * ldc, ldc);
+        }
         else
-            gemm_tt(1, N, K, ALPHA, A + t, lda, B, ldb, C + t*ldc, ldc);
+        {
+            gemm_tt(1, N, K, ALPHA, A + t, lda, B, ldb, C + t * ldc, ldc);
+        }
     }
 }
 
@@ -2206,13 +2713,13 @@ void gemm_gpu(int TA, int TB, int M, int N, int K, float ALPHA,
               float BETA,
               float *C, int ldc)
 {
-    float *A_gpu = cuda_make_array(A, (TA ? lda*K:lda*M));
-    float *B_gpu = cuda_make_array(B, (TB ? ldb*N : ldb*K));
-    float *C_gpu = cuda_make_array(C, ldc*M);
+    float *A_gpu = cuda_make_array(A, (TA ? lda *K : lda * M));
+    float *B_gpu = cuda_make_array(B, (TB ? ldb *N : ldb * K));
+    float *C_gpu = cuda_make_array(C, ldc * M);
 
     gemm_ongpu(TA, TB, M, N, K, ALPHA, A_gpu, lda, B_gpu, ldb, BETA, C_gpu, ldc);
 
-    cuda_pull_array(C_gpu, C, ldc*M);
+    cuda_pull_array(C_gpu, C, ldc * M);
     cuda_free(A_gpu);
     cuda_free(B_gpu);
     cuda_free(C_gpu);
@@ -2226,22 +2733,41 @@ void gemm_gpu(int TA, int TB, int M, int N, int K, float ALPHA,
 void time_gpu_random_matrix(int TA, int TB, int m, int k, int n)
 {
     float *a;
-    if(!TA) a = random_matrix(m,k);
-    else a = random_matrix(k,m);
-    int lda = (!TA)?k:m;
-    float *b;
-    if(!TB) b = random_matrix(k,n);
-    else b = random_matrix(n,k);
-    int ldb = (!TB)?n:k;
 
-    float *c = random_matrix(m,n);
+    if (!TA)
+    {
+        a = random_matrix(m, k);
+    }
+    else
+    {
+        a = random_matrix(k, m);
+    }
+
+    int lda = (!TA) ? k : m;
+    float *b;
+
+    if (!TB)
+    {
+        b = random_matrix(k, n);
+    }
+    else
+    {
+        b = random_matrix(n, k);
+    }
+
+    int ldb = (!TB) ? n : k;
+
+    float *c = random_matrix(m, n);
     int i;
     clock_t start = clock(), end;
-    for(i = 0; i<32; ++i){
-        gemm_gpu(TA,TB,m,n,k,1,a,lda,b,ldb,1,c,n);
+
+    for (i = 0; i < 32; ++i)
+    {
+        gemm_gpu(TA, TB, m, n, k, 1, a, lda, b, ldb, 1, c, n);
     }
+
     end = clock();
-    printf("Matrix Multiplication %dx%d * %dx%d, TA=%d, TB=%d: %lf s\n",m,k,k,n, TA, TB, (float)(end-start)/CLOCKS_PER_SEC);
+    printf("Matrix Multiplication %dx%d * %dx%d, TA=%d, TB=%d: %lf s\n", m, k, k, n, TA, TB, (float)(end - start) / CLOCKS_PER_SEC);
     free(a);
     free(b);
     free(c);
@@ -2250,29 +2776,32 @@ void time_gpu_random_matrix(int TA, int TB, int m, int k, int n)
 void time_ongpu(int TA, int TB, int m, int k, int n)
 {
     int iter = 10;
-    float *a = random_matrix(m,k);
-    float *b = random_matrix(k,n);
+    float *a = random_matrix(m, k);
+    float *b = random_matrix(k, n);
 
-    int lda = (!TA)?k:m;
-    int ldb = (!TB)?n:k;
+    int lda = (!TA) ? k : m;
+    int ldb = (!TB) ? n : k;
 
-    float *c = random_matrix(m,n);
+    float *c = random_matrix(m, n);
 
-    float *a_cl = cuda_make_array(a, m*k);
-    float *b_cl = cuda_make_array(b, k*n);
-    float *c_cl = cuda_make_array(c, m*n);
+    float *a_cl = cuda_make_array(a, m * k);
+    float *b_cl = cuda_make_array(b, k * n);
+    float *c_cl = cuda_make_array(c, m * n);
 
     int i;
     clock_t start = clock(), end;
-    for(i = 0; i<iter; ++i){
-        gemm_ongpu(TA,TB,m,n,k,1,a_cl,lda,b_cl,ldb,1,c_cl,n);
+
+    for (i = 0; i < iter; ++i)
+    {
+        gemm_ongpu(TA, TB, m, n, k, 1, a_cl, lda, b_cl, ldb, 1, c_cl, n);
         cudaDeviceSynchronize();
     }
-    double flop = ((double)m)*n*(2.*k + 2.)*iter;
-    double gflop = flop/pow(10., 9);
+
+    double flop = ((double)m) * n * (2.*k + 2.) * iter;
+    double gflop = flop / pow(10., 9);
     end = clock();
-    double seconds = sec(end-start);
-    printf("Matrix Multiplication %dx%d * %dx%d, TA=%d, TB=%d: %lf s, %lf GFLOPS\n",m,k,k,n, TA, TB, seconds, gflop/seconds);
+    double seconds = sec(end - start);
+    printf("Matrix Multiplication %dx%d * %dx%d, TA=%d, TB=%d: %lf s, %lf GFLOPS\n", m, k, k, n, TA, TB, seconds, gflop / seconds);
     cuda_free(a_cl);
     cuda_free(b_cl);
     cuda_free(c_cl);
@@ -2286,33 +2815,52 @@ void test_gpu_accuracy(int TA, int TB, int m, int k, int n)
 {
     srand(0);
     float *a;
-    if(!TA) a = random_matrix(m,k);
-    else a = random_matrix(k,m);
-    int lda = (!TA)?k:m;
-    float *b;
-    if(!TB) b = random_matrix(k,n);
-    else b = random_matrix(n,k);
-    int ldb = (!TB)?n:k;
 
-    float *c = random_matrix(m,n);
-    float *c_gpu = random_matrix(m,n);
-    memset(c, 0, m*n*sizeof(float));
-    memset(c_gpu, 0, m*n*sizeof(float));
+    if (!TA)
+    {
+        a = random_matrix(m, k);
+    }
+    else
+    {
+        a = random_matrix(k, m);
+    }
+
+    int lda = (!TA) ? k : m;
+    float *b;
+
+    if (!TB)
+    {
+        b = random_matrix(k, n);
+    }
+    else
+    {
+        b = random_matrix(n, k);
+    }
+
+    int ldb = (!TB) ? n : k;
+
+    float *c = random_matrix(m, n);
+    float *c_gpu = random_matrix(m, n);
+    memset(c, 0, m * n * sizeof(float));
+    memset(c_gpu, 0, m * n * sizeof(float));
     int i;
     //pm(m,k,b);
-    gemm_gpu(TA,TB,m,n,k,1,a,lda,b,ldb,1,c_gpu,n);
+    gemm_gpu(TA, TB, m, n, k, 1, a, lda, b, ldb, 1, c_gpu, n);
     //printf("GPU\n");
     //pm(m, n, c_gpu);
 
-    gemm_cpu(TA,TB,m,n,k,1,a,lda,b,ldb,1,c,n);
+    gemm_cpu(TA, TB, m, n, k, 1, a, lda, b, ldb, 1, c, n);
     //printf("\n\nCPU\n");
     //pm(m, n, c);
     double sse = 0;
-    for(i = 0; i < m*n; ++i) {
+
+    for (i = 0; i < m * n; ++i)
+    {
         //printf("%f %f\n", c[i], c_gpu[i]);
-        sse += pow(c[i]-c_gpu[i], 2);
+        sse += pow(c[i] - c_gpu[i], 2);
     }
-    printf("Matrix Multiplication %dx%d * %dx%d, TA=%d, TB=%d: %g SSE\n",m,k,k,n, TA, TB, sse/(m*n));
+
+    printf("Matrix Multiplication %dx%d * %dx%d, TA=%d, TB=%d: %g SSE\n", m, k, k, n, TA, TB, sse / (m * n));
     free(a);
     free(b);
     free(c);
@@ -2346,14 +2894,14 @@ int test_gpu_blas()
        time_ongpu(0,0,128,4096,12544);
        time_ongpu(0,0,128,4096,4096);
      */
-    time_ongpu(0,0,64,75,12544);
-    time_ongpu(0,0,64,75,12544);
-    time_ongpu(0,0,64,75,12544);
-    time_ongpu(0,0,64,576,12544);
-    time_ongpu(0,0,256,2304,784);
-    time_ongpu(1,1,2304,256,784);
-    time_ongpu(0,0,512,4608,196);
-    time_ongpu(1,1,4608,512,196);
+    time_ongpu(0, 0, 64, 75, 12544);
+    time_ongpu(0, 0, 64, 75, 12544);
+    time_ongpu(0, 0, 64, 75, 12544);
+    time_ongpu(0, 0, 64, 576, 12544);
+    time_ongpu(0, 0, 256, 2304, 784);
+    time_ongpu(1, 1, 2304, 256, 784);
+    time_ongpu(0, 0, 512, 4608, 196);
+    time_ongpu(1, 1, 4608, 512, 196);
 
     return 0;
 }

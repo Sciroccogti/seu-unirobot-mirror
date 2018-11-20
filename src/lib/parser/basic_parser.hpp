@@ -26,21 +26,24 @@ namespace parser
             {
                 count_of_quotatuion = 0;
 
-                for(int i=0;i<line.size();i++)
+                for (int i = 0; i < line.size(); i++)
                 {
                     if (line[i] == '\'' || line[i] == '\"')
                     {
                         count_of_quotatuion++;
                     }
-                    if(i<line.size()-2)
+
+                    if (i < line.size() - 2)
                     {
-                        if(line[i] == '/' && line[i+1] == '/' && count_of_quotatuion % 2 == 0)
+                        if (line[i] == '/' && line[i + 1] == '/' && count_of_quotatuion % 2 == 0)
                         {
                             break;
                         }
                     }
+
                     json_data << line[i];
                 }
+
                 line.clear();
             }
 

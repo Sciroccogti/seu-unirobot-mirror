@@ -3,12 +3,10 @@
 #include "ui/walk_remote.hpp"
 #include "ui/camera_setter.hpp"
 #include <opencv2/opencv.hpp>
-#include "image/image_process.hpp"
 
 using namespace cv;
 using namespace std;
 using namespace robot;
-using namespace imageproc;
 
 image_debuger::image_debuger()
 {

@@ -19,7 +19,7 @@ camera_setter::camera_setter(tcp_client &client, QString netinfo, QWidget *paren
 
     int i = 0;
 
-    for (camera_ctrl_info it : ctrl_items_)
+    for (camera_para it : ctrl_items_)
     {
         slider = new CtrlSlider(it);
         connect(slider, &CtrlSlider::valueChanged, this, &camera_setter::procValueChanged);
@@ -83,7 +83,7 @@ void camera_setter::procBtnReset()
 {
     for (auto &c : ctrl_items_)
     {
-        c.ctrl.value = c.qctrl.default_value;
+        c.value = c.default_value;
         procValueChanged(c);
     }
 
@@ -98,13 +98,13 @@ void camera_setter::procBtnSave()
     parser::camera_parser::save(CONF->get_config_value<string>(CONF->player() + ".camera_file"), ctrl_items_);
 }
 
-void camera_setter::procValueChanged(camera_ctrl_info info)
+void camera_setter::procValueChanged(camera_para info)
 {
-    for (camera_ctrl_info &item : ctrl_items_)
+    for (camera_para &item : ctrl_items_)
     {
-        if (item.qctrl.id == info.qctrl.id)
+        if (item.name == info.name)
         {
-            item.ctrl.value = info.ctrl.value;
+            item.value = info.value;
             break;
         }
     }
@@ -115,7 +115,7 @@ void camera_setter::procValueChanged(camera_ctrl_info info)
     cmd.size = int_size * 2 + rmt_type_size;
     cmd.data.clear();
     cmd.data.append((char *)&t, rmt_type_size);
-    cmd.data.append((char *) & (info.ctrl.id), int_size);
-    cmd.data.append((char *) & (info.ctrl.value), int_size);
+    cmd.data.append((char *) & (info.id), int_size);
+    cmd.data.append((char *) & (info.value), int_size);
     client_.write(cmd);
 }

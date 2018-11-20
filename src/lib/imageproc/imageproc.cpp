@@ -1,5 +1,4 @@
-#include "image_process.hpp"
-#include <cuda_runtime.h>
+#include "imageproc.hpp"
 
 using namespace cv;
 using namespace std;
@@ -34,6 +33,7 @@ namespace imageproc
                 *(dst_ptr + dst_offset + 5) = *(src_ptr + src_offset + 3);
             }
         }
+
         return dst640x480x3;
     }
 }

@@ -1,13 +1,15 @@
 #ifndef CLIST_H
 #define CLIST_H
 
-typedef struct node{
+typedef struct node
+{
     void *val;
     struct node *next;
     struct node *prev;
 } node;
 
-typedef struct clist{
+typedef struct clist
+{
     int size;
     node *front;
     node *back;

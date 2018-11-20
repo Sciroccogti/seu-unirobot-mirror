@@ -8,9 +8,10 @@
 #include <math.h>
 #include "box.h"
 
-typedef struct {
-	int w;
-	int h;
+typedef struct
+{
+    int w;
+    int h;
     int c;
     float *data;
 } image;

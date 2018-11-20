@@ -101,20 +101,21 @@ void motor::run()
         {
             real_act();
         }
-/*
-        bool left = (WM->get_support_foot() == LEFT_SUPPORT) ? true : false;
-        int i = ROBOT->get_joint(left ? "jlhip3" : "jrhip3")->jid_;
-        vector<double> degs;
-        degs.clear();
 
-        for (int j = i; j < i + 6; j++)
-        {
-            degs.push_back(static_cast<double>(ROBOT->get_joint(j)->get_deg()));
-        }
+        /*
+                bool left = (WM->get_support_foot() == LEFT_SUPPORT) ? true : false;
+                int i = ROBOT->get_joint(left ? "jlhip3" : "jrhip3")->jid_;
+                vector<double> degs;
+                degs.clear();
 
-        transform_matrix bd = ROBOT->leg_forward_kinematics(degs, left);
-        //cout<<bd<<endl;
-        */
+                for (int j = i; j < i + 6; j++)
+                {
+                    degs.push_back(static_cast<double>(ROBOT->get_joint(j)->get_deg()));
+                }
+
+                transform_matrix bd = ROBOT->leg_forward_kinematics(degs, left);
+                //cout<<bd<<endl;
+                */
         notify(SENSOR_MOTOR);
         p_count_++;
     }
@@ -161,6 +162,7 @@ void motor::real_act()
                 std::cout << "\033[31mcan not start because the voltage(" << voltage_ / 10.0f << "V) is too low!\033[0m\n";
                 raise(SIGINT);
             }
+
             /*
             read_pos();
 
@@ -176,11 +178,13 @@ void motor::real_act()
     else
     {
         set_gpos();
+
         if ((p_count_ * period_ms_ % 990) == 0)
         {
             led_status_ = 1 - led_status_;
             set_led(led_status_);
         }
+
         if ((p_count_ * period_ms_ % 10000) == 0)
         {
             read_voltage();

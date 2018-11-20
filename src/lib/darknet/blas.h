@@ -9,14 +9,14 @@ void reorg_cpu(float *x, int w, int h, int c, int batch, int stride, int forward
 void test_blas();
 
 void const_cpu(int N, float ALPHA, float *X, int INCX);
-void constrain_ongpu(int N, float ALPHA, float * X, int INCX);
+void constrain_ongpu(int N, float ALPHA, float *X, int INCX);
 void pow_cpu(int N, float ALPHA, float *X, int INCX, float *Y, int INCY);
 void mul_cpu(int N, float *X, int INCX, float *Y, int INCY);
 
 void axpy_cpu(int N, float ALPHA, float *X, int INCX, float *Y, int INCY);
 void copy_cpu(int N, float *X, int INCX, float *Y, int INCY);
 void scal_cpu(int N, float ALPHA, float *X, int INCX);
-void fill_cpu(int N, float ALPHA, float * X, int INCX);
+void fill_cpu(int N, float ALPHA, float *X, int INCX);
 float dot_cpu(int N, float *X, int INCX, float *Y, int INCY);
 void test_gpu_blas();
 void shortcut_cpu(int batch, int w1, int h1, int c1, float *add, int w2, int h2, int c2, float *out);
@@ -44,18 +44,18 @@ void softmax_x_ent_cpu(int n, float *pred, float *truth, float *delta, float *er
 #include "cuda.h"
 #include "tree.h"
 
-void axpy_ongpu(int N, float ALPHA, float * X, int INCX, float * Y, int INCY);
-void axpy_ongpu_offset(int N, float ALPHA, float * X, int OFFX, int INCX, float * Y, int OFFY, int INCY);
-void copy_ongpu(int N, float * X, int INCX, float * Y, int INCY);
-void copy_ongpu_offset(int N, float * X, int OFFX, int INCX, float * Y, int OFFY, int INCY);
-void scal_ongpu(int N, float ALPHA, float * X, int INCX);
-void supp_ongpu(int N, float ALPHA, float * X, int INCX);
-void mask_gpu_new_api(int N, float * X, float mask_num, float * mask, float val);
-void mask_ongpu(int N, float * X, float mask_num, float * mask);
+void axpy_ongpu(int N, float ALPHA, float *X, int INCX, float *Y, int INCY);
+void axpy_ongpu_offset(int N, float ALPHA, float *X, int OFFX, int INCX, float *Y, int OFFY, int INCY);
+void copy_ongpu(int N, float *X, int INCX, float *Y, int INCY);
+void copy_ongpu_offset(int N, float *X, int OFFX, int INCX, float *Y, int OFFY, int INCY);
+void scal_ongpu(int N, float ALPHA, float *X, int INCX);
+void supp_ongpu(int N, float ALPHA, float *X, int INCX);
+void mask_gpu_new_api(int N, float *X, float mask_num, float *mask, float val);
+void mask_ongpu(int N, float *X, float mask_num, float *mask);
 void const_ongpu(int N, float ALPHA, float *X, int INCX);
 void pow_ongpu(int N, float ALPHA, float *X, int INCX, float *Y, int INCY);
 void mul_ongpu(int N, float *X, int INCX, float *Y, int INCY);
-void fill_ongpu(int N, float ALPHA, float * X, int INCX);
+void fill_ongpu(int N, float ALPHA, float *X, int INCX);
 
 void mean_gpu(float *x, int batch, int filters, int spatial, float *mean);
 void variance_gpu(float *x, float *mean, int batch, int filters, int spatial, float *variance);

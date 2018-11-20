@@ -3,5 +3,6 @@ add_library(vision
 
 target_link_libraries(vision 
         ${OpenCV_LIBS}
+        cudaproc
         imageproc
         darknet)

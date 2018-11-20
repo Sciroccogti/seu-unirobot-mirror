@@ -4,7 +4,6 @@ add_definitions(-DCUDNN_HALF)
 #add_definitions(-DMVSDK)
 find_package(OpenCV 3.3.1 REQUIRED)
 find_package(CUDA REQUIRED)
-
 ################################################################################################
 # A function for automatic detection of GPUs installed  (if autodetection is enabled)
 # Usage:
@@ -56,7 +55,6 @@ set(CMAKE_INSTALL_PREFIX "${CMAKE_SOURCE_DIR}/bin")
 
 include_directories(lib)
 include_directories(${CUDA_INCLUDE_DIRS})
-link_directories(lib/MVSDK/lib/x64)
 add_subdirectory(lib)
 add_subdirectory(controller)
 if(BUILD_TOOLS)

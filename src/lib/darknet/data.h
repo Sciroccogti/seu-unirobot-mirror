@@ -3,7 +3,7 @@
 #include <pthread.h>
 
 #if defined(_MSC_VER) && _MSC_VER < 1900
-	#define inline __inline
+#define inline __inline
 #endif
 
 #include "matrix.h"
@@ -13,16 +13,27 @@
 
 static inline float distance_from_edge(int x, int max)
 {
-    int dx = (max/2) - x;
-    if (dx < 0) dx = -dx;
-    dx = (max/2) + 1 - dx;
+    int dx = (max / 2) - x;
+
+    if (dx < 0)
+    {
+        dx = -dx;
+    }
+
+    dx = (max / 2) + 1 - dx;
     dx *= 2;
-    float dist = (float)dx/max;
-    if (dist > 1) dist = 1;
+    float dist = (float)dx / max;
+
+    if (dist > 1)
+    {
+        dist = 1;
+    }
+
     return dist;
 }
 
-typedef struct{
+typedef struct
+{
     int w, h;
     matrix X;
     matrix y;
@@ -31,11 +42,13 @@ typedef struct{
     box **boxes;
 } data;
 
-typedef enum {
+typedef enum
+{
     CLASSIFICATION_DATA, DETECTION_DATA, CAPTCHA_DATA, REGION_DATA, IMAGE_DATA, LETTERBOX_DATA, COMPARE_DATA, WRITING_DATA, SWAG_DATA, TAG_DATA, OLD_CLASSIFICATION_DATA, STUDY_DATA, DET_DATA, SUPER_DATA
 } data_type;
 
-typedef struct load_args{
+typedef struct load_args
+{
     int threads;
     char **paths;
     char *path;
@@ -44,8 +57,8 @@ typedef struct load_args{
     char **labels;
     int h;
     int w;
-	int c; // color depth
-	int out_w;
+    int c; // color depth
+    int out_w;
     int out_h;
     int nh;
     int nw;
@@ -54,7 +67,7 @@ typedef struct load_args{
     int classes;
     int background;
     int scale;
-	int small_object;
+    int small_object;
     float jitter;
     int flip;
     float angle;
@@ -69,9 +82,10 @@ typedef struct load_args{
     tree *hierarchy;
 } load_args;
 
-typedef struct{
+typedef struct
+{
     int id;
-    float x,y,w,h;
+    float x, y, w, h;
     float left, right, top, bottom;
 } box_label;
 

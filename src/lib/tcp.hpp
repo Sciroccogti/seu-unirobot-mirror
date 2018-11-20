@@ -45,9 +45,9 @@ enum remote_data_type
 
 enum image_send_type
 {
-    IMAGE_SEND_ORIGIN=0,
-    IMAGE_SEND_COLOR=1,
-    IMAGE_SEND_RESULT=2
+    IMAGE_SEND_ORIGIN = 0,
+    IMAGE_SEND_COLOR = 1,
+    IMAGE_SEND_RESULT = 2
 };
 
 struct remote_data

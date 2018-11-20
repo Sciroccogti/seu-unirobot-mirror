@@ -9,13 +9,10 @@
 #include "sensor/camera.hpp"
 #include "sensor/server.hpp"
 #include "configuration.hpp"
-#include "image/image_process.hpp"
 #include "options/options.hpp"
 #include "common.hpp"
 #include "singleton.hpp"
 #include "darknet/network.h"
-#include "image/image_define.hpp"
-#include "parser/color_parser.hpp"
 
 class Vision: public timer, public subscriber, public singleton<Vision>
 {
@@ -26,7 +23,6 @@ public:
     void updata(const pro_ptr &pub, const int &type);
     bool start(const sensor_ptr &s = nullptr);
     void stop();
-    void caculateColor(imageproc::ColorType c, int x, int y, int w, int h);
     void set_img_send_type(image_send_type t)
     {
         img_sd_type_ = t;
@@ -49,19 +45,20 @@ private:
 
     unsigned char *dev_src_;
     unsigned char *dev_bgr_;
-    unsigned char *dev_sized_bgr_;
+    unsigned char *dev_ori_;
+    unsigned char *dev_sized_;
+
     float *dev_rgbfp_;
-    float *dev_sized_;
 
     int src_size_;
     int bgr_size_;
-    int sized_bgr_size_;
-    int rgbf_size_;
+    int ori_size_;
     int sized_size_;
+
+    int rgbf_size_;
 
     unsigned char *camera_src_;
     std::vector<std::string> names_;
-    std::vector<imageproc::Color> colors_;
 };
 
 #define VISION Vision::instance()

@@ -71,9 +71,9 @@ void imu::run()
 {
     if (timer::is_alive_)
     {
-        if(connected_)
+        if (connected_)
         {
-            if(count_<10)
+            if (count_ < 10)
             {
                 lost_ = true;
                 notify(SENSOR_IMU);
@@ -82,8 +82,10 @@ void imu::run()
             {
                 lost_ = false;
             }
+
             count_ = 0;
         }
+
         led_mtx_.lock();
         led_state state = l_state_;
         bool rst = reset_;
@@ -96,7 +98,7 @@ void imu::run()
             cmd[3] = led_ ? DOH : DOL;
             cmd[2] = IO[3];
             boost::asio::async_write(serial_, boost::asio::buffer(cmd, 5),
-                [this, self](boost::system::error_code ec, std::size_t length) {});
+            [this, self](boost::system::error_code ec, std::size_t length) {});
             led_ = 1 - led_;
         }
         else if (state == LED_WARNING)
@@ -105,11 +107,11 @@ void imu::run()
             cmd[2] = IO[3];
             cmd[3] = DOL;
             boost::asio::async_write(serial_, boost::asio::buffer(cmd, 5),
-                [this, self](boost::system::error_code ec, std::size_t length) {});
+            [this, self](boost::system::error_code ec, std::size_t length) {});
             usleep(450000);
             cmd[3] = DOH;
             boost::asio::async_write(serial_, boost::asio::buffer(cmd, 5),
-                [this, self](boost::system::error_code ec, std::size_t length) {});
+            [this, self](boost::system::error_code ec, std::size_t length) {});
         }
         else if (state == LED_ERROR)
         {
@@ -117,19 +119,19 @@ void imu::run()
             cmd[2] = IO[3];
             cmd[3] = DOL;
             boost::asio::async_write(serial_, boost::asio::buffer(cmd, 5),
-                    [this, self](boost::system::error_code ec, std::size_t length) {});
+            [this, self](boost::system::error_code ec, std::size_t length) {});
             usleep(200000);
             cmd[3] = DOH;
             boost::asio::async_write(serial_, boost::asio::buffer(cmd, 5),
-                                     [this, self](boost::system::error_code ec, std::size_t length) {});
+            [this, self](boost::system::error_code ec, std::size_t length) {});
             usleep(250000);
             cmd[3] = DOL;
             boost::asio::async_write(serial_, boost::asio::buffer(cmd, 5),
-                                     [this, self](boost::system::error_code ec, std::size_t length) {});
+            [this, self](boost::system::error_code ec, std::size_t length) {});
             usleep(250000);
             cmd[3] = DOH;
             boost::asio::async_write(serial_, boost::asio::buffer(cmd, 5),
-                                     [this, self](boost::system::error_code ec, std::size_t length) {});
+            [this, self](boost::system::error_code ec, std::size_t length) {});
         }
 
         usleep(100000);
@@ -139,7 +141,7 @@ void imu::run()
             cmd[2] = 0x01;
             cmd[3] = 0x04;
             boost::asio::async_write(serial_, boost::asio::buffer(cmd, 5),
-                [this, self](boost::system::error_code ec, std::size_t length) {});
+            [this, self](boost::system::error_code ec, std::size_t length) {});
             reset_ = false;
         }
     }
@@ -194,6 +196,7 @@ void imu::read_data()
         if (!ec)
         {
             unsigned char sum = 0;
+
             for (int i = 0; i < imu_len - 1; i++)
             {
                 sum += buff_[i];
@@ -202,6 +205,7 @@ void imu::read_data()
             if (sum == buff_[imu_len - 1])
             {
                 connected_ = true;
+
                 switch (buff_[1])
                 {
                     case 0x51:
@@ -233,6 +237,7 @@ void imu::read_data()
                     default:
                         break;
                 }
+
                 count_++;
                 notify(SENSOR_IMU);
             }

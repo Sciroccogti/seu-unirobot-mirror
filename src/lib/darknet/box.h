@@ -3,7 +3,7 @@
 
 #ifdef YOLODLL_EXPORTS
 #if defined(_MSC_VER)
-#define YOLODLL_API __declspec(dllexport) 
+#define YOLODLL_API __declspec(dllexport)
 #else
 #define YOLODLL_API __attribute__((visibility("default")))
 #endif
@@ -15,28 +15,32 @@
 #endif
 #endif
 
-typedef struct{
+typedef struct
+{
     float x, y, w, h;
 } box;
 
-typedef struct{
+typedef struct
+{
     float dx, dy, dw, dh;
 } dbox;
 
-typedef struct detection {
-	box bbox;
-	int classes;
-	float *prob;
-	float *mask;
-	float objectness;
-	int sort_class;
+typedef struct detection
+{
+    box bbox;
+    int classes;
+    float *prob;
+    float *mask;
+    float objectness;
+    int sort_class;
 } detection;
 
-typedef struct detection_with_class {
-	detection det;
-	// The most probable class id: the best class index in this->prob.
-	// Is filled temporary when processing results, otherwise not initialized
-	int best_class;
+typedef struct detection_with_class
+{
+    detection det;
+    // The most probable class id: the best class index in this->prob.
+    // Is filled temporary when processing results, otherwise not initialized
+    int best_class;
 } detection_with_class;
 
 box float_to_box(float *f);
@@ -52,6 +56,6 @@ box encode_box(box b, box anchor);
 
 // Creates array of detections with prob > thresh and fills best_class for them
 // Return number of selected detections in *selected_detections_num
-detection_with_class* get_actual_detections(detection *dets, int dets_num, float thresh, int* selected_detections_num);
+detection_with_class *get_actual_detections(detection *dets, int dets_num, float thresh, int *selected_detections_num);
 
 #endif

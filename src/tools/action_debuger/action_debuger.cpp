@@ -189,6 +189,7 @@ void action_debuger::procPosNameChanged(int id)
             pCur_PosWidget->pos_name->setText(QString::fromStdString(old_name));
             return;
         }
+
         pCur_PosWidget->pos_name->setText(QString::fromStdString(new_name));
         robot_pos tempPos;
         tempPos.name = new_name;
@@ -1010,15 +1011,17 @@ void action_debuger::procButtonRunPos()
         cmd.data.append((char *)(&(act.poses[i].act_time)), int_size);
         size += int_size;
         pos = ROBOT->get_pos_map()[act.poses[i].pos_name];
-        for(auto nmm: name_motion_map)
+
+        for (auto nmm : name_motion_map)
         {
-            if(nmm.second != MOTION_HEAD && nmm.second != MOTION_NONE)
+            if (nmm.second != MOTION_HEAD && nmm.second != MOTION_NONE)
             {
-                cmd.data.append((char*)(&(pos.pose_info[nmm.second])), sizeof(robot_pose));
+                cmd.data.append((char *)(&(pos.pose_info[nmm.second])), sizeof(robot_pose));
                 size += sizeof(robot_pose);
             }
         }
     }
+
     cmd.size = size;
     client_.write(cmd);
 }

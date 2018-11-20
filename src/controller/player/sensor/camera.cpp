@@ -5,13 +5,11 @@
 #include "camera.hpp"
 #include "configuration.hpp"
 #include "class_exception.hpp"
-#include "parser/camera_parser.hpp"
 #include <sstream>
 #include <fcntl.h>
 #include <sys/ioctl.h>
 
 using namespace std;
-using namespace imageproc;
 
 camera::camera(): sensor("camera")
 {
@@ -32,16 +30,16 @@ bool camera::start()
 void camera::run()
 {
     is_alive_ = true;
-    
+
     if (use_mv_)
     {
         while (is_alive_)
         {
-            if(CameraGetImageBuffer(fd_,&sFrameInfo_,&buffer_,1000) == CAMERA_STATUS_SUCCESS)
+            if (CameraGetImageBuffer(fd_, &sFrameInfo_, &buffer_, 1000) == CAMERA_STATUS_SUCCESS)
             {
                 notify(SENSOR_CAMERA);
                 usleep(10000);
-                CameraReleaseImageBuffer(fd_,buffer_);
+                CameraReleaseImageBuffer(fd_, buffer_);
             }
         }
     }
@@ -69,6 +67,7 @@ void camera::run()
                 std::cout << "VIDIOC_QBUF error\n";
                 break;
             }
+
             num_bufs_ = buf_.index;
             usleep(10000);
         }
@@ -124,15 +123,25 @@ bool camera::open()
     if (use_mv_)
     {
         int                     iCameraCounts = 1;
-        int                     iStatus=-1;
+        int                     iStatus = -1;
         tSdkCameraDevInfo       tCameraEnumList;
         CameraSdkInit(1);
-        iStatus =CameraEnumerateDevice(&tCameraEnumList,&iCameraCounts);
-        if(iCameraCounts==0) return false;
-        iStatus = CameraInit(&tCameraEnumList,-1,-1,&fd_);
-        if(iStatus!=CAMERA_STATUS_SUCCESS) return false;
-        CameraGetCapability(fd_,&tCapability_);
-        
+        iStatus = CameraEnumerateDevice(&tCameraEnumList, &iCameraCounts);
+
+        if (iCameraCounts == 0)
+        {
+            return false;
+        }
+
+        iStatus = CameraInit(&tCameraEnumList, -1, -1, &fd_);
+
+        if (iStatus != CAMERA_STATUS_SUCCESS)
+        {
+            return false;
+        }
+
+        CameraGetCapability(fd_, &tCapability_);
+
         CameraSetImageResolution(fd_, &(tCapability_.pImageSizeDesc[0]));
         w_ = tCapability_.pImageSizeDesc[0].iWidth;
         h_ = tCapability_.pImageSizeDesc[0].iHeight;
@@ -141,6 +150,7 @@ bool camera::open()
     else
     {
         fd_ = ::open(CONF->get_config_value<string>("video.dev_name").c_str(), O_RDWR, 0);
+
         if (fd_ < 0)
         {
             std::cout << "open camera: " + CONF->get_config_value<string>("video.dev_name") + " failed\n";
@@ -155,6 +165,7 @@ bool camera::open()
         fmt.fmt.pix.width = w_;
         fmt.fmt.pix.height = h_;
         fmt.fmt.pix.field = V4L2_FIELD_INTERLACED;
+
         if (ioctl(fd_, VIDIOC_S_FMT, &fmt) < 0)
         {
             std::cout << "set format failed\n";
@@ -170,7 +181,7 @@ bool camera::open()
         std::cout << "\033[32m--------------------------------------------------------\n";
         std::cout << "Image Info: [";
         std::cout << "format: " << (char)(fmt.fmt.pix.pixelformat & 0xFF) << (char)((fmt.fmt.pix.pixelformat >> 8)
-                & 0xFF) << (char)((fmt.fmt.pix.pixelformat >> 16) & 0xFF) << (char)((fmt.fmt.pix.pixelformat >> 24) & 0xFF);
+                  & 0xFF) << (char)((fmt.fmt.pix.pixelformat >> 16) & 0xFF) << (char)((fmt.fmt.pix.pixelformat >> 24) & 0xFF);
         std::cout << " width: " << fmt.fmt.pix.width;
         std::cout << " height: " << fmt.fmt.pix.height << "]\n";
         std::cout << "--------------------------------------------------------\n\033[0m";
@@ -208,7 +219,7 @@ bool camera::open()
             if (buffers_[num_bufs_].start == MAP_FAILED)
             {
                 int err = errno;
-                std::cout << "buffer map error: "<<err<<"\n";
+                std::cout << "buffer map error: " << err << "\n";
                 return false;
             }
 
@@ -228,7 +239,7 @@ bool camera::open()
             return false;
         }
     }
-   
+
     is_open_ = true;
     return true;
 }

@@ -1,7 +1,6 @@
 #pragma once
 
 #include <string>
-#include <linux/videodev2.h>
 
 struct filed_info
 {
@@ -24,11 +23,14 @@ struct player_info
     float ball_x, ball_y;
 };
 
-struct camera_ctrl_info
+struct camera_para
 {
-    v4l2_queryctrl qctrl;
-    v4l2_control ctrl;
-    std::string menu;
+    std::string name;
+    int id;
+    float value;
+    float default_value;
+    float min_value;
+    float max_value;
 };
 
 enum { player_info_size = sizeof(player_info)};

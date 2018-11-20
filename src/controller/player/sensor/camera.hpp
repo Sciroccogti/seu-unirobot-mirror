@@ -3,10 +3,9 @@
 #include <map>
 #include <thread>
 #include <linux/videodev2.h>
-#include "image/image_define.hpp"
+#include <CameraApi.h>
 #include "sensor.hpp"
 #include "model.hpp"
-#include "MVSDK/include/CameraApi.h"
 #include "configuration.hpp"
 
 class camera: public sensor
@@ -24,16 +23,20 @@ public:
     inline unsigned char *buffer() const
     {
         if (use_mv_)
+        {
             return buffer_;
+        }
         else
+        {
             return buffers_[num_bufs_].start;
+        }
     }
-    
+
     inline int camera_w() const
     {
         return w_;
     }
-    
+
     inline int camera_h() const
     {
         return h_;
@@ -42,14 +45,26 @@ public:
     inline int camera_size() const
     {
         if (use_mv_)
-            return w_*h_;
+        {
+            return w_ * h_;
+        }
         else
-            return w_*h_*2;
+        {
+            return w_ * h_ * 2;
+        }
     }
 private:
+    struct VideoBuffer
+    {
+        unsigned char *start;
+        size_t offset;
+        size_t length;
+        size_t bytesused;
+        int lagtimems;
+    };
     bool use_mv_;
     std::thread td_;
-    imageproc::VideoBuffer *buffers_;
+    VideoBuffer *buffers_;
     v4l2_buffer buf_;
     unsigned int num_bufs_;
     int fd_;

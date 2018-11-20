@@ -7,14 +7,16 @@
 void convolution_2d(int w, int h, int ksize, int n, int c, int pad, int stride,
                     float *weights, float *input, float *output, float *mean);
 
-static inline void set_bit(unsigned char *const dst, size_t index) {
+static inline void set_bit(unsigned char *const dst, size_t index)
+{
     size_t dst_i = index / 8;
     int dst_shift = index % 8;
     dst[dst_i] |= 1 << dst_shift;
     //dst[dst_i] |= 1 << (8 - dst_shift);
 }
 
-static inline unsigned char get_bit(unsigned char const*const src, size_t index) {
+static inline unsigned char get_bit(unsigned char const *const src, size_t index)
+{
     size_t src_i = index / 8;
     int src_shift = index % 8;
     unsigned char val = (src[src_i] & (1 << src_shift)) > 0;
@@ -35,21 +37,21 @@ void gemm_nn_custom_bin_mean_transposed(int M, int N, int K, float ALPHA_UNUSED,
                                         unsigned char *B, int ldb,
                                         float *C, int ldc, float *mean_arr);
 
-void im2col_cpu_custom(float* data_im,
+void im2col_cpu_custom(float *data_im,
                        int channels, int height, int width,
-                       int ksize, int stride, int pad, float* data_col);
+                       int ksize, int stride, int pad, float *data_col);
 
-void im2col_cpu_custom_align(float* data_im,
+void im2col_cpu_custom_align(float *data_im,
                              int channels, int height, int width,
-                             int ksize, int stride, int pad, float* data_col, int bit_align);
+                             int ksize, int stride, int pad, float *data_col, int bit_align);
 
-void im2col_cpu_custom_bin(float* data_im,
+void im2col_cpu_custom_bin(float *data_im,
                            int channels, int height, int width,
-                           int ksize, int stride, int pad, float* data_col, int bit_align);
+                           int ksize, int stride, int pad, float *data_col, int bit_align);
 
-void im2col_cpu_custom_transpose(float* data_im,
+void im2col_cpu_custom_transpose(float *data_im,
                                  int channels, int height, int width,
-                                 int ksize, int stride, int pad, float* data_col, int ldb_align);
+                                 int ksize, int stride, int pad, float *data_col, int ldb_align);
 
 void activate_array_cpu_custom(float *x, const int n, const ACTIVATION a);
 

@@ -13,15 +13,17 @@ extern "C" {
 #include "data.h"
 #include "tree.h"
 
-typedef enum {
+typedef enum
+{
     CONSTANT, STEP, EXP, POLY, STEPS, SIG, RANDOM
 } learning_rate_policy;
 
-typedef struct network{
+typedef struct network
+{
     float *workspace;
     int n;
     int batch;
-	int *seen;
+    int *seen;
     float epoch;
     int subdivisions;
     float momentum;
@@ -58,25 +60,26 @@ typedef struct network{
     float exposure;
     float saturation;
     float hue;
-	int small_object;
+    int small_object;
 
     int gpu_index;
     tree *hierarchy;
 
-    #ifdef GPU
+#ifdef GPU
     float *input_state_gpu;
 
     float **input_gpu;
     float **truth_gpu;
-	float **input16_gpu;
-	float **output16_gpu;
-	size_t *max_input16_size;
-	size_t *max_output16_size;
-	int wait_stream;
-    #endif
+    float **input16_gpu;
+    float **output16_gpu;
+    size_t *max_input16_size;
+    size_t *max_output16_size;
+    int wait_stream;
+#endif
 } network;
 
-typedef struct network_state {
+typedef struct network_state
+{
     float *truth;
     float *input;
     float *delta;
@@ -91,8 +94,8 @@ float train_networks(network *nets, int n, data d, int interval);
 void sync_nets(network *nets, int n, int interval);
 float train_network_datum_gpu(network net, float *x, float *y);
 float *network_predict_gpu(network net, float *input, int gpu);
-float * get_network_output_gpu_layer(network net, int i);
-float * get_network_delta_gpu_layer(network net, int i);
+float *get_network_output_gpu_layer(network net, int i);
+float *get_network_delta_gpu_layer(network net, int i);
 float *get_network_output_gpu(network net);
 void forward_network_gpu(network net, network_state state);
 void backward_network_gpu(network net, network_state state);
@@ -136,7 +139,7 @@ int resize_network(network *net, int w, int h);
 void set_batch_network(network *net, int b);
 int get_network_input_size(network net);
 float get_network_cost(network net);
-YOLODLL_API layer* get_network_layer(network* net, int i);
+YOLODLL_API layer *get_network_layer(network *net, int i);
 YOLODLL_API detection *get_network_boxes(network *net, int w, int h, float thresh, float hier, int *map, int relative, int *num, int letter);
 YOLODLL_API detection *make_network_boxes(network *net, float thresh, int *num);
 YOLODLL_API void free_detections(detection *dets, int n);

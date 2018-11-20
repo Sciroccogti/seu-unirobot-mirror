@@ -20,7 +20,7 @@ namespace robot
         pitchRot = AngleAxisd(deg2rad(pose.pitch), Vector3d::UnitY());
         rollRot = AngleAxisd(deg2rad(pose.roll), Vector3d::UnitX());
         quat = rollRot * pitchRot * yawRot;
-        foot_mat.set_p(Vector3d(pose.x, pose.y + sg*D_ / 2.0, pose.z));
+        foot_mat.set_p(Vector3d(pose.x, pose.y + sg * D_ / 2.0, pose.z));
         foot_mat.set_R(quat.matrix());
         return foot_mat;
     }
@@ -104,14 +104,15 @@ namespace robot
     }
 
     bool humanoid::leg_inverse_kinematics(const transform_matrix &body,
-                                          const transform_matrix &foot, 
+                                          const transform_matrix &foot,
                                           vector<double> &deg, const bool &left)
     {
         double sg = (left ? 1.0 : -1.0);
         Vector3d p16 = foot.p() + C_ * foot.a();
-        Vector3d p11 = body.p() + body.R()*Vector3d(0, sg*D_/2.0, 0);
-        Vector3d r = foot.R().transpose() * (p11-p16);
+        Vector3d p11 = body.p() + body.R() * Vector3d(0, sg * D_ / 2.0, 0);
+        Vector3d r = foot.R().transpose() * (p11 - p16);
         double Lr = r.norm();
+
         if (Lr > A_ + B_)
         {
             return false;
@@ -134,7 +135,7 @@ namespace robot
             q6 = q6 + M_PI;
         }
 
-        MatrixX3d R = body.R().transpose() * foot.R() * RotX(-q6) *RotY(-q5)*RotY(-q4);
+        MatrixX3d R = body.R().transpose() * foot.R() * RotX(-q6) * RotY(-q5) * RotY(-q4);
         double q1 = atan2(-R(0, 1), R(1, 1));
         double q3 = atan2(-R(2, 0), R(2, 2));
         double cz = cos(q1), sz = sin(q1);

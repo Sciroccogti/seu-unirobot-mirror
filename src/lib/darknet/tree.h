@@ -1,11 +1,12 @@
 #ifndef TREE_H
 #define TREE_H
 
-typedef struct{
+typedef struct
+{
     int *leaf;
     int n;
     int *parent;
-	int *child;
+    int *child;
     int *group;
     char **name;
 

@@ -3,12 +3,10 @@
 #include "ui/walk_remote.hpp"
 #include "ui/camera_setter.hpp"
 #include <opencv2/opencv.hpp>
-#include "parser/color_parser.hpp"
 
 using namespace cv;
 using namespace std;
 using namespace robot;
-using namespace imageproc;
 
 image_monitor::image_monitor()
     : client_(CONF->get_config_value<string>(CONF->player() + ".address"), CONF->get_config_value<int>("net.tcp.port"),
@@ -33,26 +31,26 @@ image_monitor::image_monitor()
     colorCheck = new QCheckBox("Color");
 
     QStringList clrs;
-    for(auto c: imageproc::color_name_map)
-    {
-        clrs<<QString::fromStdString(c.first);
-    }
+    clrs << "none";
     colorBox->addItems(clrs);
     QHBoxLayout *colorLayout = new QHBoxLayout();
     colorLayout->addWidget(colorCheck);
     colorLayout->addWidget(colorBox);
 
     imageBox = new QComboBox();
-    map<image_send_type, string> image_send_types = {
-            {IMAGE_SEND_ORIGIN, "origin"},
-            {IMAGE_SEND_COLOR, "color"},
-            {IMAGE_SEND_RESULT, "result"}
+    map<image_send_type, string> image_send_types =
+    {
+        {IMAGE_SEND_ORIGIN, "origin"},
+        {IMAGE_SEND_COLOR, "color"},
+        {IMAGE_SEND_RESULT, "result"}
     };
     clrs.clear();
-    for(auto ist: image_send_types)
+
+    for (auto ist : image_send_types)
     {
-        clrs<<QString::fromStdString(ist.second);
+        clrs << QString::fromStdString(ist.second);
     }
+
     imageBox->addItems(clrs);
     imageBox->setCurrentIndex(IMAGE_SEND_RESULT);
     QHBoxLayout *imageLayout = new QHBoxLayout();
@@ -166,14 +164,15 @@ void image_monitor::procBtnCS()
 
 void image_monitor::procShot(QRect rect)
 {
-    if (rect.width() > 5 && rect.height()>5)
+    if (rect.width() > 5 && rect.height() > 5)
     {
         int x, y, w, h;
         x = rect.left();
         y = rect.top();
         w = rect.width();
         h = rect.height();
-        if(colorCheck->isChecked())
+
+        if (colorCheck->isChecked())
         {
             int c = colorBox->currentIndex();
             remote_data_type t = COLOR_SAMPLE;

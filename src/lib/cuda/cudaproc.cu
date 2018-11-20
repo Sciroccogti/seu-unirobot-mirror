@@ -158,49 +158,6 @@ __global__ void resize_packed_kernal(T *in, int iw, int ih, T *out, int ow, int 
     }
 }
 
-template<typename T>
-__global__ void resize_planar_kernal(T *in, int iw, int ih, T *out, int ow, int oh)
-{
-    int x = blockIdx.x;
-    int y = threadIdx.x;
-    int offset_out = y*ow+x;
-    int planesize_out = ow*oh;
-    float h_scale_rate = (float)ih/oh;
-    float w_scale_rate = (float)iw/ow;
-    float y_scale = h_scale_rate * y;
-    float x_scale = w_scale_rate * x;
-    int j = y_scale, i = x_scale;
-    float u = y_scale-j, v = x_scale-i;
-    int planesize_in = iw*ih;
-    int offset_in1 = j*iw;
-    int offset_in2 = (j+1)*iw;
-    if(j+1>=ih || i+1>=iw)
-    {
-        out[offset_out] = in[offset_in1+i];
-        out[planesize_out+offset_out] = in[planesize_in+offset_in1+i];
-        out[planesize_out*2+offset_out] = in[planesize_in*2+offset_in1+i];
-    }
-    else
-    {
-        unsigned char x1,x2,x3,x4;
-        x1 = in[offset_in1+i];
-        x2 = in[offset_in1+i+1];
-        x3 = in[offset_in2+i];
-        x4 = in[offset_in2+i+1];
-        out[offset_out] = ((1-u)*(1-v)*x1+(1-u)*v*x2+u*(1-v)*x3+u*v*x4);
-        x1 = in[planesize_in+offset_in1+i];
-        x2 = in[planesize_in+offset_in1+i+1];
-        x3 = in[planesize_in+offset_in2+i];
-        x4 = in[planesize_in+offset_in2+i+1];
-        out[planesize_out+offset_out] = ((1-u)*(1-v)*x1+(1-u)*v*x2+u*(1-v)*x3+u*v*x4);
-        x1 = in[planesize_in*2+offset_in1+i];
-        x2 = in[planesize_in*2+offset_in1+i+1];
-        x3 = in[planesize_in*2+offset_in2+i];
-        x4 = in[planesize_in*2+offset_in2+i+1];
-        out[planesize_out*2+offset_out] = ((1-u)*(1-v)*x1+(1-u)*v*x2+u*(1-v)*x3+u*v*x4);
-    }
-}
-
 void cudaYUYV2YUV(unsigned char *in, unsigned char *out, int w, int h)
 {
     yuyv2yuv_kernal<<<w, h>>>(in,out,w,h);
@@ -230,15 +187,5 @@ void cudaResizePacked(float *in, int iw, int ih, float *sized, int ow, int oh)
 void cudaResizePacked(unsigned char *in, int iw, int ih, unsigned char *sized, int ow, int oh)
 {
     resize_packed_kernal<<<ow, oh>>>(in, iw, ih, sized, ow, oh);
-}
-
-void cudaResizePlanar(float *in, int iw, int ih, float *sized, int ow, int oh)
-{
-    resize_planar_kernal<<<ow, oh>>>(in, iw, ih, sized, ow, oh);
-}
-
-void cudaResizePlanar(unsigned char *in, int iw, int ih, unsigned char *sized, int ow, int oh)
-{
-    resize_planar_kernal<<<ow, oh>>>(in, iw, ih, sized, ow, oh);
 }
 

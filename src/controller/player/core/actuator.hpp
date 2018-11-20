@@ -13,7 +13,7 @@
 class actuator
 {
 public:
-    actuator(const std::string &name, const int &max_len=1, const int us=1000)
+    actuator(const std::string &name, const int &max_len = 1, const int us = 1000)
         : name_(name), max_len_(max_len), us_(us)
     {
         is_alive_ = false;
@@ -80,6 +80,7 @@ protected:
 
                 plist_.pop_front();
             }
+
             plist_mutex_.unlock();
             usleep(us_);
         }

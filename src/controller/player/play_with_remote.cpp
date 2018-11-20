@@ -4,7 +4,7 @@
 #include "plan/lookat_plan.hpp"
 #include "plan/walk_plan.hpp"
 #include "tcp.hpp"
-#include "image/image_define.hpp"
+
 using namespace robot;
 using namespace std;
 
@@ -37,20 +37,22 @@ list<plan_ptr> player::play_with_remote()
         {
             memcpy(&act_t, rdata.data.c_str() + i * blksz, int_size);
             posesinfo.clear();
-            int j=0;
+            int j = 0;
 
-            for(auto nmm: name_motion_map)
+            for (auto nmm : name_motion_map)
             {
-                if(nmm.second != MOTION_HEAD && nmm.second != MOTION_NONE)
+                if (nmm.second != MOTION_HEAD && nmm.second != MOTION_NONE)
                 {
-                    memcpy(&temp_pose, rdata.data.c_str()+i*blksz+int_size+j*sizeof(robot_pose), sizeof(robot_pose));
+                    memcpy(&temp_pose, rdata.data.c_str() + i * blksz + int_size + j * sizeof(robot_pose), sizeof(robot_pose));
                     posesinfo[nmm.second] = temp_pose;
                     j++;
                 }
             }
+
             pos_times.push_back(act_t);
             poses.push_back(posesinfo);
         }
+
         plist.push_back(make_shared<action_plan>(poses, pos_times));
     }
     else if (rdata.type == LOOKAT_DATA)
@@ -72,26 +74,27 @@ list<plan_ptr> player::play_with_remote()
     }
     else if (rdata.type == CAMERA_SET)
     {
+        /*
         camera_ctrl_info info;
         memcpy(&(info.ctrl.id), rdata.data.c_str(), int_size);
         memcpy(&(info.ctrl.value), rdata.data.c_str() + int_size, int_size);
         shared_ptr<camera> cm = dynamic_pointer_cast<camera>(get_sensor("camera"));
-        //cm->set_ctrl_item(info);
+        cm->set_ctrl_item(info);
+        */
     }
     else if (rdata.type == COLOR_SAMPLE)
     {
-        int c,x,y,w,h;
+        int c, x, y, w, h;
         memcpy(&c, rdata.data.c_str(), int_size);
-        memcpy(&(x), rdata.data.c_str()+int_size, int_size);
-        memcpy(&(y), rdata.data.c_str()+2*int_size, int_size);
-        memcpy(&(w), rdata.data.c_str()+3*int_size, int_size);
-        memcpy(&(h), rdata.data.c_str()+4*int_size, int_size);
-        VISION->caculateColor(static_cast<imageproc::ColorType>(c), x, y, w, h);
+        memcpy(&(x), rdata.data.c_str() + int_size, int_size);
+        memcpy(&(y), rdata.data.c_str() + 2 * int_size, int_size);
+        memcpy(&(w), rdata.data.c_str() + 3 * int_size, int_size);
+        memcpy(&(h), rdata.data.c_str() + 4 * int_size, int_size);
     }
-    else if(rdata.type == IMAGE_SEND_TYPE)
+    else if (rdata.type == IMAGE_SEND_TYPE)
     {
         int t;
-        memcpy(&t,rdata.data.c_str(), int_size);
+        memcpy(&t, rdata.data.c_str(), int_size);
         VISION->set_img_send_type(static_cast<image_send_type>(t));
     }
 
