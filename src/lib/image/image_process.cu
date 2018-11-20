@@ -194,7 +194,6 @@ void cudaYUYV2DST(unsigned char *in, unsigned char *bgr, float *rgb, unsigned ch
     yuyv2dst_kernal<<<h,w,w*2>>>(in, bgr, rgb, color, w, h,
             color1, c1hl, c1hh, c1sl, c1sh, c1il, c1ih,
             color2, c2hl, c2hh, c2sl, c2sh, c2il, c2ih);
-    //colors[1].H.minimum, colors[1].H.maximum, colors[1].S.minimum, colors[1].S.maximum, colors[1].I.minimum, colors[1].I.maximum);
 }
 
 void cudaResize(float *in, int iw, int ih, float *sizedw, float *sized, int ow, int oh)

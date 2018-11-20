@@ -2,6 +2,7 @@
 #include "darknet/parser.h"
 #include "parser/color_parser.hpp"
 #include <cuda_runtime.h>
+#include "image/cuda_process.h"
 
 using namespace imageproc;
 using namespace std;
@@ -11,11 +12,11 @@ Vision::Vision(): timer(CONF->get_config_value<int>("vision_period"))
 {
     p_count_ = 0;
     is_busy_ = false;
-    filename_ = get_time() + ".yuv";
-    w_ = CONF->get_config_value<int>("video.width");
-    h_ = CONF->get_config_value<int>("video.height");
-    parser::color_parser::parse(CONF->get_config_value<string>(CONF->player()+".color_file"), colors_);
+    w_ = CONF->get_config_value<int>("image.width");
+    h_ = CONF->get_config_value<int>("image.height");
     img_sd_type_ = IMAGE_SEND_RESULT;
+    camera_src_ = nullptr;
+    use_mv_ = CONF->get_config_value<bool>("video.use_mv");
 }
 
 Vision::~Vision()
@@ -23,32 +24,40 @@ Vision::~Vision()
     std::cout << "\033[32malgorithm:[Vision]   end!\033[0m\n";
 }
 
-void Vision::yuyv2dst()
+void Vision::src2dst()
 {
-    if(colors_.size()<2)
-        return;
     cudaError_t err;
-    err = cudaMemcpy(dev_src_, yuyv_, src_size_, cudaMemcpyHostToDevice);
+    err = cudaMemcpy(dev_src_, camera_src_, src_size_, cudaMemcpyHostToDevice);
     check_error(err);
-    cudaYUYV2DST(dev_src_, dev_bgr_, dev_rgbf_, dev_color_, w_, h_,
-                 (unsigned char)colors_[0].c, colors_[0].H.minimum, colors_[0].H.maximum, colors_[0].S.minimum,
-                 colors_[0].S.maximum, colors_[0].I.minimum, colors_[0].I.maximum,
-                 (unsigned char)colors_[1].c, colors_[1].H.minimum, colors_[1].H.maximum, colors_[1].S.minimum,
-                 colors_[1].S.maximum, colors_[1].I.minimum, colors_[1].I.maximum);
+    if (use_mv_)
+        cudaBayer2BGR(dev_src_, dev_bgr_,  camera_w_,  camera_h_,  0.0,  1.0, 1.0, 1.0);
+    else
+        cudaYUYV2BGR(dev_src_,  dev_bgr_,  camera_w_,  camera_h_);
+    cudaResizePacked(dev_bgr_, camera_w_,  camera_h_,  dev_sized_bgr_, w_,  h_);
+    cudaBGR2RGBfp(dev_sized_bgr_, dev_rgbfp_, w_, h_);
 }
 
 void Vision::run()
 {
     if (is_alive_)
     {
+        
         p_count_ ++;
         if(is_busy_) return;
         frame_mutex_.lock();
-        yuyv2dst();
+        double t1 = clock();
+        src2dst();
+        double t2 = clock();
+        cout << (t2-t1)/CLOCKS_PER_SEC << endl;
         frame_mutex_.unlock();
         cudaError_t err;
-
-        cudaResize(dev_rgbf_, w_, h_, dev_wsized_, dev_sized_, net_.w, net_.h);
+        Mat bgr(h_, w_, CV_8UC3);
+        err = cudaMemcpy(bgr.data, dev_bgr_, bgr_size_, cudaMemcpyDeviceToHost);
+        check_error(err);
+        send_image(bgr);
+        
+        /*
+        cudaResizePlanar(dev_rgbfp_, w_, h_, dev_sized_, net_.w, net_.h);
         is_busy_ = true;
         layer l = net_.layers[net_.n-1];
         //double t1 = clock();
@@ -66,41 +75,6 @@ void Vision::run()
             check_error(err);
             if(img_sd_type_ == IMAGE_SEND_ORIGIN)
                 send_image(bgr);
-            else if(img_sd_type_ == IMAGE_SEND_COLOR)
-            {
-                unsigned char *color;
-                color = (unsigned char*)malloc(color_size_);
-                err = cudaMemcpy(color, dev_color_, color_size_, cudaMemcpyDeviceToHost);
-                check_error(err);
-                int i,j;
-
-                for(j=0;j<h_;j++)
-                {
-                    for(i=0;i<w_;i++)
-                    {
-                        switch (static_cast<ColorType>(color[j*w_+i]))
-                        {
-                            case COLOR_GREEN:
-                                bgr.data[j*w_*3+i*3] = 0;
-                                bgr.data[j*w_*3+i*3+1] = 255;
-                                bgr.data[j*w_*3+i*3+2] = 0;
-                                break;
-                            case COLOR_WHITE:
-                                bgr.data[j*w_*3+i*3] = 255;
-                                bgr.data[j*w_*3+i*3+1] = 255;
-                                bgr.data[j*w_*3+i*3+2] = 255;
-                                break;
-                            default:
-                                bgr.data[j*w_*3+i*3] = 0;
-                                bgr.data[j*w_*3+i*3+1] = 0;
-                                bgr.data[j*w_*3+i*3+2] = 0;
-                                break;
-                        }
-                    }
-                }
-                free(color);
-                send_image(bgr);
-            }
             else
             {
                 for(int i=0;i<nboxes;i++)
@@ -123,6 +97,7 @@ void Vision::run()
         }
         free_detections(dets, nboxes);
         is_busy_ = false;
+        */
     }
 }
 
@@ -142,14 +117,32 @@ void Vision::send_image(const cv::Mat &src)
 
 void Vision::updata(const pro_ptr &pub, const int &type)
 {
+    
     if(!is_alive_) return;
     shared_ptr<camera> sptr = dynamic_pointer_cast<camera>(pub);
+    
+    if (camera_src_ ==  nullptr)
+    {
+        camera_w_ = sptr->camera_w();
+        camera_h_ = sptr->camera_h();
+        camera_size_ = sptr->camera_size();
+        src_size_ = camera_size_;
+        bgr_size_ = camera_w_*camera_h_*3;
+        camera_src_ = (unsigned char*)malloc(camera_size_);
+        cudaError_t err;
+        err = cudaMalloc((void**) &dev_src_,  src_size_);
+        check_error(err);
+        err = cudaMalloc((void**) &dev_bgr_, bgr_size_);
+        check_error(err);
+    }
+    
     if (type == sensor::SENSOR_CAMERA)
     {
         frame_mutex_.lock();
-        memcpy(yuyv_, sptr->buffer()->start, src_size_);
+        memcpy(camera_src_, sptr->buffer(), src_size_);
         frame_mutex_.unlock();
     }
+    
 }
 
 bool Vision::start(const sensor_ptr &s)
@@ -172,27 +165,16 @@ bool Vision::start(const sensor_ptr &s)
     calculate_binary_weights(net_);
     srand(2222222);
 
-    color_size_ = w_*h_*sizeof(unsigned char);
-    src_size_ = w_*h_*2*sizeof(unsigned char);
-    bgr_size_ = w_*h_*3*sizeof(unsigned char);
+    sized_bgr_size_ = w_*h_*3;
     rgbf_size_ = w_*h_*3*sizeof(float);
     sized_size_ = net_.w*net_.h*3*sizeof(float);
-    sizew_size_ = net_.w*h_*3*sizeof(float);
-
-    yuyv_ = (unsigned char*)malloc(src_size_);
 
     cudaError_t err;
-    err = cudaMalloc((void**)&dev_src_, src_size_);
+    err = cudaMalloc((void**)&dev_sized_bgr_, sized_bgr_size_);
     check_error(err);
-    err = cudaMalloc((void**)&dev_bgr_, bgr_size_);
-    check_error(err);
-    err = cudaMalloc((void**)&dev_rgbf_, rgbf_size_);
-    check_error(err);
-    err = cudaMalloc((void**)&dev_wsized_, sizew_size_);
+    err = cudaMalloc((void**)&dev_rgbfp_, rgbf_size_);
     check_error(err);
     err = cudaMalloc((void**)&dev_sized_, sized_size_);
-    check_error(err);
-    err = cudaMalloc((void**)&dev_color_, color_size_);
     check_error(err);
     is_alive_ = true;
     start_timer();
@@ -205,12 +187,12 @@ void Vision::stop()
     {
         delete_timer();
         free_network(net_);
-        free(yuyv_);
+        free(camera_src_);
+        cudaFree(dev_sized_bgr_);
         cudaFree(dev_src_);
         cudaFree(dev_bgr_);
-        cudaFree(dev_rgbf_);
+        cudaFree(dev_rgbfp_);
         cudaFree(dev_sized_);
-        cudaFree(dev_wsized_);
     }
     is_alive_ = false;
 }

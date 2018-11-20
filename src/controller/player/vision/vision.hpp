@@ -35,31 +35,31 @@ public:
 private:
     void run();
     void send_image(const cv::Mat &src);
-    void yuyv2dst();
+    void src2dst();
 
+    bool use_mv_;
     std::shared_ptr<tcp_server> server_;
     int p_count_;
     std::string filename_;
     int w_, h_;
+    int camera_w_,  camera_h_, camera_size_;
     network net_;
     bool is_busy_;
     image_send_type img_sd_type_;
 
     unsigned char *dev_src_;
     unsigned char *dev_bgr_;
-    float *dev_rgbf_;
-    float *dev_wsized_;
+    unsigned char *dev_sized_bgr_;
+    float *dev_rgbfp_;
     float *dev_sized_;
-    unsigned char *dev_color_;
 
     int src_size_;
     int bgr_size_;
+    int sized_bgr_size_;
     int rgbf_size_;
-    int sizew_size_;
     int sized_size_;
-    int color_size_;
 
-    unsigned char *yuyv_;
+    unsigned char *camera_src_;
     std::vector<std::string> names_;
     std::vector<imageproc::Color> colors_;
 };

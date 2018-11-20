@@ -7,6 +7,7 @@ add_library(sensor STATIC
             imu.cpp)
             
 target_link_libraries(sensor
+            MVSDK
             dynamixel
             boost_system
             v4l2

@@ -14,8 +14,8 @@ image_monitor::image_monitor()
     : client_(CONF->get_config_value<string>(CONF->player() + ".address"), CONF->get_config_value<int>("net.tcp.port"),
               bind(&image_monitor::data_handler, this, placeholders::_1))
 {
-    height_ = CONF->get_config_value<int>("video.height");
-    width_ = CONF->get_config_value<int>("video.width");
+    height_ = CONF->get_config_value<int>("image.height");
+    width_ = CONF->get_config_value<int>("image.width");
     first_connect = true;
 
     imageLab = new ImageLabel(width_, height_);

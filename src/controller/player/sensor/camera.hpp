@@ -6,6 +6,8 @@
 #include "image/image_define.hpp"
 #include "sensor.hpp"
 #include "model.hpp"
+#include "MVSDK/include/CameraApi.h"
+#include "configuration.hpp"
 
 class camera: public sensor
 {
@@ -19,43 +21,41 @@ public:
     bool open();
     void close();
 
-    bool set_ctrl_item(const camera_ctrl_info &info);
-
-    inline imageproc::VideoBufferInfo buff_info() const
+    inline unsigned char *buffer() const
     {
-        return buffer_info_;
+        if (use_mv_)
+            return buffer_;
+        else
+            return buffers_[num_bufs_].start;
+    }
+    
+    inline int camera_w() const
+    {
+        return w_;
+    }
+    
+    inline int camera_h() const
+    {
+        return h_;
     }
 
-    inline imageproc::VideoBuffer *buffer() const
+    inline int camera_size() const
     {
-        return &(buffers_[num_bufs_]);
+        if (use_mv_)
+            return w_*h_;
+        else
+            return w_*h_*2;
     }
-
 private:
-    bool init();
-    void get_ctrl_items();
-    void print_camera_info();
-    std::string get_name_by_id(const unsigned int &id);
-private:
-    struct camera_cfg
-    {
-        std::string camera_name;
-        std::string dev_name;
-        unsigned int buff_num;
-        unsigned int width;
-        unsigned int height;
-        std::string format;
-        std::string ctrl_file;
-    };
-
+    bool use_mv_;
     std::thread td_;
-    std::vector<camera_ctrl_info> ctrl_infos_;
-    std::map<std::string, unsigned int> format_map_;
-    imageproc::VideoBufferInfo buffer_info_;
     imageproc::VideoBuffer *buffers_;
-    camera_cfg cfg_;
     v4l2_buffer buf_;
     unsigned int num_bufs_;
     int fd_;
-    bool cap_opened_;
+    int w_;
+    int h_;
+    unsigned char *buffer_;
+    tSdkCameraCapbility     tCapability_;
+    tSdkFrameHead           sFrameInfo_;
 };

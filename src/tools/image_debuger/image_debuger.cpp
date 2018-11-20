@@ -12,8 +12,8 @@ using namespace imageproc;
 
 image_debuger::image_debuger()
 {
-    height_ = CONF->get_config_value<int>("video.height");
-    width_ = CONF->get_config_value<int>("video.width");
+    height_ = CONF->get_config_value<int>("image.height");
+    width_ = CONF->get_config_value<int>("image.width");
 
     srcLab = new ImageLabel(width_, height_);
     dstLab = new ImageLabel(width_, height_);
@@ -137,7 +137,7 @@ void image_debuger::procBtnLoad()
     }
 
     yuv_images_.clear();
-    yuv_images_ = read_yuv(filename.toStdString());
+    //yuv_images_ = read_yuv(filename.toStdString());
 
     if (!yuv_images_.empty())
     {
