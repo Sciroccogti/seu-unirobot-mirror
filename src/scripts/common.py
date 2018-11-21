@@ -59,17 +59,24 @@ def get_config(key=''):
         return None
 
 
+def build_project(tx2):
+    if tx2:
+        build_dir = '%s/build-aarch64'%config.project_dir
+        if not os.path.exists(build_dir):
+            os.mkdir(build_dir)
+        cmd = 'rm -rf %s/bin/%s %s/bin/data; cd %s; cmake -D PLATFORM=TX2 ..; make install -j4'\
+            %(config.project_dir,config.exec_file_name, config.project_dir, build_dir)
+    else:
+        build_dir = '%s/build'%config.project_dir
+        if not os.path.exists(build_dir):
+            os.mkdir(build_dir)
+        cmd = 'rm -rf %s/bin/%s %s/bin/data; cd %s; cmake ..; make install -j4'\
+            %(config.project_dir,config.exec_file_name, config.project_dir, build_dir)
+    return run_cmd(cmd)
+
+
 def compress_files():
-    if os.path.exists(config.local_dir+config.code_dir):
-        cmd = 'cd %s; rm -rf %s'%(config.project_dir, config.code_dir)
-        run_cmd(cmd)
-    if os.path.exists(config.local_dir+config.compress_file_name):
-        cmd = 'cd %s; rm -rf %s'%(config.local_dir, config.compress_file_name)
-        run_cmd(cmd)
-    print('removed old files!')
-    cmd = 'cd %s; mkdir %s; cp -r %s/src %s/CMakeLists.txt %s; tar zcvf %s %s'\
-          %(config.local_dir, config.code_dir, config.project_name, config.project_name,\
-            config.code_dir, config.compress_file_name, config.code_dir)
+    cmd = 'cd %s/bin; tar zcvf %s %s data'%(config.project_dir, config.compress_file_name, config.exec_file_name)
     return run_cmd(cmd, False)
 
 

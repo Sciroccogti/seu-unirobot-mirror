@@ -70,6 +70,7 @@ int main(int argc, char *argv[])
     }
 
     ROBOT->init(CONF->robot_file(), CONF->action_file(), CONF->offset_file());
+    
     maxwell = make_shared<player>();
 
     if (!maxwell->init())

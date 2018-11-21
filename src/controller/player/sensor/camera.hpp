@@ -42,6 +42,11 @@ public:
         return h_;
     }
 
+    inline bool use_mv() const
+    {
+        return use_mv_;
+    }
+    
     inline int camera_size() const
     {
         if (use_mv_)

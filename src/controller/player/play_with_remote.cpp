@@ -95,7 +95,7 @@ list<plan_ptr> player::play_with_remote()
     {
         int t;
         memcpy(&t, rdata.data.c_str(), int_size);
-        VISION->set_img_send_type(static_cast<image_send_type>(t));
+//        VISION->set_img_send_type(static_cast<image_send_type>(t));
     }
 
     WM->reset_rmt_data();

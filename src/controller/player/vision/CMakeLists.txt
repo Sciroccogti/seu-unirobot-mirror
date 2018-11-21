@@ -2,7 +2,13 @@ add_library(vision
         vision.cpp)
 
 target_link_libraries(vision 
-        ${OpenCV_LIBS}
+        opencv_core
+        opencv_imgcodecs
+        opencv_imgproc
         cudaproc
         imageproc
-        darknet)
+        darknet
+        pthread
+        rt
+        stdc++
+        cudart)

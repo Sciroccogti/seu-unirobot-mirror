@@ -17,7 +17,7 @@ if __name__ == '__main__':
         common.print_error('please check the robot id')
         exit(3)
 
-    if not common.build_project():
+    if not common.build_project(True):
         common.print_error('build error, please check code')
         exit(4)
 

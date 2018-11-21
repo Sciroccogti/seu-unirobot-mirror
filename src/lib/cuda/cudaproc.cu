@@ -26,8 +26,8 @@ __global__ void yuyv2yuv_kernal(unsigned char *in, unsigned char *out, int w, in
     int dst_offset = x*3;
 
     out[tmp*3+dst_offset+0] = in[tmp*2+src_offset+0];
-    out[tmp*3+dst_offset+1] = in[tmp*2+src_offset+(int)pow(-1, x&1)];
-    out[tmp*3+dst_offset+2] = in[tmp*2+src_offset+2+(int)pow(-1, x&1)];
+    out[tmp*3+dst_offset+1] = in[tmp*2+src_offset+(int)powf(-1, x&1)];
+    out[tmp*3+dst_offset+2] = in[tmp*2+src_offset+2+(int)powf(-1, x&1)];
 }
 
 __global__ void yuyv2bgr_kernal(unsigned char *in, unsigned char *out, int w, int h)
@@ -39,8 +39,8 @@ __global__ void yuyv2bgr_kernal(unsigned char *in, unsigned char *out, int w, in
     int dst_offset = x*3;
 
     unsigned char Y = in[tmp*2+src_offset+0];
-    unsigned char U = in[tmp*2+src_offset+(int)pow(-1, x&1)];
-    unsigned char V = in[tmp*2+src_offset+2+(int)pow(-1, x&1)];
+    unsigned char U = in[tmp*2+src_offset+(int)powf(-1, x&1)];
+    unsigned char V = in[tmp*2+src_offset+2+(int)powf(-1, x&1)];
     float r,g,b;
 
     r = (1.164 * (Y - 16)) + (2.018 * (V - 128));

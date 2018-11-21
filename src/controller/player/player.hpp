@@ -12,6 +12,7 @@
 #include "sensor/gamectrl.hpp"
 #include "sensor/server.hpp"
 #include "sensor/hear.hpp"
+#include "sensor/camera.hpp"
 #include "walk/WalkEngine.hpp"
 #include "vision/vision.hpp"
 

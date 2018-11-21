@@ -8,7 +8,8 @@ add_library(ui STATIC
             RobotGL.cpp)
 
 target_link_libraries(ui
-            ${OpenCV_LIBS}
+            opencv_core
+            opencv_imgproc
             tcp_client
             glut
             GLU

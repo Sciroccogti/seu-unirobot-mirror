@@ -10,8 +10,6 @@ add_executable(${TARGET_NAME}
                 main.cpp)
 
 target_link_libraries(${TARGET_NAME}
-                pthread
-                v4l2
                 robot
                 controller_options
                 player)

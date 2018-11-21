@@ -1,4 +1,3 @@
-#include <libv4l2.h>
 #include <sys/mman.h>
 #include <errno.h>
 #include <functional>
@@ -13,7 +12,7 @@ using namespace std;
 
 camera::camera(): sensor("camera")
 {
-    use_mv_ = CONF->get_config_value<bool>("video.use_mv");
+
 }
 
 bool camera::start()
@@ -119,29 +118,26 @@ void camera::close()
 
 bool camera::open()
 {
-
-    if (use_mv_)
+    int                     iCameraCounts = 1;
+    int                     iStatus = -1;
+    tSdkCameraDevInfo       tCameraEnumList;
+    use_mv_ = true;
+    CameraSdkInit(1);
+    iStatus = CameraEnumerateDevice(&tCameraEnumList, &iCameraCounts);
+    if (iCameraCounts == 0)
     {
-        int                     iCameraCounts = 1;
-        int                     iStatus = -1;
-        tSdkCameraDevInfo       tCameraEnumList;
-        CameraSdkInit(1);
-        iStatus = CameraEnumerateDevice(&tCameraEnumList, &iCameraCounts);
+        use_mv_ = false;
+    }
 
-        if (iCameraCounts == 0)
-        {
-            return false;
-        }
-
+    if(use_mv_)
+    {
         iStatus = CameraInit(&tCameraEnumList, -1, -1, &fd_);
-
         if (iStatus != CAMERA_STATUS_SUCCESS)
         {
             return false;
         }
 
         CameraGetCapability(fd_, &tCapability_);
-
         CameraSetImageResolution(fd_, &(tCapability_.pImageSizeDesc[0]));
         w_ = tCapability_.pImageSizeDesc[0].iWidth;
         h_ = tCapability_.pImageSizeDesc[0].iHeight;

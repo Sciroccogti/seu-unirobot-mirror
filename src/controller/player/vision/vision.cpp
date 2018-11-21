@@ -14,7 +14,6 @@ Vision::Vision(): timer(CONF->get_config_value<int>("vision_period"))
     h_ = CONF->get_config_value<int>("image.height");
     img_sd_type_ = IMAGE_SEND_RESULT;
     camera_src_ = nullptr;
-    use_mv_ = CONF->get_config_value<bool>("video.use_mv");
 }
 
 Vision::~Vision()
@@ -144,6 +143,7 @@ void Vision::updata(const pro_ptr &pub, const int &type)
         camera_w_ = sptr->camera_w();
         camera_h_ = sptr->camera_h();
         camera_size_ = sptr->camera_size();
+        use_mv_ = sptr->use_mv();
         src_size_ = camera_size_;
         bgr_size_ = camera_w_ * camera_h_ * 3;
         camera_src_ = (unsigned char *)malloc(camera_size_);

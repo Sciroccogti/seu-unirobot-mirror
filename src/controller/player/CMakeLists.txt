@@ -1,5 +1,3 @@
-include_directories(.)
-
 add_subdirectory(sensor)
 add_subdirectory(fsm)
 add_subdirectory(walk)
@@ -12,10 +10,8 @@ add_library(player STATIC
             player.cpp)
             
 target_link_libraries(player
-            ${OpenCV_LIBS}
             fsm
             walk
             vision
             boost_system
-            sensor
-            rt)
+            sensor)

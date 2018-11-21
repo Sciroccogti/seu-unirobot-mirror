@@ -16,6 +16,10 @@ if __name__ == '__main__':
     if not common.check_id(robot_id):
         common.print_error('please check the robot id')
         exit(3)
+    
+    if not common.build_project(True):
+        common.print_error('build error, please check code')
+        exit(4)
 
     if not common.compress_files():
         common.print_error('compress files error, please check')
@@ -24,13 +28,9 @@ if __name__ == '__main__':
     args = common.parse_argv(sys.argv)
     ip_address = common.get_ip(robot_id)
     ssh_client = SSHConnection.SSHConnection(ip_address, config.ssh_port, config.username, config.password)
-    cmd = 'mkdir %s'%config.remote_dir
-    ssh_client.exec_command(cmd)
-    cmd = 'cd %s; rm -rf %s %s'%(config.remote_dir, config.compress_file_name, config.code_dir)
-    ssh_client.exec_command(cmd)
-    ssh_client.upload(config.local_dir+config.compress_file_name, config.remote_dir+config.compress_file_name)
+    ssh_client.upload(config.project_dir+'/bin/'+config.compress_file_name, config.remote_dir+config.compress_file_name)
 
     nowTime=datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    cmd = 'date -s "%s"; cd %s; tar zxvf %s; cd %s; mkdir build; cd build; cmake ..; make install -j2; cd ../bin; ./%s %s'\
-          %(nowTime, config.remote_dir, config.compress_file_name, config.code_dir, config.exec_file_name, args)
+    cmd = 'date -s "%s"; cd %s; tar zxvf %s; ./%s %s'\
+          %(nowTime, config.remote_dir, config.compress_file_name, config.exec_file_name, args)
     ssh_client.exec_command(cmd)

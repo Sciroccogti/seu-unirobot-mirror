@@ -18,6 +18,6 @@ if __name__ == '__main__':
         common.print_error('get color file error')
         exit(4)
 
-    remote_path = config.remote_dir+config.code_dir+"/bin/"+color_file
+    remote_path = config.remote_dir+"/data/"+color_file
     cmd = "python download.py %s %s"%(robot_id, remote_path)
     common.run_cmd(cmd)
