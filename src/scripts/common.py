@@ -5,6 +5,7 @@ import json
 import config
 import os
 
+
 def get_json_from_conf(confname=''):
     json_data = ''
     for line in open(confname): 
@@ -48,6 +49,14 @@ def get_ip(id):
         return None
 
 
+def check_net(ip):
+    backinfo = os.system('ping -c 1 -w 1 %s'%ip)
+    if not backinfo:
+        return True
+    else:
+        return False
+    
+    
 def get_config(key=''):
     conf = json.loads(get_json_from_conf(config.config_file_name))
     keys = key.split('.')
@@ -59,24 +68,23 @@ def get_config(key=''):
         return None
 
 
-def build_project(tx2):
-    if tx2:
-        build_dir = '%s/build-aarch64'%config.project_dir
+def build_project(cross):
+    if cross:
+        build_dir = '%s/build-%s'%(config.project_dir, config.target_dir)
         if not os.path.exists(build_dir):
             os.mkdir(build_dir)
-        cmd = 'rm -rf %s/bin/%s %s/bin/data; cd %s; cmake -D PLATFORM=TX2 ..; make install -j4'\
-            %(config.project_dir,config.exec_file_name, config.project_dir, build_dir)
+        cmd = 'rm -rf %s/bin/%s; cd %s; cmake -D CROSS=ON ..; make install -j4'\
+            %(config.project_dir, config.target_dir, build_dir)
     else:
         build_dir = '%s/build'%config.project_dir
         if not os.path.exists(build_dir):
             os.mkdir(build_dir)
-        cmd = 'rm -rf %s/bin/%s %s/bin/data; cd %s; cmake ..; make install -j4'\
-            %(config.project_dir,config.exec_file_name, config.project_dir, build_dir)
+        cmd = 'cd %s; cmake ..; make install -j4'%build_dir
     return run_cmd(cmd)
 
 
 def compress_files():
-    cmd = 'cd %s/bin; tar zcvf %s %s data'%(config.project_dir, config.compress_file_name, config.exec_file_name)
+    cmd = 'cd %s/bin; tar zcvf %s %s'%(config.project_dir, config.compress_file_name, config.target_dir)
     return run_cmd(cmd, False)
 
 

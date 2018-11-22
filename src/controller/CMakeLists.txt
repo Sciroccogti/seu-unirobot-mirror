@@ -14,5 +14,4 @@ target_link_libraries(${TARGET_NAME}
                 controller_options
                 player)
 
-set(CMAKE_INSTALL_PREFIX "${CMAKE_SOURCE_DIR}/bin")
-install(TARGETS ${TARGET_NAME} RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX})
+install(TARGETS ${TARGET_NAME} RUNTIME DESTINATION "${CMAKE_INSTALL_PREFIX}/${CMAKE_SYSTEM_PROCESSOR}")

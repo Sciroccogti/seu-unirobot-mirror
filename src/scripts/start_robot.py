@@ -27,10 +27,14 @@ if __name__ == '__main__':
 
     args = common.parse_argv(sys.argv)
     ip_address = common.get_ip(robot_id)
+    if not common.check_net(ip_address):
+        common.print_error('can not connect to host, please check network')
+        exit(6)
+        
     ssh_client = SSHConnection.SSHConnection(ip_address, config.ssh_port, config.username, config.password)
     ssh_client.upload(config.project_dir+'/bin/'+config.compress_file_name, config.remote_dir+config.compress_file_name)
-
+    
     nowTime=datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    cmd = 'date -s "%s"; cd %s; tar zxvf %s; ./%s %s'\
-          %(nowTime, config.remote_dir, config.compress_file_name, config.exec_file_name, args)
+    cmd = 'date -s "%s"; cd %s; tar zxvf %s; cd %s; sudo ./%s %s'\
+          %(nowTime, config.remote_dir, config.compress_file_name, config.target_dir, config.exec_file_name, args)
     ssh_client.exec_command(cmd)
