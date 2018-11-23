@@ -27,6 +27,8 @@ public:
     {
         img_sd_type_ = t;
     }
+
+    void set_camera_para(const camera_para &para);
     mutable std::mutex frame_mutex_;
 private:
     void run();
@@ -39,6 +41,8 @@ private:
     std::string filename_;
     int w_, h_;
     int camera_w_,  camera_h_, camera_size_;
+    std::map<std::string, camera_para> camera_infos_;
+
     network net_;
     bool is_busy_;
     image_send_type img_sd_type_;
@@ -56,7 +60,6 @@ private:
     int sized_size_;
 
     int rgbf_size_;
-
     unsigned char *camera_src_;
     std::vector<std::string> names_;
 };

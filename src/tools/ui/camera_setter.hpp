@@ -71,7 +71,7 @@ public slots:
 
 private:
     std::vector<CtrlSlider *> c_sliders_;
-    std::vector<camera_para> ctrl_items_;
+    std::map<std::string, camera_para> ctrl_items_;
     QPushButton *btnReset, *btnSave;
     QTimer *timer;
     tcp_client &client_;

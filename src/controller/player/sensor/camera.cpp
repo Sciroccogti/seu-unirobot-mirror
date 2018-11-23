@@ -2,6 +2,7 @@
 #include <errno.h>
 #include <functional>
 #include "camera.hpp"
+#include "parser/camera_parser.hpp"
 #include "configuration.hpp"
 #include "class_exception.hpp"
 #include <sstream>
@@ -12,7 +13,7 @@ using namespace std;
 
 camera::camera(): sensor("camera")
 {
-
+    parser::camera_parser::parse(CONF->get_config_value<string>(CONF->player()+".camera_file"), camera_infos_);
 }
 
 bool camera::start()
@@ -26,10 +27,33 @@ bool camera::start()
     return true;
 }
 
+void camera::set_camera_para(const camera_para &para)
+{
+    if(!use_mv_) return;
+    for(auto &item:camera_infos_)
+    {
+        if(item.second.id == para.id)
+        {
+            item.second.value = para.value;
+            switch(para.id)
+            {
+                case 1:
+                    CameraSetAnalogGain(fd_, para.value);
+                    break;
+                case 2:
+                    CameraSetExposureTime(fd_, para.value*1000);
+                    break;
+                default:
+                    break;
+            }
+            break;
+        }
+    }
+}
+
 void camera::run()
 {
     is_alive_ = true;
-
     if (use_mv_)
     {
         while (is_alive_)
@@ -131,13 +155,16 @@ bool camera::open()
 
     if(use_mv_)
     {
-        iStatus = CameraInit(&tCameraEnumList, -1, -1, &fd_);
+        iStatus = CameraInit(&tCameraEnumList, -1, PARAMETER_TEAM_DEFAULT, &fd_);
         if (iStatus != CAMERA_STATUS_SUCCESS)
         {
             return false;
         }
 
         CameraGetCapability(fd_, &tCapability_);
+        CameraSetAeState(fd_, false);
+        CameraSetAnalogGain(fd_, camera_infos_["exposure_gain"].value);
+        CameraSetExposureTime(fd_, camera_infos_["exposure_time"].value*1000);
         CameraSetImageResolution(fd_, &(tCapability_.pImageSizeDesc[0]));
         w_ = tCapability_.pImageSizeDesc[0].iWidth;
         h_ = tCapability_.pImageSizeDesc[0].iHeight;

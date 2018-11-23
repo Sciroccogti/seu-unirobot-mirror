@@ -27,6 +27,7 @@ struct camera_para
 {
     std::string name;
     int id;
+    bool sw;
     float value;
     float default_value;
     float min_value;

@@ -17,24 +17,21 @@ camera_setter::camera_setter(tcp_client &client, QString netinfo, QWidget *paren
 
     parser::camera_parser::parse(CONF->get_config_value<string>(CONF->player() + ".camera_file"), ctrl_items_);
 
-    int i = 0;
-
-    for (camera_para it : ctrl_items_)
+    for (auto it : ctrl_items_)
     {
-        slider = new CtrlSlider(it);
+        slider = new CtrlSlider(it.second);
         connect(slider, &CtrlSlider::valueChanged, this, &camera_setter::procValueChanged);
         c_sliders_.push_back(slider);
 
-        if (i < ctrl_items_.size() / 2)
-        {
-            leftLayout->addWidget(slider);
-        }
-        else
+        if ((it.first.find("gain") != string::npos || it.first.find("sat") != string::npos)
+            && it.first.find("exp") == string::npos)
         {
             rightLayout->addWidget(slider);
         }
-
-        i++;
+        else
+        {
+            leftLayout->addWidget(slider);
+        }
     }
 
     btnReset = new QPushButton("Reset");
@@ -83,8 +80,8 @@ void camera_setter::procBtnReset()
 {
     for (auto &c : ctrl_items_)
     {
-        c.value = c.default_value;
-        procValueChanged(c);
+        c.second.value = c.second.default_value;
+        procValueChanged(c.second);
     }
 
     for (auto &s : c_sliders_)
@@ -100,11 +97,11 @@ void camera_setter::procBtnSave()
 
 void camera_setter::procValueChanged(camera_para info)
 {
-    for (camera_para &item : ctrl_items_)
+    for (auto &item : ctrl_items_)
     {
-        if (item.name == info.name)
+        if (item.second.name == info.name)
         {
-            item.value = info.value;
+            item.second.value = info.value;
             break;
         }
     }

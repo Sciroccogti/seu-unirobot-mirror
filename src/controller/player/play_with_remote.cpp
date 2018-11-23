@@ -74,13 +74,12 @@ list<plan_ptr> player::play_with_remote()
     }
     else if (rdata.type == CAMERA_SET)
     {
-        /*
-        camera_ctrl_info info;
-        memcpy(&(info.ctrl.id), rdata.data.c_str(), int_size);
-        memcpy(&(info.ctrl.value), rdata.data.c_str() + int_size, int_size);
+        camera_para info;
+        memcpy(&(info.id), rdata.data.c_str(), int_size);
+        memcpy(&(info.value), rdata.data.c_str() + int_size, float_size);
+        VISION->set_camera_para(info);
         shared_ptr<camera> cm = dynamic_pointer_cast<camera>(get_sensor("camera"));
-        cm->set_ctrl_item(info);
-        */
+        cm->set_camera_para(info);
     }
     else if (rdata.type == COLOR_SAMPLE)
     {

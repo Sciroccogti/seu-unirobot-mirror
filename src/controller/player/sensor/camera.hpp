@@ -20,6 +20,7 @@ public:
     bool open();
     void close();
 
+    void set_camera_para(const camera_para &para);
     inline unsigned char *buffer() const
     {
         if (use_mv_)
@@ -78,4 +79,5 @@ private:
     unsigned char *buffer_;
     tSdkCameraCapbility     tCapability_;
     tSdkFrameHead           sFrameInfo_;
+    std::map<std::string, camera_para> camera_infos_;
 };

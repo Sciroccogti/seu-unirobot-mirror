@@ -1,4 +1,5 @@
 #include "vision.hpp"
+#include "parser/camera_parser.hpp"
 #include "darknet/parser.h"
 #include <cuda_runtime.h>
 #include "cuda/cudaproc.h"
@@ -14,11 +15,24 @@ Vision::Vision(): timer(CONF->get_config_value<int>("vision_period"))
     h_ = CONF->get_config_value<int>("image.height");
     img_sd_type_ = IMAGE_SEND_RESULT;
     camera_src_ = nullptr;
+    parser::camera_parser::parse(CONF->get_config_value<string>(CONF->player()+".camera_file"), camera_infos_);
 }
 
 Vision::~Vision()
 {
     std::cout << "\033[32malgorithm:[Vision]   end!\033[0m\n";
+}
+
+void Vision::set_camera_para(const camera_para &para)
+{
+    for(auto &item:camera_infos_)
+    {
+        if(item.second.id == para.id)
+        {
+            item.second.value = para.value;
+            break;
+        }
+    }
 }
 
 void Vision::src2dst()
@@ -29,7 +43,8 @@ void Vision::src2dst()
 
     if (use_mv_)
     {
-        cudaBayer2BGR(dev_src_, dev_bgr_,  camera_w_,  camera_h_,  0.0,  1.3, 1, 1.3);
+        cudaBayer2BGR(dev_src_, dev_bgr_,  camera_w_,  camera_h_, camera_infos_["saturation"].value,
+            camera_infos_["red_gain"].value, camera_infos_["green_gain"].value, camera_infos_["blue_gain"].value);
     }
     else
     {
@@ -56,7 +71,9 @@ void Vision::run()
         }
 
         frame_mutex_.lock();
+        double t1 = clock();
         src2dst();
+        cout<<(clock()-t1)/CLOCKS_PER_SEC<<endl;
         frame_mutex_.unlock();
         cudaError_t err;
         cudaResizePacked(dev_ori_, w_, h_, dev_sized_, net_.w, net_.h);

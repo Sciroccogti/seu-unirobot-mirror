@@ -69,20 +69,69 @@ __global__ void bgr2rgbfp(unsigned char *in, float *rgbfp, int w, int h)
 }
 
 __global__ void baygr2bgr_kernal(unsigned char *bayergr, unsigned char *bgr, int w, int h,
-    float s, float rgain, float ggain, float bgain)
+    float ds, float rgain, float ggain, float bgain)
 {
     int x = blockIdx.x;
     int y = threadIdx.x;
-    unsigned char r,g,b;
-    int rn, gn, bn;
+    float r,g,b;
+    float hue, sat, val;
+    float rn, gn, bn;
 
-    b = bayergr[(y+((y+1)&1))*w+x-(x&1)];
-    g = bayergr[y*w+x-(x&1)+(y&1)];
-    r = bayergr[(y-(y&1))*w+x+((x+1)&1)];
-    
-    unsigned char rgbMax = max(max(r,g), b);
-    unsigned char rgbMin = min(min(r,g), b);
-    float delta = (rgbMax-rgbMin)/255.0f;
+    b = bayergr[(y+((y+1)&1))*w+x-(x&1)]*bgain;
+    g = bayergr[y*w+x-(x&1)+(y&1)]*ggain;
+    r = bayergr[(y-(y&1))*w+x+((x+1)&1)]*rgain;
+
+    float rgbMax = max(max(r,g), b);
+    float rgbMin = min(min(r,g), b);
+    float delta = rgbMax-rgbMin;
+
+    val = rgbMax;
+    if(rgbMax == 0) sat = 0;
+    else sat = delta/rgbMax;
+
+    if(delta == 0) hue = 0;
+    else
+    {
+        if(rgbMax == r)
+        {
+            if(g>=b) hue = 60*(g-b)/delta;
+            else hue = 60*(g-b)/delta+360;
+        }
+        else if(rgbMax == g)
+        {
+            hue = 60*(b-r)/delta+120;
+        }
+        else
+        {
+            hue = 60*(r-g)/delta+240;
+        }
+    }
+    if(ds>=0) sat = sat+(1-sat)*ds;
+    else sat = sat+sat*ds;
+
+    int hi = hue/60.0;
+    float f = hue/60.0-hi;
+    float p = val*(1-sat);
+    float q = val*(1-f*sat);
+    float t = val*(1-(1-f)*sat);
+    switch(hi)
+    {
+        case 0:
+            rn = val; gn = t; bn = p; break;
+        case 1:
+            rn = q; gn = val; bn = p; break;
+        case 2:
+            rn = p; gn = val; bn = t; break;
+        case 3:
+            rn = p; gn = q; bn = val; break;
+        case 4:
+            rn = t; gn = p; bn = val; break;
+        case 5:
+            rn = val; gn = p; bn = q; break;
+        default:
+            break;
+    }
+    /*
     if(delta==0.0)
     {
         rn=r;
@@ -111,10 +160,10 @@ __global__ void baygr2bgr_kernal(unsigned char *bayergr, unsigned char *bgr, int
             bn = rgb_bound(L*255+(b-L*255)*(1+alpha));
         }
     }
-    
-    bgr[y*w*3+x*3+0] = rgb_bound(bn*bgain);
-    bgr[y*w*3+x*3+1] = rgb_bound(gn*ggain);
-    bgr[y*w*3+x*3+2] = rgb_bound(rn*rgain);
+    */
+    bgr[y*w*3+x*3+0] = rgb_bound(bn);
+    bgr[y*w*3+x*3+1] = rgb_bound(gn);
+    bgr[y*w*3+x*3+2] = rgb_bound(rn);
 }
 
 template<typename T>
