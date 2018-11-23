@@ -70,13 +70,13 @@ def get_config(key=''):
 
 def build_project(cross):
     if cross:
-        build_dir = '%s/build-%s'%(config.project_dir, config.target_dir)
+        build_dir = '%s/%s-build'%(config.project_dir, config.target_dir)
         if not os.path.exists(build_dir):
             os.mkdir(build_dir)
         cmd = 'rm -rf %s/bin/%s; cd %s; cmake -D CROSS=ON ..; make install -j4'\
             %(config.project_dir, config.target_dir, build_dir)
     else:
-        build_dir = '%s/build'%config.project_dir
+        build_dir = '%s/x86_64-build'%config.project_dir
         if not os.path.exists(build_dir):
             os.mkdir(build_dir)
         cmd = 'cd %s; cmake ..; make install -j4'%build_dir
