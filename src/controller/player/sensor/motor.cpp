@@ -59,7 +59,7 @@ inline uint32_t float2pos(const float &deg)
 
 inline float pos2float(const uint32_t &pos)
 {
-    return (float)(pos - ZERO_POS) * (360.0f / (float)(MAX_POS - MIN_POS));
+    return (float)((int)pos - ZERO_POS) * (360.0f / (float)(MAX_POS - MIN_POS));
 }
 
 bool motor::start()
@@ -150,18 +150,17 @@ void motor::real_act()
 
             if (voltage_ / 10.0f < min_volt_)
             {
-                std::cout << "\033[31mcan not start because the voltage(" << voltage_ / 10.0f << "V) is too low!\033[0m\n";
-                raise(SIGINT);
+                std::cout << "\033[31mcThe voltage(" << voltage_ / 10.0f << "V) is too low!\033[0m\n";
+                //raise(SIGINT);
             }
 
-            /*
             read_pos();
 
             for (auto &cd : curr_degs_)
             {
                 ROBOT->get_joint(cd.first)->set_deg(cd.second);
             }
-            */
+            
             set_torq(1);
             is_connected_ = true;
         }
@@ -169,17 +168,18 @@ void motor::real_act()
     else
     {
         set_gpos();
-
-        if ((p_count_ * period_ms_ % 990) == 0)
+        read_pos();
+        if ((p_count_ * period_ms_ % 1000) == 0)
         {
             led_status_ = 1 - led_status_;
             set_led(led_status_);
         }
-
+        /*
         if ((p_count_ * period_ms_ % 10000) == 0)
         {
             read_voltage();
         }
+        */
     }
 }
 
@@ -226,22 +226,24 @@ void motor::read_pos()
     int dxl_comm_result = COMM_TX_FAIL;
     uint8_t id = 0;
     dxl_comm_result = pposRead_->txRxPacket();
-    //if (dxl_comm_result != COMM_SUCCESS)
-    //    std::cout<<packetHandler_->getTxRxResult(dxl_comm_result)<<std::endl;
-
-    for (auto &r : ROBOT->get_joint_map())
+    if (dxl_comm_result != COMM_SUCCESS)
+        std::cout<<packetHandler_->getTxRxResult(dxl_comm_result)<<std::endl;
+    else
     {
-        id = static_cast<uint8_t >(r.second->jid_);
+        for (auto &r : ROBOT->get_joint_map())
+        {
+            id = static_cast<uint8_t >(r.second->jid_);
 
-        //if(pposRead_->getError(id, &dxl_error))
-        //    std::cout<<"[ID: "<<setw(2)<<(int)id<<"] "<<packetHandler_->getRxPacketError(dxl_error)<<std::endl;
-        if (pposRead_->isAvailable(id, ADDR_PPOS, SIZE_PPOS))
-        {
-            curr_degs_[static_cast<int>(id)] = pos2float(pposRead_->getData(id, ADDR_PPOS, SIZE_PPOS));
-        }
-        else
-        {
-            curr_degs_[static_cast<int>(id)] = 0.0;
+            //if(pposRead_->getError(id, &dxl_error))
+            //    std::cout<<"[ID: "<<setw(2)<<(int)id<<"] "<<packetHandler_->getRxPacketError(dxl_error)<<std::endl;
+            if (pposRead_->isAvailable(id, ADDR_PPOS, SIZE_PPOS))
+            {
+                curr_degs_[static_cast<int>(id)] = pos2float(pposRead_->getData(id, ADDR_PPOS, SIZE_PPOS));
+            }
+            else
+            {
+                curr_degs_[static_cast<int>(id)] = 0.0;
+            }
         }
     }
 }

@@ -73,6 +73,8 @@ __global__ void baygr2bgr_kernal(unsigned char *bayergr, unsigned char *bgr, int
 {
     int x = blockIdx.x;
     int y = threadIdx.x;
+    int outy = h-y;
+    int outx = w-x;
     float r,g,b;
     float hue, sat, val;
     float rn, gn, bn;
@@ -161,9 +163,9 @@ __global__ void baygr2bgr_kernal(unsigned char *bayergr, unsigned char *bgr, int
         }
     }
     */
-    bgr[y*w*3+x*3+0] = rgb_bound(bn);
-    bgr[y*w*3+x*3+1] = rgb_bound(gn);
-    bgr[y*w*3+x*3+2] = rgb_bound(rn);
+    bgr[outy*w*3+outx*3+0] = rgb_bound(bn);
+    bgr[outy*w*3+outx*3+1] = rgb_bound(gn);
+    bgr[outy*w*3+outx*3+2] = rgb_bound(rn);
 }
 
 template<typename T>

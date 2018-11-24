@@ -73,7 +73,7 @@ void Vision::run()
         frame_mutex_.lock();
         double t1 = clock();
         src2dst();
-        cout<<(clock()-t1)/CLOCKS_PER_SEC<<endl;
+        //cout<<(clock()-t1)/CLOCKS_PER_SEC<<endl;
         frame_mutex_.unlock();
         cudaError_t err;
         cudaResizePacked(dev_ori_, w_, h_, dev_sized_, net_.w, net_.h);
