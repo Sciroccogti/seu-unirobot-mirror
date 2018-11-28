@@ -5,6 +5,9 @@ import sys
 import SSHConnection
 import config
 import datetime
+import threading
+import time
+import signal
 
 
 if __name__ == '__main__': 
@@ -33,8 +36,17 @@ if __name__ == '__main__':
         
     ssh_client = SSHConnection.SSHConnection(ip_address, config.ssh_port, config.username, config.password)
     ssh_client.upload(config.project_dir+'/bin/'+config.compress_file_name, config.remote_dir+config.compress_file_name)
-    
+
+    def signal_handler(sig,frame):
+        if sig == signal.SIGINT:
+            ssh_client.exec_command('kill -2 $(pidof sshtest)')
+
+    signal.signal(signal.SIGINT,signal_handler)
+
     nowTime=datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     cmd = 'date -s "%s"; cd %s; tar zxvf %s; cd %s; sudo ./%s %s'\
           %(nowTime, config.remote_dir, config.compress_file_name, config.target_dir, config.exec_file_name, args)
-    ssh_client.exec_command(cmd)
+    td = threading.Thread(ssh_client.exec_command, (cmd,))
+    td.start()
+    while td.is_alive():
+        time.sleep(0.5)

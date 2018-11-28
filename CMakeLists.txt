@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.12)
 
 function(detect_installed_gpu out_variable)
     set(__cufile "${CMAKE_BINARY_DIR}/detect_cuda_archs.cu")
