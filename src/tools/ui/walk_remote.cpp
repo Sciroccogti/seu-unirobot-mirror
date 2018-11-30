@@ -130,9 +130,9 @@ void walk_remote::procTimer()
                 remote_data_type rtp = WALK_DATA;
                 tcp_command cmd;
                 cmd.type = REMOTE_DATA;
-                cmd.size = rmt_type_size + float_size * 4;
+                cmd.size = enum_size + float_size * 4;
                 cmd.data.clear();
-                cmd.data.append((char *)(&rtp), rmt_type_size);
+                cmd.data.append((char *)(&rtp), enum_size);
                 cmd.data.append((char *)(&_x), float_size);
                 cmd.data.append((char *)(&_y), float_size);
                 cmd.data.append((char *)(&_dir), float_size);

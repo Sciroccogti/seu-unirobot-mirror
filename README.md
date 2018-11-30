@@ -5,7 +5,7 @@
 This project contains a controller, some debug tools and some scripts for seu-robocup kidszie team. The controller and debug tools are written in c++. The scripts are written in python.
 
 ## Build tools
-* cmake >= 3.0
+* cmake >= 3.12
 * gcc
 * g++
 * nvcc
@@ -20,11 +20,13 @@ This project contains a controller, some debug tools and some scripts for seu-ro
 * libboost-all-dev
 * freeglut3-dev
 * libv4l-dev
-* MVSDK(library for our camera)
+* MVSDK (library for our camera)
 * qt5-default
 * astyle
+* libffi-dev (library for build paramiko of python3)
 
 ### python libraries
+* python3
 * paramiko
 
 ## Compile & Run

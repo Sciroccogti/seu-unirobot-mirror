@@ -43,10 +43,10 @@ void tcp_client::regist(const tcp_cmd_type &type, const tcp_data_dir &dir)
 {
     tcp_command cmd;
     cmd.type = REG_DATA;
-    cmd.size = tcp_type_size + tcp_dir_size;
+    cmd.size = enum_size + enum_size;
     cmd.data.clear();
-    cmd.data.append((char *)&type, tcp_type_size);
-    cmd.data.append((char *)&dir, tcp_dir_size);
+    cmd.data.append((char *)&type, enum_size);
+    cmd.data.append((char *)&dir, enum_size);
     this->write(cmd);
 }
 
@@ -62,12 +62,12 @@ void tcp_client::deliver(const tcp_command &cmd)
     unsigned int total_size = data_size + data_offset;
     char buf[MAX_CMD_LEN];
     unsigned int offset = 0;
-    memcpy(buf + offset, &(cmd.type), tcp_type_size);
-    offset += tcp_type_size;
+    memcpy(buf + offset, &(cmd.type), enum_size);
+    offset += enum_size;
     memcpy(buf + offset, &(cmd.end), bool_size);
     offset += bool_size;
-    memcpy(buf + offset, &data_size, tcp_size_size);
-    offset += tcp_size_size;
+    memcpy(buf + offset, &data_size, int_size);
+    offset += int_size;
     memcpy(buf + offset, cmd.data.c_str(), cmd.data.size());
     boost::asio::async_write(socket_, boost::asio::buffer(buf, total_size),
                              [this](boost::system::error_code ec, std::size_t length)
@@ -113,9 +113,9 @@ void tcp_client::read_head()
     {
         if (!ec)
         {
-            memcpy(&recv_type_, buff_, tcp_type_size);
-            memcpy(&recv_end_, buff_ + tcp_type_size, bool_size);
-            memcpy(&recv_size_, buff_ + tcp_type_size + bool_size, tcp_size_size);
+            memcpy(&recv_type_, buff_, enum_size);
+            memcpy(&recv_end_, buff_ + enum_size, bool_size);
+            memcpy(&recv_size_, buff_ + enum_size + bool_size, int_size);
             read_data();
         }
         else

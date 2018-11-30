@@ -109,9 +109,9 @@ void camera_setter::procValueChanged(camera_para info)
     tcp_command cmd;
     remote_data_type t = CAMERA_SET;
     cmd.type = REMOTE_DATA;
-    cmd.size = int_size * 2 + rmt_type_size;
+    cmd.size = int_size * 2 + enum_size;
     cmd.data.clear();
-    cmd.data.append((char *)&t, rmt_type_size);
+    cmd.data.append((char *)&t, enum_size);
     cmd.data.append((char *) & (info.id), int_size);
     cmd.data.append((char *) & (info.value), int_size);
     client_.write(cmd);

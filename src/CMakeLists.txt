@@ -1,6 +1,6 @@
 include_directories(lib)
 add_subdirectory(lib)
-add_subdirectory(controller)
+add_subdirectory(app)
 
 if("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "x86_64")
     add_subdirectory(tools)

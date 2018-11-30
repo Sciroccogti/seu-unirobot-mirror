@@ -20,7 +20,10 @@ enum tcp_cmd_type
     TEST_DATA = 5,
     JOINT_DATA = 6,
     REMOTE_DATA = 7,
-    IMG_DATA = 8
+    IMG_DATA = 8,
+
+    WM_DATA = 15,
+    TASK_DATA = 20,
 };
 
 struct tcp_command
@@ -57,15 +60,20 @@ struct remote_data
     std::string data;
 };
 
-enum {tcp_dir_size = sizeof(tcp_data_dir)};
-enum {tcp_type_size = sizeof(tcp_cmd_type)};
-enum {tcp_size_size = sizeof(unsigned int)};
-enum {rmt_type_size = sizeof(remote_data_type)};
-enum {rmt_size_size = sizeof(unsigned int)};
+enum task_type
+{
+    TASK_NONE = 0,
+    TASK_WALK = 1,
+    TASK_ACT = 2,
+    TASK_LOOK = 3,
+    TASK_LED = 4
+};
+
+enum {enum_size = sizeof(tcp_data_dir)};
 enum {float_size = sizeof(float)};
 enum {int_size = sizeof(int)};
 enum {bool_size = sizeof(bool)};
-enum {data_offset = tcp_type_size + bool_size + tcp_size_size};
+enum {data_offset = enum_size + bool_size + int_size};
 enum {max_data_size = MAX_CMD_LEN - data_offset};
 
 typedef std::function<void (const tcp_command)> tcp_callback;

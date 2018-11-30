@@ -1003,8 +1003,8 @@ void action_debuger::procButtonRunPos()
     cmd.type = REMOTE_DATA;
     cmd.data.clear();
     remote_data_type rtp = ACT_DATA;
-    cmd.data.append((char *)(&rtp), rmt_type_size);
-    unsigned int size = rmt_type_size;
+    cmd.data.append((char *)(&rtp), enum_size);
+    unsigned int size = enum_size;
 
     for (int i = 0; i < id; i++)
     {

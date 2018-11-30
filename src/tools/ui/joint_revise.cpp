@@ -96,10 +96,10 @@ void joint_revise::procValueChanged(int id, float v)
     remote_data_type t = JOINT_OFFSET;
     cmd.data.clear();
     cmd.type = REMOTE_DATA;
-    cmd.size = sizeof(robot_joint_deg) * ROBOT->get_joint_map().size() + rmt_type_size;
+    cmd.size = sizeof(robot_joint_deg) * ROBOT->get_joint_map().size() + enum_size;
     cmd.data.clear();
     robot_joint_deg offset;
-    cmd.data.append((char *)&t, rmt_type_size);
+    cmd.data.append((char *)&t, enum_size);
 
     for (auto &j : ROBOT->get_joint_map())
     {

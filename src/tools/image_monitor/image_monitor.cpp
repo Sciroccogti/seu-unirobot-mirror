@@ -178,9 +178,9 @@ void image_monitor::procShot(QRect rect)
             remote_data_type t = COLOR_SAMPLE;
             tcp_command cmd;
             cmd.type = REMOTE_DATA;
-            cmd.size = 5 * int_size + rmt_type_size;
+            cmd.size = 5 * int_size + enum_size;
             cmd.data.clear();
-            cmd.data.append((char *)(&t), rmt_type_size);
+            cmd.data.append((char *)(&t), enum_size);
             cmd.data.append((char *)(&c), int_size);
             cmd.data.append((char *)(&x), int_size);
             cmd.data.append((char *)(&y), int_size);
@@ -196,9 +196,9 @@ void image_monitor::procImageBox(int idx)
     remote_data_type t = IMAGE_SEND_TYPE;
     tcp_command cmd;
     cmd.type = REMOTE_DATA;
-    cmd.size = int_size + rmt_type_size;
+    cmd.size = int_size + enum_size;
     cmd.data.clear();
-    cmd.data.append((char *)(&t), rmt_type_size);
+    cmd.data.append((char *)(&t), enum_size);
     cmd.data.append((char *)(&idx), int_size);
     client_.write(cmd);
 }
@@ -212,9 +212,9 @@ void image_monitor::procPitchSlider(int v)
 
     tcp_command cmd;
     cmd.type = REMOTE_DATA;
-    cmd.size = 2 * float_size + rmt_type_size;
+    cmd.size = 2 * float_size + enum_size;
     cmd.data.clear();
-    cmd.data.append((char *)(&t), rmt_type_size);
+    cmd.data.append((char *)(&t), enum_size);
     cmd.data.append((char *)(&yaw), float_size);
     cmd.data.append((char *)(&pitch), float_size);
     client_.write(cmd);
@@ -229,9 +229,9 @@ void image_monitor::procYawSlider(int v)
 
     tcp_command cmd;
     cmd.type = REMOTE_DATA;
-    cmd.size = 2 * float_size + rmt_type_size;
+    cmd.size = 2 * float_size + enum_size;
     cmd.data.clear();
-    cmd.data.append((char *)(&t), rmt_type_size);
+    cmd.data.append((char *)(&t), enum_size);
     cmd.data.append((char *)(&yaw), float_size);
     cmd.data.append((char *)(&pitch), float_size);
     client_.write(cmd);
