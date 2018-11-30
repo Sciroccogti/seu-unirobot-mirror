@@ -1,3 +1,4 @@
+include_directories(../lib)
 include_directories(./)
 include_directories(./player)
 add_subdirectory(options)

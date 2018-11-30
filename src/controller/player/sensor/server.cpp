@@ -62,8 +62,8 @@ void tcp_session::read_head()
         if (!ec)
         {
             memcpy(&recv_type_, buff_, tcp_type_size);
-            memcpy(&recv_end_, buff_ + tcp_type_size, tcp_end_size);
-            memcpy(&recv_size_, buff_ + tcp_type_size + tcp_end_size, tcp_size_size);
+            memcpy(&recv_end_, buff_ + tcp_type_size, bool_size);
+            memcpy(&recv_size_, buff_ + tcp_type_size + bool_size, tcp_size_size);
             read_data();
         }
         else
@@ -157,8 +157,8 @@ void tcp_session::deliver(const tcp_command &cmd)
     unsigned int offset = 0;
     memcpy(buf + offset, &(cmd.type), tcp_type_size);
     offset += tcp_type_size;
-    memcpy(buf + offset, &(cmd.end), tcp_end_size);
-    offset += tcp_end_size;
+    memcpy(buf + offset, &(cmd.end), bool_size);
+    offset += bool_size;
     memcpy(buf + offset, &data_size, tcp_size_size);
     offset += tcp_size_size;
     memcpy(buf + offset, cmd.data.c_str(), cmd.data.size());
@@ -240,14 +240,14 @@ void tcp_server::write(const tcp_command &cmd)
     }
 
     unsigned int t_size = cmd.size;
-    unsigned max_data_size = MAX_CMD_LEN - tcp_size_size - tcp_type_size - tcp_end_size;
+    unsigned max_data_size = MAX_CMD_LEN - tcp_size_size - tcp_type_size - bool_size;
     int i = 0;
     tcp_command temp;
     temp.type = cmd.type;
 
     while (t_size > max_data_size)
     {
-        temp.end = 0;
+        temp.end = false;
         temp.size = max_data_size;
         temp.data.assign((char *)(cmd.data.c_str() + i * max_data_size), max_data_size);
         pool_.deliver(temp);
@@ -257,7 +257,7 @@ void tcp_server::write(const tcp_command &cmd)
     }
 
     temp.size = t_size;
-    temp.end = 1;
+    temp.end = true;
     temp.data.assign((char *)(cmd.data.c_str() + i * max_data_size), t_size);
     pool_.deliver(temp);
 }

@@ -47,7 +47,7 @@ private:
     tcp_command recv_cmd_;
     char buff_[MAX_CMD_LEN];
     tcp_cmd_type recv_type_;
-    unsigned char recv_end_;
+    bool recv_end_;
     unsigned int recv_size_;
 };
 

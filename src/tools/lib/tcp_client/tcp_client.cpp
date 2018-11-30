@@ -24,7 +24,7 @@ void tcp_client::write(const tcp_command &cmd)
 
     while (t_size > max_data_size)
     {
-        temp.end = 0;
+        temp.end = false;
         temp.size = max_data_size;
         temp.data.assign((char *)(cmd.data.c_str() + i * max_data_size), max_data_size);
         deliver(temp);
@@ -34,7 +34,7 @@ void tcp_client::write(const tcp_command &cmd)
     }
 
     temp.size = t_size;
-    temp.end = 1;
+    temp.end = true;
     temp.data.assign((char *)(cmd.data.c_str() + i * max_data_size), t_size);
     deliver(temp);
 }
@@ -64,8 +64,8 @@ void tcp_client::deliver(const tcp_command &cmd)
     unsigned int offset = 0;
     memcpy(buf + offset, &(cmd.type), tcp_type_size);
     offset += tcp_type_size;
-    memcpy(buf + offset, &(cmd.end), tcp_end_size);
-    offset += tcp_end_size;
+    memcpy(buf + offset, &(cmd.end), bool_size);
+    offset += bool_size;
     memcpy(buf + offset, &data_size, tcp_size_size);
     offset += tcp_size_size;
     memcpy(buf + offset, cmd.data.c_str(), cmd.data.size());
@@ -114,8 +114,8 @@ void tcp_client::read_head()
         if (!ec)
         {
             memcpy(&recv_type_, buff_, tcp_type_size);
-            memcpy(&recv_end_, buff_ + tcp_type_size, tcp_end_size);
-            memcpy(&recv_size_, buff_ + tcp_type_size + tcp_end_size, tcp_size_size);
+            memcpy(&recv_end_, buff_ + tcp_type_size, bool_size);
+            memcpy(&recv_size_, buff_ + tcp_type_size + bool_size, tcp_size_size);
             read_data();
         }
         else
