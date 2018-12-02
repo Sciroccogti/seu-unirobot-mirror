@@ -1037,12 +1037,12 @@ network parse_network_cfg_custom(char *filename, int batch)
     n = n->next;
     int count = 0;
     free_section(s);
-    fprintf(stderr, "layer     filters    size              input                output\n");
+    fprintf(stderr, "filters    size              input                output\n");
 
     while (n)
     {
         params.index = count;
-        fprintf(stderr, "%4d ", count);
+        //fprintf(stderr, "%4d ", count);
         s = (section *)n->val;
         options = s->options;
         layer l = {0};
@@ -1699,14 +1699,14 @@ void load_weights_upto(network *net, char *filename, int cutoff)
 
     if ((major * 10 + minor) >= 2)
     {
-        printf("\n seen 64 \n");
+        printf("\nSeen 64 \n");
         uint64_t iseen = 0;
         fread(&iseen, sizeof(uint64_t), 1, fp);
         *net->seen = iseen;
     }
     else
     {
-        printf("\n seen 32 \n");
+        printf("\nSeen 32 \n");
         fread(net->seen, sizeof(int), 1, fp);
     }
 

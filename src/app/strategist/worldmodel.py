@@ -1,0 +1,23 @@
+#!/usr/bin/env python3
+#coding: utf-8
+
+class WorldModelData:
+    WORLDMODEL_DATA = 'fffff?'
+    def __init__(self):
+        self.ballx = 0.0
+        self.bally = 0.0
+        self.bodyx = -1.0
+        self.bodyy = 0.0
+        self.bodydir = 0.0
+        self.fall = False
+    
+    def set_data(self,args):
+        self.ballx = args[0]
+        self.bally = args[1]
+        self.bodyx = args[2]
+        self.bodyy = args[3]
+        self.bodydir = args[4]
+        self.fall = args[5]
+
+    def get_data(self):
+        return (self.ballx, self.bally, self.bodyx, self.bodyy, self.bodydir, self.fall)

@@ -9,6 +9,7 @@
 #include "tcp.hpp"
 #include "singleton.hpp"
 #include "plan/plan.hpp"
+#include "common.hpp"
 
 class tcp_session;
 typedef std::shared_ptr<tcp_session> tcp_session_ptr;

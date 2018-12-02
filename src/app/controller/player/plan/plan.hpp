@@ -2,6 +2,7 @@
 
 #include <memory>
 #include "sensor/sensor.hpp"
+#include "common.hpp"
 
 class plan
 {

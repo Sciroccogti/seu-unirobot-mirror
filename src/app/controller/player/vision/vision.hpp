@@ -13,6 +13,7 @@
 #include "singleton.hpp"
 #include "darknet/network.h"
 #include "tcp.hpp"
+#include "common.hpp"
 
 class Vision: public timer, public subscriber, public singleton<Vision>
 {

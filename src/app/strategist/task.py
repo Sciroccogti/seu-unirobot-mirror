@@ -2,7 +2,15 @@
 #coding: utf-8
 
 import struct
-from tcp import task_type, tcp_cmd_fmt, tcp_cmd_type, tcp_size
+from tcp import tcp_cmd_type, tcp_size
+
+class task_type:
+    TASK_NONE = 0
+    TASK_WALK = 1
+    TASK_ACT = 2
+    TASK_LOOK = 3
+    TASK_LED = 4
+
 
 class task:
     def __init__(self, t=task_type.TASK_NONE, params=tuple()):
@@ -14,8 +22,8 @@ class task:
         for param in params:
             self.__params.append(param)
 
-    def get_pack(self):
-        fmt = tcp_cmd_fmt[tcp_cmd_type.TASK_DATA]
+    def data(self):
+        fmt = tcp_cmd_type.TCP_FMT+'i'
         idx = 0
         for p in self.__params:
             if type(p) == int:

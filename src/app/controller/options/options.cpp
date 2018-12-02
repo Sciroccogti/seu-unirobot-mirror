@@ -1,5 +1,6 @@
 #include "options.hpp"
 #include <iostream>
+#include "common.hpp"
 
 using namespace std;
 using namespace boost::program_options;
@@ -17,9 +18,7 @@ options::options(): opts_desc_("  Options description")
     ("robot,r", value<bool>()->default_value(true),
      "If you want to use robot")
     ("mote,m", value<bool>()->default_value(false),
-     "If you want to use remote.")
-    ("log,l", value<bool>()->default_value(false),
-     "If you want to record image");
+     "If you want to use remote.");
 }
 
 bool options::init(int argc, char **argv)
@@ -32,21 +31,20 @@ bool options::init(int argc, char **argv)
         use_camera_ = arg<bool>("camera");
         use_robot_ = arg<bool>("robot");
         use_remote_ = arg<bool>("mote");
-        image_record_ = arg<bool>("log");
 
         if (var_map_.count("help"))
         {
-            std::cout << opts_desc_ << "\n";
+            LOG << '\n' << opts_desc_ << ENDL;
             return false;
         }
     }
     catch (boost::program_options::unknown_option &e)
     {
-        std::cout << e.what() << "\n";
+        LOG << e.what() << ENDL;
     }
     catch (std::exception &e)
     {
-        std::cout << e.what() << "\n";
+        LOG << e.what() << ENDL;
         return false;
     }
 

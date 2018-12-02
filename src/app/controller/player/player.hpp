@@ -11,6 +11,7 @@
 #include "sensor/camera.hpp"
 #include "walk/WalkEngine.hpp"
 #include "vision/vision.hpp"
+#include "common.hpp"
 
 class player: public timer, public std::enable_shared_from_this<player>
 {

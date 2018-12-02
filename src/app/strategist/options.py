@@ -1,34 +1,23 @@
 #!/usr/bin/env python3
 #coding: utf-8
 
-import getopt
+import argparse
 
-class options:
-    _instance = None 
-
-    def __new__(cls, *args, **kwargs): 
-        if cls._instance is None: 
-            cls._instance = super().__new__(cls,*args,**kwargs) 
-        return cls._instance
-
+class Options:
     def __init__(self):
-        self.use_gamectrl = False
-        self.use_teammate = False
-        self.id = 0
+        self.__parser = argparse.ArgumentParser()
+        self.__parser.add_argument('-p', '--player', type=int, help='player id, default: 0')
+        self.__parser.add_argument('-g', '--gamectrl', type=bool, help='use gamecontroller, default: False')
+        self.__parser.add_argument('-t', '--teammate', type=bool, help='use teammate info, default: False')
         
     def init(self, argv):
+        args = None
         try:
-            opts, args = getopt.getopt(argv, 'hp:g:t:')
-            for opt, arg in opts:
-                if opt == '-h':
-                    print('''usage: main.py -g <0|1> -t <0|1>\n-g: 0. do not use gamectrl; 1. use gamectrl\n-t: 0. do not use teammate; 1. use teammate\n''')
-                    exit(1)
-                elif opt == '-g':
-                    self.use_gamectrl = bool(arg)
-                elif opt == '-t':
-                    self.use_teammate = bool(arg)
-                elif opt == '-p':
-                    self.id = int(arg)             
-        except getopt.GetoptError as e:
-            print(e.msg)
+            args = self.__parser.parse_args(argv)
+        except:
             exit(1)
+        self.id = 0 if args.player is None else args.player
+        self.use_gamectrl = False if args.gamectrl is None else args.gamectrl
+        self.use_teammate = False if args.teammate is None else args.teammate
+
+OPTS = Options()

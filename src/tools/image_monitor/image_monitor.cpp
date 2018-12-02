@@ -110,13 +110,20 @@ void image_monitor::data_handler(const tcp_command cmd)
     {
         vector<unsigned char> buf(cmd.size);
         memcpy(&buf[0], cmd.data.c_str(), cmd.size);
-        Mat bgr = imdecode(buf, cv::IMREAD_COLOR);
-        Mat dst;
-        cvtColor(bgr, dst, CV_BGR2RGB);
-        QImage dstImage((const unsigned char *)(dst.data), dst.cols, dst.rows, QImage::Format_RGB888);
-        imageLab->set_image(dstImage);
-        bgr.release();
-        dst.release();
+        try
+        {
+            Mat bgr = imdecode(buf, cv::IMREAD_COLOR);
+            Mat dst;
+            cvtColor(bgr, dst, CV_BGR2RGB);
+            QImage dstImage((const unsigned char *)(dst.data), dst.cols, dst.rows, QImage::Format_RGB888);
+            imageLab->set_image(dstImage);
+            bgr.release();
+            dst.release();
+        }
+        catch(std::exception &e)
+        {
+            cout<<e.what()<<endl;
+        }
     }
 }
 

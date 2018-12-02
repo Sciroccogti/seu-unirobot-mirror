@@ -28,7 +28,7 @@ bool player::init()
     {
         while (!dynamic_pointer_cast<motor>(sensors_["motor"])->is_connected() && is_alive_)
         {
-            std::cout << "\033[33mwaitint for motor connection, please turn on the power.\033[0m" << std::endl;
+            LOG << "waiting for motor connection, please turn on the power." << ENDL;
             sleep(1);
         }
 
@@ -52,7 +52,7 @@ bool player::init()
     p.perform();
 
     start_timer();
-    WE->start();
+    //WE->start();
     return true;
 }
 
@@ -82,19 +82,22 @@ void player::run()
     if (is_alive_)
     {
         period_count_++;
+
         tcp_command cmd;
+        bool fall = false;
         cmd.type = WM_DATA;
-        cmd.size = 5 * float_size;
+        cmd.size = 5 * float_size + bool_size;
         cmd.data.append((char *) & (WM->ballx_), float_size);
         cmd.data.append((char *) & (WM->bally_), float_size);
         cmd.data.append((char *) & (WM->bodyx_), float_size);
         cmd.data.append((char *) & (WM->bodyy_), float_size);
         cmd.data.append((char *) & (WM->bodydir_), float_size);
+        cmd.data.append((char *)&fall, bool_size);
         SERVER->write(cmd);
 
         if (WM->lost())
         {
-            std::cout << "\033[31mhardware has no response!\033[0m\n";
+            LOG << "hardware has no response!" << ENDL;
             raise(SIGINT);
         }
 
@@ -132,7 +135,7 @@ list< plan_ptr > player::think()
     {
         if (WM->low_power())
         {
-            std::cout << "\033[31m******** low power! ********\033[0m\n";
+            LOG << "******** low power! ********" << ENDL;
         }
     }
 
@@ -156,7 +159,7 @@ void player::add_plans(std::list<plan_ptr> plist)
         }
         else
         {
-            std::cout << "cannot find actuator: " + p->actuator_name() << "\n";
+            LOG << "cannot find actuator: " + p->actuator_name() << ENDL;
         }
     }
 }
@@ -164,7 +167,6 @@ void player::add_plans(std::list<plan_ptr> plist)
 bool player::regist()
 {
     sensors_.clear();
-
     if (OPTS->use_camera())
     {
         sensors_["camera"] = std::make_shared<camera>();
@@ -176,7 +178,7 @@ bool player::regist()
             return false;
         }
     }
-
+    
     sensors_["motor"] = std::make_shared<motor>();
     sensors_["motor"]->attach(WM);
     sensors_["motor"]->attach(WE);
@@ -193,7 +195,6 @@ bool player::regist()
         sensors_["imu"]->attach(WE);
         sensors_["imu"]->start();
     }
-
     return true;
 }
 

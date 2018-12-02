@@ -25,7 +25,7 @@ public:
 
         if (aiter == robot::ROBOT->get_act_map().end())
         {
-            std::cout << "cannot find action: " + act_name_ << "\n";
+            LOG << "cannot find action: " + act_name_ << ENDL;
         }
         else
         {
@@ -50,39 +50,23 @@ public:
     std::vector< std::map<robot::robot_motion, robot::robot_pose> > get_poses(std::map<robot::robot_motion, robot::robot_pose> &pos1,
             std::map<robot::robot_motion, robot::robot_pose> &pos2, int act_time)
     {
-        Eigen::Vector3d poseb1(pos1[robot::MOTION_BODY].x, pos1[robot::MOTION_BODY].y,
-                               pos1[robot::MOTION_BODY].z);
-        Eigen::Vector3d poseb2(pos2[robot::MOTION_BODY].x, pos2[robot::MOTION_BODY].y,
-                               pos2[robot::MOTION_BODY].z);
-        Eigen::Vector3d posel1(pos1[robot::MOTION_LEFT_FOOT].x, pos1[robot::MOTION_LEFT_FOOT].y,
-                               pos1[robot::MOTION_LEFT_FOOT].z);
-        Eigen::Vector3d posel2(pos2[robot::MOTION_LEFT_FOOT].x, pos2[robot::MOTION_LEFT_FOOT].y,
-                               pos2[robot::MOTION_LEFT_FOOT].z);
-        Eigen::Vector3d poser1(pos1[robot::MOTION_RIGHT_FOOT].x, pos1[robot::MOTION_RIGHT_FOOT].y,
-                               pos1[robot::MOTION_RIGHT_FOOT].z);
-        Eigen::Vector3d poser2(pos2[robot::MOTION_RIGHT_FOOT].x, pos2[robot::MOTION_RIGHT_FOOT].y,
-                               pos2[robot::MOTION_RIGHT_FOOT].z);
-        Eigen::Vector3d pposeb1(pos1[robot::MOTION_BODY].pitch, pos1[robot::MOTION_BODY].roll,
-                                pos1[robot::MOTION_BODY].yaw);
-        Eigen::Vector3d pposeb2(pos2[robot::MOTION_BODY].pitch, pos2[robot::MOTION_BODY].roll,
-                                pos2[robot::MOTION_BODY].yaw);
-        Eigen::Vector3d pposel1(pos1[robot::MOTION_LEFT_FOOT].pitch, pos1[robot::MOTION_LEFT_FOOT].roll,
-                                pos1[robot::MOTION_LEFT_FOOT].yaw);
-        Eigen::Vector3d pposel2(pos2[robot::MOTION_LEFT_FOOT].pitch, pos2[robot::MOTION_LEFT_FOOT].roll,
-                                pos2[robot::MOTION_LEFT_FOOT].yaw);
-        Eigen::Vector3d pposer1(pos1[robot::MOTION_RIGHT_FOOT].pitch, pos1[robot::MOTION_RIGHT_FOOT].roll,
-                                pos1[robot::MOTION_RIGHT_FOOT].yaw);
-        Eigen::Vector3d pposer2(pos2[robot::MOTION_RIGHT_FOOT].pitch, pos2[robot::MOTION_RIGHT_FOOT].roll,
-                                pos2[robot::MOTION_RIGHT_FOOT].yaw);
+        Eigen::Vector3d poseb1(pos1[robot::MOTION_BODY].x, pos1[robot::MOTION_BODY].y, pos1[robot::MOTION_BODY].z);
+        Eigen::Vector3d poseb2(pos2[robot::MOTION_BODY].x, pos2[robot::MOTION_BODY].y, pos2[robot::MOTION_BODY].z);
+        Eigen::Vector3d posel1(pos1[robot::MOTION_LEFT_FOOT].x, pos1[robot::MOTION_LEFT_FOOT].y, pos1[robot::MOTION_LEFT_FOOT].z);
+        Eigen::Vector3d posel2(pos2[robot::MOTION_LEFT_FOOT].x, pos2[robot::MOTION_LEFT_FOOT].y, pos2[robot::MOTION_LEFT_FOOT].z);
+        Eigen::Vector3d poser1(pos1[robot::MOTION_RIGHT_FOOT].x, pos1[robot::MOTION_RIGHT_FOOT].y, pos1[robot::MOTION_RIGHT_FOOT].z);
+        Eigen::Vector3d poser2(pos2[robot::MOTION_RIGHT_FOOT].x, pos2[robot::MOTION_RIGHT_FOOT].y, pos2[robot::MOTION_RIGHT_FOOT].z);
+        Eigen::Vector3d pposeb1(pos1[robot::MOTION_BODY].pitch, pos1[robot::MOTION_BODY].roll, pos1[robot::MOTION_BODY].yaw);
+        Eigen::Vector3d pposeb2(pos2[robot::MOTION_BODY].pitch, pos2[robot::MOTION_BODY].roll, pos2[robot::MOTION_BODY].yaw);
+        Eigen::Vector3d pposel1(pos1[robot::MOTION_LEFT_FOOT].pitch, pos1[robot::MOTION_LEFT_FOOT].roll, pos1[robot::MOTION_LEFT_FOOT].yaw);
+        Eigen::Vector3d pposel2(pos2[robot::MOTION_LEFT_FOOT].pitch, pos2[robot::MOTION_LEFT_FOOT].roll, pos2[robot::MOTION_LEFT_FOOT].yaw);
+        Eigen::Vector3d pposer1(pos1[robot::MOTION_RIGHT_FOOT].pitch, pos1[robot::MOTION_RIGHT_FOOT].roll, pos1[robot::MOTION_RIGHT_FOOT].yaw);
+        Eigen::Vector3d pposer2(pos2[robot::MOTION_RIGHT_FOOT].pitch, pos2[robot::MOTION_RIGHT_FOOT].roll, pos2[robot::MOTION_RIGHT_FOOT].yaw);
 
-        Eigen::Vector3d poselh1(pos1[robot::MOTION_LEFT_HAND].x, pos1[robot::MOTION_LEFT_HAND].y,
-                                pos1[robot::MOTION_LEFT_HAND].z);
-        Eigen::Vector3d poselh2(pos2[robot::MOTION_LEFT_HAND].x, pos2[robot::MOTION_LEFT_HAND].y,
-                                pos2[robot::MOTION_LEFT_HAND].z);
-        Eigen::Vector3d poserh1(pos1[robot::MOTION_RIGHT_HAND].x, pos1[robot::MOTION_RIGHT_HAND].y,
-                                pos1[robot::MOTION_RIGHT_HAND].z);
-        Eigen::Vector3d poserh2(pos2[robot::MOTION_RIGHT_HAND].x, pos2[robot::MOTION_RIGHT_HAND].y,
-                                pos2[robot::MOTION_RIGHT_HAND].z);
+        Eigen::Vector3d poselh1(pos1[robot::MOTION_LEFT_HAND].x, pos1[robot::MOTION_LEFT_HAND].y, pos1[robot::MOTION_LEFT_HAND].z);
+        Eigen::Vector3d poselh2(pos2[robot::MOTION_LEFT_HAND].x, pos2[robot::MOTION_LEFT_HAND].y, pos2[robot::MOTION_LEFT_HAND].z);
+        Eigen::Vector3d poserh1(pos1[robot::MOTION_RIGHT_HAND].x, pos1[robot::MOTION_RIGHT_HAND].y, pos1[robot::MOTION_RIGHT_HAND].z);
+        Eigen::Vector3d poserh2(pos2[robot::MOTION_RIGHT_HAND].x, pos2[robot::MOTION_RIGHT_HAND].y, pos2[robot::MOTION_RIGHT_HAND].z);
 
         Eigen::Vector3d dposeb = poseb2 - poseb1;
         Eigen::Vector3d dposel = posel2 - posel1;
@@ -302,7 +286,7 @@ public:
             }
             else
             {
-                std::cout << "ik error" << std::endl;
+                LOG << "ik error" << ENDL;
                 return false;
             }
 
@@ -339,7 +323,7 @@ public:
                     }
                     else
                     {
-                        std::cout << "ik error" << std::endl;
+                        LOG << "ik error" << ENDL;
                         return false;
                     }
                 }

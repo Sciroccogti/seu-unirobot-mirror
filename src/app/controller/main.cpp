@@ -5,7 +5,7 @@
 #include "robot/humanoid.hpp"
 #include "options/options.hpp"
 #include "player/player.hpp"
-
+#include "common.hpp"
 
 using namespace std;
 using namespace robot;
@@ -14,9 +14,9 @@ shared_ptr<player> maxwell;
 
 void exit_handler(int sig)
 {
-    std::cout << "\n\033[32m--------------------------------------------------------\n";
-    std::cout << "                         Good bye!                      \n";
-    std::cout << "--------------------------------------------------------\n";
+    LOG << "\n--------------------------------------------------------\n"
+        << "                         Good bye!                      \n"
+        << "--------------------------------------------------------" << ENDL;
 
     if (sig == SIGINT)
     {
@@ -27,26 +27,23 @@ void exit_handler(int sig)
 
 void greeting()
 {
-    std::cout << "\033[33m"
-              "---------------------------------------------------------------------\n"
-              " .---. ----- .    .     .    .         .---.        .           .    \n"
-              "|      |     |    |     |    |         |    \\       |           |    \n"
-              "|      |     |    |     |    | .---. ` |    /       |          -|-- \n"
-              " '---. ----- |    | ___ |    | |   | | |---'   .-.  |.-.   .-.  |    \n"
-              "     | |     |    |     |    | |   | | |   \\  /   \\ |   \\ /   \\ |   \n"
-              "     | |     |    |     |    | |   | | |    | \\   / |   / \\   / |    \n"
-              "'---'  -----  '--'       '--'  '   ' ' '    '  '-'   '-'   '-'  '-- \n"
-              "---------------------------------------------------------------------\n"
-              "  Southeast University, Nanjing, China\n"
-              "  Author: Liu Chuan.\n"
-              "  All rights reserved.     \n"
-              "---------------------------------------------------------------------\033[0m\n"
-              << std::endl;
-    std::cout << "\033[32m--------------------------------------------------------\n";
-    std::cout << left << setw(15) << "team-name: " << CONF->get_config_value<string>("team_name") << "\n";
-    std::cout << left << setw(15) << "team-number: " << CONF->get_config_value<string>("team_number") << "\n";
-    std::cout << left << setw(15) << "player-id: " << CONF->id() << "\n";
-    std::cout <<  "--------------------------------------------------------\n\033[0m";
+    LOG << "\n---------------------------------------------------------------------\n"
+        " .---. ----- .    .     .    .         .---.        .           .    \n"
+        "|      |     |    |     |    |         |    \\       |           |    \n"
+        "|      |     |    |     |    | .---. ` |    /       |          -|--  \n"
+        " '---. ----- |    | ___ |    | |   | | |---'   .-.  |.-.   .-.  |    \n"
+        "     | |     |    |     |    | |   | | |   \\  /   \\ |   \\ /   \\ |    \n"
+        "     | |     |    |     |    | |   | | |    | \\   / |   / \\   / |    \n"
+        "'---'  -----  '--'       '--'  '   ' ' '    '  '-'   '-'   '-'  '--  \n"
+        "---------------------------------------------------------------------\n"
+        "  Southeast University, Nanjing, China\n"
+        "  Author: Liu Chuan.\n"
+        "  All rights reserved.     \n"
+        "---------------------------------------------------------------------\n"
+        << left << setw(15) << "team-name: " << CONF->get_config_value<string>("team_name") << "\n"
+        << left << setw(15) << "team-number: " << CONF->get_config_value<string>("team_number") << "\n"
+        << left << setw(15) << "player-id: " << CONF->id() << "\n"
+        <<  "--------------------------------------------------------" << ENDL;
 }
 
 int main(int argc, char *argv[])
@@ -56,18 +53,19 @@ int main(int argc, char *argv[])
     sigemptyset(&sigIntHandler.sa_mask);
     sigIntHandler.sa_flags = 0;
     sigaction(SIGINT, &sigIntHandler, NULL);
-
+    cout.setf(ios::left);
     if (!OPTS->init(argc, argv))
     {
-        std::cout << "\033[31moptions init failed\n\033[0m";
+        LOG << "options init failed" << ENDL;
         return 1;
     }
 
     if (!CONF->init(OPTS->id()))
     {
-        std::cout << "\033[31mconfig init failed\n\033[0m";
+        LOG << "config init failed" << ENDL;
         return 2;
     }
+    greeting();
 
     ROBOT->init(CONF->robot_file(), CONF->action_file(), CONF->offset_file());
 
@@ -75,11 +73,9 @@ int main(int argc, char *argv[])
 
     if (!maxwell->init())
     {
-        std::cout << "\033[31mrobot init failed\n\033[0m";
+        LOG << "robot init failed" << ENDL;
         return 3;
     }
-
-    greeting();
 
     while (maxwell->is_alive())
     {

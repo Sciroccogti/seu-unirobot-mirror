@@ -3,14 +3,7 @@
 
 import json
 
-class config:
-    _instance = None 
-    
-    def __new__(cls, *args, **kwargs): 
-        if cls._instance is None: 
-            cls._instance = super().__new__(cls,*args,**kwargs) 
-        return cls._instance
-
+class Config:
     def __init__(self):
         self.id = 0
         self.__conf = None
@@ -40,3 +33,5 @@ class config:
                     break
                 json_data += c
         return json_data
+
+CONF = Config()

@@ -36,10 +36,6 @@ public:
     {
         return use_remote_;
     }
-    bool image_record() const
-    {
-        return image_record_;
-    }
 
 private:
     template<typename T> T arg(const std::string &opt) const
@@ -53,7 +49,6 @@ private:
     bool use_camera_;
     bool use_robot_;
     bool use_remote_;
-    bool image_record_;
 };
 
 #define OPTS options::instance()

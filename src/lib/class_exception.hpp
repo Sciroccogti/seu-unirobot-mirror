@@ -2,6 +2,7 @@
 
 #include <exception>
 #include <iostream>
+#include "common.hpp"
 
 template <class CLASS>
 class class_exception
@@ -9,7 +10,7 @@ class class_exception
 public:
     class_exception(std::string msg, int id = 0): msg_(msg), id_(id)
     {
-        std::cout << "\033[31mexception: " + msg_ << "\n\033[0m";
+        LOG << "exception: " + msg_ << ENDL;
     }
 
     ~class_exception() {};

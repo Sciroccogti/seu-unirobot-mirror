@@ -62,7 +62,7 @@ bool imu::open()
     }
     catch (exception &e)
     {
-        std::cout << "\033[33mimu: " << e.what() << "\033[0m\n";
+        LOG << "imu: " << e.what() << ENDL;
         return false;
     }
 }

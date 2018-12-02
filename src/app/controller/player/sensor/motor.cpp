@@ -150,7 +150,7 @@ void motor::real_act()
 
             if (voltage_ / 10.0f < min_volt_)
             {
-                std::cout << "\033[31mcThe voltage(" << voltage_ / 10.0f << "V) is too low!\033[0m\n";
+                LOG << "The voltage(" << voltage_ / 10.0f << "V) is too low!" << ENDL;
             }
 
             read_pos();
@@ -230,7 +230,7 @@ void motor::read_pos()
 
     if (dxl_comm_result != COMM_SUCCESS)
     {
-        std::cout << packetHandler_->getTxRxResult(dxl_comm_result) << std::endl;
+        LOG << packetHandler_->getTxRxResult(dxl_comm_result) << ENDL;
     }
     else
     {

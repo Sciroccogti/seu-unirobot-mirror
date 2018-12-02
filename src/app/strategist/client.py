@@ -6,17 +6,24 @@ import threading
 import time
 import struct
 import observer
-from tcp import tcp_cmd_type, tcp_cmd_fmt, tcp_size
+from tcp import tcp_cmd_type, tcp_size
+import worldmodel
+from common import LOG
+
 
 class client(observer.publisher):
     def __init__(self, port, addr='127.0.0.1'):
-        observer.publisher.__init__(self)
+        observer.publisher.__init__(self, 'client')
         self.__addr = addr
         self.__port = port
         self.__sock = socket.socket()
         self.__td = None
         self.connected = False
         self.is_alive = False
+
+    def __del__(self):
+        self.__td.join()
+        observer.publisher.__del__(self)
 
     def start(self):
         self.__sock.setblocking(True)
@@ -39,7 +46,7 @@ class client(observer.publisher):
         cmd.append(tcp_size.int_size+tcp_size.int_size)
         cmd.append(t)
         cmd.append(d)
-        fmt = '=i?Iii'
+        fmt = tcp_cmd_type.TCP_FMT+'ii'
         data = struct.pack(fmt, *(tuple(cmd)))
         self.send(data)
 
@@ -58,12 +65,10 @@ class client(observer.publisher):
                     self.__sock.close()
                     self.connected = False
                     self.is_alive = False
-                    print('The main controller is closed!')
                 else:
                     (cmd_type,) = struct.unpack('=i',data[:4])
-                    res = tuple()
                     if cmd_type == tcp_cmd_type.WM_DATA:
-                        res = struct.unpack(tcp_cmd_fmt[tcp_cmd_type.WM_DATA], data)[3:]
-                    self.notify(res)
+                        self.notify(observer.publisher.PUB_WORLDMODEL, struct.unpack(\
+                            tcp_cmd_type.TCP_FMT+worldmodel.WorldModelData.WORLDMODEL_DATA, data)[3:])
             except:
                 pass

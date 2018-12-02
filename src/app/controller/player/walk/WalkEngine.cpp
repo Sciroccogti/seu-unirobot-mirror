@@ -357,7 +357,7 @@ namespace walk
                     }
                     else
                     {
-                        std::cout << phase_ << '\t' << "\033[31mleft leg_inverse_kinematics faied!\033[0m" << std::endl;
+                        LOG << phase_ << '\t' << "left leg_inverse_kinematics faied!" << ENDL;
                     }
 
                     if (ROBOT->leg_inverse_kinematics(body_mat, rightfoot_mat, degs, false))
@@ -371,7 +371,7 @@ namespace walk
                     }
                     else
                     {
-                        std::cout << phase_ << '\t' << "\033[31mright leg_inverse_kinematics faied!\033[0m" << std::endl;
+                        LOG << phase_ << '\t' << "right leg_inverse_kinematics faied!" << ENDL;
                     }
 
 

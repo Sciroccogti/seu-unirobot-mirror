@@ -122,7 +122,7 @@ namespace parser
             }
             catch (bpt::ptree_error &e)
             {
-                std::cout << e.what() << "\n";
+                LOG << e.what() << ENDL;
             }
 
             return j;

@@ -9,6 +9,7 @@
 #include <unistd.h>
 #include "plan/plan.hpp"
 #include "sensor/sensor.hpp"
+#include "common.hpp"
 
 class actuator
 {
@@ -17,6 +18,7 @@ public:
         : name_(name), max_len_(max_len), us_(us)
     {
         is_alive_ = false;
+        LOG << std::setw(12) << "actuator:" << std::setw(18) << "[" + name_ + "]" << " started!" << ENDL;
     }
 
     void add_plan(plan_ptr p)
@@ -55,7 +57,7 @@ public:
             td_.join();
         }
 
-        std::cout << std::setw(15) << "\033[32mactuator: " << std::setw(10) << "[" + name_ + "]" << " end!\n\033[0m";
+        LOG << std::setw(12) << "actuator:" << std::setw(18) << "[" + name_ + "]" << " ended!" << ENDL;
     }
 
     mutable std::mutex plist_mutex_;
@@ -75,7 +77,7 @@ protected:
 
                 if (!p->perform())
                 {
-                    std::cout << "\033[33mplan: " + p->plan_name() + " perform failed.\n\033[0m";
+                    LOG << std::setw(12) << "plan:" << std::setw(18) << "["+p->plan_name()+"]" << " failed!" << ENDL;
                 }
 
                 plist_.pop_front();

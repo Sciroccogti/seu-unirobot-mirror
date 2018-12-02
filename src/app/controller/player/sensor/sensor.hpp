@@ -4,6 +4,7 @@
 #include <memory>
 #include "pattern.hpp"
 #include <iostream>
+#include "common.hpp"
 
 class sensor: public promulgator
 {
@@ -21,11 +22,12 @@ public:
     };
     sensor(const std::string &name): name_(name)
     {
+        LOG << std::setw(12) << "sensor:" << std::setw(18) << "[" + name_ + "]" << " started!" << ENDL;
     }
 
     ~sensor()
     {
-        std::cout << std::setw(15) << "\033[32msensor: " << std::setw(10) << "[" + name_ + "]" << " end!\n\033[0m";
+        LOG << std::setw(12) << "sensor:" << std::setw(18) << "[" + name_ + "]" << " ended!" << ENDL;
     }
 
     virtual bool start() = 0;
