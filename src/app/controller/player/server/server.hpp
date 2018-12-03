@@ -60,10 +60,6 @@ public:
     bool start();
     void stop();
     void write(const tcp_command &cmd);
-    inline remote_data r_data() const
-    {
-        return r_data_;
-    }
 
     std::list<plan_ptr> plans()
     {
@@ -75,6 +71,20 @@ public:
         return res;
     }
 
+    remote_data rmt_data() const
+    {
+        std::lock_guard<std::mutex> lk(rmt_mtx_);
+        return rmt_data_;
+    }
+
+    void reset_rmt_data()
+    {
+        std::lock_guard<std::mutex> lk(rmt_mtx_);
+        rmt_data_.type = NON_DATA;
+        rmt_data_.size = 0;
+        rmt_data_.data.clear();
+    }
+
 private:
     void accept();
     void data_handler(const tcp_command cmd);
@@ -83,11 +93,11 @@ private:
     boost::asio::ip::tcp::socket socket_;
     std::thread td_;
     tcp_pool pool_;
-    remote_data r_data_;
+    remote_data rmt_data_;
     int port_;
     bool is_alive_;
     std::list<plan_ptr> plan_list_;
-    mutable std::mutex plan_mtx_;
+    mutable std::mutex plan_mtx_, rmt_mtx_;
 };
 
 #define SERVER tcp_server::instance()

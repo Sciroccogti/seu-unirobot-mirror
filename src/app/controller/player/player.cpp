@@ -52,7 +52,7 @@ bool player::init()
     p.perform();
 
     start_timer();
-    //WE->start();
+    WE->start();
     return true;
 }
 
@@ -122,7 +122,7 @@ void player::run()
             }
         }
 
-        add_plans(SERVER->plans());
+        add_plans(think());
     }
 }
 
@@ -141,7 +141,11 @@ list< plan_ptr > player::think()
 
     if (OPTS->use_remote())
     {
-        //tlist = play_with_remote();
+        tlist = play_with_remote();
+    }
+    else
+    {
+        tlist = SERVER->plans();
     }
 
     plist.insert(plist.end(), tlist.begin(), tlist.end());
@@ -167,6 +171,7 @@ void player::add_plans(std::list<plan_ptr> plist)
 bool player::regist()
 {
     sensors_.clear();
+
     if (OPTS->use_camera())
     {
         sensors_["camera"] = std::make_shared<camera>();
@@ -178,7 +183,7 @@ bool player::regist()
             return false;
         }
     }
-    
+
     sensors_["motor"] = std::make_shared<motor>();
     sensors_["motor"]->attach(WM);
     sensors_["motor"]->attach(WE);
@@ -195,6 +200,7 @@ bool player::regist()
         sensors_["imu"]->attach(WE);
         sensors_["imu"]->start();
     }
+
     return true;
 }
 

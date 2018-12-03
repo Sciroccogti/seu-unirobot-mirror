@@ -1,10 +1,11 @@
-#pragma once
+#ifndef LEPH_SPLINE_HPP
+#define LEPH_SPLINE_HPP
 
 #include <vector>
 #include <iostream>
 #include "Polynom.hpp"
 
-namespace walk
+namespace Leph
 {
 
     /**
@@ -18,22 +19,35 @@ namespace walk
     public:
 
         /**
+         * Internal spline part structure
+         * with a polynom valid on an interval
+         */
+        struct Spline_t
+        {
+            Polynom polynom;
+            double min;
+            double max;
+        };
+
+        /**
          * Return spline interpolation
          * at given t. Compute spline value,
-         * its first and second derivative
+         * its first, second and third derivative
          */
         double pos(double t) const;
         double vel(double t) const;
         double acc(double t) const;
+        double jerk(double t) const;
 
         /**
          * Return spline interpolation
-         * value, first and second derivative
+         * value, first, second and third derivative
          * with given t bound between 0 and 1
          */
         double posMod(double t) const;
         double velMod(double t) const;
         double accMod(double t) const;
+        double jerkMod(double t) const;
 
         /**
          * Return minimum and maximum abscisse
@@ -49,23 +63,43 @@ namespace walk
         void exportData(std::ostream &os) const;
         void importData(std::istream &is);
 
-    protected:
+        /**
+         * Return the number of internal polynom
+         */
+        size_t size() const;
 
         /**
-         * Internal spline part structure
-         * with a polynom valid on an interval
+         * Access to given by its index
          */
-        struct Spline_t
-        {
-            Polynom polynom;
-            double min;
-            double max;
-        };
+        const Spline_t &part(size_t index) const;
+
+        /**
+         * Add a part with given polynom
+         * and min/max time range
+         */
+        void addPart(const Polynom &poly,
+                     double min, double max);
+
+        /**
+         * Replace this spline part with the
+         * internal data of given spline
+         */
+        void copyData(const Spline &sp);
+
+    protected:
 
         /**
          * Spline part container
          */
         std::vector<Spline_t> _splines;
+
+        /**
+         * Possible override callback
+         * after importation
+         */
+        virtual void importCallBack();
+
+    private:
 
         /**
          * Return spline interpolation of given value and
@@ -84,3 +118,6 @@ namespace walk
     };
 
 }
+
+#endif
+

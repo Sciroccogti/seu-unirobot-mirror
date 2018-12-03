@@ -2,7 +2,7 @@
 #include <stdexcept>
 #include "Spline.hpp"
 
-namespace walk
+namespace Leph
 {
 
     double Spline::pos(double t) const
@@ -17,6 +17,10 @@ namespace walk
     {
         return interpolation(t, &Polynom::acc);
     }
+    double Spline::jerk(double t) const
+    {
+        return interpolation(t, &Polynom::jerk);
+    }
 
     double Spline::posMod(double t) const
     {
@@ -29,6 +33,10 @@ namespace walk
     double Spline::accMod(double t) const
     {
         return interpolationMod(t, &Polynom::acc);
+    }
+    double Spline::jerkMod(double t) const
+    {
+        return interpolationMod(t, &Polynom::jerk);
     }
 
     double Spline::min() const
@@ -58,14 +66,14 @@ namespace walk
     {
         for (size_t i = 0; i < _splines.size(); i++)
         {
-            os << std::setprecision(10) << _splines[i].min << " ";
-            os << std::setprecision(10) << _splines[i].max << " ";
-            os << std::setprecision(10) <<
+            os << std::setprecision(17) << _splines[i].min << " ";
+            os << std::setprecision(17) << _splines[i].max << " ";
+            os << std::setprecision(17) <<
                _splines[i].polynom.getCoefs().size() << " ";
 
             for (size_t j = 0; j < _splines[i].polynom.getCoefs().size(); j++)
             {
-                os << std::setprecision(10) <<
+                os << std::setprecision(17) <<
                    _splines[i].polynom.getCoefs()[j] << " ";
             }
         }
@@ -138,11 +146,47 @@ namespace walk
             throw std::logic_error(
                 "Spline import format invalid");
         }
+
+        //Call possible post import
+        importCallBack();
+    }
+
+    size_t Spline::size() const
+    {
+        return _splines.size();
+    }
+
+    const Spline::Spline_t &Spline::part(size_t index) const
+    {
+        return _splines.at(index);
+    }
+
+    void Spline::addPart(const Polynom &poly,
+                         double min, double max)
+    {
+        _splines.push_back({poly, min, max});
+    }
+
+    void Spline::copyData(const Spline &sp)
+    {
+        _splines = sp._splines;
+        //Call possible post import
+        importCallBack();
+    }
+
+    void Spline::importCallBack()
+    {
     }
 
     double Spline::interpolation(double x,
                                  double(Polynom::*func)(double) const) const
     {
+        //Empty case
+        if (_splines.size() == 0)
+        {
+            return 0.0;
+        }
+
         //Bound asked abscisse into spline range
         if (x <= _splines.front().min)
         {

@@ -81,6 +81,7 @@ public:
         return lost_;
     }
 
+public:
     float ballx_, bally_;
     float bodyx_, bodyy_, bodydir_;
 

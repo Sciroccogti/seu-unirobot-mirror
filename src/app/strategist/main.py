@@ -77,10 +77,10 @@ if __name__ == '__main__':
         tm.start()
     cl.regsit(tcp.tcp_cmd_type.TASK_DATA, tcp.tcp_data_dir.DIR_SUPPLY)
     cl.regsit(tcp.tcp_cmd_type.WM_DATA, tcp.tcp_data_dir.DIR_APPLY)
-    t1 = task.task(task.task_type.TASK_WALK, (0.04, 0.02, 20.0, True))
+    t1 = task.task(task.task_type.TASK_WALK, (0.0, 0.0, 0.0, True))
     data = t1.data()
-    t2 = task.task(task.task_type.TASK_ACT, ('reset',))
-    data = t2.data()
+    #t2 = task.task(task.task_type.TASK_ACT, ('reset',))
+    #data = t2.data()
     while is_alive:
         if cl.connected:
             cl.send(data)
@@ -104,5 +104,4 @@ if __name__ == '__main__':
         gc.dettach(ROBOT)
         gc.stop()
     controller.wait()
-    print('\033[0m')
 

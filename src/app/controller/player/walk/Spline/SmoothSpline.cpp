@@ -1,9 +1,8 @@
 #include <stdexcept>
 #include <algorithm>
-#include <cmath>
-#include "SmoothSpline.hpp"
+#include "Spline/SmoothSpline.hpp"
 
-namespace walk
+namespace Leph
 {
 
     void SmoothSpline::addPoint(double time, double position,

@@ -4,23 +4,24 @@
 #include "plan/lookat_plan.hpp"
 #include "plan/walk_plan.hpp"
 #include "tcp.hpp"
-
+#include "server/server.hpp"
 using namespace robot;
 using namespace std;
 
 list<plan_ptr> player::play_with_remote()
 {
     list<plan_ptr> plist;
-    remote_data rdata = WM->rmt_data();
+    remote_data rdata = SERVER->rmt_data();
 
     if (rdata.type == WALK_DATA)
     {
-        float x, y, d, h;
+        float x, y, d;
+        bool e;
         memcpy(&x, rdata.data.c_str(), float_size);
         memcpy(&y, rdata.data.c_str() + float_size, float_size);
         memcpy(&d, rdata.data.c_str() + 2 * float_size, float_size);
-        memcpy(&h, rdata.data.c_str() + 3 * float_size, float_size);
-        plist.push_back(make_shared<walk_plan>(x, y, d, h));
+        memcpy(&e, rdata.data.c_str() + 3 * float_size, bool_size);
+        plist.push_back(make_shared<walk_plan>(x, y, d, e));
     }
     else if (rdata.type == ACT_DATA)
     {
@@ -94,10 +95,10 @@ list<plan_ptr> player::play_with_remote()
     {
         int t;
         memcpy(&t, rdata.data.c_str(), int_size);
-//        VISION->set_img_send_type(static_cast<image_send_type>(t));
+        VISION->set_img_send_type(static_cast<image_send_type>(t));
     }
 
-    WM->reset_rmt_data();
+    SERVER->reset_rmt_data();
     return plist;
 }
 

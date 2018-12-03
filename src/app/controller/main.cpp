@@ -54,6 +54,7 @@ int main(int argc, char *argv[])
     sigIntHandler.sa_flags = 0;
     sigaction(SIGINT, &sigIntHandler, NULL);
     cout.setf(ios::left);
+
     if (!OPTS->init(argc, argv))
     {
         LOG << "options init failed" << ENDL;
@@ -65,6 +66,7 @@ int main(int argc, char *argv[])
         LOG << "config init failed" << ENDL;
         return 2;
     }
+
     greeting();
 
     ROBOT->init(CONF->robot_file(), CONF->action_file(), CONF->offset_file());

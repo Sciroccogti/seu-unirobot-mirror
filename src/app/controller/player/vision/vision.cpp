@@ -17,12 +17,12 @@ Vision::Vision(): timer(CONF->get_config_value<int>("vision_period"))
     img_sd_type_ = IMAGE_SEND_RESULT;
     camera_src_ = nullptr;
     parser::camera_parser::parse(CONF->get_config_value<string>(CONF->player() + ".camera_file"), camera_infos_);
-    LOG << setw(12) << "algorithm:"<< setw(18) <<"[vision]" <<" started!" << ENDL;
+    LOG << setw(12) << "algorithm:" << setw(18) << "[vision]" << " started!" << ENDL;
 }
 
 Vision::~Vision()
 {
-    LOG << setw(12) << "algorithm:"<< setw(18) <<"[vision]" <<" ended!" << ENDL;
+    LOG << setw(12) << "algorithm:" << setw(18) << "[vision]" << " ended!" << ENDL;
 }
 
 void Vision::set_camera_para(const camera_para &para)
@@ -60,7 +60,7 @@ void Vision::run()
 {
     if (is_alive_)
     {
-        
+
         if (camera_src_ == nullptr)
         {
             return;
@@ -131,7 +131,7 @@ void Vision::run()
 
         free_detections(dets, nboxes);
         is_busy_ = false;
-    
+
     }
 }
 

@@ -7,22 +7,23 @@
 class walk_plan: public plan
 {
 public:
-    walk_plan(const float &x, const float &y, const float &dir, const float &h = 0.04)
+    walk_plan(const float &x, const float &y, const float &dir, bool enable)
         : plan("walk_plan", "body")
     {
         params_[0] = x;
         params_[1] = y;
         params_[2] = dir;
-        params_[3] = h;
+        enable_ = enable;
     }
 
     bool perform()
     {
-        walk::WE->set_params(params_);
+        walk::WE->set_params(params_, enable_);
         MADT->mode() = adapter::MODE_WALK;
         return true;
     }
 private:
-    Eigen::Vector4f params_;
+    Eigen::Vector3d params_;
+    bool enable_;
 };
 

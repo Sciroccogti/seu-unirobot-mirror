@@ -33,7 +33,6 @@ walk_remote::walk_remote(tcp_client &client, QString netinfo, QWidget *parent): 
     xLab->setFixedWidth(80);
     yLab->setFixedWidth(80);
 
-    hSpinBox = new QDoubleSpinBox();
     startCheck = new QCheckBox("Start");
     btnMan = new QRadioButton("Manual");
     btnRand = new QRadioButton("Random");
@@ -41,10 +40,6 @@ walk_remote::walk_remote(tcp_client &client, QString netinfo, QWidget *parent): 
     btnSpot->setMaximumWidth(100);
     btnMan->setChecked(true);
 
-    hSpinBox->setRange(0, 0.05);
-    hSpinBox->setDecimals(3);
-    hSpinBox->setSingleStep(0.005);
-    hSpinBox->setValue(0.03);
 
     QHBoxLayout *midLayout = new QHBoxLayout();
     QVBoxLayout *mlLayout = new QVBoxLayout();
@@ -52,10 +47,6 @@ walk_remote::walk_remote(tcp_client &client, QString netinfo, QWidget *parent): 
     mlLayout->addWidget(xLab);
     mlLayout->addWidget(yLab);
     QVBoxLayout *mrLayout = new QVBoxLayout();
-    QHBoxLayout *hLayout = new QHBoxLayout();
-    hLayout->addWidget(new QLabel("Lift Height"));
-    hLayout->addWidget(hSpinBox);
-    mrLayout->addLayout(hLayout);
     mrLayout->addWidget(startCheck);
     mrLayout->addWidget(btnMan);
     mrLayout->addWidget(btnSpot);
@@ -86,7 +77,7 @@ walk_remote::walk_remote(tcp_client &client, QString netinfo, QWidget *parent): 
     _x = 0;
     _y = 0;
     _dir = 0;
-    _h = 0;
+    _enable = false;
     srand(int(time(0)));
     setEnabled(false);
 }
@@ -113,7 +104,6 @@ void walk_remote::procTimer()
         _dir = dirSlider->value() / scale_d;
     }
 
-    _h = hSpinBox->value();
     updateLab();
 
     if (client_.is_connected())
@@ -125,20 +115,18 @@ void walk_remote::procTimer()
         }
         else
         {
-            if (startCheck->isChecked())
-            {
-                remote_data_type rtp = WALK_DATA;
-                tcp_command cmd;
-                cmd.type = REMOTE_DATA;
-                cmd.size = enum_size + float_size * 4;
-                cmd.data.clear();
-                cmd.data.append((char *)(&rtp), enum_size);
-                cmd.data.append((char *)(&_x), float_size);
-                cmd.data.append((char *)(&_y), float_size);
-                cmd.data.append((char *)(&_dir), float_size);
-                cmd.data.append((char *)(&_h), float_size);
-                client_.write(cmd);
-            }
+            _enable = startCheck->isChecked();
+            remote_data_type rtp = WALK_DATA;
+            tcp_command cmd;
+            cmd.type = REMOTE_DATA;
+            cmd.size = enum_size + float_size * 3 + bool_size;
+            cmd.data.clear();
+            cmd.data.append((char *)(&rtp), enum_size);
+            cmd.data.append((char *)(&_x), float_size);
+            cmd.data.append((char *)(&_y), float_size);
+            cmd.data.append((char *)(&_dir), float_size);
+            cmd.data.append((char *)(&_enable), bool_size);
+            client_.write(cmd);
         }
 
         setEnabled(true);

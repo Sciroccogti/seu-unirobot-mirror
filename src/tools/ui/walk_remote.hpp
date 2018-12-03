@@ -16,12 +16,12 @@ public slots:
     void procDSlider(int v);
 
 private:
-    QDoubleSpinBox *hSpinBox;
     QCheckBox *startCheck;
     QRadioButton *btnSpot, *btnRand, *btnMan;
     QSlider *dirSlider, *xSlider, *ySlider;
     QLabel *dirLab, *xLab, *yLab;
-    float _x, _y, _dir, _h;
+    float _x, _y, _dir;
+    bool _enable;
     int range_;
     float scale_d;
     float scale_xy;

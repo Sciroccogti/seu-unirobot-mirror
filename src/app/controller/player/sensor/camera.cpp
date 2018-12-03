@@ -24,7 +24,7 @@ bool camera::start()
     }
 
     td_ = std::move(thread(bind(&camera::run, this)));
-    
+
     return true;
 }
 
@@ -80,14 +80,16 @@ void camera::run()
     {
         buf_.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
         buf_.memory = V4L2_MEMORY_MMAP;
+
         while (is_alive_)
         {
-            
+
             if (ioctl(fd_, VIDIOC_DQBUF, &buf_) == -1)
             {
                 LOG << "VIDIOC_DQBUF failed.\n";
                 break;
             }
+
             num_bufs_ = buf_.index;
             buffers_[num_bufs_].bytesused = buf_.bytesused;
             buffers_[num_bufs_].length = buf_.length;
@@ -101,7 +103,7 @@ void camera::run()
             }
 
             num_bufs_ = buf_.index;
-            
+
             usleep(10000);
         }
     }
@@ -212,6 +214,7 @@ bool camera::open()
             LOG << "get format failed\n";
             return false;
         }
+
         /*
         LOG << "--------------------------------------------------------\n";
         LOG << "Image Info: [";

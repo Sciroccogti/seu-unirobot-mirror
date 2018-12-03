@@ -182,8 +182,8 @@ boost::asio::io_service tcp_service;
 
 tcp_server::tcp_server(): acceptor_(tcp_service, tcp::endpoint(tcp::v4(), CONF->get_config_value<int>("net.tcp.port"))), socket_(tcp_service)
 {
-    r_data_.type = NON_DATA;
-    r_data_.size = 0;
+    rmt_data_.type = NON_DATA;
+    rmt_data_.size = 0;
     is_alive_ = false;
     LOG << std::setw(12) << "sensor:" << std::setw(18) << "[server]" << " started!" << ENDL;
 }
@@ -223,10 +223,12 @@ void tcp_server::data_handler(const tcp_command cmd)
 
         case REMOTE_DATA:
         {
-            memcpy(&(r_data_.type), cmd.data.c_str(), enum_size);
-            r_data_.data.clear();
-            r_data_.data.assign((char *)(cmd.data.c_str() + enum_size), cmd.size - enum_size);
-            r_data_.size = cmd.size - enum_size;
+            rmt_mtx_.lock();
+            memcpy(&(rmt_data_.type), cmd.data.c_str(), enum_size);
+            rmt_data_.data.clear();
+            rmt_data_.data.assign((char *)(cmd.data.c_str() + enum_size), cmd.size - enum_size);
+            rmt_data_.size = cmd.size - enum_size;
+            rmt_mtx_.unlock();
             break;
         }
 
@@ -246,7 +248,7 @@ void tcp_server::data_handler(const tcp_command cmd)
                     memcpy(&dir, cmd.data.c_str() + int_size + 2 * float_size, float_size);
                     memcpy(&e, cmd.data.c_str() + int_size + 3 * float_size, bool_size);
                     plan_mtx_.lock();
-                    plan_list_.push_back(make_shared<walk_plan>(x, y, dir));
+                    plan_list_.push_back(make_shared<walk_plan>(x, y, dir, e));
                     plan_mtx_.unlock();
                     break;
                 }
@@ -331,5 +333,6 @@ tcp_server::~tcp_server()
     {
         td_.join();
     }
+
     LOG << std::setw(12) << "sensor:" << std::setw(18) << "[server]" << " ended!" << ENDL;
 }

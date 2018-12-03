@@ -4,6 +4,7 @@ add_subdirectory(vision)
 add_subdirectory(server)
 
 add_library(player STATIC 
+            play_with_remote.cpp
             player.cpp)
             
 target_link_libraries(player

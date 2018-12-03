@@ -1,8 +1,9 @@
-#pragma once
+#ifndef LEPH_SMOOTHSPLINE_HPP
+#define LEPH_SMOOTHSPLINE_HPP
 
 #include "Spline.hpp"
 
-namespace walk
+namespace Leph
 {
 
     /**
@@ -50,7 +51,7 @@ namespace walk
          * Inherit
          * Load Points
          */
-        virtual void importCallBack();
+        virtual void importCallBack() override;
 
     private:
 
@@ -69,3 +70,6 @@ namespace walk
     };
 
 }
+
+#endif
+

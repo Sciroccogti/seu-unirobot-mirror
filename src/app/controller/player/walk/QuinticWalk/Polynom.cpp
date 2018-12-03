@@ -1,6 +1,7 @@
 #include "Polynom.hpp"
+#include "NewtonBinomial.hpp"
 
-namespace walk
+namespace Leph
 {
 
     Polynom::Polynom() :
@@ -78,6 +79,19 @@ namespace walk
 
         return val;
     }
+    double Polynom::jerk(double x) const
+    {
+        double xx = 1.0;
+        double val = 0.0;
+
+        for (size_t i = 3; i < _coefs.size(); i++)
+        {
+            val += (i - 2) * (i - 1) * i * xx * _coefs[i];
+            xx *= x;
+        }
+
+        return val;
+    }
 
     void Polynom::operator*=(double coef)
     {
@@ -97,6 +111,24 @@ namespace walk
         {
             _coefs[i] += p._coefs[i];
         }
+    }
+
+    void Polynom::shift(double delta)
+    {
+        Polynom n(_coefs.size() - 1);
+        n._coefs[0] = _coefs[0];
+
+        for (size_t k = 1; k < _coefs.size(); k++)
+        {
+            Polynom tmp = NewtonBinomial::expandPolynom(delta, k);
+
+            for (size_t l = 0; l <= k; l++)
+            {
+                n._coefs[l] += _coefs[k] * tmp._coefs[l];
+            }
+        }
+
+        *this = n;
     }
 
     std::ostream &operator<<(std::ostream &os, const Polynom &p)

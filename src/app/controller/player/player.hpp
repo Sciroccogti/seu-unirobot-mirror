@@ -27,8 +27,8 @@ protected:
     void run();
 private:
     std::list<plan_ptr> think();
+    std::list<plan_ptr> play_with_remote();
     void add_plans(std::list<plan_ptr> plist);
-
     bool regist();
     void unregist();
     sensor_ptr get_sensor(const std::string &name);

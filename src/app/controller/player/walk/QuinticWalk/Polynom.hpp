@@ -1,10 +1,11 @@
-#pragma once
+#ifndef LEPH_POLYNOM_HPP
+#define LEPH_POLYNOM_HPP
 
 #include <cstdlib>
 #include <vector>
 #include <iostream>
 
-namespace walk
+namespace Leph
 {
 
     /**
@@ -45,18 +46,26 @@ namespace walk
         size_t degree() const;
 
         /**
-         * Polynom evaluation, its first and
-         * second derivative at given x
+         * Polynom evaluation, its first,
+         * second and third derivative at given x
          */
         double pos(double x) const;
         double vel(double x) const;
         double acc(double x) const;
+        double jerk(double x) const;
 
         /**
          * Some useful operators
          */
         void operator*=(double coef);
         void operator+=(const Polynom &p);
+
+        /**
+         * Update the polynom coefficients
+         * by applying delta offset
+         * on X abscisse
+         */
+        void shift(double delta);
 
     private:
 
@@ -72,3 +81,6 @@ namespace walk
     std::ostream &operator<<(std::ostream &os, const Polynom &p);
 
 }
+
+#endif
+

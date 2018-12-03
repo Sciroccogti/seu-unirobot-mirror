@@ -110,6 +110,7 @@ void image_monitor::data_handler(const tcp_command cmd)
     {
         vector<unsigned char> buf(cmd.size);
         memcpy(&buf[0], cmd.data.c_str(), cmd.size);
+
         try
         {
             Mat bgr = imdecode(buf, cv::IMREAD_COLOR);
@@ -120,9 +121,9 @@ void image_monitor::data_handler(const tcp_command cmd)
             bgr.release();
             dst.release();
         }
-        catch(std::exception &e)
+        catch (std::exception &e)
         {
-            cout<<e.what()<<endl;
+            cout << e.what() << endl;
         }
     }
 }

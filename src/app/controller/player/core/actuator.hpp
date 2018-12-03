@@ -77,7 +77,7 @@ protected:
 
                 if (!p->perform())
                 {
-                    LOG << std::setw(12) << "plan:" << std::setw(18) << "["+p->plan_name()+"]" << " failed!" << ENDL;
+                    LOG << std::setw(12) << "plan:" << std::setw(18) << "[" + p->plan_name() + "]" << " failed!" << ENDL;
                 }
 
                 plist_.pop_front();
