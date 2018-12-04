@@ -11,35 +11,40 @@ class task_type:
     TASK_LOOK = 3
     TASK_LED = 4
 
-
-class task:
-    def __init__(self, t=task_type.TASK_NONE, params=tuple()):
-        self.__type = t
-        self.__params = []
-        self.__cmd = []
-        self.__cmd.append(tcp_cmd_type.TASK_DATA)
-        self.__cmd.append(True)
-        for param in params:
-            self.__params.append(param)
+     
+class walk_task:
+    def __init__(self, x, y, d, enable):
+        self.__type = task_type.TASK_WALK
+        self.__x = x
+        self.__y = y
+        self.__d = d
+        self.__e = enable
 
     def data(self):
-        fmt = tcp_cmd_type.TCP_FMT+'i'
-        idx = 0
-        for p in self.__params:
-            if type(p) == int:
-                fmt += 'i'
-            elif type(p) == float:
-                fmt += 'f'
-            elif type(p) == bool:
-                fmt += '?'
-            elif type(p) == str:
-                fmt += '%ds'%len(p)
-                self.__params[idx] = p.encode('utf-8')
-            idx += 1
-        self.__cmd.append(struct.calcsize(fmt)-tcp_size.head_size)
-        self.__cmd.append(self.__type)
-        for p in self.__params:
-            self.__cmd.append(p)
-        args = tuple(self.__cmd)
-        return struct.pack(fmt, *args)
+        fmt = '=ifff?'
+        return struct.pack(tcp_cmd_type.TCP_FMT, tcp_cmd_type.TASK_DATA, True, struct.calcsize(fmt))\
+            + struct.pack(fmt, self.__type, self.__x, self.__y, self.__d, self.__e)
+
         
+class action_task:
+    def __init__(self, name):
+        self.__type = task_type.TASK_ACT
+        self.__name = name
+
+    def data(self):
+        fmt = '=i%ds'%len(self.__name)
+        return struct.pack(tcp_cmd_type.TCP_FMT, tcp_cmd_type.TASK_DATA, True, struct.calcsize(fmt))\
+            + struct.pack(fmt, self.__type, self.__name)
+
+
+class look_task:
+    def __init__(self, yaw, pitch, enable):
+        self.__type = task_type.TASK_LOOK
+        self.__yaw = yaw
+        self.__pitch = pitch
+        self.__e = enable
+    
+    def data(self):
+        fmt = '=iff?'
+        return struct.pack(tcp_cmd_type.TCP_FMT, tcp_cmd_type.TASK_DATA, True, struct.calcsize(fmt))\
+            + struct.pack(fmt, self.__type, self.__yaw, self.__pitch, self.__e)

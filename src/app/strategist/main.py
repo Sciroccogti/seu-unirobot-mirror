@@ -16,6 +16,8 @@ from options import OPTS
 from config import CONF
 from robot import ROBOT
 from common import LOG
+import fsm
+from transitions import Machine
 
 is_alive = False
 
@@ -43,6 +45,7 @@ def get_args():
             args2 += ' %s'%arg
     return (args1, args2)
 
+states = ['Start', 'Ready', 'Getup', 'SearchBall', 'GotoBall', 'KickBall']
 
 if __name__ == '__main__':
     signal.signal(signal.SIGINT,signal_handler)
@@ -75,21 +78,19 @@ if __name__ == '__main__':
         tm = teammate.Teammate(int(CONF.get_config('net.udp.teammate.port')), int(CONF.get_config('net.udp.teammate.period')))
         tm.attach(ROBOT)
         tm.start()
+
+    FSM = fsm.fsm()
+    machine = Machine(model=FSM, states=states, ordered_transitions=True)
     cl.regsit(tcp.tcp_cmd_type.TASK_DATA, tcp.tcp_data_dir.DIR_SUPPLY)
     cl.regsit(tcp.tcp_cmd_type.WM_DATA, tcp.tcp_data_dir.DIR_APPLY)
-    t1 = task.task(task.task_type.TASK_WALK, (0.0, 0.0, 0.0, True))
-    data = t1.data()
-    #t2 = task.task(task.task_type.TASK_ACT, ('reset',))
-    #data = t2.data()
     while is_alive:
-        if cl.connected:
-            cl.send(data)
-        else:
-            break
         try:
-            #print('state: %d'%ROBOT.gc_data().state)
-            #print('ballx: %f'%ROBOT.wm_data().ballx)
-            pass
+            FSM.run()
+            if cl.connected:
+                for t in FSM.tasks:
+                    cl.send(t.data())
+            else:
+                break
         except:
             pass
         time.sleep(1)

@@ -135,6 +135,7 @@ void walk_remote::procTimer()
     else
     {
         first_connect = true;
+        startCheck->setChecked(false);
         setEnabled(false);
         statusBar()->setStyleSheet("background-color:red");
     }

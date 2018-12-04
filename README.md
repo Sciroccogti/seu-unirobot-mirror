@@ -28,6 +28,7 @@ This project contains a controller, some debug tools and some scripts for seu-ro
 ### python libraries
 * python3
 * paramiko
+* transitions
 
 ## Compile & Run
 

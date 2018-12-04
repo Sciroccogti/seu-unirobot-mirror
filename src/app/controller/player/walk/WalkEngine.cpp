@@ -170,8 +170,8 @@ namespace walk
                         {
                             LOG << currphase << '\t' << "right leg_inverse_kinematics faied!" << ENDL;
                         }
-
-                        lefthand[0] = handGain * handSpline.pos(phaseLeft);
+                        handGain = fabs(walk_param_.x()*2.5);
+                        lefthand[0] =  handGain * handSpline.pos(phaseLeft);
                         righthand[0] = handGain * handSpline.pos(phaseRight);
                         lefthand[2] = 0.1;
                         righthand[2] = 0.1;

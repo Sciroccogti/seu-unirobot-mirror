@@ -84,7 +84,7 @@ void player::run()
         period_count_++;
 
         tcp_command cmd;
-        bool fall = false;
+        int fall = 0;
         cmd.type = WM_DATA;
         cmd.size = 5 * float_size + bool_size;
         cmd.data.append((char *) & (WM->ballx_), float_size);
@@ -92,7 +92,7 @@ void player::run()
         cmd.data.append((char *) & (WM->bodyx_), float_size);
         cmd.data.append((char *) & (WM->bodyy_), float_size);
         cmd.data.append((char *) & (WM->bodydir_), float_size);
-        cmd.data.append((char *)&fall, bool_size);
+        cmd.data.append((char *)&fall, int_size);
         SERVER->write(cmd);
 
         if (WM->lost())
