@@ -5,6 +5,7 @@
 #include <map>
 #include "robot/humanoid.hpp"
 #include "singleton.hpp"
+#include "worldmodel.hpp"
 
 class adapter: public singleton<adapter>
 {
@@ -71,13 +72,19 @@ public:
         bd_mutex_.unlock();
         return true;
     }
-    inline bool add_head_degs(const std::map<int, float> &jdmap)
+    inline bool add_head_degs(std::map<int, float> &jdmap)
     {
         if (!is_alive_)
         {
             return false;
         }
-
+        if(WM->fall_data()!=FALL_NONE)
+        {
+            for(auto &jd:jdmap)
+            {
+                jd.second = 0.0;
+            }
+        }
         hd_mutex_.lock();
         head_degs_list.push_back(jdmap);
         latest_head_deg = jdmap;

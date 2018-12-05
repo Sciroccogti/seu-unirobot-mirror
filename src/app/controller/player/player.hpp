@@ -9,7 +9,6 @@
 #include "sensor/imu.hpp"
 #include "sensor/motor.hpp"
 #include "sensor/camera.hpp"
-#include "walk/WalkEngine.hpp"
 #include "vision/vision.hpp"
 #include "common.hpp"
 

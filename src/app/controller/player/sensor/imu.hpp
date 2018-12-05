@@ -6,8 +6,10 @@
 #include <thread>
 #include <mutex>
 #include <atomic>
+#include <eigen3/Eigen/Dense>
 #include "sensor.hpp"
 #include "timer.hpp"
+#include "model.hpp"
 
 enum led_state
 {
@@ -62,6 +64,10 @@ public:
     {
         return sw_data_;
     }
+    inline int fall_direction() const
+    {
+        return fall_direction_;
+    }
 private:
     bool open();
     void read_head0();
@@ -80,7 +86,10 @@ private:
     unsigned char led_;
     led_state l_state_;
     bool reset_;
+    Eigen::Vector2f pitch_range_;
+    Eigen::Vector2f roll_range_;
     std::atomic_bool lost_;
     std::atomic_bool connected_;
     std::atomic_int count_;
+    std::atomic_int fall_direction_;
 };

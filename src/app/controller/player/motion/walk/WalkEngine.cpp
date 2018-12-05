@@ -9,7 +9,7 @@
 #include "core/worldmodel.hpp"
 #include "QuinticWalk/SmoothSpline.hpp"
 
-namespace walk
+namespace motion
 {
     using namespace Eigen;
     using namespace robot;
@@ -19,14 +19,15 @@ namespace walk
     WalkEngine::WalkEngine()
         : walk_param_(0.0, 0.0, 0.0), walk_enable_(false)
     {
-        xrange[0] = CONF->get_config_value<double>("walk.x.min");
-        xrange[1] = CONF->get_config_value<double>("walk.x.max");
-        yrange[0] = CONF->get_config_value<double>("walk.y.min");
-        yrange[1] = CONF->get_config_value<double>("walk.y.max");
-        drange[0] = CONF->get_config_value<double>("walk.dir.min");
-        drange[1] = CONF->get_config_value<double>("walk.dir.max");
-
-        //params_.freq = CONF->get_config_value<double>("walk.freq");
+        std::vector<double> range = CONF->get_config_vector<double>("walk.x");
+        xrange[0] = range[0];
+        xrange[1] = range[1];
+        range = CONF->get_config_vector<double>("walk.y");
+        yrange[0] = range[0];
+        yrange[1] = range[1];
+        range = CONF->get_config_vector<double>("walk.dir");
+        drange[0] = range[0];
+        drange[1] = range[1];
         params_ = walk_.getParameters();
         dt_ = 0.0;
     }
@@ -57,10 +58,12 @@ namespace walk
         {
             td_.join();
         }
+        LOG << std::setw(12) << "engine:" << std::setw(18) << "[WalkEngine]" << " ended!" << ENDL;
     }
 
     void WalkEngine::start()
     {
+        LOG << std::setw(12) << "engine:" << std::setw(18) << "[WalkEngine]" << " started!" << ENDL;
         dt_ = 1.0 / (1000.0 / CONF->get_config_value<double>("hardware.motor.period"));
         is_alive_ = true;
         td_ = std::move(std::thread(&WalkEngine::run, this));

@@ -10,7 +10,7 @@
 #include "singleton.hpp"
 #include "QuinticWalk/QuinticWalk.hpp"
 
-namespace walk
+namespace motion
 {
 
     class WalkEngine: public subscriber, public singleton<WalkEngine>

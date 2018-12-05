@@ -3,9 +3,10 @@
 #include "plan/action_plan.hpp"
 #include "plan/lookat_plan.hpp"
 #include "server/server.hpp"
-
+#include "motion/walk/WalkEngine.hpp"
+#include "motion/scan/ScanEngine.hpp"
 using namespace std;
-using namespace walk;
+using namespace motion;
 
 player::player(): timer(CONF->get_config_value<int>("think_period"))
 {
@@ -53,12 +54,14 @@ bool player::init()
 
     start_timer();
     WE->start();
+    SE->start();
     return true;
 }
 
 void player::stop()
 {
     WE->stop();
+    SE->stop();
     MADT->stop();
 
     for (auto &a : actuators_)
@@ -84,7 +87,7 @@ void player::run()
         period_count_++;
 
         tcp_command cmd;
-        int fall = 0;
+        int fall = WM->fall_data();
         cmd.type = WM_DATA;
         cmd.size = 5 * float_size + bool_size;
         cmd.data.append((char *) & (WM->ballx_), float_size);
@@ -92,7 +95,7 @@ void player::run()
         cmd.data.append((char *) & (WM->bodyx_), float_size);
         cmd.data.append((char *) & (WM->bodyy_), float_size);
         cmd.data.append((char *) & (WM->bodydir_), float_size);
-        cmd.data.append((char *)&fall, int_size);
+        cmd.data.append((char *) & fall, int_size);
         SERVER->write(cmd);
 
         if (WM->lost())

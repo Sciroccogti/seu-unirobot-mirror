@@ -46,6 +46,13 @@ imu::imu(): sensor("imu"), timer(1000), serial_(imu_service)
     count_ = 0;
     lost_ = false;
     connected_ = false;
+    std::vector<float> range = CONF->get_config_vector<float>("not_fall_range.pitch");
+    pitch_range_.x() = range[0];
+    pitch_range_.y() = range[1];
+    range = CONF->get_config_vector<float>("not_fall_range.roll");
+    roll_range_.x() = range[0];
+    roll_range_.y() = range[1];
+    fall_direction_ = FALL_NONE;
 }
 
 bool imu::open()
@@ -227,6 +234,12 @@ void imu::read_data()
                         imu_data_.roll = stcAngle.Angle[0] / 32768.0f * 180.0f;
                         imu_data_.pitch = stcAngle.Angle[1] / 32768.0f * 180.0f;
                         imu_data_.yaw = stcAngle.Angle[2] / 32768.0f * 180.0f;
+                        if(imu_data_.pitch<pitch_range_.x()) fall_direction_ = FALL_BACKWARD;
+                        else if(imu_data_.pitch>pitch_range_.y()) fall_direction_ = FALL_FORWARD;
+                        else fall_direction_ = FALL_NONE;
+                        if(imu_data_.roll<roll_range_.x()) fall_direction_ = FALL_RIGHT;
+                        else if(imu_data_.roll>roll_range_.y()) fall_direction_ = FALL_LEFT;
+                        else fall_direction_ = FALL_NONE;
                         break;
 
                     case 0x55:
@@ -237,7 +250,6 @@ void imu::read_data()
                     default:
                         break;
                 }
-
                 count_++;
                 notify(SENSOR_IMU);
             }

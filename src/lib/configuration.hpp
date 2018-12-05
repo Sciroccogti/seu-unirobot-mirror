@@ -32,6 +32,25 @@ public:
         }
     }
 
+    template<typename T>
+    inline std::vector<T> get_config_vector(const std::string &keyword) const
+    {
+        std::vector<T> v;
+        try
+        {
+            parser::bpt::ptree tpt = config_tree_.get_child(keyword);
+            for(auto &t:tpt)
+            {
+                v.push_back(t.second.get_value<T>());
+            }
+            return v;
+        }
+        catch (parser::bpt::ptree_error &e)
+        {
+            throw class_exception<configuration>("No such keyword: " + keyword);
+        }
+    }
+
     inline int id() const
     {
         return id_;

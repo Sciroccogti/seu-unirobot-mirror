@@ -1,7 +1,7 @@
 #pragma once
 
 #include "plan.hpp"
-#include "walk/WalkEngine.hpp"
+#include "motion/walk/WalkEngine.hpp"
 #include "joints_plan.hpp"
 
 class walk_plan: public plan
@@ -18,7 +18,7 @@ public:
 
     bool perform()
     {
-        walk::WE->set_params(params_, enable_);
+        motion::WE->set_params(params_, enable_);
         MADT->mode() = adapter::MODE_WALK;
         return true;
     }

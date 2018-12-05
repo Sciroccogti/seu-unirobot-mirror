@@ -6,12 +6,14 @@
 #include "sensor/motor.hpp"
 #include "configuration.hpp"
 #include "singleton.hpp"
+#include "model.hpp"
 
 class WorldModel: public subscriber, public singleton<WorldModel>
 {
 public:
     WorldModel()
     {
+        fall_direction_ = FALL_NONE;
         support_foot_ = robot::DOUBLE_SUPPORT;
         low_power_ = false;
         lost_ = false;
@@ -31,6 +33,7 @@ public:
             imu_data_ = sptr->data();
             sw_data_ = sptr->switch_data();
             lost_ = sptr->lost();
+            fall_direction_ = static_cast<FallDirection>(sptr->fall_direction());
             imu_mtx_.unlock();
             return;
         }
@@ -69,6 +72,12 @@ public:
         return sw_data_;
     }
 
+    inline FallDirection fall_data() const
+    {
+        std::lock_guard<std::mutex> lk(imu_mtx_);
+        return fall_direction_;
+    }
+
     inline bool low_power() const
     {
         std::lock_guard<std::mutex> lk(dxl_mtx_);
@@ -89,6 +98,7 @@ private:
     bool low_power_, lost_;
     imu::imu_data imu_data_;
     sw_data sw_data_;
+    FallDirection fall_direction_;
     robot::support_foot support_foot_;
     mutable std::mutex imu_mtx_, dxl_mtx_, sf_mtx_;
 };

@@ -8,7 +8,6 @@
 #include "math/math.hpp"
 #include "joints_plan.hpp"
 #include "lookat_plan.hpp"
-#include "walk/WalkEngine.hpp"
 #include "core/adapter.hpp"
 
 class action_plan: public plan

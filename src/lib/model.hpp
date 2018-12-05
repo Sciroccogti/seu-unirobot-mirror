@@ -34,4 +34,13 @@ struct camera_para
     float max_value;
 };
 
+enum FallDirection
+{
+    FALL_NONE = 0,
+    FALL_FORWARD = 1,
+    FALL_BACKWARD = -1,
+    FALL_LEFT = 2,
+    FALL_RIGHT = -2
+};
+
 enum { player_info_size = sizeof(player_info)};

@@ -4,7 +4,7 @@
 import client
 import time
 import task
-import tcp
+from tcp import tcp_cmd_type, tcp_data_dir
 import options
 import sys
 import os
@@ -81,11 +81,13 @@ if __name__ == '__main__':
 
     FSM = fsm.fsm()
     machine = Machine(model=FSM, states=states, ordered_transitions=True)
-    cl.regsit(tcp.tcp_cmd_type.TASK_DATA, tcp.tcp_data_dir.DIR_SUPPLY)
-    cl.regsit(tcp.tcp_cmd_type.WM_DATA, tcp.tcp_data_dir.DIR_APPLY)
+    cl.regsit(tcp_cmd_type.TASK_DATA, tcp_data_dir.DIR_SUPPLY)
+    cl.regsit(tcp_cmd_type.WM_DATA, tcp_data_dir.DIR_APPLY)
     while is_alive:
         try:
             FSM.run()
+            if controller.poll():
+                print('killed')
             if cl.connected:
                 for t in FSM.tasks:
                     cl.send(t.data())
