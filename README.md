@@ -23,11 +23,11 @@ This project contains a controller, some debug tools and some scripts for seu-ro
 * MVSDK (library for our camera)
 * qt5-default
 * astyle
-* libffi-dev (library for build paramiko of python3)
 
-### python libraries
-* python3
-* paramiko
+You can use Jetpack-3.3 to install cuda, opencv and cross compiler tools.
+
+### python3 libraries
+* python3-paramiko
 * transitions
 
 ## Compile & Run
@@ -48,6 +48,4 @@ This project contains a controller, some debug tools and some scripts for seu-ro
 * ubuntu 16.04 64bit
 
 ## Recommend IDE
-* Visual Studio Code(with c++ plugin)
-* CLion
-* Kdevelop >= 5.0
+* Visual Studio Code(with c++ and python plugin)

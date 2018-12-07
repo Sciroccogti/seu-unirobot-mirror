@@ -19,11 +19,8 @@ namespace motion
         WalkEngine();
         ~WalkEngine();
         void start();
-        void stop()
-        {
-            is_alive_ = false;
-        }
-        void set_params(const Eigen::Vector3d &params, bool enable);
+        void stop();
+        void set_params(float x, float y, float d, bool enable);
         void updata(const pro_ptr &pub, const int &type);
 
     private:
@@ -37,7 +34,8 @@ namespace motion
         Eigen::Vector3d walk_param_;
         bool walk_enable_;
         imu::imu_data imu_data_;
-        mutable std::mutex para_mutex_, imu_mtx_, dxl_mtx_;
+        
+        mutable std::mutex param_mtx_, imu_mtx_, dxl_mtx_;
     };
 
 #define WE WalkEngine::instance()

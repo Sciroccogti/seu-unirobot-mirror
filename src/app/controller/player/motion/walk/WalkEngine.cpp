@@ -69,18 +69,23 @@ namespace motion
         td_ = std::move(std::thread(&WalkEngine::run, this));
     }
 
-    void WalkEngine::set_params(const Eigen::Vector3d &params, bool enable)
+    void WalkEngine::stop()
     {
-        para_mutex_.lock();
-        walk_param_.x() = params[0];
-        walk_param_.y() = params[1];
-        walk_param_.z() = params[2];
+        is_alive_ = false;
+    }
+
+    void WalkEngine::set_params(float x, float y, float d, bool enable)
+    {
+        param_mtx_.lock();
+        walk_param_.x() = x;
+        walk_param_.y() = y;
+        walk_param_.z() = d;
         walk_enable_ = enable;
         bound(xrange[0], xrange[1], walk_param_.x());
         bound(yrange[0], yrange[1], walk_param_.y());
         bound(drange[0], drange[1], walk_param_.z());
         walk_param_.z() = deg2rad(walk_param_.z());
-        para_mutex_.unlock();
+        param_mtx_.unlock();
     }
 
     void WalkEngine::run()
@@ -106,10 +111,10 @@ namespace motion
 
         while (is_alive_)
         {
-            para_mutex_.lock();
+            param_mtx_.lock();
             param = walk_param_;
             enable = walk_enable_;
-            para_mutex_.unlock();
+            param_mtx_.unlock();
 
             if (MADT->mode() == adapter::MODE_READY || MADT->mode() == adapter::MODE_WALK)
             {
@@ -208,6 +213,7 @@ namespace motion
                     MADT->mode() = adapter::MODE_ACT;
                 }
             }
+            usleep(1000);
         }
     }
 }

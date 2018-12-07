@@ -17,6 +17,9 @@ ScanEngine::ScanEngine()
     yaw_range_.x() = range[0];
     yaw_range_.y() = range[1];
     div_ = CONF->get_config_value<float>("scan.div");
+    yaw_ = 0.0;
+    pitch_ = 0.0;
+    scan_ = false;
 }
 
 ScanEngine::~ScanEngine()
@@ -40,6 +43,15 @@ void ScanEngine::stop()
     is_alive_ = false;
 }
 
+void ScanEngine::set_params(float yaw, float pitch, bool scan)
+{
+    param_mtx_.lock();
+    yaw_ = yaw;
+    pitch_ = pitch;
+    scan_ = scan;
+    param_mtx_.unlock();
+}
+
 void ScanEngine::run()
 {
     unsigned int line = 1;
@@ -48,14 +60,38 @@ void ScanEngine::run()
     std::map<int, float> jdmap;
     jdmap[id_yaw] = 0.0;
     jdmap[id_pitch] = 0.0;
+    float yaw, pitch;
+    bool scan;
     while(is_alive_)
     {
-        int idx = line%2;
-        jdmap[id_pitch] = pitch_range_[idx];
-        float s = pow(-1, idx);
-        for(float yawt = yaw_range_[0]; yawt <= yaw_range_[1]&&is_alive_; yawt += div_)
+        param_mtx_.lock();
+        yaw = yaw_;
+        pitch = pitch_;
+        scan = scan_;
+        param_mtx_.unlock();
+        if(scan)
         {
-            jdmap[id_yaw] = s*yawt;
+            int idx = line%2;
+            jdmap[id_pitch] = pitch_range_[idx];
+            float s = pow(-1, idx);
+            for(float yawt = yaw_range_[0]; yawt <= yaw_range_[1]&&is_alive_; yawt += div_)
+            {
+                jdmap[id_yaw] = s*yawt;
+                while (!MADT->head_empty())
+                {
+                    usleep(1000);
+                }
+                if (!MADT->add_head_degs(jdmap))
+                {
+                    break;
+                }
+            }
+            line++;
+        }
+        else
+        {
+            jdmap[id_yaw] = yaw;
+            jdmap[id_pitch] = pitch;
             while (!MADT->head_empty())
             {
                 usleep(1000);
@@ -65,7 +101,7 @@ void ScanEngine::run()
                 break;
             }
         }
-        line++;
+        usleep(2000);
     }
 }
 }

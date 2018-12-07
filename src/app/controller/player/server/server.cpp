@@ -1,8 +1,9 @@
 #include "server.hpp"
 #include "configuration.hpp"
 #include "robot/humanoid.hpp"
-#include "plan/walk_plan.hpp"
-#include "plan/action_plan.hpp"
+#include "task/walk_task.hpp"
+#include "task/action_task.hpp"
+#include "task/look_task.hpp"
 #include <string>
 #include <iostream>
 
@@ -247,9 +248,9 @@ void tcp_server::data_handler(const tcp_command cmd)
                     memcpy(&y, cmd.data.c_str() + int_size + float_size, float_size);
                     memcpy(&dir, cmd.data.c_str() + int_size + 2 * float_size, float_size);
                     memcpy(&e, cmd.data.c_str() + int_size + 3 * float_size, bool_size);
-                    plan_mtx_.lock();
-                    plan_list_.push_back(make_shared<walk_plan>(x, y, dir, e));
-                    plan_mtx_.unlock();
+                    task_mtx_.lock();
+                    tasks_.push_back(make_shared<walk_task>(x, y, dir, e));
+                    task_mtx_.unlock();
                     break;
                 }
 
@@ -257,14 +258,21 @@ void tcp_server::data_handler(const tcp_command cmd)
                 {
                     string act;
                     act.assign((char *)(cmd.data.c_str() + int_size), cmd.size - enum_size);
-                    plan_mtx_.lock();
-                    plan_list_.push_back(make_shared<action_plan>(act));
-                    plan_mtx_.unlock();
+                    task_mtx_.lock();
+                    tasks_.push_back(make_shared<action_task>(act));
+                    task_mtx_.unlock();
                     break;
                 }
 
                 case TASK_LOOK:
                 {
+                    float yaw, pitch;
+                    bool e;
+                    memcpy(&yaw, cmd.data.c_str() + int_size, float_size);
+                    memcpy(&pitch, cmd.data.c_str() + int_size + float_size, float_size);
+                    memcpy(&e, cmd.data.c_str() + int_size + 2 * float_size, bool_size);
+                    task_mtx_.lock();
+                    tasks_.push_back(make_shared<look_task>(yaw, pitch, e));
                     break;
                 }
 

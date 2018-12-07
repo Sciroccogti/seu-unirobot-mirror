@@ -8,7 +8,7 @@
 #include <mutex>
 #include "tcp.hpp"
 #include "singleton.hpp"
-#include "plan/plan.hpp"
+#include "task/task.hpp"
 #include "common.hpp"
 
 class tcp_session;
@@ -61,13 +61,13 @@ public:
     void stop();
     void write(const tcp_command &cmd);
 
-    std::list<plan_ptr> plans()
+    std::list<task_ptr> tasks()
     {
-        std::lock_guard<std::mutex> lk(plan_mtx_);
-        std::list<plan_ptr> res;
+        std::lock_guard<std::mutex> lk(task_mtx_);
+        std::list<task_ptr> res;
         res.clear();
-        res.insert(res.end(), plan_list_.begin(), plan_list_.end());
-        plan_list_.clear();
+        res.insert(res.end(), tasks_.begin(), tasks_.end());
+        tasks_.clear();
         return res;
     }
 
@@ -96,8 +96,8 @@ private:
     remote_data rmt_data_;
     int port_;
     bool is_alive_;
-    std::list<plan_ptr> plan_list_;
-    mutable std::mutex plan_mtx_, rmt_mtx_;
+    std::list<task_ptr> tasks_;
+    mutable std::mutex task_mtx_, rmt_mtx_;
 };
 
 #define SERVER tcp_server::instance()

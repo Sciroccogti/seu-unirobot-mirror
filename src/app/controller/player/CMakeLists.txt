@@ -8,6 +8,7 @@ add_library(player STATIC
             player.cpp)
             
 target_link_libraries(player
+            action
             walk
             scan
             server

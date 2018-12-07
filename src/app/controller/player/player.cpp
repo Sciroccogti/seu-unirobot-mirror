@@ -1,10 +1,12 @@
 #include "player.hpp"
 #include "configuration.hpp"
-#include "plan/action_plan.hpp"
-#include "plan/lookat_plan.hpp"
+#include "task/action_task.hpp"
+#include "task/look_task.hpp"
 #include "server/server.hpp"
+#include "core/adapter.hpp"
 #include "motion/walk/WalkEngine.hpp"
 #include "motion/scan/ScanEngine.hpp"
+#include "motion/action/ActionEngine.hpp"
 using namespace std;
 using namespace motion;
 
@@ -40,21 +42,12 @@ bool player::init()
     }
 
     MADT->start();
-
-    actuators_["body"] = std::make_shared<actuator>("body");
-    actuators_["head"] = std::make_shared<actuator>("head");
-
-    for (auto &a : actuators_)
-    {
-        a.second->start();
-    }
-
-    action_plan p("ready");
-    p.perform();
-
-    start_timer();
     WE->start();
     SE->start();
+    AE->start();
+    action_task p("ready");
+    p.perform();
+    start_timer();
     return true;
 }
 
@@ -62,13 +55,14 @@ void player::stop()
 {
     WE->stop();
     SE->stop();
+    AE->stop();
     MADT->stop();
-
+/*
     for (auto &a : actuators_)
     {
         a.second->stop();
     }
-
+*/
     if (is_alive_)
     {
         delete_timer();
@@ -98,14 +92,13 @@ void player::run()
         cmd.data.append((char *) & fall, int_size);
         SERVER->write(cmd);
 
-        if (WM->lost())
-        {
-            LOG << "hardware has no response!" << ENDL;
-            raise(SIGINT);
-        }
-
         if (OPTS->use_robot())
         {
+            if (WM->lost())
+            {
+                LOG << "hardware has no response!" << ENDL;
+                raise(SIGINT);
+            }
             if (WM->switch_data().sw1 && !WM->switch_data().sw2)
             {
                 dynamic_pointer_cast<imu>(get_sensor("imu"))->set_led_state(LED_WARNING);
@@ -124,11 +117,16 @@ void player::run()
                 dynamic_pointer_cast<imu>(get_sensor("imu"))->set_led_state(LED_NORMAL);
             }
         }
-
-        add_plans(think());
+        list<task_ptr> tasks = SERVER->tasks();
+        for(auto &tsk: tasks)
+        {
+            tsk->perform();
+        }
+        //add_plans(think());
     }
 }
 
+/*
 list< plan_ptr > player::think()
 {
     list<plan_ptr> plist;
@@ -170,7 +168,7 @@ void player::add_plans(std::list<plan_ptr> plist)
         }
     }
 }
-
+*/
 bool player::regist()
 {
     sensors_.clear();

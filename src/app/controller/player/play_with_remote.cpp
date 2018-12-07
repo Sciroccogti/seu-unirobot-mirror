@@ -1,16 +1,19 @@
 #include <list>
 #include "player.hpp"
-#include "plan/action_plan.hpp"
-#include "plan/lookat_plan.hpp"
-#include "plan/walk_plan.hpp"
+#include "task/look_task.hpp"
+#include "task/walk_task.hpp"
 #include "tcp.hpp"
 #include "server/server.hpp"
+#include "motion/action/ActionEngine.hpp"
+#include "motion/walk/WalkEngine.hpp"
+#include "motion/scan/ScanEngine.hpp"
+
 using namespace robot;
 using namespace std;
+using namespace motion;
 
-list<plan_ptr> player::play_with_remote()
+void player::play_with_remote()
 {
-    list<plan_ptr> plist;
     remote_data rdata = SERVER->rmt_data();
 
     if (rdata.type == WALK_DATA)
@@ -21,7 +24,7 @@ list<plan_ptr> player::play_with_remote()
         memcpy(&y, rdata.data.c_str() + float_size, float_size);
         memcpy(&d, rdata.data.c_str() + 2 * float_size, float_size);
         memcpy(&e, rdata.data.c_str() + 3 * float_size, bool_size);
-        plist.push_back(make_shared<walk_plan>(x, y, d, e));
+        WE->set_params(x, y, d, e);
     }
     else if (rdata.type == ACT_DATA)
     {
@@ -53,15 +56,14 @@ list<plan_ptr> player::play_with_remote()
             pos_times.push_back(act_t);
             poses.push_back(posesinfo);
         }
-
-        plist.push_back(make_shared<action_plan>(poses, pos_times));
+        AE->set_params(poses, pos_times);
     }
     else if (rdata.type == LOOKAT_DATA)
     {
         float yaw, pitch;
         memcpy(&yaw, rdata.data.c_str(), float_size);
         memcpy(&pitch, rdata.data.c_str() + float_size, float_size);
-        plist.push_back(make_shared<lookat_plan>(yaw, pitch));
+        SE->set_params(yaw, pitch, false);
     }
     else if (rdata.type == JOINT_OFFSET)
     {
@@ -99,6 +101,5 @@ list<plan_ptr> player::play_with_remote()
     }
 
     SERVER->reset_rmt_data();
-    return plist;
 }
 
