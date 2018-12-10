@@ -4,9 +4,11 @@
 #include "task/look_task.hpp"
 #include "server/server.hpp"
 #include "core/adapter.hpp"
-#include "motion/walk/WalkEngine.hpp"
-#include "motion/scan/ScanEngine.hpp"
-#include "motion/action/ActionEngine.hpp"
+#include "engine/walk/WalkEngine.hpp"
+#include "engine/scan/ScanEngine.hpp"
+#include "engine/action/ActionEngine.hpp"
+#include "engine/led/LedEngine.hpp"
+
 using namespace std;
 using namespace motion;
 
@@ -45,6 +47,10 @@ bool player::init()
     WE->start();
     SE->start();
     AE->start();
+    if(OPTS->use_robot())
+    {
+        LE->start();
+    }
     action_task p("ready");
     p.perform();
     start_timer();
@@ -56,13 +62,12 @@ void player::stop()
     WE->stop();
     SE->stop();
     AE->stop();
-    MADT->stop();
-/*
-    for (auto &a : actuators_)
+    if(OPTS->use_robot())
     {
-        a.second->stop();
+        LE->stop();
     }
-*/
+    MADT->stop();
+
     if (is_alive_)
     {
         delete_timer();
@@ -98,23 +103,6 @@ void player::run()
             {
                 LOG << "hardware has no response!" << ENDL;
                 raise(SIGINT);
-            }
-            if (WM->switch_data().sw1 && !WM->switch_data().sw2)
-            {
-                dynamic_pointer_cast<imu>(get_sensor("imu"))->set_led_state(LED_WARNING);
-            }
-            else if (WM->switch_data().sw2 && !WM->switch_data().sw1)
-            {
-                dynamic_pointer_cast<imu>(get_sensor("imu"))->set_led_state(LED_ERROR);
-            }
-            else
-            {
-                if (WM->switch_data().sw2 && WM->switch_data().sw1)
-                {
-                    dynamic_pointer_cast<imu>(get_sensor("imu"))->set_zero();
-                }
-
-                dynamic_pointer_cast<imu>(get_sensor("imu"))->set_led_state(LED_NORMAL);
             }
         }
         list<task_ptr> tasks = SERVER->tasks();
@@ -200,6 +188,10 @@ bool player::regist()
         sensors_["imu"]->attach(WM);
         sensors_["imu"]->attach(WE);
         sensors_["imu"]->start();
+
+        sensors_["button"] = std::make_shared<button>();
+        sensors_["button"]->attach(WM);
+        sensors_["button"]->start();
     }
 
     return true;
@@ -207,6 +199,11 @@ bool player::regist()
 
 void player::unregist()
 {
+    if (sensors_.find("button") != sensors_.end())
+    {
+        sensors_["button"]->detach(WM);
+        sensors_["button"]->stop();
+    }
     if (sensors_.find("imu") != sensors_.end())
     {
         sensors_["imu"]->detach(WM);

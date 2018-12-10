@@ -1,7 +1,7 @@
 #pragma once
 
 #include "task.hpp"
-#include "motion/scan/ScanEngine.hpp"
+#include "engine/scan/ScanEngine.hpp"
 
 class look_task: public task
 {

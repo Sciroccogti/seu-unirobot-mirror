@@ -3,11 +3,13 @@
 #include <memory>
 #include <list>
 #include <mutex>
+#include <atomic>
 #include <map>
 #include "timer.hpp"
 #include "sensor.hpp"
 #include "robot/humanoid.hpp"
 #include "dynamixel/dynamixel_sdk.h"
+
 
 class motor: public sensor, public timer
 {
@@ -44,11 +46,12 @@ private:
 private:
     unsigned long p_count_;
     uint16_t voltage_;
-    bool is_connected_;
     uint8_t ping_id_;
     uint8_t led_status_;
     std::map<int, float> curr_degs_;
     float min_volt_, max_volt_;
+    
+    std::atomic_bool is_connected_;
 
     std::shared_ptr<dynamixel::PortHandler> portHandler_;
     std::shared_ptr<dynamixel::PacketHandler> packetHandler_;

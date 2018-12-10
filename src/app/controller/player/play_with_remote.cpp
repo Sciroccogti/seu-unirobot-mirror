@@ -4,9 +4,9 @@
 #include "task/walk_task.hpp"
 #include "tcp.hpp"
 #include "server/server.hpp"
-#include "motion/action/ActionEngine.hpp"
-#include "motion/walk/WalkEngine.hpp"
-#include "motion/scan/ScanEngine.hpp"
+#include "engine/action/ActionEngine.hpp"
+#include "engine/walk/WalkEngine.hpp"
+#include "engine/scan/ScanEngine.hpp"
 
 using namespace robot;
 using namespace std;

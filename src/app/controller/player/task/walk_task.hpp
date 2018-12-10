@@ -2,7 +2,7 @@
 
 #include <eigen3/Eigen/Dense>
 #include "task.hpp"
-#include "motion/walk/WalkEngine.hpp"
+#include "engine/walk/WalkEngine.hpp"
 
 class walk_task: public task
 {

@@ -6,15 +6,13 @@
 #include <iostream>
 #include "common.hpp"
 
-class sensor: public promulgator
+class sensor: public publisher
 {
 public:
     enum sensor_type
     {
         SENSOR_NONE = 0,
-        SENSOR_SERVER = 1,
-        SENSOR_GC = 2,
-        SENSOR_HEAR = 3,
+        SENSOR_BUTTON = 1,
         SENSOR_IMU = 4,
         SENSOR_MOTOR = 5,
         SENSOR_CAMERA = 6,

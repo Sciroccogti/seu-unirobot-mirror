@@ -21,7 +21,7 @@ namespace motion
         void start();
         void stop();
         void set_params(float x, float y, float d, bool enable);
-        void updata(const pro_ptr &pub, const int &type);
+        void updata(const pub_ptr &pub, const int &type);
 
     private:
         Leph::QuinticWalk walk_;

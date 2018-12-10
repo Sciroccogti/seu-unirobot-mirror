@@ -4,18 +4,18 @@
 #include <vector>
 
 class subscriber;
-class promulgator;
+class publisher;
 
 typedef std::shared_ptr<subscriber> sub_ptr;
-typedef std::shared_ptr<promulgator> pro_ptr;
+typedef std::shared_ptr<publisher> pub_ptr;
 
 class subscriber: public std::enable_shared_from_this<subscriber>
 {
 public:
-    virtual void updata(const pro_ptr &pub, const int &type) = 0;
+    virtual void updata(const pub_ptr &pub, const int &type) = 0;
 };
 
-class promulgator: public std::enable_shared_from_this<promulgator>
+class publisher: public std::enable_shared_from_this<publisher>
 {
 public:
     virtual void attach(const sub_ptr &s)

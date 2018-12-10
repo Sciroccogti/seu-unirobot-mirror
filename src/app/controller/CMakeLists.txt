@@ -3,6 +3,7 @@ include_directories(./player)
 add_subdirectory(options)
 add_subdirectory(player)
 add_subdirectory(dynamixel)
+add_subdirectory(gpio)
 
 set(TARGET_NAME controller)
 

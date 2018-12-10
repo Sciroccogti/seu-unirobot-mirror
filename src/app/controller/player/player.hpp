@@ -8,6 +8,7 @@
 #include "sensor/imu.hpp"
 #include "sensor/motor.hpp"
 #include "sensor/camera.hpp"
+#include "sensor/button.hpp"
 #include "vision/vision.hpp"
 #include "common.hpp"
 #include "task/task.hpp"

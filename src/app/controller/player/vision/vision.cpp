@@ -149,7 +149,7 @@ void Vision::send_image(const cv::Mat &src)
     SERVER->write(cmd);
 }
 
-void Vision::updata(const pro_ptr &pub, const int &type)
+void Vision::updata(const pub_ptr &pub, const int &type)
 {
 
     if (!is_alive_)

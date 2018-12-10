@@ -1,9 +1,11 @@
 #pragma once
 
 #include <mutex>
+#include <atomic>
 #include "pattern.hpp"
 #include "sensor/imu.hpp"
 #include "sensor/motor.hpp"
+#include "sensor/button.hpp"
 #include "configuration.hpp"
 #include "singleton.hpp"
 #include "model.hpp"
@@ -15,7 +17,6 @@ public:
     {
         fall_direction_ = FALL_NONE;
         support_foot_ = robot::DOUBLE_SUPPORT;
-        low_power_ = false;
         lost_ = false;
         bodyx_ = -1.0;
         bodyy_ = 0.0;
@@ -24,14 +25,13 @@ public:
         bally_ = -1.0;
     }
 
-    void updata(const pro_ptr &pub, const int &type)
+    void updata(const pub_ptr &pub, const int &type)
     {
         if (type == sensor::SENSOR_IMU)
         {
             imu_mtx_.lock();
             std::shared_ptr<imu> sptr = std::dynamic_pointer_cast<imu>(pub);
             imu_data_ = sptr->data();
-            sw_data_ = sptr->switch_data();
             lost_ = sptr->lost();
             fall_direction_ = static_cast<FallDirection>(sptr->fall_direction());
             imu_mtx_.unlock();
@@ -42,21 +42,25 @@ public:
         {
             dxl_mtx_.lock();
             std::shared_ptr<motor> sptr = std::dynamic_pointer_cast<motor>(pub);
-            low_power_ = sptr->low_power();
             dxl_mtx_.unlock();
             return;
         }
+
+        if(type == sensor::SENSOR_BUTTON)
+        {
+            std::shared_ptr<button> sptr = std::dynamic_pointer_cast<button>(pub);
+            bt1_status_ = sptr->button_1();
+            bt2_status_ = sptr->button_2();
+        }
     }
 
-    inline robot::support_foot get_support_foot() const
+    inline int support_foot() const
     {
-        std::lock_guard<std::mutex> lk(sf_mtx_);
         return support_foot_;
     }
 
     inline void set_support_foot(const robot::support_foot &sf)
     {
-        std::lock_guard<std::mutex> lk(sf_mtx_);
         support_foot_ = sf;
     }
 
@@ -66,41 +70,30 @@ public:
         return imu_data_;
     }
 
-    inline sw_data switch_data() const
+    inline int fall_data() const
     {
-        std::lock_guard<std::mutex> lk(imu_mtx_);
-        return sw_data_;
-    }
-
-    inline FallDirection fall_data() const
-    {
-        std::lock_guard<std::mutex> lk(imu_mtx_);
         return fall_direction_;
-    }
-
-    inline bool low_power() const
-    {
-        std::lock_guard<std::mutex> lk(dxl_mtx_);
-        return low_power_;
     }
 
     inline bool lost() const
     {
-        std::lock_guard<std::mutex> lk(imu_mtx_);
         return lost_;
     }
 
 public:
     float ballx_, bally_;
     float bodyx_, bodyy_, bodydir_;
-
+    
 private:
-    bool low_power_, lost_;
     imu::imu_data imu_data_;
-    sw_data sw_data_;
-    FallDirection fall_direction_;
-    robot::support_foot support_foot_;
-    mutable std::mutex imu_mtx_, dxl_mtx_, sf_mtx_;
+
+    std::atomic_bool lost_;
+    std::atomic_bool bt1_status_;
+    std::atomic_bool bt2_status_;
+    std::atomic_int fall_direction_;
+    std::atomic_int support_foot_;
+
+    mutable std::mutex imu_mtx_, dxl_mtx_;
 };
 
 #define WM WorldModel::instance()

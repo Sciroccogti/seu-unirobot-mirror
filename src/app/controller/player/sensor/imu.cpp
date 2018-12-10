@@ -32,16 +32,8 @@ SGyro       stcGyro;
 SAngle      stcAngle;
 SDStatus    stcDStatus;
 
-#define DIN 0x01
-#define DOH 0x02
-#define DOL 0x03
-unsigned char IO[] = {0x0e, 0x0f, 0x10, 0x11};
-unsigned char cmd[] = {0xff, 0xaa, 0x00, 0x00, 0x00};
-
-imu::imu(): sensor("imu"), timer(1000), serial_(imu_service)
+imu::imu(): sensor("imu"), serial_(imu_service)
 {
-    led_ = 0;
-    l_state_ = LED_NORMAL;
     reset_ = false;
     count_ = 0;
     lost_ = false;
@@ -73,7 +65,7 @@ bool imu::open()
         return false;
     }
 }
-
+/*
 void imu::run()
 {
     if (timer::is_alive_)
@@ -153,7 +145,7 @@ void imu::run()
         }
     }
 }
-
+*/
 void imu::read_head0()
 {
     auto self(shared_from_this());
@@ -242,11 +234,6 @@ void imu::read_data()
                         else fall_direction_ = FALL_NONE;
                         break;
 
-                    case 0x55:
-                        memcpy(&stcDStatus, &buff_[2], 8);
-                        sw_data_.sw1 = static_cast<bool>(stcDStatus.sDStatus[1]);
-                        sw_data_.sw2 = static_cast<bool>(stcDStatus.sDStatus[0]);
-
                     default:
                         break;
                 }
@@ -267,14 +254,12 @@ bool imu::start()
     }
 
     is_open_ = true;
-    sensor::is_alive_ = true;
-    timer::is_alive_ = true;
+    is_alive_ = true;
     td_ = std::move(thread([this]()
     {
         this->read_head0();
         imu_service.run();
     }));
-    start_timer();
     return true;
 }
 
@@ -282,10 +267,8 @@ void imu::stop()
 {
     serial_.close();
     imu_service.stop();
-    timer::is_alive_ = false;
-    sensor::is_alive_ = false;
+    is_alive_ = false;
     is_open_ = false;
-    delete_timer();
 }
 
 imu::~imu()

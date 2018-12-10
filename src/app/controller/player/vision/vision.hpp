@@ -21,7 +21,7 @@ public:
     Vision();
     ~Vision();
 
-    void updata(const pro_ptr &pub, const int &type);
+    void updata(const pub_ptr &pub, const int &type);
     bool start();
     void stop();
     void set_img_send_type(image_send_type t)

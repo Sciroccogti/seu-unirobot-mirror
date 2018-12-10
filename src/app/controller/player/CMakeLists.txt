@@ -1,5 +1,5 @@
 add_subdirectory(sensor)
-add_subdirectory(motion)
+add_subdirectory(engine)
 add_subdirectory(vision)
 add_subdirectory(server)
 
@@ -11,6 +11,7 @@ target_link_libraries(player
             action
             walk
             scan
+            led
             server
             vision
             boost_system

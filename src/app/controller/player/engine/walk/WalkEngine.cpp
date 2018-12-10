@@ -32,7 +32,7 @@ namespace motion
         dt_ = 0.0;
     }
 
-    void WalkEngine::updata(const pro_ptr &pub, const int &type)
+    void WalkEngine::updata(const pub_ptr &pub, const int &type)
     {
         if (type == sensor::SENSOR_IMU)
         {
