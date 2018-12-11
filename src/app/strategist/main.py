@@ -21,11 +21,6 @@ from transitions import Machine
 
 is_alive = False
 
-def signal_handler(sig, frame):
-    global is_alive
-    if sig == signal.SIGINT:
-        is_alive = False
-
 
 def get_args():
     args = sys.argv[1:]
@@ -48,7 +43,6 @@ def get_args():
 states = ['Start', 'Ready', 'Getup', 'SearchBall', 'GotoBall', 'KickBall']
 
 if __name__ == '__main__':
-    signal.signal(signal.SIGINT,signal_handler)
     prog = './controller'
     (args1, args2) = get_args()
     if '-h' in args1:
@@ -57,6 +51,12 @@ if __name__ == '__main__':
     CONF.init(OPTS.id)
     cmd = prog + args2
     controller = subprocess.Popen(cmd, shell=True)
+
+    def signal_handler(sig, frame):
+        if sig == signal.SIGINT:
+            is_alive = False
+
+    signal.signal(signal.SIGINT,signal_handler)
     time.sleep(1)
     cl = client.client(int(CONF.get_config('net.tcp.port')))
     cl.attach(ROBOT)
@@ -86,18 +86,20 @@ if __name__ == '__main__':
     while is_alive:
         try:
             FSM.run()
+            if not cl.is_alive:
+                is_alive = False
+                break
             if controller.poll():
-                print('killed')
+                break
+                #controller = subprocess.Popen(cmd, shell=True)
+                
             if cl.connected:
                 for t in FSM.tasks:
                     cl.send(t.data())
-            else:
-                break
         except:
             pass
         time.sleep(1)
 
-    controller.send_signal(signal.SIGINT)
     cl.dettach(ROBOT)
     cl.stop()
     if OPTS.use_teammate:

@@ -28,11 +28,12 @@ public:
     static std::map<std::string, pin_number> gpio_map;
 public:
     gpio(pin_number pin);
-    ~gpio();
+
     bool set_direction(pin_direction dir);
     bool set_value(pin_value v);
     bool set_edge(char *edge);
     int get_value();
+    bool gpio_unexport();
     
     inline bool opened()
     {
@@ -41,7 +42,7 @@ public:
 
 private:
     bool gpio_export();
-    bool gpio_unexport();
+    
     bool opened_;
     pin_number io_;
 };

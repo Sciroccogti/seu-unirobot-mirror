@@ -15,7 +15,6 @@ class motor: public sensor, public timer
 {
 public:
     motor();
-    ~motor();
     void stop();
     bool start();
     void run();

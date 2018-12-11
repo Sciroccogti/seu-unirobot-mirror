@@ -6,7 +6,7 @@
 #include "options/options.hpp"
 #include "player/player.hpp"
 #include "common.hpp"
-
+#include "player/server/server.hpp"
 using namespace std;
 using namespace robot;
 

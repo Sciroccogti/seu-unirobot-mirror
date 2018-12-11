@@ -11,7 +11,7 @@
 #include "timer.hpp"
 #include "model.hpp"
 
-class imu: public sensor
+class imu: public sensor, public timer
 {
 public:
     struct imu_data
@@ -48,6 +48,7 @@ private:
     void read_head0();
     void read_head1();
     void read_data();
+    void run();
 
     enum {imu_data_size = sizeof(imu_data)};
     enum {imu_len = 11};

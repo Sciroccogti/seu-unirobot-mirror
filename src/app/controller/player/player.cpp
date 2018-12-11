@@ -110,53 +110,9 @@ void player::run()
         {
             tsk->perform();
         }
-        //add_plans(think());
     }
 }
 
-/*
-list< plan_ptr > player::think()
-{
-    list<plan_ptr> plist;
-    list<plan_ptr> tlist;
-
-    if (period_count_ * period_ms_ % 1000 == 0)
-    {
-        if (WM->low_power())
-        {
-            LOG << "******** low power! ********" << ENDL;
-        }
-    }
-
-    if (OPTS->use_remote())
-    {
-        tlist = play_with_remote();
-    }
-    else
-    {
-        tlist = SERVER->plans();
-    }
-
-    plist.insert(plist.end(), tlist.begin(), tlist.end());
-    return plist;
-}
-
-void player::add_plans(std::list<plan_ptr> plist)
-{
-    for (auto &p : plist)
-    {
-        if (actuators_.find(p->actuator_name()) != actuators_.end())
-        {
-            actuator_ptr actu = actuators_[p->actuator_name()];
-            actu->add_plan(p);
-        }
-        else
-        {
-            LOG << "cannot find actuator: " + p->actuator_name() << ENDL;
-        }
-    }
-}
-*/
 bool player::regist()
 {
     sensors_.clear();

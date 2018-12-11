@@ -4,6 +4,7 @@
 
 class tcp_cmd_type:
     REG_DATA = 2
+    END_DATA = 9
     WM_DATA = 15
     TASK_DATA = 20
     TCP_FMT = '=i?I'

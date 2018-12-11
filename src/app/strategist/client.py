@@ -16,7 +16,6 @@ class client(observer.publisher):
         observer.publisher.__init__(self, 'client')
         self.__addr = addr
         self.__port = port
-        self.__sock = socket.socket()
         self.__td = None
         self.connected = False
         self.is_alive = False
@@ -26,8 +25,6 @@ class client(observer.publisher):
         observer.publisher.__del__(self)
 
     def start(self):
-        self.__sock.setblocking(True)
-        self.__sock.settimeout(1.0)
         self.is_alive = True
         self.__td = threading.Thread(target=self.run)
         self.__td.start()
@@ -38,6 +35,18 @@ class client(observer.publisher):
 
     def send(self, data):
         self.__sock.send(data)
+
+    def connect(self):
+        self.__sock = socket.socket()
+        self.__sock.setblocking(True)
+        self.__sock.settimeout(1.0)
+        while self.is_alive:
+            try:
+                self.__sock.connect((self.__addr, self.__port))
+                self.connected = True
+                break
+            except ConnectionError as e:
+                time.sleep(1)
 
     def regsit(self, t, d):
         cmd = []
@@ -52,23 +61,21 @@ class client(observer.publisher):
 
     def run(self):
         while self.is_alive:
-            try:
-                self.__sock.connect((self.__addr, self.__port))
-                self.connected = True
-                break
-            except ConnectionError as e:
-                time.sleep(1)
-        while self.is_alive:
-            try:
-                data = self.__sock.recv(256)
-                if len(data) == 0:
-                    self.__sock.close()
-                    self.connected = False
-                    self.is_alive = False
-                else:
-                    (cmd_type,) = struct.unpack('=i',data[:4])
-                    if cmd_type == tcp_cmd_type.WM_DATA:
-                        self.notify(observer.publisher.PUB_WORLDMODEL, struct.unpack(\
-                            tcp_cmd_type.TCP_FMT+worldmodel.WorldModelData.WORLDMODEL_DATA, data)[3:])
-            except:
-                pass
+            if not self.connected:
+                self.connect()
+            else:
+                try:
+                    data = self.__sock.recv(256)
+                    if len(data) == 0:
+                        self.__sock.close()
+                        self.connected = False
+                    else:
+                        (cmd_type,) = struct.unpack('=i',data[:4])
+                        if cmd_type == tcp_cmd_type.WM_DATA:
+                            self.notify(observer.publisher.PUB_WORLDMODEL, struct.unpack(\
+                                tcp_cmd_type.TCP_FMT+worldmodel.WorldModelData.WORLDMODEL_DATA, data)[3:])
+                        elif cmd_type == tcp_cmd_type.END_DATA:
+                            self.is_alive = False
+                            break
+                except:
+                    pass

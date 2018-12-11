@@ -1,6 +1,7 @@
 #include "button.hpp"
 #include "configuration.hpp"
 #include <unistd.h>
+#include "engine/led/LedEngine.hpp"
 
 using namespace std;
 
@@ -36,6 +37,8 @@ bool button::start()
 void button::stop()
 {
     is_alive_ = false;
+    button1_->gpio_unexport();
+    button2_->gpio_unexport();
 }
 
 void button::run()
@@ -46,8 +49,19 @@ void button::run()
         {
             bt1_status_ = static_cast<bool>(button1_->get_value());
             bt2_status_ = static_cast<bool>(button2_->get_value());
+            LE->set_state(LED_NORMAL);
+            if(bt1_status_)
+            {
+                LE->set_state(LED_CUSTOM);
+                LE->set_led(1, true);
+            }
+            if(bt2_status_)
+            {
+                LE->set_state(LED_CUSTOM);
+                LE->set_led(2, true);
+            }
             notify(SENSOR_BUTTON);
         }
-        usleep(50000);
+        usleep(20000);
     }
 }

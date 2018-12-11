@@ -2,6 +2,7 @@
 #include "configuration.hpp"
 #include "robot/humanoid.hpp"
 #include "core/adapter.hpp"
+#include <cmath>
 
 using namespace std;
 using namespace robot;
@@ -11,15 +12,18 @@ namespace motion
 ScanEngine::ScanEngine()
 {
     std::vector<float> range = CONF->get_config_vector<float>("scan.pitch");
-    pitch_range_.x() = range[0];
-    pitch_range_.y() = range[1];
+    pitch_range_[0] = range[0];
+    pitch_range_[1] = range[1];
     range = CONF->get_config_vector<float>("scan.yaw");
-    yaw_range_.x() = range[0];
-    yaw_range_.y() = range[1];
+    yaw_range_[0] = range[0];
+    yaw_range_[1] = range[1];
     div_ = CONF->get_config_value<float>("scan.div");
     yaw_ = 0.0;
     pitch_ = 0.0;
-    scan_ = false;
+    scan_ = true;
+    pitches_[0] = pitch_range_[0];
+    pitches_[1] = pitch_range_[0]+(pitch_range_[1]-pitch_range_[0])/2.0f;
+    pitches_[2] = pitch_range_[1];
 }
 
 ScanEngine::~ScanEngine()
@@ -54,7 +58,7 @@ void ScanEngine::set_params(float yaw, float pitch, bool scan)
 
 void ScanEngine::run()
 {
-    unsigned int line = 1;
+    unsigned int line = 0;
     int id_yaw = ROBOT->get_joint("jhead1")->jid_;
     int id_pitch = ROBOT->get_joint("jhead2")->jid_;
     std::map<int, float> jdmap;
@@ -71,8 +75,9 @@ void ScanEngine::run()
         param_mtx_.unlock();
         if(scan)
         {
-            int idx = line%2;
-            jdmap[id_pitch] = pitch_range_[idx];
+            int idx = line%4-2;
+            if(idx<0) idx = -idx;
+            jdmap[id_pitch] = pitches_[idx];
             float s = pow(-1, idx);
             for(float yawt = yaw_range_[0]; yawt <= yaw_range_[1]&&is_alive_; yawt += div_)
             {
@@ -101,7 +106,7 @@ void ScanEngine::run()
                 break;
             }
         }
-        usleep(2000);
+        usleep(10000);
     }
 }
 }

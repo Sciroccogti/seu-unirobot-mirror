@@ -27,7 +27,7 @@ void tcp_pool::deliver(const tcp_command &cmd)
 {
     for (auto &session : sessions_)
     {
-        if (session->check_type(cmd.type))
+        if (session->check_type(cmd.type)||cmd.type == END_DATA)
         {
             session->deliver(cmd);
         }
@@ -330,6 +330,10 @@ bool tcp_server::start()
 
 void tcp_server::stop()
 {
+    tcp_command cmd;
+    cmd.type = END_DATA;
+    cmd.size = 0;
+    this->write(cmd);
     pool_.close();
     tcp_service.stop();
     is_alive_ = false;

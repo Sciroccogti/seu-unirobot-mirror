@@ -34,7 +34,7 @@ class action_task:
     def data(self):
         fmt = '=i%ds'%len(self.__name)
         return struct.pack(tcp_cmd_type.TCP_FMT, tcp_cmd_type.TASK_DATA, True, struct.calcsize(fmt))\
-            + struct.pack(fmt, self.__type, self.__name)
+            + struct.pack(fmt, self.__type, self.__name.encode('utf-8'))
 
 
 class look_task:
@@ -48,3 +48,15 @@ class look_task:
         fmt = '=iff?'
         return struct.pack(tcp_cmd_type.TCP_FMT, tcp_cmd_type.TASK_DATA, True, struct.calcsize(fmt))\
             + struct.pack(fmt, self.__type, self.__yaw, self.__pitch, self.__e)
+
+
+class led_task:
+    def __init__(self, led1, led2):
+        self.__type = task_type.TASK_LED
+        self.__led1 = led1
+        self.__led2 = led2
+    
+    def data(self):
+        fmt = '=i??'
+        return struct.pack(tcp_cmd_type.TCP_FMT, tcp_cmd_type.TASK_DATA, True, struct.calcsize(fmt))\
+            + struct.pack(fmt, self.__type, self.__led1, self.__led2)

@@ -31,8 +31,9 @@ SAcc        stcAcc;
 SGyro       stcGyro;
 SAngle      stcAngle;
 SDStatus    stcDStatus;
+unsigned char cmd[] = {0xff, 0xaa, 0x00, 0x00, 0x00};
 
-imu::imu(): sensor("imu"), serial_(imu_service)
+imu::imu(): sensor("imu"), serial_(imu_service), timer(1000)
 {
     reset_ = false;
     count_ = 0;
@@ -65,7 +66,7 @@ bool imu::open()
         return false;
     }
 }
-/*
+
 void imu::run()
 {
     if (timer::is_alive_)
@@ -84,68 +85,19 @@ void imu::run()
 
             count_ = 0;
         }
-
-        led_mtx_.lock();
-        led_state state = l_state_;
-        bool rst = reset_;
-        led_mtx_.unlock();
-        auto self(shared_from_this());
-
-        if (state == LED_NORMAL)
-        {
-            usleep(50000);
-            cmd[3] = led_ ? DOH : DOL;
-            cmd[2] = IO[3];
-            boost::asio::async_write(serial_, boost::asio::buffer(cmd, 5),
-            [this, self](boost::system::error_code ec, std::size_t length) {});
-            led_ = 1 - led_;
-        }
-        else if (state == LED_WARNING)
-        {
-            usleep(50000);
-            cmd[2] = IO[3];
-            cmd[3] = DOL;
-            boost::asio::async_write(serial_, boost::asio::buffer(cmd, 5),
-            [this, self](boost::system::error_code ec, std::size_t length) {});
-            usleep(450000);
-            cmd[3] = DOH;
-            boost::asio::async_write(serial_, boost::asio::buffer(cmd, 5),
-            [this, self](boost::system::error_code ec, std::size_t length) {});
-        }
-        else if (state == LED_ERROR)
-        {
-            usleep(50000);
-            cmd[2] = IO[3];
-            cmd[3] = DOL;
-            boost::asio::async_write(serial_, boost::asio::buffer(cmd, 5),
-            [this, self](boost::system::error_code ec, std::size_t length) {});
-            usleep(200000);
-            cmd[3] = DOH;
-            boost::asio::async_write(serial_, boost::asio::buffer(cmd, 5),
-            [this, self](boost::system::error_code ec, std::size_t length) {});
-            usleep(250000);
-            cmd[3] = DOL;
-            boost::asio::async_write(serial_, boost::asio::buffer(cmd, 5),
-            [this, self](boost::system::error_code ec, std::size_t length) {});
-            usleep(250000);
-            cmd[3] = DOH;
-            boost::asio::async_write(serial_, boost::asio::buffer(cmd, 5),
-            [this, self](boost::system::error_code ec, std::size_t length) {});
-        }
-
-        usleep(100000);
-
-        if (rst)
+        
+        if (reset_)
         {
             cmd[2] = 0x01;
             cmd[3] = 0x04;
+            auto self(shared_from_this());
             boost::asio::async_write(serial_, boost::asio::buffer(cmd, 5),
             [this, self](boost::system::error_code ec, std::size_t length) {});
             reset_ = false;
         }
     }
 }
-*/
+
 void imu::read_head0()
 {
     auto self(shared_from_this());
@@ -254,12 +206,14 @@ bool imu::start()
     }
 
     is_open_ = true;
-    is_alive_ = true;
+    sensor::is_alive_ = true;
     td_ = std::move(thread([this]()
     {
         this->read_head0();
         imu_service.run();
     }));
+    timer::is_alive_ = true;
+    start_timer();
     return true;
 }
 
@@ -267,7 +221,9 @@ void imu::stop()
 {
     serial_.close();
     imu_service.stop();
-    is_alive_ = false;
+    sensor::is_alive_ = false;
+    timer::is_alive_ = false;
+    delete_timer();
     is_open_ = false;
 }
 

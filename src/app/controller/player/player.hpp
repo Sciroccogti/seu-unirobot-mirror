@@ -23,13 +23,9 @@ public:
     {
         return is_alive_;
     }
-protected:
-    void run();
+
 private:
-/*
-    std::list<plan_ptr> think();
-    void add_plans(std::list<plan_ptr> plist);
-*/
+    void run();
     void play_with_remote();
     bool regist();
     void unregist();

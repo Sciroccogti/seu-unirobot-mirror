@@ -21,9 +21,8 @@ def get_json_from_conf(confname=''):
 
 
 def run_cmd(cmd, prt=True):
-    p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
-    while p.poll() is None:
-        print(p.stdout.readline().strip('\n'))
+    p = subprocess.Popen(cmd, shell=True)
+    p.wait()
     if p.poll() == 0:
         return True
     else:

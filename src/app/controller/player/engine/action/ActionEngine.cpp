@@ -51,7 +51,9 @@ void ActionEngine::run()
     while(is_alive_)
     {
         param_mtx_.lock();
+        poses_temp.clear();
         poses_temp = poses_;
+        pos_times_temp.clear();
         pos_times_temp = pos_times_;
         param_mtx_.unlock();
         if(!poses_temp.empty())
@@ -138,12 +140,11 @@ void ActionEngine::run()
                 }
             }
         }
-        MADT->mode() = adapter::MODE_WALK;
         param_mtx_.lock();
         poses_.clear();
         pos_times_.clear();
         param_mtx_.unlock();
-        usleep(2000);
+        usleep(10000);
     }
 }
 

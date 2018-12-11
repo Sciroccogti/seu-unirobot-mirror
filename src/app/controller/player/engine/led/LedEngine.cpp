@@ -17,6 +17,9 @@ LedEngine::LedEngine()
     }
     led1_status_ = false;
     led2_status_ = false;
+    led_state_ = LED_NORMAL;
+    count_ = 0;
+    custom_ = 0;
 }
 
 LedEngine::~LedEngine()
@@ -38,18 +41,64 @@ void LedEngine::start()
 void LedEngine::stop()
 {
     is_alive_ = false;
+    led1_->gpio_unexport();
+    led2_->gpio_unexport();
 }
 
 void LedEngine::run()
 {
     while(is_alive_)
     {
-        if(can_use_)
+        switch(led_state_)
         {
-            led1_->set_value(led1_status_?gpio::PIN_LOW:gpio::PIN_HIGH);
-            led2_->set_value(led2_status_?gpio::PIN_LOW:gpio::PIN_HIGH);
+            case LED_NORMAL:
+            {
+                custom_ = 0;
+                if(can_use_ && count_%100 == 0)
+                {
+                    led1_status_ = led1_status_?false:true;
+                    led2_status_ = led1_status_?false:true;
+                    led1_->set_value(led1_status_?gpio::PIN_LOW:gpio::PIN_HIGH);
+                    led2_->set_value(led2_status_?gpio::PIN_LOW:gpio::PIN_HIGH);
+                }
+                break;
+            }
+            case LED_WARN:
+            {
+                if(can_use_ && count_%50 == 0)
+                {
+                    led1_status_ = led1_status_?false:true;
+                    led2_status_ = led1_status_?true:false;
+                    led1_->set_value(led1_status_?gpio::PIN_LOW:gpio::PIN_HIGH);
+                    led2_->set_value(led2_status_?gpio::PIN_LOW:gpio::PIN_HIGH);
+                }
+                break;
+            }
+            case LED_ERROR:
+            {
+                if(can_use_)
+                {
+                    led1_->set_value(gpio::PIN_LOW);
+                    led2_->set_value(gpio::PIN_LOW);
+                }
+                break;
+            }
+            case LED_CUSTOM:
+            {
+                custom_ ++;
+                if(can_use_)
+                {
+                    led1_->set_value(led1_status_?gpio::PIN_LOW:gpio::PIN_HIGH);
+                    led2_->set_value(led2_status_?gpio::PIN_LOW:gpio::PIN_HIGH);
+                }
+                break;
+            }
+            default:
+                break;
         }
+        if(custom_>=500) led_state_ = LED_NORMAL;
         usleep(10000);
+        count_ ++;
     }
 }
 

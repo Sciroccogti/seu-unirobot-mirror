@@ -3,6 +3,7 @@
 #include <eigen3/Eigen/Dense>
 #include "task.hpp"
 #include "engine/walk/WalkEngine.hpp"
+#include "core/adapter.hpp"
 
 class walk_task: public task
 {
@@ -15,6 +16,7 @@ public:
 
     bool perform()
     {
+        MADT->mode() = adapter::MODE_WALK;
         motion::WE->set_params(x_, y_, d_, e_);
         return true;
     }

@@ -92,21 +92,6 @@ void motor::run()
         {
             real_act();
         }
-
-        /*
-                bool left = (WM->get_support_foot() == LEFT_SUPPORT) ? true : false;
-                int i = ROBOT->get_joint(left ? "jlhip3" : "jrhip3")->jid_;
-                vector<double> degs;
-                degs.clear();
-
-                for (int j = i; j < i + 6; j++)
-                {
-                    degs.push_back(static_cast<double>(ROBOT->get_joint(j)->get_deg()));
-                }
-
-                transform_matrix bd = ROBOT->leg_forward_kinematics(degs, left);
-                //cout<<bd<<endl;
-                */
         notify(SENSOR_MOTOR);
         p_count_++;
     }
@@ -147,19 +132,9 @@ void motor::real_act()
         if (dxl_comm_result == COMM_SUCCESS && not_alert_error == 0)
         {
             read_voltage();
+            LOG << "Voltage: " << voltage_ / 10.0f << "V !" << ENDL;
 
-            if (voltage_ / 10.0f < min_volt_)
-            {
-                LOG << "The voltage(" << voltage_ / 10.0f << "V) is too low!" << ENDL;
-            }
-
-            read_pos();
-
-            for (auto &cd : curr_degs_)
-            {
-                ROBOT->get_joint(cd.first)->set_deg(cd.second);
-            }
-
+            //read_pos();
             set_torq(1);
             is_connected_ = true;
         }
@@ -167,20 +142,13 @@ void motor::real_act()
     else
     {
         set_gpos();
-        read_pos();
+        //read_pos();
 
         if ((p_count_ * period_ms_ % 1000) == 0)
         {
             led_status_ = 1 - led_status_;
             set_led(led_status_);
         }
-
-        /*
-        if ((p_count_ * period_ms_ % 10000) == 0)
-        {
-            read_voltage();
-        }
-        */
     }
 }
 
@@ -223,7 +191,6 @@ void motor::stop()
 
 void motor::read_pos()
 {
-    //uint8_t dxl_error=0;
     int dxl_comm_result = COMM_TX_FAIL;
     uint8_t id = 0;
     dxl_comm_result = pposRead_->txRxPacket();
@@ -238,8 +205,6 @@ void motor::read_pos()
         {
             id = static_cast<uint8_t >(r.second->jid_);
 
-            //if(pposRead_->getError(id, &dxl_error))
-            //    std::cout<<"[ID: "<<setw(2)<<(int)id<<"] "<<packetHandler_->getRxPacketError(dxl_error)<<std::endl;
             if (pposRead_->isAvailable(id, ADDR_PPOS, SIZE_PPOS))
             {
                 curr_degs_[static_cast<int>(id)] = pos2float(pposRead_->getData(id, ADDR_PPOS, SIZE_PPOS));
@@ -310,9 +275,4 @@ void motor::set_gpos()
     }
 
     gposWrite_->txPacket();
-}
-
-motor::~motor()
-{
-
 }

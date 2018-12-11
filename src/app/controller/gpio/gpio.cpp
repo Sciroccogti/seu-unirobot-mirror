@@ -25,11 +25,6 @@ gpio::gpio(pin_number gpio)
     opened_ = gpio_export();
 }
 
-gpio::~gpio()
-{
-    gpio_unexport();
-}
-
 bool gpio::gpio_export()
 {
     int fileDescriptor, length;
@@ -45,7 +40,7 @@ bool gpio::gpio_export()
     length = snprintf(commandBuffer, sizeof(commandBuffer), "%d", io_);
     if (write(fileDescriptor, commandBuffer, length) != length) 
     {
-        LOG << "gpio error!" <<ENDL;
+        LOG << "gpio export error!" <<ENDL;
         return false;
     }
     close(fileDescriptor);
@@ -68,7 +63,7 @@ bool gpio::gpio_unexport()
     length = snprintf(commandBuffer, sizeof(commandBuffer), "%d", io_);
     if (write(fileDescriptor, commandBuffer, length) != length) 
     {
-        LOG << "gpio error!" <<ENDL;
+        LOG << "gpio unexport error!" <<ENDL;
         return false ;
     }
     close(fileDescriptor);
@@ -93,7 +88,7 @@ bool gpio::set_direction(pin_direction dir)
     {
         if (write(fileDescriptor, "out", 4) != 4) 
         {
-            LOG << "gpio error!" <<ENDL;
+            LOG << "gpio set direction error!" <<ENDL;
             return false ;
         }
     }
@@ -101,7 +96,7 @@ bool gpio::set_direction(pin_direction dir)
     {
         if (write(fileDescriptor, "in", 3) != 3) 
         {
-            LOG << "gpio error!" <<ENDL;
+            LOG << "gpio set direction error!" <<ENDL;
             return false ;
         }
     }
@@ -128,7 +123,7 @@ bool gpio::set_value(pin_value v)
     {
         if (write(fileDescriptor, "1", 2) != 2) 
         {
-            LOG << "gpio error!" <<ENDL;
+            LOG << "gpio set value error!" <<ENDL;
             return false ;
         }
     }
@@ -136,7 +131,7 @@ bool gpio::set_value(pin_value v)
     {
         if (write(fileDescriptor, "0", 2) != 2) 
         {
-            LOG << "gpio error!" <<ENDL;
+            LOG << "gpio set value error!" <<ENDL;
             return false ;
         }
     }
@@ -161,7 +156,7 @@ bool gpio::set_edge(char *edge)
 
     if (write(fileDescriptor, edge, strlen(edge) + 1) != ((int)(strlen(edge) + 1))) 
     {
-        LOG << "gpio error!" <<ENDL;
+        LOG << "gpio set edge error!" <<ENDL;
         return false ;
     }
     close(fileDescriptor);
@@ -187,7 +182,7 @@ int gpio::get_value()
 
     if (read(fileDescriptor, &ch, 1) != 1) 
     {
-        LOG << "gpio error!" <<ENDL;
+        LOG << "gpio get value error!" <<ENDL;
         return -1;
      }
 

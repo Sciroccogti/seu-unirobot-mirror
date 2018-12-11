@@ -40,14 +40,11 @@ if __name__ == '__main__':
 
     def signal_handler(sig,frame):
         if sig == signal.SIGINT:
-            ssh_client.exec_command('kill -2 $(pidof python3)')
+            ssh_client.exec_command('kill -2 $(pidof controller)')
 
     signal.signal(signal.SIGINT,signal_handler)
 
     nowTime=datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     cmd = 'date -s "%s"; cd %s; tar zxvf %s; cd %s; sudo python3 ./%s %s'\
           %(nowTime, config.remote_dir, config.compress_file_name, config.target_dir, config.start_script, args)
-    td = threading.Thread(ssh_client.exec_command, (cmd,))
-    td.start()
-    while td.is_alive():
-        time.sleep(0.5)
+    ssh_client.exec_command(cmd)
