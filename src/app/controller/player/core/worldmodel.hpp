@@ -33,7 +33,7 @@ public:
             std::shared_ptr<imu> sptr = std::dynamic_pointer_cast<imu>(pub);
             imu_data_ = sptr->data();
             lost_ = sptr->lost();
-            fall_direction_ = static_cast<FallDirection>(sptr->fall_direction());
+            fall_direction_ = sptr->fall_direction();
             imu_mtx_.unlock();
             return;
         }

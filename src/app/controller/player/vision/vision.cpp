@@ -4,6 +4,8 @@
 #include <cuda_runtime.h>
 #include "cuda/cudaproc.h"
 #include "server/server.hpp"
+#include <algorithm>
+#include "compare.hpp"
 
 using namespace std;
 using namespace cv;
@@ -18,6 +20,8 @@ Vision::Vision(): timer(CONF->get_config_value<int>("vision_period"))
     camera_src_ = nullptr;
     parser::camera_parser::parse(CONF->get_config_value<string>(CONF->player() + ".camera_file"), camera_infos_);
     LOG << setw(12) << "algorithm:" << setw(18) << "[vision]" << " started!" << ENDL;
+    ball_id_ = 0;
+    post_id_ = 1;
 }
 
 Vision::~Vision()
@@ -94,8 +98,26 @@ void Vision::run()
         {
             do_nms_sort(dets, nboxes, l.classes, nms);
         }
-
-        //cout<<(clock()-t1)/CLOCKS_PER_SEC<<endl;
+        ball_dets_.clear();
+        post_dets_.clear();
+        for (int i = 0; i < nboxes; i++)
+        {
+            if(dets[i].prob[ball_id_] > dets[i].prob[post_id_])
+            {
+                detection d = dets[i];
+                d.prob[0] = d.prob[ball_id_];
+                ball_dets_.push_back(d);
+            }
+            else
+            {
+                detection d = dets[i];
+                d.prob[0] = d.prob[post_id_];
+                post_dets_.push_back(d);
+            }
+        }
+        sort(ball_dets_.begin(), ball_dets_.end(), CompareDetGreater);
+        sort(post_dets_.begin(), post_dets_.end(), CompareDetGreater);
+        cout<<(clock()-t1)/CLOCKS_PER_SEC<<endl;
 
         if (OPTS->use_debug())
         {
@@ -109,22 +131,40 @@ void Vision::run()
             }
             else if (img_sd_type_ == IMAGE_SEND_RESULT)
             {
+                if(!ball_dets_.empty())
+                {
+                    rectangle(bgr, Point((ball_dets_[0].bbox.x - ball_dets_[0].bbox.w / 2.0)*w_, (ball_dets_[0].bbox.y - ball_dets_[0].bbox.h / 2.0)*h_),
+                              Point((ball_dets_[0].bbox.x + ball_dets_[0].bbox.w / 2.0)*w_, (ball_dets_[0].bbox.y + ball_dets_[0].bbox.h / 2.0)*h_),
+                              Scalar(255, 0, 0, 0), 2);
+                    putText(bgr, to_string(ball_dets_[0].prob[0]).substr(0,4), Point(ball_dets_[0].bbox.x * w_-40, ball_dets_[0].bbox.y * h_-40),
+                                    FONT_HERSHEY_SIMPLEX, 1, Scalar(255, 0, 0), 2, 8);
+                }
+                if(!post_dets_.empty())
+                {
+                    rectangle(bgr, Point((post_dets_[0].bbox.x - post_dets_[0].bbox.w / 2.0)*w_, (post_dets_[0].bbox.y - post_dets_[0].bbox.h / 2.0)*h_),
+                              Point((post_dets_[0].bbox.x + post_dets_[0].bbox.w / 2.0)*w_, (post_dets_[0].bbox.y + post_dets_[0].bbox.h / 2.0)*h_),
+                              Scalar(0, 0, 255, 0), 2);
+                    putText(bgr, to_string(post_dets_[0].prob[0]).substr(0,4), Point(post_dets_[0].bbox.x * w_-40, post_dets_[0].bbox.y * h_-40),
+                                    FONT_HERSHEY_SIMPLEX, 1, Scalar(0, 0, 255), 2, 8);
+                }
+                /*
                 for (int i = 0; i < nboxes; i++)
                 {
                     rectangle(bgr, Point((dets[i].bbox.x - dets[i].bbox.w / 2.0)*w_, (dets[i].bbox.y - dets[i].bbox.h / 2.0)*h_),
                               Point((dets[i].bbox.x + dets[i].bbox.w / 2.0)*w_, (dets[i].bbox.y + dets[i].bbox.h / 2.0)*h_),
                               Scalar(255, 0, 0, 0));
-
-                    for (int j = 0; j < l.classes; j++)
+                    if(dets[i].prob[ball_id_] > dets[i].prob[post_id_])
                     {
-                        if (dets[i].prob[j] > 0.2)
-                        {
-                            putText(bgr, names_[j], Point(dets[i].bbox.x * w_, dets[i].bbox.y * h_),
+                        putText(bgr, names_[ball_id_], Point(dets[i].bbox.x * w_, dets[i].bbox.y * h_),
                                     FONT_HERSHEY_SIMPLEX, 1, Scalar(255, 23, 0), 1, 8);
-                        }
+                    }
+                    else
+                    {
+                        putText(bgr, names_[post_id_], Point(dets[i].bbox.x * w_, dets[i].bbox.y * h_),
+                                    FONT_HERSHEY_SIMPLEX, 1, Scalar(255, 23, 0), 1, 8);
                     }
                 }
-
+                */
                 send_image(bgr);
             }
         }
