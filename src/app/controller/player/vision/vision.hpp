@@ -29,7 +29,7 @@ public:
         img_sd_type_ = t;
     }
 
-    void set_camera_para(const camera_para &para);
+    void set_camera_info(const camera_info &para);
     mutable std::mutex frame_mutex_;
 private:
     void run();
@@ -37,16 +37,16 @@ private:
     void src2dst();
 
     int ball_id_, post_id_;
+    std::map<int, float> dets_prob_;
 
     std::vector<detection> ball_dets_;
     std::vector<detection> post_dets_;
 
     bool use_mv_;
     int p_count_;
-    std::string filename_;
     int w_, h_;
     int camera_w_,  camera_h_, camera_size_;
-    std::map<std::string, camera_para> camera_infos_;
+    std::map<std::string, camera_info> camera_infos_;
 
     network net_;
     bool is_busy_;
@@ -54,19 +54,18 @@ private:
 
     unsigned char *dev_src_;
     unsigned char *dev_bgr_;
+    unsigned char *dev_undistored_;
     unsigned char *dev_ori_;
     unsigned char *dev_sized_;
-
+    unsigned char *camera_src_;
     float *dev_rgbfp_;
-
     int src_size_;
     int bgr_size_;
     int ori_size_;
     int sized_size_;
-
     int rgbf_size_;
-    unsigned char *camera_src_;
     std::vector<std::string> names_;
+    camera_param params_;
 };
 
 #define VISION Vision::instance()

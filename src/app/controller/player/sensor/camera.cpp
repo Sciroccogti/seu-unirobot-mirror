@@ -13,7 +13,7 @@ using namespace std;
 
 camera::camera(): sensor("camera")
 {
-    parser::camera_parser::parse(CONF->get_config_value<string>(CONF->player() + ".camera_file"), camera_infos_);
+    parser::camera_info_parser::parse(CONF->get_config_value<string>(CONF->player() + ".camera_info_file"), camera_infos_);
 }
 
 bool camera::start()
@@ -28,7 +28,7 @@ bool camera::start()
     return true;
 }
 
-void camera::set_camera_para(const camera_para &para)
+void camera::set_camera_info(const camera_info &para)
 {
     if (!use_mv_)
     {

@@ -10,10 +10,10 @@ class CtrlSlider: public QWidget
 {
     Q_OBJECT
 public:
-    CtrlSlider(const camera_para &info)
+    CtrlSlider(const camera_info &info)
         : info_(info)
     {
-        qRegisterMetaType<camera_para>("para_info");
+        qRegisterMetaType<camera_info>("para_info");
         nameLab = new QLabel(QString::fromStdString(info.name));
         slider = new QSlider(Qt::Horizontal);
         slider->setMinimumWidth(200);
@@ -38,7 +38,7 @@ public:
         procSliderChanged(info_.default_value);
     }
 
-    camera_para c_info() const
+    camera_info c_info() const
     {
         return info_;
     }
@@ -50,10 +50,10 @@ public slots:
         emit valueChanged(info_);
     }
 signals:
-    void valueChanged(camera_para info);
+    void valueChanged(camera_info info);
 
 private:
-    camera_para info_;
+    camera_info info_;
     QSlider *slider;
     QLabel *nameLab, *dataLab;
 };
@@ -66,12 +66,12 @@ public:
 public slots:
     void procBtnReset();
     void procBtnSave();
-    void procValueChanged(camera_para info);
+    void procValueChanged(camera_info info);
     void procTimer();
 
 private:
     std::vector<CtrlSlider *> c_sliders_;
-    std::map<std::string, camera_para> ctrl_items_;
+    std::map<std::string, camera_info> ctrl_items_;
     QPushButton *btnReset, *btnSave;
     QTimer *timer;
     tcp_client &client_;

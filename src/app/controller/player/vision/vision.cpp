@@ -18,10 +18,13 @@ Vision::Vision(): timer(CONF->get_config_value<int>("vision_period"))
     h_ = CONF->get_config_value<int>("image.height");
     img_sd_type_ = IMAGE_SEND_RESULT;
     camera_src_ = nullptr;
-    parser::camera_parser::parse(CONF->get_config_value<string>(CONF->player() + ".camera_file"), camera_infos_);
+    parser::camera_info_parser::parse(CONF->get_config_value<string>(CONF->player() + ".camera_info_file"), camera_infos_);
+    parser::camera_param_parser::parse(CONF->get_config_value<string>(CONF->player() + ".camera_params_file"), params_);
     LOG << setw(12) << "algorithm:" << setw(18) << "[vision]" << " started!" << ENDL;
     ball_id_ = 0;
     post_id_ = 1;
+    dets_prob_[ball_id_] = CONF->get_config_value<float>("detection_prob.ball");
+    dets_prob_[post_id_] = CONF->get_config_value<float>("detection_prob.post");
 }
 
 Vision::~Vision()
@@ -29,7 +32,7 @@ Vision::~Vision()
     LOG << setw(12) << "algorithm:" << setw(18) << "[vision]" << " ended!" << ENDL;
 }
 
-void Vision::set_camera_para(const camera_para &para)
+void Vision::set_camera_info(const camera_info &para)
 {
     for (auto &item : camera_infos_)
     {
@@ -51,13 +54,15 @@ void Vision::src2dst()
     {
         cudaBayer2BGR(dev_src_, dev_bgr_,  camera_w_,  camera_h_, camera_infos_["saturation"].value,
                       camera_infos_["red_gain"].value, camera_infos_["green_gain"].value, camera_infos_["blue_gain"].value);
+        cudaUndistored(dev_bgr_, dev_undistored_, camera_w_, camera_h_, params_.fx, params_.fy, params_.cx, params_.cy,
+                    params_.k1, params_.k2, params_.p1, params_.p2);
+        cudaResizePacked(dev_undistored_, camera_w_,  camera_h_,  dev_ori_, w_,  h_);
     }
     else
     {
         cudaYUYV2BGR(dev_src_,  dev_bgr_,  camera_w_,  camera_h_);
+        cudaResizePacked(dev_bgr_, camera_w_,  camera_h_,  dev_ori_, w_,  h_);
     }
-
-    cudaResizePacked(dev_bgr_, camera_w_,  camera_h_,  dev_ori_, w_,  h_);
 }
 
 void Vision::run()
@@ -105,19 +110,21 @@ void Vision::run()
             if(dets[i].prob[ball_id_] > dets[i].prob[post_id_])
             {
                 detection d = dets[i];
-                d.prob[0] = d.prob[ball_id_];
-                ball_dets_.push_back(d);
+                d.prob[0] = dets[i].prob[ball_id_];
+                if(d.prob[0] > dets_prob_[ball_id_])
+                    ball_dets_.push_back(d);
             }
             else
             {
                 detection d = dets[i];
-                d.prob[0] = d.prob[post_id_];
-                post_dets_.push_back(d);
+                d.prob[0] = dets[i].prob[post_id_];
+                if(d.prob[0] > dets_prob_[post_id_])
+                    post_dets_.push_back(d);
             }
         }
         sort(ball_dets_.begin(), ball_dets_.end(), CompareDetGreater);
         sort(post_dets_.begin(), post_dets_.end(), CompareDetGreater);
-        cout<<(clock()-t1)/CLOCKS_PER_SEC<<endl;
+        //cout<<(clock()-t1)/CLOCKS_PER_SEC<<endl;
 
         if (OPTS->use_debug())
         {
@@ -213,6 +220,8 @@ void Vision::updata(const pub_ptr &pub, const int &type)
         check_error(err);
         err = cudaMalloc((void **) &dev_bgr_, bgr_size_);
         check_error(err);
+        err = cudaMalloc((void **) &dev_undistored_, bgr_size_);
+        check_error(err);
     }
 
     if (type == sensor::SENSOR_CAMERA)
@@ -254,7 +263,6 @@ bool Vision::start()
     check_error(err);
     err = cudaMalloc((void **)&dev_sized_, sized_size_);
     check_error(err);
-
     err = cudaMalloc((void **)&dev_rgbfp_, rgbf_size_);
     check_error(err);
     is_alive_ = true;
@@ -272,6 +280,7 @@ void Vision::stop()
         cudaFree(dev_ori_);
         cudaFree(dev_src_);
         cudaFree(dev_bgr_);
+        cudaFree(dev_undistored_);
         cudaFree(dev_rgbfp_);
         cudaFree(dev_sized_);
     }

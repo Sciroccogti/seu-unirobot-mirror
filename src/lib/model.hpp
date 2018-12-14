@@ -23,15 +23,22 @@ struct player_info
     float ball_x, ball_y;
 };
 
-struct camera_para
+struct camera_info
 {
     std::string name;
     int id;
-    bool sw;
     float value;
     float default_value;
     float min_value;
     float max_value;
+};
+
+struct camera_param
+{
+    float fx, fy;
+    float cx, cy;
+    float k1, k2;
+    float p1, p2;
 };
 
 enum FallDirection

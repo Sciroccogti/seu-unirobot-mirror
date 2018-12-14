@@ -7,10 +7,10 @@
 
 namespace parser
 {
-    class camera_parser: public basic_parser
+    class camera_info_parser: public basic_parser
     {
     public:
-        static void parse(const std::string &filename, std::map<std::string, camera_para> &ctrl_infos)
+        static void parse(const std::string &filename, std::map<std::string, camera_info> &ctrl_infos)
         {
             bpt::ptree pt;
 
@@ -23,7 +23,7 @@ namespace parser
 
             for (auto &para : pt)
             {
-                camera_para info;
+                camera_info info;
                 info.name = para.first;
                 info.id = para.second.get<int>("id");
                 info.value = para.second.get<float>("value");
@@ -34,7 +34,7 @@ namespace parser
             }
         }
 
-        static void save(const std::string &filename, const std::map<std::string, camera_para> &ctrl_infos)
+        static void save(const std::string &filename, const std::map<std::string, camera_info> &ctrl_infos)
         {
             bpt::ptree pt;
 
@@ -50,6 +50,27 @@ namespace parser
             }
 
             write_tree_to_file(filename, pt);
+        }
+    };
+    class camera_param_parser: public basic_parser
+    {
+    public:
+        static bool parse(const std::string &filename, camera_param &param)
+        {
+            bpt::ptree pt;
+
+            if (!get_tree_from_file(filename, pt))
+            {
+                return false;
+            }
+            param.fx = pt.get<float>("fx");
+            param.fy = pt.get<float>("fy");
+            param.cx = pt.get<float>("cx");
+            param.cy = pt.get<float>("cy");
+            param.k1 = pt.get<float>("k1");
+            param.k2 = pt.get<float>("k2");
+            param.p1 = pt.get<float>("p1");
+            param.p2 = pt.get<float>("p2");
         }
     };
 }

@@ -133,36 +133,6 @@ __global__ void baygr2bgr_kernal(unsigned char *bayergr, unsigned char *bgr, int
         default:
             break;
     }
-    /*
-    if(delta==0.0)
-    {
-        rn=r;
-        bn=b;
-        gn=g;
-    }
-    else
-    {
-        float value = (rgbMax+rgbMin)/255.0f;
-        float L = value/2.0f;
-        float S = (L<0.5)?delta/value:delta/(2.0f-value);
-        float alpha;
-        if(s>=0)
-        {
-            alpha = ((s+S)>=1)?S:1-s;
-            alpha = 1.0f/alpha-1.0f;
-            rn = rgb_bound(r+(r-L*255)*alpha);
-            gn = rgb_bound(g+(g-L*255)*alpha);
-            bn = rgb_bound(b+(b-L*255)*alpha);
-        }
-        else
-        {
-            alpha = s;
-            rn = rgb_bound(L*255+(r-L*255)*(1+alpha));
-            gn = rgb_bound(L*255+(g-L*255)*(1+alpha));
-            bn = rgb_bound(L*255+(b-L*255)*(1+alpha));
-        }
-    }
-    */
     bgr[outy*w*3+outx*3+0] = rgb_bound(bn);
     bgr[outy*w*3+outx*3+1] = rgb_bound(gn);
     bgr[outy*w*3+outx*3+2] = rgb_bound(rn);
@@ -209,6 +179,38 @@ __global__ void resize_packed_kernal(T *in, int iw, int ih, T *out, int ow, int 
     }
 }
 
+__global__ void undistored_kernal(unsigned char *in, unsigned char *out, int w, int h, float fx, float fy, float cx, float cy,
+    float k1, float k2, float p1, float p2)
+{
+    int x = blockIdx.x;
+    int y = threadIdx.x;
+    float u_distorted = 0, v_distorted = 0;
+    float x1,y1,x2,y2;
+    x1 = (x-cx)/fx;
+    y1 = (y-cy)/fy;
+    float r2;
+    r2 = powf(x1,2)+powf(y1,2);
+    x2  = x1*(1+k1*r2+k2*powf(r2,2))+2*p1*x1*y1+p2*(r2+2*x1*x1);
+    y2 = y1*(1+k1*r2+k2*powf(r2,2))+p1*(r2+2*y1*y1)+2*p2*x1*y1;
+    u_distorted = fx*x2+cx;
+    v_distorted = fy*y2+cy;
+    int inx = u_distorted, iny = v_distorted;
+    int odx = y*w*3+x*3;
+    int idx = iny*w*3+inx*3;
+    if(inx<0||inx>=w||iny<0||iny>=h)
+    {
+        out[odx+0] = 0;
+        out[odx+1] = 0;
+        out[odx+2] = 0;
+    }
+    else
+    {
+        out[odx+0] = in[idx+0];
+        out[odx+1] = in[idx+1];
+        out[odx+2] = in[idx+2];
+    }
+}
+
 void cudaYUYV2YUV(unsigned char *in, unsigned char *out, int w, int h)
 {
     yuyv2yuv_kernal<<<w, h>>>(in,out,w,h);
@@ -238,5 +240,11 @@ void cudaResizePacked(float *in, int iw, int ih, float *sized, int ow, int oh)
 void cudaResizePacked(unsigned char *in, int iw, int ih, unsigned char *sized, int ow, int oh)
 {
     resize_packed_kernal<<<ow, oh>>>(in, iw, ih, sized, ow, oh);
+}
+
+void cudaUndistored(unsigned char *in, unsigned char *out, int w, int h, float fx, float fy, float cx, float cy,
+    float k1, float k2, float p1, float p2)
+{
+    undistored_kernal<<<w,h>>>(in, out, w, h, fx, fy, cx, cy, k1, k2, p1, p2);
 }
 

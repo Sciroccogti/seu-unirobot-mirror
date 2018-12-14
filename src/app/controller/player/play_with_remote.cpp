@@ -77,12 +77,12 @@ void player::play_with_remote()
     }
     else if (rdata.type == CAMERA_SET)
     {
-        camera_para info;
+        camera_info info;
         memcpy(&(info.id), rdata.data.c_str(), int_size);
         memcpy(&(info.value), rdata.data.c_str() + int_size, float_size);
-        VISION->set_camera_para(info);
+        VISION->set_camera_info(info);
         shared_ptr<camera> cm = dynamic_pointer_cast<camera>(get_sensor("camera"));
-        cm->set_camera_para(info);
+        cm->set_camera_info(info);
     }
     else if (rdata.type == COLOR_SAMPLE)
     {
