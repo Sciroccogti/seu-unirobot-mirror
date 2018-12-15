@@ -18,6 +18,9 @@ class Config:
         try:
             for k in keys:
                 conf = conf.get(k)
+                if type(conf) == list:
+                    if len(conf) == 1 and type(conf[0]) == str:
+                        conf = json.loads(self._get_json_from_conf(conf[0]))
             return conf
         except:
             return None

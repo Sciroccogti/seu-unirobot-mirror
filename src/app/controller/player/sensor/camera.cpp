@@ -186,11 +186,11 @@ bool camera::open()
     }
     else
     {
-        fd_ = ::open(CONF->get_config_value<string>("video.dev_name").c_str(), O_RDWR, 0);
+        fd_ = ::open(CONF->get_config_value<string>("image.dev_name").c_str(), O_RDWR, 0);
 
         if (fd_ < 0)
         {
-            LOG << "open camera: " + CONF->get_config_value<string>("video.dev_name") + " failed\n";
+            LOG << "open camera: " + CONF->get_config_value<string>("image.dev_name") + " failed\n";
             return false;
         }
 
