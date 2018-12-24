@@ -14,6 +14,7 @@
 #include "darknet/network.h"
 #include "tcp.hpp"
 #include "common.hpp"
+#include "math/math.hpp"
 
 class Vision: public timer, public subscriber, public singleton<Vision>
 {
@@ -31,6 +32,9 @@ public:
 
     void set_camera_info(const camera_info &para);
     mutable std::mutex frame_mutex_;
+
+private:
+    Eigen::Vector2f odometry(const Eigen::Vector2i &pos, const robot_math::transform_matrix &mat);
 private:
     void run();
     void send_image(const cv::Mat &src);
@@ -66,6 +70,7 @@ private:
     int rgbf_size_;
     std::vector<std::string> names_;
     camera_param params_;
+    robot_math::transform_matrix camera_matrix_;
 };
 
 #define VISION Vision::instance()

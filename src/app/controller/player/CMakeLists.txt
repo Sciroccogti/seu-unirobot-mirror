@@ -1,3 +1,4 @@
+add_subdirectory(core)
 add_subdirectory(sensor)
 add_subdirectory(engine)
 add_subdirectory(vision)
@@ -8,6 +9,7 @@ add_library(player STATIC
             player.cpp)
             
 target_link_libraries(player
+            core
             action
             walk
             scan

@@ -19,7 +19,7 @@ namespace robot
 
         bool arm_inverse_kinematics(const Eigen::Vector3d &hand, std::vector<double> &deg);
 
-        robot_math::transform_matrix leg_forward_kinematics(std::vector<double> &deg, const bool &left);
+        robot_math::transform_matrix leg_forward_kinematics(std::vector<double> deg, bool left);
 
         bool leg_inverse_kinematics(const robot_math::transform_matrix &body, const robot_math::transform_matrix &foot,
                                     std::vector<double> &deg, const bool &left = false);
@@ -27,9 +27,30 @@ namespace robot
         void init(const std::string &robot_file, const std::string &action_file, const std::string &offset_file);
 
         void set_degs(const std::map<int, float> &jdmap);
+        std::vector<double> get_foot_degs(int support);
+        std::vector<double> get_head_degs()
+        {
+            std::vector<double> res = {joint_map_["jhead1"]->get_deg(), joint_map_["jhead2"]->get_deg()};
+            return res;
+        }
 
         joint_ptr get_joint(const int &id);
         joint_ptr get_joint(const std::string &name);
+
+        inline double trunk_length()
+        {
+            return bone_map_["torso"]->length_;
+        }
+
+        inline double neck_length()
+        {
+            return bone_map_["head1"]->length_;
+        }
+
+        inline double head_length()
+        {
+            return bone_map_["camera1"]->length_;
+        }
 
         inline double A() const
         {

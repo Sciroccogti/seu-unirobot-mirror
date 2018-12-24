@@ -9,50 +9,15 @@
 #include "configuration.hpp"
 #include "singleton.hpp"
 #include "model.hpp"
+#include "math/math.hpp"
+#include "robot/humanoid.hpp"
 
 class WorldModel: public subscriber, public singleton<WorldModel>
 {
 public:
-    WorldModel()
-    {
-        fall_direction_ = FALL_NONE;
-        support_foot_ = robot::DOUBLE_SUPPORT;
-        lost_ = false;
-        bodyx_ = -1.0;
-        bodyy_ = 0.0;
-        bodydir_ = 15.0;
-        ballx_ = 1.0;
-        bally_ = -1.0;
-    }
+    WorldModel();
 
-    void updata(const pub_ptr &pub, const int &type)
-    {
-        if (type == sensor::SENSOR_IMU)
-        {
-            imu_mtx_.lock();
-            std::shared_ptr<imu> sptr = std::dynamic_pointer_cast<imu>(pub);
-            imu_data_ = sptr->data();
-            lost_ = sptr->lost();
-            fall_direction_ = sptr->fall_direction();
-            imu_mtx_.unlock();
-            return;
-        }
-
-        if (type == sensor::SENSOR_MOTOR)
-        {
-            dxl_mtx_.lock();
-            std::shared_ptr<motor> sptr = std::dynamic_pointer_cast<motor>(pub);
-            dxl_mtx_.unlock();
-            return;
-        }
-
-        if(type == sensor::SENSOR_BUTTON)
-        {
-            std::shared_ptr<button> sptr = std::dynamic_pointer_cast<button>(pub);
-            bt1_status_ = sptr->button_1();
-            bt2_status_ = sptr->button_2();
-        }
-    }
+    void updata(const pub_ptr &pub, const int &type);
 
     inline int support_foot() const
     {
@@ -68,6 +33,12 @@ public:
     {
         std::lock_guard<std::mutex> lk(imu_mtx_);
         return imu_data_;
+    }
+
+    inline robot_math::transform_matrix head_matrix() const
+    {
+        std::lock_guard<std::mutex> lk(head_mtx_);
+        return head_matrix_;
     }
 
     inline int fall_data() const
@@ -87,13 +58,16 @@ public:
 private:
     imu::imu_data imu_data_;
 
+    robot_math::transform_matrix body_matrix_, head_matrix_;
+    std::vector<double> head_degs_;
+
     std::atomic_bool lost_;
     std::atomic_bool bt1_status_;
     std::atomic_bool bt2_status_;
     std::atomic_int fall_direction_;
     std::atomic_int support_foot_;
 
-    mutable std::mutex imu_mtx_, dxl_mtx_;
+    mutable std::mutex imu_mtx_, dxl_mtx_, head_mtx_;
 };
 
 #define WM WorldModel::instance()

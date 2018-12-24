@@ -81,7 +81,7 @@ namespace robot
         return true;
     }
 
-    transform_matrix humanoid::leg_forward_kinematics(vector<double> &deg, const bool &left)
+    transform_matrix humanoid::leg_forward_kinematics(vector<double> deg, bool left)
     {
         double sg = (left ? 1.0 : -1.0);
 
@@ -172,6 +172,30 @@ namespace robot
         {
             get_joint(j.first)->set_deg(j.second);
         }
+    }
+
+    std::vector<double> humanoid::get_foot_degs(int support)
+    {
+        std::vector<double> res;
+        if(support == LEFT_SUPPORT)
+        {
+            res.push_back(joint_map_["jlhip3"]->get_deg());
+            res.push_back(joint_map_["jlhip2"]->get_deg());
+            res.push_back(joint_map_["jlhip1"]->get_deg());
+            res.push_back(joint_map_["jlknee"]->get_deg());
+            res.push_back(joint_map_["jlankle2"]->get_deg());
+            res.push_back(joint_map_["jlankle1"]->get_deg());
+        }
+        else
+        {
+            res.push_back(joint_map_["jlhip3"]->get_deg());
+            res.push_back(joint_map_["jlhip2"]->get_deg());
+            res.push_back(joint_map_["jlhip1"]->get_deg());
+            res.push_back(joint_map_["jlknee"]->get_deg());
+            res.push_back(joint_map_["jlankle2"]->get_deg());
+            res.push_back(joint_map_["jlankle1"]->get_deg());
+        }
+        return res;
     }
 
     joint_ptr humanoid::get_joint(const int &id)

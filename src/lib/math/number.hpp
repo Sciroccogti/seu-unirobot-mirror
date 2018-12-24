@@ -16,6 +16,21 @@ namespace robot_math
         return x * 180.0 / M_PI;
     }
 
+    inline double cos_deg(const double &d)
+    {
+        return cos(deg2rad(d));
+    }
+
+    inline double sin_deg(const double &d)
+    {
+        return sin(deg2rad(d));
+    }
+
+    inline double tan_deg(const double &d)
+    {
+        return tan(deg2rad(d));
+    }
+
     inline bool is_zero(const double &x)
     {
         return fabs(x) < 1E-4;

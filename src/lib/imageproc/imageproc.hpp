@@ -4,7 +4,6 @@
 #include <string>
 #include <fstream>
 #include <opencv2/opencv.hpp>
-#include <linux/videodev2.h>
 
 namespace imageproc
 {
