@@ -7,7 +7,7 @@ using namespace std;
 
 boost::asio::io_service udp_service;
 
-team_monitor::team_monitor(): socket_(udp_service, udp::endpoint(udp::v4(), CONF->get_config_value<short>("net.udp.team.port")))
+team_monitor::team_monitor(): socket_(udp_service, udp::endpoint(udp::v4(), CONF->get_config_value<short>("net.udp.teammate.port")))
 {
     parser::field_parser::parse(CONF->field_file(), field_);
     setFixedSize(field_.field_length + 2 * field_.border_strip_width_min, field_.field_width + 2 * field_.border_strip_width_min);
@@ -17,6 +17,14 @@ team_monitor::team_monitor(): socket_(udp_service, udp::endpoint(udp::v4(), CONF
         this->receive();
         udp_service.run();
     }));
+}
+
+team_monitor::~team_monitor()
+{
+    if(td_.joinable())
+    {
+        td_.join();
+    }
 }
 
 void team_monitor::receive()

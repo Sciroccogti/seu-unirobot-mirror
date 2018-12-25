@@ -33,17 +33,17 @@ namespace robot_math
             {
                 case 'x':
                 case 'X':
-                    set_R(RotX(deg));
+                    set_R(RotX(deg2rad(deg)));
                     break;
 
                 case 'y':
                 case 'Y':
-                    set_R(RotY(deg));
+                    set_R(RotY(deg2rad(deg)));
                     break;
 
                 case 'z':
                 case 'Z':
-                    set_R(RotZ(deg));
+                    set_R(RotZ(deg2rad(deg)));
                     break;
 
                 default:

@@ -100,6 +100,7 @@ namespace motion
         {
             td_.join();
         }
+        LOG << std::setw(12) << "engine:" << std::setw(18) << "[WalkEngine]" << " ended!" << ENDL;
     }
 
     void WalkEngine::start()
@@ -107,6 +108,7 @@ namespace motion
         dt_ = 1.0 / (1000.0 / CONF->get_config_value<double>("hardware.motor.period"));
         is_alive_ = true;
         td_ = std::move(std::thread(&WalkEngine::run, this));
+        LOG << std::setw(12) << "engine:" << std::setw(18) << "[WalkEngine]" << " started!" << ENDL;
     }
 
     void WalkEngine::boundPhase(double &phase)
@@ -222,7 +224,6 @@ namespace motion
                         WM->set_support_foot(RIGHT_SUPPORT);
                     }
 
-                    para_mutex_.lock();
                     //Compute swing value
                     double swingVal = tempParams.enabledGain * tempParams.swingGain
                                       * swingSpline.posMod(0.5 + phaseLeft + tempParams.swingPhase);
@@ -251,7 +252,6 @@ namespace motion
                     //Compute feet rotation (turn) oscillation
                     double leftYaw = tempParams.enabledGain * tempParams.turnGain * turnSpline.pos(phaseLeft);
                     double rightYaw = tempParams.enabledGain * tempParams.turnGain * turnSpline.pos(phaseRight);
-                    para_mutex_.unlock();
 
                     //Compute trunk roll angle
                     double rollVal = tempParams.enabledGain * -tempParams.swingRollGain

@@ -140,6 +140,11 @@ void ActionEngine::run()
                 }
             }
         }
+        else
+        {
+            if(MADT->mode()!=adapter::MODE_WALK)
+                MADT->mode() = adapter::MODE_WALK;
+        }
         param_mtx_.lock();
         poses_.clear();
         pos_times_.clear();

@@ -105,10 +105,17 @@ void player::run()
                 raise(SIGINT);
             }
         }
-        list<task_ptr> tasks = SERVER->tasks();
-        for(auto &tsk: tasks)
+        if(OPTS->use_remote())
         {
-            tsk->perform();
+            play_with_remote();
+        }
+        else
+        {
+            list<task_ptr> tasks = SERVER->tasks();
+            for(auto &tsk: tasks)
+            {
+                tsk->perform();
+            }
         }
     }
 }

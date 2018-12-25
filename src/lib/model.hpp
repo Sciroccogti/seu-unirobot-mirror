@@ -18,6 +18,7 @@ struct filed_info
 
 struct player_info
 {
+    char header[3];
     int id;
     float x, y, dir;
     float ball_x, ball_y;

@@ -15,7 +15,6 @@ using namespace motion;
 void player::play_with_remote()
 {
     remote_data rdata = SERVER->rmt_data();
-
     if (rdata.type == WALK_DATA)
     {
         float x, y, d;

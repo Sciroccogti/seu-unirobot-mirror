@@ -12,6 +12,7 @@ class team_monitor: public QMainWindow
     Q_OBJECT
 public:
     team_monitor();
+    ~team_monitor();
 protected:
     void closeEvent(QCloseEvent *event);
     void paintEvent(QPaintEvent *event);

@@ -81,15 +81,21 @@ namespace robot
         return true;
     }
 
-    transform_matrix humanoid::leg_forward_kinematics(vector<double> deg, bool left)
+    transform_matrix humanoid::leg_forward_kinematics(vector<double> degs, bool left)
     {
         double sg = (left ? 1.0 : -1.0);
 
-        if (deg.size() < 6)
+        if (degs.size() < 6)
         {
             return transform_matrix();
         }
-
+        transform_matrix foot;
+        transform_matrix body;
+        body = foot*transform_matrix(0, 0, C_)*transform_matrix(-degs[5], 'x')*transform_matrix(-degs[4], 'y')
+                *transform_matrix(0, 0, B_)*transform_matrix(-degs[3], 'y')*transform_matrix(0, 0, A_)
+                *transform_matrix(-degs[2], 'y')*transform_matrix(-degs[1], 'x')*transform_matrix(-degs[0], 'z')
+                *transform_matrix(0, -sg*D_ / 2.0, bone_map_["rhip2"]->length_);
+/*
         transform_matrix T10, T21, T32, T43, T54, T65, T76, T_Mat;
         T10 = transform_matrix(90, 'z') * transform_matrix(180, 'x') * transform_matrix(D_ / 2.0, 0, 0);
         T21 = transform_matrix(deg[0], 'z') * transform_matrix(-90, 'x');
@@ -100,7 +106,8 @@ namespace robot
         T76 = transform_matrix(deg[5], 'z') * transform_matrix(-90, 'y') * transform_matrix(0, 0, -C_);
         transform_matrix foot(0, sg * D_ / 2.0, 0);
         T_Mat = T10 * T21 * T32 * T43 * T54 * T65 * T76;
-        return transform_matrix(foot * T_Mat.inverse());
+        */
+        return body;
     }
 
     bool humanoid::leg_inverse_kinematics(const transform_matrix &body,

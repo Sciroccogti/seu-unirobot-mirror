@@ -19,7 +19,7 @@ namespace robot
 
         bool arm_inverse_kinematics(const Eigen::Vector3d &hand, std::vector<double> &deg);
 
-        robot_math::transform_matrix leg_forward_kinematics(std::vector<double> deg, bool left);
+        robot_math::transform_matrix leg_forward_kinematics(std::vector<double> degs, bool left);
 
         bool leg_inverse_kinematics(const robot_math::transform_matrix &body, const robot_math::transform_matrix &foot,
                                     std::vector<double> &deg, const bool &left = false);
