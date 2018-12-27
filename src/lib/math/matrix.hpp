@@ -28,27 +28,54 @@ namespace robot_math
         transform_matrix(const double &deg, const char &c = 'x')
         {
             *this = Eigen::Matrix4d::Identity(4, 4);
+            Eigen::Vector3d temp = Eigen::Vector3d::UnitX();
 
             switch (c)
             {
                 case 'x':
                 case 'X':
-                    set_R(RotX(deg2rad(deg)));
+                    temp = Eigen::Vector3d::UnitX();
                     break;
 
                 case 'y':
                 case 'Y':
-                    set_R(RotY(deg2rad(deg)));
+                    temp = Eigen::Vector3d::UnitY();
                     break;
 
                 case 'z':
                 case 'Z':
-                    set_R(RotZ(deg2rad(deg)));
+                    temp = Eigen::Vector3d::UnitZ();
                     break;
 
                 default:
                     break;
             }
+            Eigen::AngleAxisd rotv(deg2rad(deg), temp);
+            set_R(rotv.toRotationMatrix());
+        }
+
+        inline transform_matrix rotationX(const double &deg)
+        {
+            *this = (*this)*transform_matrix(deg, 'x');
+            return *this;
+        }
+
+        inline transform_matrix rotationY(const double &deg)
+        {
+            *this = (*this)*transform_matrix(deg, 'y');
+            return *this;
+        }
+
+        inline transform_matrix rotationZ(const double &deg)
+        {
+            *this = (*this)*transform_matrix(deg, 'z');
+            return *this;
+        }
+
+        inline transform_matrix translation(const double &x, const double &y, const double &z)
+        {
+            *this = (*this)*transform_matrix(x, y, z);
+            return *this;
         }
 
         inline Eigen::Matrix3d R() const

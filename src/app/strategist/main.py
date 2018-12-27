@@ -78,24 +78,27 @@ if __name__ == '__main__':
         tm = teammate.Teammate(int(CONF.get_config('net.udp.teammate.port')), int(CONF.get_config('net.udp.teammate.period')))
         tm.attach(ROBOT)
         tm.start()
-
-    FSM = fsm.fsm()
-    machine = Machine(model=FSM, states=states, ordered_transitions=True)
+    if OPTS.use_fsm:
+        FSM = fsm.fsm()
+        machine = Machine(model=FSM, states=states, ordered_transitions=True)
     cl.regsit(tcp_cmd_type.TASK_DATA, tcp_data_dir.DIR_SUPPLY)
     cl.regsit(tcp_cmd_type.WM_DATA, tcp_data_dir.DIR_APPLY)
+    test_task = walk_task(0.02, 0.0, 0.0, True)
     while is_alive:
         try:
-            FSM.run()
             if not cl.is_alive:
                 is_alive = False
                 break
             if controller.poll():
                 break
-                #controller = subprocess.Popen(cmd, shell=True)
                 
             if cl.connected:
-                for t in FSM.tasks:
-                    cl.send(t.data())
+                if OPTS.use_fsm:
+                    FSM.run()
+                    for t in FSM.tasks:
+                        cl.send(t.data())
+                else:
+                    cl.send(test_task.data())
         except:
             pass
         time.sleep(1)

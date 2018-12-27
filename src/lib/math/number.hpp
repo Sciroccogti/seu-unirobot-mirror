@@ -61,31 +61,22 @@ namespace robot_math
         }
     }
 
-    inline Eigen::Matrix3d RotY(const double &rad)
-    {
-        Eigen::Matrix3d m;
-        m << cos(rad),     0.0, sin(rad),
-        0.0,        1.0, 0.0,
-        -sin(rad),    0.0, cos(rad);
-        return m;
-    }
-
     inline Eigen::Matrix3d RotX(const double &rad)
     {
-        Eigen::Matrix3d m;
-        m << 1.0, 0.0,       0.0,
-        0.0, cos(rad),    -sin(rad),
-        0.0, sin(rad),    cos(rad);
-        return m;
+        Eigen::AngleAxisd temp(rad, Eigen::Vector3d::UnitX());
+        return temp.toRotationMatrix();
+    }
+
+    inline Eigen::Matrix3d RotY(const double &rad)
+    {
+        Eigen::AngleAxisd temp(rad, Eigen::Vector3d::UnitY());
+        return temp.toRotationMatrix();
     }
 
     inline Eigen::Matrix3d RotZ(const double &rad)
     {
-        Eigen::Matrix3d m;
-        m << cos(rad), -sin(rad),    0.0,
-        sin(rad), cos(rad),     0.0,
-        0.0,    0.0,        1.0;
-        return m;
+        Eigen::AngleAxisd temp(rad, Eigen::Vector3d::UnitZ());
+        return temp.toRotationMatrix();
     }
 }
 
