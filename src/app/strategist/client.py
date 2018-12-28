@@ -69,6 +69,7 @@ class client(observer.publisher):
                     if len(data) == 0:
                         self.__sock.close()
                         self.connected = False
+                        break
                     else:
                         (cmd_type,) = struct.unpack('=i',data[:4])
                         if cmd_type == tcp_cmd_type.WM_DATA:

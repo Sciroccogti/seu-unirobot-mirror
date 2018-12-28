@@ -53,6 +53,7 @@ if __name__ == '__main__':
     controller = subprocess.Popen(cmd, shell=True)
 
     def signal_handler(sig, frame):
+        global is_alive
         if sig == signal.SIGINT:
             is_alive = False
 
@@ -83,7 +84,7 @@ if __name__ == '__main__':
         machine = Machine(model=FSM, states=states, ordered_transitions=True)
     cl.regsit(tcp_cmd_type.TASK_DATA, tcp_data_dir.DIR_SUPPLY)
     cl.regsit(tcp_cmd_type.WM_DATA, tcp_data_dir.DIR_APPLY)
-    test_task = walk_task(0.02, 0.0, 0.0, True)
+    test_task = task.walk_task(0.02, 0.0, 0.0, True)
     while is_alive:
         try:
             if not cl.is_alive:

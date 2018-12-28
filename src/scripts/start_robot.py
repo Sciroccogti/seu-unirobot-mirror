@@ -45,6 +45,6 @@ if __name__ == '__main__':
     signal.signal(signal.SIGINT,signal_handler)
 
     nowTime=datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    cmd = 'date -s "%s"; cd %s; tar zxvf %s; cd %s; nohup python3 ./%s %s'\
+    cmd = 'date -s "%s"; cd %s; tar zxvf %s; cd %s; python3 ./%s %s'\
           %(nowTime, config.remote_dir, config.compress_file_name, config.target_dir, config.start_script, args)
     ssh_client.exec_command(cmd)
