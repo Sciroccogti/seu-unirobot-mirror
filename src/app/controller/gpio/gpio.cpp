@@ -29,6 +29,7 @@ bool gpio::gpio_export()
 {
     int fileDescriptor, length;
     char commandBuffer[MAX_BUF];
+    char fnBuffer[MAX_BUF];
 
     fileDescriptor = open(SYSFS_GPIO_DIR "/export", O_WRONLY);
     if (fileDescriptor < 0) 
@@ -38,10 +39,15 @@ bool gpio::gpio_export()
     }
 
     length = snprintf(commandBuffer, sizeof(commandBuffer), "%d", io_);
-    if (write(fileDescriptor, commandBuffer, length) != length) 
+
+    snprintf(fnBuffer, sizeof(fnBuffer), SYSFS_GPIO_DIR  "/gpio%d", io_);
+    if(access(fnBuffer, F_OK) != 0)
     {
-        LOG << "gpio export error!" <<ENDL;
-        return false;
+        if (write(fileDescriptor, commandBuffer, length) != length) 
+        {
+            LOG << "gpio export error!" <<ENDL;
+            return false;
+        }
     }
     close(fileDescriptor);
     return true;
