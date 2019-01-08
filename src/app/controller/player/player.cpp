@@ -51,7 +51,7 @@ bool player::init()
     {
         LE->start();
     }
-    action_task p("ready");
+    action_task p("reset");
     p.perform();
     start_timer();
     return true;

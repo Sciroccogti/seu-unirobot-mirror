@@ -18,8 +18,8 @@ class fsm(object):
         if ROBOT.wm_data().fall != FallDirection.FALL_NONE:
             self.next_state = self.to_Getup
         else:
-            #self.tasks.append(action_task('reset'))
-            self.tasks.append(walk_task(0.0, 0.0, 0.0, True))
+            self.tasks.append(action_task('reset'))
+            #self.tasks.append(walk_task(0.0, 0.0, 0.0, True))
             #self.next_state = self.to_SearchBall
 
     def on_enter_Getup(self):
