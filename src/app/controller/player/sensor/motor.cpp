@@ -72,6 +72,8 @@ bool motor::start()
     sensor::is_alive_ = true;
     timer::is_alive_ = true;
     start_timer();
+    ROBOT->conveyFeedbackParams.update_flag = false;
+    clearMotorFeedbackParams();
     return true;
 }
 
@@ -105,11 +107,27 @@ void motor::virtul_act()
     string j_data;
     j_data.clear();
 
+    /*feed back loop Test*/
+    std::map<int, float> real_jdegs;
+
     for (auto &jm : ROBOT->get_joint_map())
     {
         jd.id = jm.second->jid_;
         jd.deg = jm.second->get_deg();
+        /*feed back loop Test*/
+        real_jdegs[jd.id] = jd.deg;
         j_data.append((char *)(&jd), sizeof(robot_joint_deg));
+    }
+
+    /*feed back loop Test*/
+    ROBOT->set_real_degs(real_jdegs);
+    updateMotorFeedbackParams();
+    if(ROBOT->finished_one_step_flag == true)
+    {  
+       //cout<<"after one half step: updateConveyFeedbackParams "<<endl;
+       updateConveyFeedbackParams();
+       clearMotorFeedbackParams();
+       ROBOT->down_finished_one_step_flag();
     }
 
     cmd.size = ROBOT->get_joint_map().size() * sizeof(robot_joint_deg);
@@ -259,8 +277,14 @@ void motor::set_gpos()
     uint32_t gpos;
     float deg;
 
+    /*feed back loop Test*/
+    std::map<int, float> real_jdegs;
+
     for (auto &j : ROBOT->get_joint_map())
     {
+        /*feed back loop Test*/
+        real_jdegs[j.second->jid_] = j.second->get_deg();
+
         deg = (j.second->inverse_) * (j.second->get_deg() + j.second->offset_);
         gpos = float2pos(deg);
         gpos_data[0] = DXL_LOBYTE(DXL_LOWORD(gpos));
@@ -274,5 +298,49 @@ void motor::set_gpos()
         }
     }
 
+    /*feed back loop Test*/
+    ROBOT->set_real_degs(real_jdegs);
+    updateMotorFeedbackParams();
+    if(ROBOT->finished_one_step_flag == true)
+    {  
+       //cout<<"after one real half step: updateConveyFeedbackParams "<<endl;
+       updateConveyFeedbackParams();
+       clearMotorFeedbackParams();
+       ROBOT->down_finished_one_step_flag();
+    }
     gposWrite_->txPacket();
+}
+
+void motor::updateMotorFeedbackParams()
+{   
+    ROBOT->ComputationForComAndFootpose(motorFeedbackParams.Com, motorFeedbackParams.leftfoot_pose_pre, 
+                                        motorFeedbackParams.rightfoot_pose_pre);
+
+    //cout<<"footleft       "<<motorFeedbackParams.leftfoot_pose_pre<<endl;
+    if(motorFeedbackParams.leftfoot_pose_maxh.z() < motorFeedbackParams.leftfoot_pose_pre.z()){
+        motorFeedbackParams.leftfoot_pose_maxh = motorFeedbackParams.leftfoot_pose_pre;
+    }
+
+    if(motorFeedbackParams.rightfoot_pose_maxh.z() < motorFeedbackParams.rightfoot_pose_pre.z()){
+        motorFeedbackParams.rightfoot_pose_maxh = motorFeedbackParams.rightfoot_pose_pre;
+    }
+
+}
+
+void motor::updateConveyFeedbackParams()
+{
+    ROBOT->conveyFeedbackParams.Com = motorFeedbackParams.Com;
+    ROBOT->conveyFeedbackParams.leftfoot_pose = motorFeedbackParams.leftfoot_pose_pre;
+    ROBOT->conveyFeedbackParams.rightfoot_pose = motorFeedbackParams.rightfoot_pose_pre;
+
+    ROBOT->conveyFeedbackParams.leftfoot_pose_maxh = motorFeedbackParams.leftfoot_pose_maxh;
+    ROBOT->conveyFeedbackParams.rightfoot_pose_maxh = motorFeedbackParams.rightfoot_pose_maxh;
+    ROBOT->conveyFeedbackParams.update_flag = true;
+    
+}
+
+void motor::clearMotorFeedbackParams()
+{
+    motorFeedbackParams.leftfoot_pose_maxh = Eigen::Vector3d(0.0, 0.0, 0.0);
+    motorFeedbackParams.rightfoot_pose_maxh = Eigen::Vector3d(0.0, 0.0, 0.0);
 }
