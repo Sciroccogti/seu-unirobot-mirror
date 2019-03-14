@@ -21,10 +21,7 @@ enum tcp_cmd_type
     JOINT_DATA = 6,
     REMOTE_DATA = 7,
     IMG_DATA = 8,
-    END_DATA = 9,
-
-    WM_DATA = 15,
-    TASK_DATA = 20,
+    END_DATA = 9
 };
 
 struct tcp_command
@@ -59,15 +56,6 @@ struct remote_data
     remote_data_type type;
     unsigned int size;
     std::string data;
-};
-
-enum task_type
-{
-    TASK_NONE = 0,
-    TASK_WALK = 1,
-    TASK_ACT = 2,
-    TASK_LOOK = 3,
-    TASK_LED = 4
 };
 
 enum {enum_size = sizeof(tcp_data_dir)};

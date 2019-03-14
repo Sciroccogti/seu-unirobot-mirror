@@ -3,13 +3,12 @@
 
 import common
 import sys
-import SSHConnection
 import config
 import datetime
 import threading
 import time
 import signal
-
+import ssh_connection
 
 if __name__ == '__main__': 
     if not common.check_argv(sys.argv):
@@ -35,16 +34,15 @@ if __name__ == '__main__':
         common.print_error('can not connect to host, please check network')
         exit(6)
         
-    ssh_client = SSHConnection.SSHConnection(ip_address, config.ssh_port, config.username, config.password)
+    ssh_client = ssh_connection.ssh_connection(ip_address, config.ssh_port, config.username, config.password)
     ssh_client.upload(config.project_dir+'/bin/'+config.compress_file_name, config.remote_dir+config.compress_file_name)
-
+    
     def signal_handler(sig,frame):
         if sig == signal.SIGINT:
             ssh_client.exec_command('kill -2 $(pidof controller)')
 
     signal.signal(signal.SIGINT,signal_handler)
-
-    nowTime=datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    cmd = 'date -s "%s"; cd %s; tar zxvf %s; cd %s; python3 ./%s %s'\
-          %(nowTime, config.remote_dir, config.compress_file_name, config.target_dir, config.start_script, args)
+    
+    cmd = 'cd %s; tar zxmvf %s; cd %s; ./%s %s'\
+          %(config.remote_dir, config.compress_file_name, config.target_dir, config.exec_file_name, args)
     ssh_client.exec_command(cmd)

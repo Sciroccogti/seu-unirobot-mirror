@@ -3,7 +3,7 @@
 
 import common
 import sys
-import SSHConnection
+import ssh_connection
 import config
 
 
@@ -24,7 +24,7 @@ if __name__ == '__main__':
     args = common.parse_argv(sys.argv)
 
     ip_address = common.get_ip(robot_id)
-    ssh_client = SSHConnection.SSHConnection(ip_address, config.ssh_port, config.username, config.password)
+    ssh_client = ssh_connection.ssh_connection(ip_address, config.ssh_port, config.username, config.password)
 
     cmd = "sed -i '1d' %s; poweroff"%config.start_up_file
     ssh_client.exec_command(cmd)

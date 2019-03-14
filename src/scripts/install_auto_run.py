@@ -3,7 +3,7 @@
 
 import common
 import sys
-import SSHConnection
+import ssh_connection
 import config
 import datetime
 
@@ -29,7 +29,7 @@ if __name__ == '__main__':
     args = common.parse_argv(sys.argv)
 
     ip_address = common.get_ip(robot_id)
-    ssh_client = SSHConnection.SSHConnection(ip_address, config.ssh_port, config.username, config.password)
+    ssh_client = ssh_connection.ssh_connection(ip_address, config.ssh_port, config.username, config.password)
     ssh_client.upload(config.local_dir+config.compress_file_name, config.remote_dir+config.compress_file_name)
 
     nowTime=datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')

@@ -3,7 +3,7 @@
 
 import common
 import sys
-import SSHConnection
+import ssh_connection
 import config
 
 
@@ -19,5 +19,5 @@ if __name__ == '__main__':
 
     ip_address = common.get_ip(robot_id)
     remote_path = sys.argv[2]
-    ssh_client = SSHConnection.SSHConnection(ip_address, config.ssh_port, config.username, config.password)
+    ssh_client = ssh_connection.ssh_connection(ip_address, config.ssh_port, config.username, config.password)
     ssh_client.download(remote_path, './')
