@@ -22,7 +22,9 @@ options::options(): opts_desc_("  Options description")
     ("say,s", value<bool>()->default_value(false),
     "If you want to use communication")
     ("mote,m", value<bool>()->default_value(false),
-     "If you want to use remote.");
+     "If you want to use remote.")
+    ("image,i", value<bool>()->default_value(false),
+     "If you want to record image.");
 }
 
 bool options::init(int argc, char **argv)
@@ -37,6 +39,7 @@ bool options::init(int argc, char **argv)
         use_remote_ = arg<bool>("mote");
         use_comm_ = arg<bool>("say");
         use_gc_ = arg<bool>("gamectrl");
+        image_record_ = arg<bool>("image");
 
         if (var_map_.count("help"))
         {

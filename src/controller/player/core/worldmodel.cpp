@@ -9,12 +9,6 @@ WorldModel::WorldModel()
 {
     fall_direction_ = FALL_NONE;
     support_foot_ = robot::DOUBLE_SUPPORT;
-    lost_ = false;
-    bodyx_ = -1.0;
-    bodyy_ = 0.0;
-    bodydir_ = 15.0;
-    ballx_ = 1.0;
-    bally_ = -1.0;
 }
 
 void WorldModel::updata(const pub_ptr &pub, const int &type)
@@ -28,7 +22,6 @@ void WorldModel::updata(const pub_ptr &pub, const int &type)
         yaw = AngleAxisd(deg2rad(imu_data_.yaw), Vector3d::UnitZ());
         pitch = AngleAxisd(deg2rad(imu_data_.pitch), Vector3d::UnitY());
         roll = AngleAxisd(deg2rad(imu_data_.roll), Vector3d::UnitX());
-        lost_ = sptr->lost();
         fall_direction_ = sptr->fall_direction();
         imu_mtx_.unlock();
         /*

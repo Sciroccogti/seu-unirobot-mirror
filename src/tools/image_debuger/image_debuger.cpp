@@ -3,6 +3,8 @@
 #include "ui/walk_remote.hpp"
 #include "ui/camera_setter.hpp"
 #include <opencv2/opencv.hpp>
+#include <cuda_runtime.h>
+#include "cuda/cudaproc.h"
 
 using namespace cv;
 using namespace std;
@@ -26,10 +28,10 @@ image_debuger::image_debuger()
 
     funcBox = new QComboBox();
     QStringList funclist;
-    funclist << "algorithm";
-    funclist << "sampling";
+    funclist << "ball & goal";
+    funclist << "field";
     funcBox->addItems(funclist);
-    btnLoad = new QPushButton("Load File");
+    btnLoad = new QPushButton("Open Folder");
     btnLast = new QPushButton("Last Frame");
     btnNext = new QPushButton("Next Frame");
     boxAuto = new QCheckBox("Auto Play(ms)");
@@ -68,34 +70,36 @@ image_debuger::image_debuger()
 
 void image_debuger::show_src()
 {
-    cvtColor(yuv_images_[curr_index_ - 1], rgb_src_, CV_YUV2RGB);
+    Mat bgr = imread(String((curr_dir_+image_names_.at(curr_index_-1)).toStdString()));
+    cvtColor(bgr, rgb_src_, CV_BGR2RGB);
     QImage srcImage(rgb_src_.data, rgb_src_.cols, rgb_src_.rows, QImage::Format_RGB888);
     srcLab->set_image(srcImage);
 }
 
 void image_debuger::show_dst(Mat dst)
 {
-    QImage dstImage(dst.data, dst.cols, dst.rows,
-                    dst.channels() == 3 ? QImage::Format_RGB888 : QImage::Format_Grayscale8);
+    //cout<<dst.channels()<<endl;
+    QImage dstImage(rgb_src_.data, rgb_src_.cols, rgb_src_.rows, QImage::Format_RGB888);
     dstLab->set_image(dstImage);
+    //cout<<"end"<<endl;
 }
 
 void image_debuger::proc_image(const unsigned int &index)
 {
-    if (index < 1 || index > yuv_images_.size())
+    if (index < 1 || index > image_names_.size())
     {
         return;
     }
 
     curr_index_ = index;
-    infoLab->setText(QString::number(curr_index_) + "/" + QString::number(yuv_images_.size()));
+    infoLab->setText(QString::number(curr_index_) + "/" + QString::number(image_names_.size()));
     frmSlider->setValue(index);
     show_src();
 
     if (funcBox->currentIndex() == 0) //algorithm
     {
         Mat dst;
-        cvtColor(rgb_src_, dst, CV_RGB2GRAY);
+        cvtColor(rgb_src_, dst, CV_RGB2BGR);
         show_dst(dst);
     }
 }
@@ -106,7 +110,7 @@ void image_debuger::procBtnLast()
 
     if (curr_index_ < 1)
     {
-        curr_index_ = yuv_images_.size();
+        curr_index_ = image_names_.size();
     }
 
     proc_image(curr_index_);
@@ -116,7 +120,7 @@ void image_debuger::procBtnNext()
 {
     curr_index_++;
 
-    if (curr_index_ > yuv_images_.size())
+    if (curr_index_ > image_names_.size())
     {
         curr_index_ = 1;
     }
@@ -127,21 +131,22 @@ void image_debuger::procBtnNext()
 void image_debuger::procBtnLoad()
 {
     timer->stop();
-    QString filename = QFileDialog::getOpenFileName(this, "Open file", QDir::homePath(), tr("*.yuv"));
-
-    if (filename.isEmpty())
+    curr_dir_ = QFileDialog::getExistingDirectory(this, "Open image directory", QDir::homePath())+"/";
+    if (curr_dir_.isEmpty())
     {
         return;
     }
 
-    yuv_images_.clear();
-    //yuv_images_ = read_yuv(filename.toStdString());
-
-    if (!yuv_images_.empty())
+    QDir dir(curr_dir_);
+    QStringList nameFilters;
+    nameFilters << "*.jpg" << "*.png";
+    image_names_.clear();
+    image_names_ = dir.entryList(nameFilters, QDir::Files|QDir::Readable, QDir::Name);
+    if (!image_names_.empty())
     {
         frmSlider->setEnabled(true);
         frmSlider->setMinimum(1);
-        frmSlider->setMaximum(yuv_images_.size());
+        frmSlider->setMaximum(image_names_.size());
         proc_image(1);
     }
 }

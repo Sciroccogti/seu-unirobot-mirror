@@ -27,8 +27,7 @@ This project contains a controller, some debug tools and some scripts for seu-ro
 You can use Jetpack-3.3 to install cuda, opencv and cross compiler tools.
 
 ### python3 libraries
-* python3-paramiko
-* transitions
+* ssh2-python
 
 ## Compile & Run
 

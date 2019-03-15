@@ -8,6 +8,8 @@
 #include "compare.hpp"
 #include "core/worldmodel.hpp"
 
+#include <fstream>
+
 using namespace std;
 using namespace cv;
 using namespace robot_math;
@@ -152,6 +154,10 @@ void Vision::run()
             Mat bgr(h_, w_, CV_8UC3);
             err = cudaMemcpy(bgr.data, dev_ori_, ori_size_, cudaMemcpyDeviceToHost);
             check_error(err);
+            if(OPTS->image_record())
+            {
+                imwrite(String(get_time()+".png"), bgr);
+            }
 
             if (img_sd_type_ == IMAGE_SEND_ORIGIN)
             {

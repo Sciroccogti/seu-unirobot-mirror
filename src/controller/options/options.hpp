@@ -37,6 +37,10 @@ public:
     {
         return use_comm_;
     }
+    bool image_record() const
+    {
+        return image_record_;
+    }
 
 private:
     template<typename T> T arg(const std::string &opt) const
@@ -52,6 +56,7 @@ private:
     bool use_remote_;
     bool use_gc_;
     bool use_comm_;
+    bool image_record_;
 };
 
 #define OPTS options::instance()

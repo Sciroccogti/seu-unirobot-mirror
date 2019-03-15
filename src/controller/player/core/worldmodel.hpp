@@ -21,59 +21,56 @@ public:
 
     void updata(const pub_ptr &pub, const int &type);
 
-    inline int support_foot()
+    int support_foot()
     {
         return support_foot_;
     }
 
-    inline void set_support_foot(const robot::support_foot &sf)
+    void set_support_foot(const robot::support_foot &sf)
     {
         support_foot_ = sf;
     }
 
-    inline imu::imu_data imu_data()
+    imu::imu_data imu_data()
     {
         std::lock_guard<std::mutex> lk(imu_mtx_);
         return imu_data_;
     }
 
-    inline robot_math::transform_matrix head_matrix()
+    robot_math::transform_matrix head_matrix()
     {
         std::lock_guard<std::mutex> lk(head_mtx_);
         return head_matrix_;
     }
 
-    inline int fall_data()
+    int fall_data()
     {
         return fall_direction_;
     }
 
-    inline bool lost()
-    {
-        return lost_;
-    }
-
-    inline RoboCupGameControlData gc_data()
+    RoboCupGameControlData gc_data()
     {
         std::lock_guard<std::mutex> lk(gc_mtx_);
         return gc_data_;
     }
 
-    inline std::map< int, player_info > player_infos()
+    std::map< int, player_info > player_infos()
     {
         std::lock_guard<std::mutex> lk(hr_mtx_);
         return player_infos_;
     }
 
-    inline player_info player__info(int id)
+    player_info my_info()
     {
         std::lock_guard<std::mutex> lk(hr_mtx_);
-        return player_infos_[id];
+        return player_infos_[CONF->id()];
     }
 
-public:
-    float ballx_, bally_;
-    float bodyx_, bodyy_, bodydir_;
+    bool button_status(int id)
+    {
+        if(id==1) return bt1_status_;
+        else if(id==2) return bt2_status_;
+    }
     
 private:
     imu::imu_data imu_data_;
@@ -83,7 +80,6 @@ private:
     robot_math::transform_matrix body_matrix_, head_matrix_;
     std::vector<double> head_degs_;
 
-    std::atomic_bool lost_;
     std::atomic_bool bt1_status_;
     std::atomic_bool bt2_status_;
     std::atomic_int fall_direction_;

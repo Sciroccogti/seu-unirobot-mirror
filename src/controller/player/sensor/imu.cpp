@@ -7,14 +7,13 @@ using namespace boost::asio;
 
 boost::asio::io_service imu_service;
 
+#define RST_CMD "AT+RST"
+
 const float g_ = 9.8;
 
 imu::imu(): sensor("imu"), serial_(imu_service), timer(1000)
 {
     reset_ = false;
-    count_ = 0;
-    lost_ = false;
-    connected_ = false;
     std::vector<float> range = CONF->get_config_vector<float>("not_fall_range.pitch");
     pitch_range_.x() = range[0];
     pitch_range_.y() = range[1];
@@ -47,28 +46,11 @@ void imu::run()
 {
     if (timer::is_alive_)
     {
-        if (connected_)
-        {
-            if (count_ < 10)
-            {
-                lost_ = true;
-                notify(SENSOR_IMU);
-            }
-            else
-            {
-                lost_ = false;
-            }
-
-            count_ = 0;
-        }
-        
         if (reset_)
         {
             auto self(shared_from_this());
-            /*
-            boost::asio::async_write(serial_, boost::asio::buffer(cmd, 5),
+            boost::asio::async_write(serial_, boost::asio::buffer(RST_CMD, 6),
             [this, self](boost::system::error_code ec, std::size_t length) {});
-            */
             reset_ = false;
         }
     }
@@ -270,7 +252,6 @@ void imu::OnDataReceived(Packet_t &pkt)
                 break;
         }
     }
-    count_++;
     notify(SENSOR_IMU);
 }
 

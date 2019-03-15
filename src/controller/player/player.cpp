@@ -19,6 +19,59 @@ player::player(): timer(CONF->get_config_value<int>("think_period"))
 {
     is_alive_ = false;
     period_count_ = 0;
+    btn_count_ = 0;
+}
+
+void player::run()
+{
+    if (is_alive_)
+    {
+        period_count_++;
+
+        if (OPTS->use_robot())
+        {
+            if(WM->button_status(1)&&WM->button_status(2))
+            {
+                btn_count_++;
+                if(btn_count_%40==0)
+                {
+                    raise(SIGINT);
+                }
+            }
+            else
+            {
+                btn_count_=0;
+            }
+        }
+        if(OPTS->use_remote())
+        {
+            play_with_remote();
+        }
+        else
+        {
+            list<task_ptr> tasks, tlist;
+            if(period_count_%20 == 0)
+            {
+                if(OPTS->use_gc())
+                    tasks.push_back(make_shared<gcret_task>());
+                if(OPTS->use_comm())
+                    tasks.push_back(make_shared<say_task>());
+            }
+            tlist = think();
+            tasks.insert(tasks.end(), tlist.begin(), tlist.end());    
+            for(auto &tsk:tasks)
+            {
+                tsk->perform();
+            }
+        }
+    }
+}
+
+list<task_ptr> player::think()
+{
+    list<task_ptr> tasks;
+    tasks.push_back(make_shared<walk_task>(0.0, 0.0, 0.0, true));
+    return tasks;
 }
 
 bool player::init()
@@ -81,38 +134,6 @@ void player::stop()
     unregist();
     sleep(1);
     SERVER->stop();
-}
-
-void player::run()
-{
-    if (is_alive_)
-    {
-        period_count_++;
-
-        if (OPTS->use_robot())
-        {
-            if (WM->lost())
-            {
-                LOG << "hardware has no response!" << ENDL;
-                raise(SIGINT);
-            }
-        }
-        if(OPTS->use_remote())
-        {
-            play_with_remote();
-        }
-        else
-        {
-            list<task_ptr> tasks;
-            if(period_count_%20 == 0)
-                tasks.push_back(make_shared<gcret_task>());
-            tasks.push_back(make_shared<walk_task>(0.0, 0.0, 0.0, true));
-            for(auto &tsk:tasks)
-            {
-                tsk->perform();
-            }
-        }
-    }
 }
 
 bool player::regist()

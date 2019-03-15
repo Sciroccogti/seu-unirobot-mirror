@@ -16,7 +16,7 @@ public:
     
     bool perform()
     {
-        player_info info = WM->player__info(CONF->id());
+        player_info info = WM->my_info();
 
         boost::asio::io_service say_service;
         boost::asio::ip::udp::socket send_socket(say_service, boost::asio::ip::udp::endpoint(boost::asio::ip::udp::v4(), 0)); 

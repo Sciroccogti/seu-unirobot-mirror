@@ -27,10 +27,12 @@ public:
 private:
     void run();
     void play_with_remote();
+    std::list<task_ptr> think();
     bool regist();
     void unregist();
     sensor_ptr get_sensor(const std::string &name);
 private:
     unsigned long period_count_;
     std::map<std::string, sensor_ptr> sensors_;
+    unsigned int btn_count_;
 };

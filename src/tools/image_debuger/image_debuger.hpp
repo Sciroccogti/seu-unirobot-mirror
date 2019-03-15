@@ -33,7 +33,8 @@ private:
     QComboBox *funcBox;
     unsigned int curr_index_;
     cv::Mat curr_image_;
-    std::vector<cv::Mat> yuv_images_;
+    QString curr_dir_;
+    QStringList image_names_;
     cv::Mat rgb_src_;
     int width_;
     int height_;

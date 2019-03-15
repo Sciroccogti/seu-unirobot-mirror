@@ -62,19 +62,15 @@ public:
     bool start();
     void stop();
 
-    inline imu_data data() const
+    imu_data data() const
     {
         return imu_data_;
     }
-    inline void set_zero()
+    void set_zero()
     {
         reset_ = true;
     }
-    inline bool lost() const
-    {
-        return lost_;
-    }
-    inline int fall_direction() const
+    int fall_direction() const
     {
         return fall_direction_;
     }
@@ -94,9 +90,6 @@ private:
 
     boost::asio::serial_port serial_;
     std::atomic_bool reset_;
-    std::atomic_bool lost_;
-    std::atomic_bool connected_;
-    std::atomic_int count_;
     std::atomic_int fall_direction_;
 
     Eigen::Vector2f pitch_range_;
