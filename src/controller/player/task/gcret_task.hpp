@@ -3,7 +3,7 @@
 #include <boost/asio.hpp>
 #include <exception>
 #include "task.hpp"
-#include "GameCtrlData/RoboCupGameControlData.h"
+#include "udp_data/RoboCupGameControlData.h"
 #include "configuration.hpp"
 
 class gcret_task: public task

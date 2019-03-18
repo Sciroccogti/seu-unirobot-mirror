@@ -3,7 +3,7 @@
 #include <boost/asio.hpp>
 #include <memory>
 #include <thread>
-#include "GameCtrlData/RoboCupGameControlData.h"
+#include "udp_data/RoboCupGameControlData.h"
 #include "sensor.hpp"
 
 class gamectrl: public sensor

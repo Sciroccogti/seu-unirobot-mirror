@@ -15,6 +15,7 @@ target_link_libraries(${TARGET_NAME}
         ui
         robot
         imageproc
+        darknet
         debuger_options
         Qt5::Widgets
         Qt5::Core

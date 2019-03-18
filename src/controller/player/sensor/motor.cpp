@@ -48,7 +48,8 @@ motor::motor(): sensor("motor"), timer(CONF->get_config_value<int>("hardware.mot
 
     for (auto &r : ROBOT->get_joint_map())
     {
-        pposRead_->addParam(static_cast<uint8_t>(r.second->jid_));
+        if(r.second->jid_>10)
+            pposRead_->addParam(static_cast<uint8_t>(r.second->jid_));
     }
 }
 
@@ -160,13 +161,12 @@ void motor::real_act()
     else
     {
         set_gpos();
-        //read_pos();
-
         if ((p_count_ * period_ms_ % 1000) == 0)
         {
             led_status_ = 1 - led_status_;
             set_led(led_status_);
         }
+        read_pos();
     }
 }
 
@@ -212,7 +212,7 @@ void motor::read_pos()
     int dxl_comm_result = COMM_TX_FAIL;
     uint8_t id = 0;
     dxl_comm_result = pposRead_->txRxPacket();
-
+    
     if (dxl_comm_result != COMM_SUCCESS)
     {
         LOG << packetHandler_->getTxRxResult(dxl_comm_result) << ENDL;
@@ -226,10 +226,11 @@ void motor::read_pos()
             if (pposRead_->isAvailable(id, ADDR_PPOS, SIZE_PPOS))
             {
                 curr_degs_[static_cast<int>(id)] = pos2float(pposRead_->getData(id, ADDR_PPOS, SIZE_PPOS));
+                //LOG << static_cast<int>(id) << '\t' << curr_degs_[static_cast<int>(id)] << ENDL;
             }
             else
             {
-                curr_degs_[static_cast<int>(id)] = 0.0;
+                curr_degs_[static_cast<int>(id)] = ROBOT->get_joint(static_cast<int>(id))->get_deg();
             }
         }
     }

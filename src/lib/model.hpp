@@ -18,10 +18,10 @@ struct filed_info
 
 struct player_info
 {
-    char header[3];
     int id;
     float x, y, dir;
     float ball_x, ball_y;
+    bool available = true;
 };
 
 struct camera_info
@@ -40,6 +40,14 @@ struct camera_param
     float cx, cy;
     float k1, k2;
     float p1, p2;
+};
+
+struct object_prob
+{
+    int id;
+    float prob;
+    int x, y;
+    object_prob(int i=0, float p=1, int xx=0, int yy=0): id(i), prob(p), x(xx), y(yy){}
 };
 
 enum FallDirection

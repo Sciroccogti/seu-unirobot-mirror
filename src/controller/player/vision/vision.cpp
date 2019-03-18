@@ -7,13 +7,14 @@
 #include <algorithm>
 #include "compare.hpp"
 #include "core/worldmodel.hpp"
-
+#include "imageproc/imageproc.hpp"
 #include <fstream>
 
 using namespace std;
 using namespace cv;
 using namespace robot_math;
 using namespace Eigen;
+using namespace imageproc;
 
 Vision::Vision(): timer(CONF->get_config_value<int>("vision_period"))
 {
@@ -26,10 +27,14 @@ Vision::Vision(): timer(CONF->get_config_value<int>("vision_period"))
     parser::camera_info_parser::parse(CONF->get_config_value<string>(CONF->player() + ".camera_info_file"), camera_infos_);
     parser::camera_param_parser::parse(CONF->get_config_value<string>(CONF->player() + ".camera_params_file"), params_);
     LOG << setw(12) << "algorithm:" << setw(18) << "[vision]" << " started!" << ENDL;
+    /*
     ball_id_ = 0;
     post_id_ = 1;
     dets_prob_[ball_id_] = CONF->get_config_value<float>("detection_prob.ball");
     dets_prob_[post_id_] = CONF->get_config_value<float>("detection_prob.post");
+    */
+    ball_ = object_prob(0, CONF->get_config_value<float>("detection_prob.ball"));
+    post_ = object_prob(1, CONF->get_config_value<float>("detection_prob.post"));
 }
 
 Vision::~Vision()
@@ -51,6 +56,23 @@ void Vision::set_camera_info(const camera_info &para)
 
 Eigen::Vector2f Vision::odometry(const Eigen::Vector2i &pos, const robot_math::transform_matrix &mat)
 {
+                        /*
+                    float Xw, Yw, Zw;
+                    float OC = 0.44;
+                    float roll = 0.0;
+                    float theta = M_PI/4.0;
+                    Vector2i pos(ball_dets_[0].bbox.x*w_*2, (ball_dets_[0].bbox.y + ball_dets_[0].bbox.h / 2.0)*h_*2);
+                    Vector2f centerPos(pos.x() - params_.cx, params_.cy - pos.y());
+                    Vector2i calCenterPos(static_cast<int>(centerPos.x()/cos(roll)), 
+                            static_cast<int>(centerPos.y()+centerPos.x()*tan(roll)));
+                    Vector2i calPos(calCenterPos.x() + params_.cx, params_.cy - calCenterPos.y());
+                    double gama = atan((params_.cy-(float)calPos.y())/params_.fy);
+                    double O_C_P = M_PI_2-theta+gama;
+                    Yw = OC*tan(O_C_P);
+                    Xw = ((float)calPos.x()-params_.cx)*OC*cos(gama)/(cos(O_C_P)*params_.fx);
+                    Zw = -OC;
+                    LOG<<sqrt(Yw*Yw+Xw*Xw)<<ENDL;
+                    */
     float Xw, Yw;
     float OC = mat.p().z();
     Vector3d rpy = mat.R().eulerAngles(0, 1, 2);
@@ -70,9 +92,11 @@ Eigen::Vector2f Vision::odometry(const Eigen::Vector2i &pos, const robot_math::t
 void Vision::src2dst()
 {
     cudaError_t err;
+    frame_mutex_.lock();
     err = cudaMemcpy(dev_src_, camera_src_, src_size_, cudaMemcpyHostToDevice);
     check_error(err);
-
+    frame_mutex_.unlock();
+    
     if (use_mv_)
     {
         cudaBayer2BGR(dev_src_, dev_bgr_,  camera_w_,  camera_h_, camera_infos_["saturation"].value,
@@ -105,19 +129,22 @@ void Vision::run()
             return;
         }
 
-        frame_mutex_.lock();
+        
         double t1 = clock();
         src2dst();
         //cout<<(clock()-t1)/CLOCKS_PER_SEC<<endl;
-        frame_mutex_.unlock();
+        
         cudaError_t err;
         cudaResizePacked(dev_ori_, w_, h_, dev_sized_, net_.w, net_.h);
         cudaBGR2RGBfp(dev_sized_, dev_rgbfp_, net_.w, net_.h);
 
         is_busy_ = true;
+        vector<object_prob> res;
+        res = ball_and_post_detection(net_, dev_rgbfp_, true, ball_, post_, w_, h_);
+        /*
         layer l = net_.layers[net_.n - 1];
         //double t1 = clock();
-        network_predict(net_, dev_rgbfp_, 0);
+        network_predict(net_, dev_rgbfp_, 1);
         int nboxes = 0;
         float nms = .45;
         detection *dets = get_network_boxes(&net_, w_, h_, 0.5, 0.5, 0, 1, &nboxes, 0);
@@ -147,7 +174,9 @@ void Vision::run()
         }
         sort(ball_dets_.begin(), ball_dets_.end(), CompareDetGreater);
         sort(post_dets_.begin(), post_dets_.end(), CompareDetGreater);
+        free_detections(dets, nboxes);
         //LOG <<"use time: "<<(clock()-t1)/CLOCKS_PER_SEC<<"s"<<ENDL;
+        */
 
         if (OPTS->use_debug())
         {
@@ -165,25 +194,15 @@ void Vision::run()
             }
             else if (img_sd_type_ == IMAGE_SEND_RESULT)
             {
+                for(int i=0; i<res.size();i++)
+                {
+                    Scalar clr = res[i].id == ball_.id ? Scalar(255,0,0):Scalar(0,0,255);
+                    circle(bgr, Point(res[i].x, res[i].y), 10, clr, -1);
+                }
+                /*
                 if(!ball_dets_.empty())
                 {
-                    /*
-                    float Xw, Yw, Zw;
-                    float OC = 0.44;
-                    float roll = 0.0;
-                    float theta = M_PI/4.0;
-                    Vector2i pos(ball_dets_[0].bbox.x*w_*2, (ball_dets_[0].bbox.y + ball_dets_[0].bbox.h / 2.0)*h_*2);
-                    Vector2f centerPos(pos.x() - params_.cx, params_.cy - pos.y());
-                    Vector2i calCenterPos(static_cast<int>(centerPos.x()/cos(roll)), 
-                            static_cast<int>(centerPos.y()+centerPos.x()*tan(roll)));
-                    Vector2i calPos(calCenterPos.x() + params_.cx, params_.cy - calCenterPos.y());
-                    double gama = atan((params_.cy-(float)calPos.y())/params_.fy);
-                    double O_C_P = M_PI_2-theta+gama;
-                    Yw = OC*tan(O_C_P);
-                    Xw = ((float)calPos.x()-params_.cx)*OC*cos(gama)/(cos(O_C_P)*params_.fx);
-                    Zw = -OC;
-                    LOG<<sqrt(Yw*Yw+Xw*Xw)<<ENDL;
-                    */
+                    
                     rectangle(bgr, Point((ball_dets_[0].bbox.x - ball_dets_[0].bbox.w / 2.0)*w_, (ball_dets_[0].bbox.y - ball_dets_[0].bbox.h / 2.0)*h_),
                               Point((ball_dets_[0].bbox.x + ball_dets_[0].bbox.w / 2.0)*w_, (ball_dets_[0].bbox.y + ball_dets_[0].bbox.h / 2.0)*h_),
                               Scalar(255, 0, 0, 0), 2);
@@ -198,11 +217,10 @@ void Vision::run()
                     putText(bgr, to_string(post_dets_[0].prob[0]).substr(0,4), Point(post_dets_[0].bbox.x * w_-40, post_dets_[0].bbox.y * h_-40),
                                     FONT_HERSHEY_SIMPLEX, 1, Scalar(0, 0, 255), 2, 8);
                 }
+                */
                 send_image(bgr);
             }
         }
-
-        free_detections(dets, nboxes);
         is_busy_ = false;
 
     }

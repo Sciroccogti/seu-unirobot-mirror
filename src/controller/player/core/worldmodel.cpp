@@ -9,6 +9,12 @@ WorldModel::WorldModel()
 {
     fall_direction_ = FALL_NONE;
     support_foot_ = robot::DOUBLE_SUPPORT;
+    player_infos_[CONF->id()].id = CONF->id();
+    player_infos_[CONF->id()].x = 0.0;
+    player_infos_[CONF->id()].y = -0.75;
+    player_infos_[CONF->id()].dir = 0.0;
+    player_infos_[CONF->id()].ball_x = 0.0;
+    player_infos_[CONF->id()].ball_y = 0.0;
 }
 
 void WorldModel::updata(const pub_ptr &pub, const int &type)

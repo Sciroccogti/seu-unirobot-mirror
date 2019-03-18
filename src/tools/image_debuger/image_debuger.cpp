@@ -5,10 +5,12 @@
 #include <opencv2/opencv.hpp>
 #include <cuda_runtime.h>
 #include "cuda/cudaproc.h"
+#include "darknet/parser.h"
+#include "imageproc/imageproc.hpp"
 
 using namespace cv;
 using namespace std;
-using namespace robot;
+using namespace imageproc;
 
 image_debuger::image_debuger()
 {
@@ -66,6 +68,15 @@ image_debuger::image_debuger()
     connect(boxAuto, &QCheckBox::stateChanged, this, &image_debuger::procBoxAuto);
     connect(frmSlider, &QSlider::valueChanged, this, &image_debuger::procFrmSlider);
     connect(srcLab, &ImageLabel::shot, this, &image_debuger::procShot);
+    net_.gpu_index = 0;
+    net_ = parse_network_cfg_custom((char *)CONF->get_config_value<string>("net_cfg_file").c_str(), 1);
+    load_weights(&net_, (char *)CONF->get_config_value<string>("net_weights_file").c_str());
+    set_batch_network(&net_, 1);
+    fuse_conv_batchnorm(net_);
+    calculate_binary_weights(net_);
+    srand(2222222);
+    ball_ = object_prob(0, CONF->get_config_value<float>("detection_prob.ball"));
+    ball_ = object_prob(1, CONF->get_config_value<float>("detection_prob.post"));
 }
 
 void image_debuger::show_src()
@@ -96,11 +107,20 @@ void image_debuger::proc_image(const unsigned int &index)
     frmSlider->setValue(index);
     show_src();
 
-    if (funcBox->currentIndex() == 0) //algorithm
+    if (funcBox->currentIndex() == 0) //ball and post detection
     {
-        Mat dst;
-        cvtColor(rgb_src_, dst, CV_RGB2BGR);
-        show_dst(dst);
+        Mat rgb;
+        cv::resize(rgb_src_, rgb, Size(net_.w, net_.h));
+        Mat rgb_c = rgb_src_.clone();
+        float *rgbpf = rgb2rgbpf(rgb);
+        vector<object_prob> res = ball_and_post_detection(net_, rgbpf, false, ball_, post_, width_, height_, 0.1, 0.1);
+        for(int i=0; i<res.size();i++)
+        {
+            Scalar clr = res[i].id == ball_.id ? Scalar(255,0,0):Scalar(0,0,255);
+            circle(rgb_c, Point(res[i].x, res[i].y), 10, clr, -1);
+        }
+        delete []rgbpf;
+        show_dst(rgb_c);
     }
 }
 

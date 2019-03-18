@@ -52,7 +52,7 @@ __global__ void yuyv2bgr_kernal(unsigned char *in, unsigned char *out, int w, in
     out[tmp*3+dst_offset+0] = rgb_bound(b);
 }
 
-__global__ void bgr2rgbfp(unsigned char *in, float *rgbfp, int w, int h)
+__global__ void bgr2rgbfp_kernal(unsigned char *in, float *rgbfp, int w, int h)
 {
     int x=blockIdx.x;
     int y=threadIdx.x;
@@ -66,6 +66,27 @@ __global__ void bgr2rgbfp(unsigned char *in, float *rgbfp, int w, int h)
     rgbfp[tmp] = rf;
     rgbfp[planesize+tmp] = gf;
     rgbfp[planesize*2+tmp] = bf;
+}
+
+__global__ void bgr2yuv422_kernal(unsigned char *in, unsigned char *out, int w, int h)
+{
+    int x = blockIdx.x;
+    int y = threadIdx.x;
+    int in_tmp = y*w*3;
+    int out_tmp = y*w*2;
+    int src_offset = x*6;
+    int dst_offset = x*4;
+    float b1 = in[in_tmp+src_offset];
+    float g1 = in[in_tmp+src_offset+1];
+    float r1 = in[in_tmp+src_offset+2];
+    float b2 = in[in_tmp+src_offset+3];
+    float g2 = in[in_tmp+src_offset+4];
+    float r2 = in[in_tmp+src_offset+5];
+
+    out[out_tmp+dst_offset] = (unsigned char)(int)(0.299*r1+0.587*g1+0.114*b1);
+    out[out_tmp+dst_offset+1] = (unsigned char)(int)(-0.169*r1-0.331*g1+0.499*b1+128);
+    out[out_tmp+dst_offset+2] = (unsigned char)(int)(0.299*r2+0.587*g2+0.114*b2);
+    out[out_tmp+dst_offset+3] = (unsigned char)(int)(0.498*r2-0.419*g2-0.0813*b2+128);
 }
 
 __global__ void baygr2bgr_kernal(unsigned char *bayergr, unsigned char *bgr, int w, int h,
@@ -229,7 +250,12 @@ void cudaBayer2BGR(unsigned char *bayer, unsigned char *bgr, int w, int h,
 
 void cudaBGR2RGBfp(unsigned char *bgr, float *rgbfp, int w, int h)
 {
-    bgr2rgbfp<<<w,h>>>(bgr, rgbfp, w, h);
+    bgr2rgbfp_kernal<<<w,h>>>(bgr, rgbfp, w, h);
+}
+
+void cudaBGR2YUV422(unsigned char *bgr, unsigned char *yuv422, int w, int h)
+{
+    bgr2yuv422_kernal<<<w/2, h>>>(bgr, yuv422, w, h);
 }
 
 void cudaResizePacked(float *in, int iw, int ih, float *sized, int ow, int oh)

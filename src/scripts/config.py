@@ -17,3 +17,4 @@ ssh_port = 22
 remote_dir = '/opt/'
 start_up_file = '/etc/rc.local'
 wifi_script = 'generate_wifi.py'
+weights_md5_file = 'weights_md5.txt'

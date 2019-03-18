@@ -17,18 +17,20 @@ class ssh_connection:
         self._session.userauth_password(username, password)
         self._session.set_blocking(True)
 
-    def exec_command(self, command):
+    def exec_command(self, command, rd=True):
         channel = self._session.open_session()
         channel.execute(command)
-        try:
-            size, data = channel.read()
-            while size > 0:
-                print(data.decode('utf-8'))
+        if rd:
+            try:
                 size, data = channel.read()
-        except: 
-            pass
-        size, data = channel.read()
-        print(data.decode('utf-8'))
+                while size > 0:
+                    print(data.decode('utf-8'))
+                    size, data = channel.read()
+            except: 
+                pass
+            channel.wait_eof()
+            size, data = channel.read()
+            print(data.decode('utf-8'))
         channel.close() 
 
     def upload(self, local, remote):
@@ -46,7 +48,7 @@ class ssh_connection:
 
     def download(self, remote, local):
         chan, fileinfo = self._session.scp_recv2(remote)
-        with open(local, 'rb') as local_fh::
+        with open(local, 'rb') as local_fh:
             size, data = chan.read()
             while size>0:
                 local_fh.write(data)

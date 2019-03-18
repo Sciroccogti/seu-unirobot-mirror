@@ -5,6 +5,7 @@ import subprocess
 import json
 import config
 import os
+import hashlib
 
 
 def get_json_from_conf(confname=''):
@@ -68,6 +69,24 @@ def get_config(key=''):
         return None
 
 
+def check_weight():
+    net_file = '%s/bin/%s/%s'%(config.project_dir, config.target_dir, get_config('net_weights_file'))
+    md5_file = '%s/bin/%s'%(config.project_dir, config.weights_md5_file)
+    f_md5 = hashlib.md5(open(net_file, 'rb').read()).hexdigest()
+    if not os.path.exists(md5_file):
+        f = open(md5_file, 'w')
+        f.write(f_md5)
+        f.close()
+        return False
+    with open(md5_file, 'r') as md5f:
+        md5_code = md5f.read().strip()
+    if md5_code != f_md5:
+        with open(md5_file, 'w') as md5f:
+            md5f.write(f_md5)
+        return False
+    return True
+
+
 def build_project(cross):
     if cross:
         build_dir = '%s/%s-build'%(config.project_dir, config.target_dir)
@@ -84,6 +103,8 @@ def build_project(cross):
 
 
 def compress_files():
+    if check_weight():
+        os.remove('%s/bin/%s/%s'%(config.project_dir, config.target_dir, get_config('net_weights_file')))
     cmd = 'cd %s/bin; tar zcvf %s %s'%(config.project_dir, config.compress_file_name, config.target_dir)
     return run_cmd(cmd, False)
 

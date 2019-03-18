@@ -4,6 +4,8 @@
 #include "robot/humanoid.hpp"
 #include "ui/ImageLabel.hpp"
 #include <opencv2/opencv.hpp>
+#include "darknet/network.h"
+#include "model.hpp"
 
 class image_debuger: public QMainWindow
 {
@@ -38,4 +40,6 @@ private:
     cv::Mat rgb_src_;
     int width_;
     int height_;
+    network net_;
+    object_prob ball_, post_;
 };

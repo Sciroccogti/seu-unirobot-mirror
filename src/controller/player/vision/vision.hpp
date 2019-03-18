@@ -39,12 +39,14 @@ private:
     void run();
     void send_image(const cv::Mat &src);
     void src2dst();
-
+/*
     int ball_id_, post_id_;
     std::map<int, float> dets_prob_;
 
     std::vector<detection> ball_dets_;
     std::vector<detection> post_dets_;
+*/
+    object_prob ball_, post_;
 
     bool use_mv_;
     int p_count_;
