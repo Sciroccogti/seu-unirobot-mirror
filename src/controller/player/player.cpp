@@ -30,6 +30,7 @@ void player::run()
 
         if (OPTS->use_robot())
         {
+            //LOG << WM->button_status(1)<<'\t'<<WM->button_status(2)<<ENDL;
             if(WM->button_status(1)&&WM->button_status(2))
             {
                 btn_count_++;

@@ -105,7 +105,7 @@ def build_project(cross):
 def compress_files():
     if check_weight():
         os.remove('%s/bin/%s/%s'%(config.project_dir, config.target_dir, get_config('net_weights_file')))
-    cmd = 'cd %s/bin; tar zcvf %s %s'%(config.project_dir, config.compress_file_name, config.target_dir)
+    cmd = 'cd %s/bin; tar zcf %s %s'%(config.project_dir, config.compress_file_name, config.target_dir)
     return run_cmd(cmd, False)
 
 

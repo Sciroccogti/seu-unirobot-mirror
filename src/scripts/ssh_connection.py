@@ -19,19 +19,23 @@ class ssh_connection:
 
     def exec_command(self, command, rd=True):
         channel = self._session.open_session()
-        channel.execute(command)
-        if rd:
-            try:
-                size, data = channel.read()
-                while size > 0:
-                    print(data.decode('utf-8'))
+        try:
+            channel.execute(command)
+            if rd:
+                try:
                     size, data = channel.read()
-            except: 
-                pass
-            channel.wait_eof()
-            size, data = channel.read()
-            print(data.decode('utf-8'))
-        channel.close() 
+                    while size > 0:
+                        print(data.decode('utf-8'))
+                        size, data = channel.read()
+                except: 
+                    pass
+                channel.wait_eof()
+                size, data = channel.read()
+                print(data.decode('utf-8'))
+            channel.wait_closed
+            channel.close() 
+        except:
+            pass
 
     def upload(self, local, remote):
         fileinfo = os.stat(local)

@@ -166,7 +166,7 @@ void motor::real_act()
             led_status_ = 1 - led_status_;
             set_led(led_status_);
         }
-        read_pos();
+        //read_pos();
     }
 }
 

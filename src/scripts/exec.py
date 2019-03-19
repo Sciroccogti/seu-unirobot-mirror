@@ -23,6 +23,9 @@ if __name__ == '__main__':
         exit(3)
 
     ip_address = common.get_ip(robot_id)
+    if not common.check_net(ip_address):
+        common.print_error('can not connect to host, please check network')
+        exit(6)
     ssh_client = ssh_connection.ssh_connection(ip_address, config.ssh_port, config.username, config.password)
     for i in range(2, len(sys.argv)):
-        ssh_client.exec_command(sys.argv[i])
+        ssh_client.exec_command(sys.argv[i], False)
