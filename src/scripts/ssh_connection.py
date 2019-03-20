@@ -25,13 +25,15 @@ class ssh_connection:
                 try:
                     size, data = channel.read()
                     while size > 0:
-                        print(data.decode('utf-8'))
+                        data = data.decode('utf-8')
+                        print(data.strip())
                         size, data = channel.read()
                 except: 
                     pass
                 channel.wait_eof()
                 size, data = channel.read()
-                print(data.decode('utf-8'))
+                data = data.decode('utf-8')
+                print(data.strip())
             channel.wait_closed
             channel.close() 
         except:

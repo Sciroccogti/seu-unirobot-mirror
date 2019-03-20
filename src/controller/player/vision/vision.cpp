@@ -118,15 +118,29 @@ void Vision::run()
         is_busy_ = true;
         vector<object_prob> res;
         res = ball_and_post_detection(net_, dev_rgbfp_, true, ball_, post_, w_, h_);
-        if(!res.empty())
+        for(auto &r:res)
         {
             if(OPTS->use_robot())
             {
-                if(res[0].id == ball_.id)
+                Vector2d ball_pos;
+                bool find_ball=false;
+                vector<Vector2d> post_pos;
+                Vector2d obj_pos = rotation_mat_2d(head_yaw)*odometry(Vector2i(r.x, r.y), camera_matrix);
+                if(r.id == ball_.id)
                 {
-                    Vector2d ball_p = odometry(Vector2i(res[0].x, res[0].y), camera_matrix);
-                    Vector2d ball_in_my = rotation_mat_2d(head_yaw)*ball_p;
+                    find_ball = true;
+                    ball_pos = obj_pos;
                 }
+                else
+                    post_pos.push_back(obj_pos);
+                //selflocation
+                player_info p = WM->my_info();
+                if(find_ball)
+                {
+                    Vector2d temp_ball = Vector2d(p.x, p.y)+rotation_mat_2d(p.dir)*ball_pos;
+                    WM->set_ball_pos(temp_ball);
+                }
+                
             }
         }
 

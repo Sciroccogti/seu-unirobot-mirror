@@ -261,7 +261,6 @@ namespace motion
                 }
                 */
                 
-
                 while (phase_ < 0.5)
                 {   
                     phaseLeft = (phase_flag==true ? phase_ : phase_+0.5);
@@ -412,68 +411,37 @@ namespace motion
                     ROBOT->body_mat = body_mat;
                     if (ROBOT->leg_inverse_kinematics_walk(body_mat, leftfoot_mat, degs, true))
                     {   
-
                         jdegs[ROBOT->get_joint("jlhip3")->jid_] = rad2deg(degs[0]);   
                         jdegs[ROBOT->get_joint("jlhip2")->jid_] = rad2deg(degs[1]);
                         jdegs[ROBOT->get_joint("jlhip1")->jid_] = rad2deg(degs[2]);
                         jdegs[ROBOT->get_joint("jlknee")->jid_] = rad2deg(degs[3]);
                         jdegs[ROBOT->get_joint("jlankle2")->jid_] = rad2deg(degs[4]);
                         jdegs[ROBOT->get_joint("jlankle1")->jid_] = rad2deg(degs[5]);
-
-
                     }
                     else
                     {
                         LOG << phase_ << '\t' << "left leg_inverse_kinematics faied!" << ENDL;
                     }
 
-                    
-
                     if (ROBOT->leg_inverse_kinematics_walk(body_mat, rightfoot_mat, degs, false))
                     {   
-
                         jdegs[ROBOT->get_joint("jrhip3")->jid_] = rad2deg(degs[0]);
                         jdegs[ROBOT->get_joint("jrhip2")->jid_] = rad2deg(degs[1]);
                         jdegs[ROBOT->get_joint("jrhip1")->jid_] = rad2deg(degs[2]);
                         jdegs[ROBOT->get_joint("jrknee")->jid_] = rad2deg(degs[3]);
                         jdegs[ROBOT->get_joint("jrankle2")->jid_] = rad2deg(degs[4]);
                         jdegs[ROBOT->get_joint("jrankle1")->jid_] = rad2deg(degs[5]);
-
-                        std::vector<double> degsfeed;
-
-                        for(int i=0; i<6; i++)
-                        degsfeed.push_back(rad2deg(degs[i]));
-
                     }
                     else
                     {
                         LOG << phase_ << '\t' << "right leg_inverse_kinematics faied!" << ENDL;
                     }
 
-                    /*
-                    jdegs[ROBOT->get_joint("jlshoulder1")->jid_] = 0;
-                    jdegs[ROBOT->get_joint("jlelbow")->jid_] = -153;
-                    jdegs[ROBOT->get_joint("jrshoulder1")->jid_] = 0;
-                    jdegs[ROBOT->get_joint("jrelbow")->jid_] = 153;
-                    */
-                    //use hand spline
-                    handGain = fabs(tempParams.stepGain*2.5);
-                    lefthand[0] = handGain * handSpline.pos(phaseLeft);
-                    righthand[0] = handGain * handSpline.pos(phaseRight);
-                    lefthand[2] = 0.1;
-                    righthand[2] = 0.1;
-
-                    if (ROBOT->arm_inverse_kinematics(lefthand, degs))
-                    {
-                        jdegs[ROBOT->get_joint("jlshoulder1")->jid_] = rad2deg(degs[0]);
-                        jdegs[ROBOT->get_joint("jlelbow")->jid_] = -rad2deg(degs[2]);
-                    }
-
-                    if (ROBOT->arm_inverse_kinematics(righthand, degs))
-                    {
-                        jdegs[ROBOT->get_joint("jrshoulder1")->jid_] = rad2deg(degs[0]);
-                        jdegs[ROBOT->get_joint("jrelbow")->jid_] = rad2deg(degs[2]);
-                    }
+                    jdegs[ROBOT->get_joint("jlshoulder1")->jid_] = 60;
+                    jdegs[ROBOT->get_joint("jlelbow")->jid_] = -120;
+                    jdegs[ROBOT->get_joint("jrshoulder1")->jid_] = 60;
+                    jdegs[ROBOT->get_joint("jrelbow")->jid_] = 120;
+        
 
                     if((phase_+ dt_ * tempParams.freq) >= 0.5 && tempParams.enabledGain == 1.0)
                     {   
@@ -484,22 +452,23 @@ namespace motion
                         */
                         jdegs[0] = phaseLeft < 0.5? 1.0 : 2.0;                     
                     }
-
                     while (!MADT->body_empty())
                     {
                         usleep(1000);
                     }
-
-            
                     if (!MADT->add_body_degs(jdegs))
                     {
                         break;
                     } 
-
-                    phase_ += dt_ * tempParams.freq;
-
-                    
+                    phase_ += dt_ * tempParams.freq;  
                 }
+
+                player_info info = WM->my_info();
+                double c1=0.5, c2=0.5, c3=0.5;
+                Vector2d currpos(info.x, info.y);
+                double dir = info.dir+rad2deg(tempParams.turnGain)*c3;
+                Vector2d temp=currpos+rotation_mat_2d(dir)*Vector2d(-tempParams.lateralGain*c2, tempParams.stepGain*c1);
+                WM->set_my_pos(Vector3d(temp[0], temp[1], dir));
                 
                 //start the inverse computation of  the feedback loop for walk engine
                 if(tempParams.enabledGain == 1.0)

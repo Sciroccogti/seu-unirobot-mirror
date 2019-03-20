@@ -49,14 +49,29 @@ public:
 
     std::map< int, player_info > player_infos()
     {
-        std::lock_guard<std::mutex> lk(hr_mtx_);
+        std::lock_guard<std::mutex> lk(info_mtx_);
         return player_infos_;
     }
 
     player_info my_info()
     {
-        std::lock_guard<std::mutex> lk(hr_mtx_);
+        std::lock_guard<std::mutex> lk(info_mtx_);
         return player_infos_[CONF->id()];
+    }
+
+    void set_ball_pos(const Eigen::Vector2d &ball)
+    {
+        std::lock_guard<std::mutex> lk(info_mtx_);
+        player_infos_[CONF->id()].ball_x = ball.x();
+        player_infos_[CONF->id()].ball_y = ball.y();
+    }
+
+    void set_my_pos(const Eigen::Vector3d &my)
+    {
+        std::lock_guard<std::mutex> lk(info_mtx_);
+        player_infos_[CONF->id()].x = my.x();
+        player_infos_[CONF->id()].y = my.y();
+        player_infos_[CONF->id()].dir = my.z();
     }
 
     bool button_status(int id)
@@ -75,7 +90,7 @@ private:
     std::atomic_int fall_direction_;
     std::atomic_int support_foot_;
 
-    mutable std::mutex imu_mtx_, gc_mtx_, hr_mtx_;;
+    mutable std::mutex imu_mtx_, gc_mtx_, info_mtx_;
 };
 
 #define WM WorldModel::instance()

@@ -7,7 +7,7 @@ using namespace std;
 
 boost::asio::io_service udp_service;
 
-team_monitor::team_monitor(): socket_(udp_service, udp::endpoint(udp::v4(), CONF->get_config_value<short>("net.udp.teammate.port")))
+team_monitor::team_monitor(): socket_(udp_service, udp::endpoint(udp::v4(), CONF->get_config_value<short>("net.udp.team.port")))
 {
     parser::field_parser::parse(CONF->field_file(), field_);
     setFixedSize(field_.field_length + 2 * field_.border_strip_width_min, field_.field_width + 2 * field_.border_strip_width_min);
@@ -29,15 +29,19 @@ team_monitor::~team_monitor()
 
 void team_monitor::receive()
 {
-    player_info p;
-    socket_.async_receive_from(boost::asio::buffer((char *)&p, player_info_size), point_,
-                               [this, p](boost::system::error_code ec, std::size_t bytes_recvd)
+    socket_.async_receive_from(boost::asio::buffer((char *)&pkt_, sizeof(comm_packet)), point_,
+                               [this](boost::system::error_code ec, std::size_t bytes_recvd)
     {
         if (!ec && bytes_recvd > 0)
         {
-            p_mutex_.lock();
-            players_[p.id] = p;
-            p_mutex_.unlock();
+            string recv_header;
+            recv_header.append(pkt_.header, sizeof(comm_packet::header));
+            if(recv_header==COMM_DATA_HEADER)
+            {
+                p_mutex_.lock();
+                players_[pkt_.info.id] = pkt_.info;
+                p_mutex_.unlock();
+            }
         }
 
         receive();
@@ -73,7 +77,7 @@ void team_monitor::paintEvent(QPaintEvent *event)
     painter.drawLine((field_.field_length / 2 + field_.goal_depth), -field_.goal_width / 2, field_.field_length / 2, -field_.goal_width / 2);
     painter.drawLine((field_.field_length / 2 + field_.goal_depth), field_.goal_width / 2, field_.field_length / 2, field_.goal_width / 2);
     painter.drawLine((field_.field_length / 2 + field_.goal_depth), -field_.goal_width / 2, (field_.field_length / 2 + field_.goal_depth), field_.goal_width / 2);
-
+/*
     painter.setPen(QPen(Qt::lightGray, 1, Qt::SolidLine, Qt::FlatCap));
     int i;
 
@@ -88,12 +92,12 @@ void team_monitor::paintEvent(QPaintEvent *event)
         painter.drawLine(i, -field_.field_width / 2, i, field_.field_width / 2);
         painter.drawLine(-i, -field_.field_width / 2, -i, field_.field_width / 2);
     }
-
-    painter.setPen(QPen(Qt::blue, 2, Qt::SolidLine, Qt::FlatCap));
-    painter.setBrush(QBrush(Qt::blue, Qt::SolidPattern));
-    painter.drawRect(-(field_.field_length / 2 + field_.goal_depth), -field_.goal_width / 2, field_.goal_depth, field_.goal_width);
+*/
     painter.setPen(QPen(Qt::red, 2, Qt::SolidLine, Qt::FlatCap));
     painter.setBrush(QBrush(Qt::red, Qt::SolidPattern));
+    painter.drawRect(-(field_.field_length / 2 + field_.goal_depth), -field_.goal_width / 2, field_.goal_depth, field_.goal_width);
+    painter.setPen(QPen(Qt::blue, 2, Qt::SolidLine, Qt::FlatCap));
+    painter.setBrush(QBrush(Qt::blue, Qt::SolidPattern));
     painter.drawRect((field_.field_length / 2 + field_.goal_depth), -field_.goal_width / 2, -field_.goal_depth, field_.goal_width);
     painter.setPen(QPen(Qt::white, 1, Qt::SolidLine, Qt::FlatCap));
     painter.setBrush(QBrush(Qt::white, Qt::SolidPattern));

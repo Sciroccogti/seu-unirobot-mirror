@@ -5,7 +5,7 @@
 #include <map>
 #include <thread>
 #include <mutex>
-#include "model.hpp"
+#include "udp_data/CommData.h"
 
 class team_monitor: public QMainWindow
 {
@@ -22,6 +22,7 @@ private:
     std::thread td_;
     mutable std::mutex p_mutex_;
     std::map<int, player_info> players_;
+    comm_packet pkt_;
     boost::asio::ip::udp::socket socket_;
     boost::asio::ip::udp::endpoint point_;
 };

@@ -20,7 +20,7 @@ ScanEngine::ScanEngine()
     div_ = CONF->get_config_value<float>("scan.div");
     yaw_ = 0.0;
     pitch_ = 0.0;
-    scan_ = false;
+    scan_ = true;
     pitches_[0] = pitch_range_[0];
     pitches_[1] = pitch_range_[0]+(pitch_range_[1]-pitch_range_[0])/2.0f;
     pitches_[2] = pitch_range_[1];

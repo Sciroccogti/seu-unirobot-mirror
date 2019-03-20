@@ -3,16 +3,17 @@
 using namespace Eigen;
 using namespace robot_math;
 using namespace robot;
-
+using namespace std;
 
 WorldModel::WorldModel()
 {
     fall_direction_ = FALL_NONE;
     support_foot_ = robot::DOUBLE_SUPPORT;
     player_infos_[CONF->id()].id = CONF->id();
-    player_infos_[CONF->id()].x = 0.0;
-    player_infos_[CONF->id()].y = -0.75;
-    player_infos_[CONF->id()].dir = 0.0;
+    vector<float> init_pos = CONF->get_config_vector<float>(CONF->player()+".strategy.init");
+    player_infos_[CONF->id()].x = init_pos[0];
+    player_infos_[CONF->id()].y = init_pos[1];
+    player_infos_[CONF->id()].dir = init_pos[2];
     player_infos_[CONF->id()].ball_x = 0.0;
     player_infos_[CONF->id()].ball_y = 0.0;
 }
@@ -48,11 +49,11 @@ void WorldModel::updata(const pub_ptr &pub, const int &type)
 
     if(type == sensor::SENSOR_HEAR)
     {
-        hr_mtx_.lock();
+        info_mtx_.lock();
         std::shared_ptr<hear> sptr = std::dynamic_pointer_cast<hear>(pub);
         player_info info = sptr->info();
         player_infos_[info.id] = info;
-        hr_mtx_.unlock();
+        info_mtx_.unlock();
         return;
     }
 }

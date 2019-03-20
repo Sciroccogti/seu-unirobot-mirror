@@ -71,7 +71,7 @@ void player::run()
 list<task_ptr> player::think()
 {
     list<task_ptr> tasks;
-    //tasks.push_back(make_shared<walk_task>(0.0, 0.0, 0.0, true));
+    tasks.push_back(make_shared<walk_task>(0.0, 0.0, 0.0, true));
     return tasks;
 }
 
@@ -108,7 +108,7 @@ bool player::init()
     {
         LE->start();
     }
-    action_task p("reset");
+    action_task p("ready");
     p.perform();
     start_timer();
     return true;
