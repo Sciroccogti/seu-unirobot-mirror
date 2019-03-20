@@ -24,34 +24,8 @@ void WorldModel::updata(const pub_ptr &pub, const int &type)
         imu_mtx_.lock();
         std::shared_ptr<imu> sptr = std::dynamic_pointer_cast<imu>(pub);
         imu_data_ = sptr->data();
-        Eigen::AngleAxisd roll, pitch, yaw;
-        yaw = AngleAxisd(deg2rad(imu_data_.yaw), Vector3d::UnitZ());
-        pitch = AngleAxisd(deg2rad(imu_data_.pitch), Vector3d::UnitY());
-        roll = AngleAxisd(deg2rad(imu_data_.roll), Vector3d::UnitX());
         fall_direction_ = sptr->fall_direction();
         imu_mtx_.unlock();
-        /*
-        Quaternion<double> quat = roll * pitch * yaw;
-        dxl_mtx_.lock();
-        body_matrix_.set_R(quat.matrix());
-        head_mtx_.lock();
-        head_matrix_ = body_matrix_*transform_matrix(0, 0, ROBOT->trunk_length())*transform_matrix(head_degs_[0],'z')
-                        *transform_matrix(0, 0, ROBOT->neck_length())*transform_matrix(head_degs_[1], 'y')
-                        *transform_matrix(0,0,ROBOT->head_length());
-        head_mtx_.unlock();
-        dxl_mtx_.unlock();
-        */
-        return;
-    }
-
-    if (type == sensor::SENSOR_MOTOR)
-    {
-        dxl_mtx_.lock();
-        std::shared_ptr<motor> sptr = std::dynamic_pointer_cast<motor>(pub);
-        body_matrix_ = ROBOT->leg_forward_kinematics(ROBOT->get_foot_degs(support_foot_),
-                        support_foot_== LEFT_SUPPORT);
-        head_degs_ = ROBOT->get_head_degs();
-        dxl_mtx_.unlock();
         return;
     }
 
@@ -68,7 +42,6 @@ void WorldModel::updata(const pub_ptr &pub, const int &type)
         gc_mtx_.lock();
         std::shared_ptr<gamectrl> sptr = std::dynamic_pointer_cast<gamectrl>(pub);
         gc_data_ = sptr->data();
-        //LOG << (int)gc_data_.state<<ENDL;
         gc_mtx_.unlock();
         return;
     }

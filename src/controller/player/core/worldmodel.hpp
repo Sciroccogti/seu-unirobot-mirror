@@ -4,7 +4,6 @@
 #include <atomic>
 #include "pattern.hpp"
 #include "sensor/imu.hpp"
-#include "sensor/motor.hpp"
 #include "sensor/button.hpp"
 #include "sensor/gamectrl.hpp"
 #include "sensor/hear.hpp"
@@ -35,12 +34,6 @@ public:
     {
         std::lock_guard<std::mutex> lk(imu_mtx_);
         return imu_data_;
-    }
-
-    robot_math::transform_matrix head_matrix()
-    {
-        std::lock_guard<std::mutex> lk(head_mtx_);
-        return head_matrix_;
     }
 
     int fall_data()
@@ -77,15 +70,12 @@ private:
     RoboCupGameControlData gc_data_;
     std::map< int, player_info > player_infos_;
 
-    robot_math::transform_matrix body_matrix_, head_matrix_;
-    std::vector<double> head_degs_;
-
     std::atomic_bool bt1_status_;
     std::atomic_bool bt2_status_;
     std::atomic_int fall_direction_;
     std::atomic_int support_foot_;
 
-    mutable std::mutex imu_mtx_, dxl_mtx_, head_mtx_, gc_mtx_, hr_mtx_;;
+    mutable std::mutex imu_mtx_, gc_mtx_, hr_mtx_;;
 };
 
 #define WM WorldModel::instance()

@@ -16,9 +16,9 @@ class imu: public sensor, public timer
 public:
     struct imu_data
     {
-        float pitch, roll, yaw;
-        float ax, ay, az;
-        float wx, wy, wz;
+        float pitch=0.0, roll=0.0, yaw=0.0;
+        float ax=0.0, ay=0.0, az=0.0;
+        float wx=0.0, wy=0.0, wz=0.0;
     };
 
     enum {MAX_PACKET_LEN=128};

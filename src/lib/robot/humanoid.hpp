@@ -65,96 +65,96 @@ namespace robot
         joint_ptr get_joint(const int &id);
         joint_ptr get_joint(const std::string &name);
 
-        inline double trunk_length()
+        double trunk_length()
         {
             return bone_map_["torso"]->length_;
         }
 
-        inline double neck_length()
+        double neck_length()
         {
             return bone_map_["head1"]->length_;
         }
 
-        inline double head_length()
+        double head_length()
         {
             return bone_map_["camera1"]->length_;
         }
 
-        inline double A() const
+        double A() const
         {
             return A_;
         }
-        inline double B() const
+        double B() const
         {
             return B_;
         }
-        inline double C() const
+        double C() const
         {
             return C_;
         }
-        inline double D() const
+        double D() const
         {
             return D_;
         }
-        inline double E() const
+        double E() const
         {
             return E_;
         }
-        inline double F() const
+        double F() const
         {
             return F_;
         }
-        inline double leg_length() const
+        double leg_length() const
         {
             return A_ + B_ + C_;
         }
-        inline double leg_length_without_foot() const
+        double leg_length_without_foot() const
         {
             return A_ + B_;
         }
 
-        inline joint_map &get_joint_map()
+        joint_map &get_joint_map()
         {
             return joint_map_;
         }
-        inline joint_map get_joint_map() const
+        joint_map get_joint_map() const
         {
             return joint_map_;
         }
-        inline bone_map &get_bone_map()
+        bone_map &get_bone_map()
         {
             return bone_map_;
         }
-        inline bone_map get_bone_map() const
+        bone_map get_bone_map() const
         {
             return bone_map_;
         }
-        inline act_map &get_act_map()
+        act_map &get_act_map()
         {
             return act_map_;
         }
-        inline act_map get_act_map() const
+        act_map get_act_map() const
         {
             return act_map_;
         }
-        inline pos_map &get_pos_map()
+        pos_map &get_pos_map()
         {
             return pos_map_;
         }
-        inline pos_map get_pos_map() const
+        pos_map get_pos_map() const
         {
             return pos_map_;
         }
-        inline bone_ptr get_main_bone()
+        bone_ptr get_main_bone()
         {
             return main_bone_;
         }
 
-        inline joint_map &get_realJoint_map()
+        joint_map &get_realJoint_map()
         {
             return real_joint_map_;
         }
-        inline joint_map get_realJoint_map() const
+        joint_map get_realJoint_map() const
         {
             return real_joint_map_;
         }

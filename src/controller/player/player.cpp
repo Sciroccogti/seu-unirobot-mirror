@@ -154,7 +154,6 @@ bool player::regist()
     }
 
     sensors_["motor"] = std::make_shared<motor>();
-    sensors_["motor"]->attach(WM);
     sensors_["motor"]->attach(WE);
 
     if (!sensors_["motor"]->start())
@@ -166,6 +165,7 @@ bool player::regist()
     {
         sensors_["imu"] = std::make_shared<imu>();
         sensors_["imu"]->attach(WM);
+        sensors_["imu"]->attach(VISION);
         sensors_["imu"]->attach(WE);
         sensors_["imu"]->start();
         
@@ -201,12 +201,12 @@ void player::unregist()
     if (sensors_.find("imu") != sensors_.end())
     {
         sensors_["imu"]->detach(WM);
+        sensors_["imu"]->detach(VISION);
         sensors_["imu"]->detach(WE);
         sensors_["imu"]->stop();
     }
     if (sensors_.find("motor") != sensors_.end())
     {
-        sensors_["motor"]->detach(WM);
         sensors_["motor"]->detach(WE);
         sensors_["motor"]->stop();
     }

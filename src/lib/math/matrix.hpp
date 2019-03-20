@@ -54,61 +54,61 @@ namespace robot_math
             set_R(rotv.toRotationMatrix());
         }
 
-        inline transform_matrix rotationX(const double &deg)
+        transform_matrix rotationX(const double &deg)
         {
             *this = (*this)*transform_matrix(deg, 'x');
             return *this;
         }
 
-        inline transform_matrix rotationY(const double &deg)
+        transform_matrix rotationY(const double &deg)
         {
             *this = (*this)*transform_matrix(deg, 'y');
             return *this;
         }
 
-        inline transform_matrix rotationZ(const double &deg)
+        transform_matrix rotationZ(const double &deg)
         {
             *this = (*this)*transform_matrix(deg, 'z');
             return *this;
         }
 
-        inline transform_matrix translation(const double &x, const double &y, const double &z)
+        transform_matrix translation(const double &x, const double &y, const double &z)
         {
             *this = (*this)*transform_matrix(x, y, z);
             return *this;
         }
 
-        inline Eigen::Matrix3d R() const
+        Eigen::Matrix3d R() const
         {
             return this->block<3, 3>(0, 0);
         }
 
-        inline Eigen::Vector3d p() const
+        Eigen::Vector3d p() const
         {
             return this->block<3, 1>(0, 3);
         }
 
-        inline Eigen::Vector3d n() const
+        Eigen::Vector3d n() const
         {
             return this->block<3, 1>(0, 0);
         }
 
-        inline Eigen::Vector3d o() const
+        Eigen::Vector3d o() const
         {
             return this->block<3, 1>(0, 1);
         }
 
-        inline Eigen::Vector3d a() const
+        Eigen::Vector3d a() const
         {
             return this->block<3, 1>(0, 2);
         }
 
-        inline void set_p(const Eigen::Vector3d &p)
+        void set_p(const Eigen::Vector3d &p)
         {
             this->block<3, 1>(0, 3) = p;
         }
 
-        inline void set_R(const Eigen::Matrix3d &r)
+        void set_R(const Eigen::Matrix3d &r)
         {
             this->block<3, 3>(0, 0) = r;
         }
@@ -117,6 +117,63 @@ namespace robot_math
         {
             this->block<4, 4>(0, 0) = m;
             return *this;
+        }
+    };
+
+    class plane_matrix: public Eigen::Matrix3d
+    {
+    public:
+        plane_matrix()
+        {
+            *this = Eigen::Matrix3d::Identity(3, 3);
+        }
+
+        plane_matrix(const Eigen::Matrix3d &m)
+        {
+            this->block<3, 3>(0, 0) = m;
+        }
+
+        plane_matrix(const double &x, const double &y)
+        {
+            *this = Eigen::Matrix3d::Identity(3, 3);
+            set_p(Eigen::Vector2d(x, y));
+        }
+
+        plane_matrix(const double &deg)
+        {
+            *this = Eigen::Matrix3d::Identity(3, 3);
+            set_R(rotation_mat(deg));
+        }
+
+        plane_matrix rotation(const double &deg)
+        {
+            *this = (*this)*plane_matrix(deg);
+            return *this;
+        }
+
+        void set_p(const Eigen::Vector2d &p)
+        {
+            this->block<2, 1>(0, 2) = p;
+        }
+
+        void set_R(const Eigen::Matrix2d &r)
+        {
+            this->block<2, 2>(0, 0) = r;
+        }
+
+        plane_matrix &operator=(const Eigen::Matrix3d &m)
+        {
+            this->block<3, 3>(0, 0) = m;
+            return *this;
+        }
+    private:
+        Eigen::Matrix2d rotation_mat(const double &deg)
+        {
+            Eigen::Matrix2d temp;
+            double rad = deg2rad(deg);
+            temp<<std::cos(rad), std::sin(rad),
+                  -std::sin(rad), std::cos(rad);
+            return temp;
         }
     };
 }
