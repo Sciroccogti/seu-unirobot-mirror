@@ -41,6 +41,7 @@ void team_monitor::receive()
                 p_mutex_.lock();
                 players_[pkt_.info.id] = pkt_.info;
                 p_mutex_.unlock();
+                update();
             }
         }
 
@@ -77,27 +78,10 @@ void team_monitor::paintEvent(QPaintEvent *event)
     painter.drawLine((field_.field_length / 2 + field_.goal_depth), -field_.goal_width / 2, field_.field_length / 2, -field_.goal_width / 2);
     painter.drawLine((field_.field_length / 2 + field_.goal_depth), field_.goal_width / 2, field_.field_length / 2, field_.goal_width / 2);
     painter.drawLine((field_.field_length / 2 + field_.goal_depth), -field_.goal_width / 2, (field_.field_length / 2 + field_.goal_depth), field_.goal_width / 2);
-/*
-    painter.setPen(QPen(Qt::lightGray, 1, Qt::SolidLine, Qt::FlatCap));
-    int i;
 
-    for (i = 0; i < field_.field_width / 2; i += 100)
-    {
-        painter.drawLine(-field_.field_length / 2, i, field_.field_length / 2, i);
-        painter.drawLine(-field_.field_length / 2, -i, field_.field_length / 2, -i);
-    }
-
-    for (i = 100; i < field_.field_length / 2; i += 100)
-    {
-        painter.drawLine(i, -field_.field_width / 2, i, field_.field_width / 2);
-        painter.drawLine(-i, -field_.field_width / 2, -i, field_.field_width / 2);
-    }
-*/
-    painter.setPen(QPen(Qt::red, 2, Qt::SolidLine, Qt::FlatCap));
-    painter.setBrush(QBrush(Qt::red, Qt::SolidPattern));
+    painter.setPen(QPen(Qt::white, 2, Qt::SolidLine, Qt::FlatCap));
+    painter.setBrush(QBrush(Qt::white, Qt::NoBrush));
     painter.drawRect(-(field_.field_length / 2 + field_.goal_depth), -field_.goal_width / 2, field_.goal_depth, field_.goal_width);
-    painter.setPen(QPen(Qt::blue, 2, Qt::SolidLine, Qt::FlatCap));
-    painter.setBrush(QBrush(Qt::blue, Qt::SolidPattern));
     painter.drawRect((field_.field_length / 2 + field_.goal_depth), -field_.goal_width / 2, -field_.goal_depth, field_.goal_width);
     painter.setPen(QPen(Qt::white, 1, Qt::SolidLine, Qt::FlatCap));
     painter.setBrush(QBrush(Qt::white, Qt::SolidPattern));
@@ -111,16 +95,31 @@ void team_monitor::paintEvent(QPaintEvent *event)
 
     for (auto &p : players_)
     {
-        painter.translate(p.second.x * 100, p.second.y * 100);
+        painter.setPen(QPen(Qt::white, 2, Qt::SolidLine, Qt::FlatCap));
+        painter.save();
+        painter.translate(p.second.y * 100, p.second.x * 100);
         painter.drawEllipse(-ballsize / 2, -ballsize / 2, ballsize, ballsize);
         painter.drawText(-ballsize / 2, -ballsize / 2, QString::number(p.second.id));
-        painter.rotate(p.second.dir);
-        painter.drawLine(0, 0, 2 * ballsize, 0);
         painter.rotate(-p.second.dir);
-        painter.translate(-p.second.x * 100, -p.second.y * 100);
-        painter.drawEllipse(p.second.ball_x * 100 - ballsize / 2, p.second.ball_y * 100 - ballsize / 2, ballsize, ballsize);
-        painter.drawText(p.second.ball_x * 100 - ballsize / 2, p.second.ball_y * 100 - ballsize / 2, QString::number(p.second.id));
+        painter.drawLine(0, 0, 2 * ballsize, 0);
+        painter.restore();
+        painter.drawEllipse(p.second.ball_y * 100 - ballsize / 2, p.second.ball_x * 100 - ballsize / 2, ballsize, ballsize);
+        painter.drawText(p.second.ball_y * 100 - ballsize / 2, p.second.ball_x * 100 - ballsize / 2, QString::number(p.second.id));
     }
-
     p_mutex_.unlock();
+}
+
+void team_monitor::keyPressEvent(QKeyEvent *event)
+{
+    switch (event->key())
+    {
+        case Qt::Key_C:
+            p_mutex_.lock();
+            players_.clear();
+            p_mutex_.unlock();
+            break;
+        default:
+            break;
+    }
+    this->update();
 }

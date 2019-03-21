@@ -85,16 +85,28 @@ void motor::run()
     if (timer::is_alive_)
     {
         ROBOT->set_degs(MADT->get_degs());
+         /*feed back loop Test*/
+        std::map<int, float> real_jdegs;
 
-        if (OPTS->use_debug())
-        {
-            virtul_act();
+        for (auto &jm : ROBOT->get_joint_map())
+            /*feed back loop Test*/
+            real_jdegs[jm.second->jid_] = jm.second->get_deg();
+
+        /*feed back loop Test*/
+        ROBOT->set_real_degs(real_jdegs);
+        updateMotorFeedbackParams();
+        if(ROBOT->finished_one_step_flag == true)
+        {  
+            //cout<<"after one half step: updateConveyFeedbackParams "<<endl;
+            updateConveyFeedbackParams();
+            clearMotorFeedbackParams();
+            ROBOT->down_finished_one_step_flag();
         }
+        if (OPTS->use_debug())
+            virtul_act();
 
         if (OPTS->use_robot())
-        {
             real_act();
-        }
         notify(SENSOR_MOTOR);
         p_count_++;
     }
@@ -107,28 +119,11 @@ void motor::virtul_act()
     robot_joint_deg jd;
     string j_data;
     j_data.clear();
-
-    /*feed back loop Test*/
-    std::map<int, float> real_jdegs;
-
     for (auto &jm : ROBOT->get_joint_map())
     {
         jd.id = jm.second->jid_;
         jd.deg = jm.second->get_deg();
-        /*feed back loop Test*/
-        real_jdegs[jd.id] = jd.deg;
         j_data.append((char *)(&jd), sizeof(robot_joint_deg));
-    }
-
-    /*feed back loop Test*/
-    ROBOT->set_real_degs(real_jdegs);
-    updateMotorFeedbackParams();
-    if(ROBOT->finished_one_step_flag == true)
-    {  
-       //cout<<"after one half step: updateConveyFeedbackParams "<<endl;
-       updateConveyFeedbackParams();
-       clearMotorFeedbackParams();
-       ROBOT->down_finished_one_step_flag();
     }
 
     cmd.size = ROBOT->get_joint_map().size() * sizeof(robot_joint_deg);
@@ -154,13 +149,13 @@ void motor::real_act()
             LOG << "Voltage: " << voltage_ / 10.0f << "V !" << ENDL;
 
             //read_pos();
-            set_torq(1);
+            //set_torq(1);
             is_connected_ = true;
         }
     }
     else
     {
-        set_gpos();
+        //set_gpos();
         if ((p_count_ * period_ms_ % 1000) == 0)
         {
             led_status_ = 1 - led_status_;

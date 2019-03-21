@@ -454,7 +454,7 @@ namespace motion
                     }
                     while (!MADT->body_empty())
                     {
-                        usleep(1000);
+                        usleep(500);
                     }
                     if (!MADT->add_body_degs(jdegs))
                     {
@@ -463,22 +463,15 @@ namespace motion
                     phase_ += dt_ * tempParams.freq;  
                 }
 
-                player_info info = WM->my_info();
-                double c1=0.5, c2=0.5, c3=0.5;
-                Vector2d currpos(info.x, info.y);
-                double dir = info.dir+rad2deg(tempParams.turnGain)*c3;
-                Vector2d temp=currpos+rotation_mat_2d(dir)*Vector2d(-tempParams.lateralGain*c2, tempParams.stepGain*c1);
-                WM->set_my_pos(Vector3d(temp[0], temp[1], dir));
-                
+                WM->navigation(Vector3d(tempParams.stepGain, tempParams.lateralGain, tempParams.turnGain));
                 //start the inverse computation of  the feedback loop for walk engine
                 if(tempParams.enabledGain == 1.0)
                 {   
                     while(ROBOT->conveyFeedbackParams.update_flag == false && is_alive_)
                     {
                        //wait for the motor consume the whole step; 
-                       usleep(100);
+                       usleep(500);
                     } 
-
                     //std::cout<<"calculate the feed walk params. ======="<<std::endl;
                     /*use the conveyFeedbackParams to update feedback parameters in the place*/
 
@@ -490,7 +483,7 @@ namespace motion
                     MADT->mode() = adapter::MODE_ACT;
                 }
             }
-            usleep(2000);
+            usleep(500);
         }
     }
 }

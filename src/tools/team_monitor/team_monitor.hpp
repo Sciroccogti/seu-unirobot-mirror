@@ -16,6 +16,7 @@ public:
 protected:
     void closeEvent(QCloseEvent *event);
     void paintEvent(QPaintEvent *event);
+    void keyPressEvent(QKeyEvent *event);
 private:
     void receive();
     filed_info field_;

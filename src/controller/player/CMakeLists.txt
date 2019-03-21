@@ -6,6 +6,7 @@ add_subdirectory(server)
 
 add_library(player STATIC 
             play_with_remote.cpp
+            play_with_gc.cpp
             player.cpp)
             
 target_link_libraries(player

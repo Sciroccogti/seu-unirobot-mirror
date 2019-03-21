@@ -15,11 +15,14 @@
 using namespace std;
 using namespace motion;
 
+const map<string, player::PlayerRole> player::RoleName{{"keeper", player::KEEPER}, {"attacker", player::ATTACKER}, {"guard", player::GUARD}};
+
 player::player(): timer(CONF->get_config_value<int>("think_period"))
 {
     is_alive_ = false;
     period_count_ = 0;
     btn_count_ = 0;
+    role_ = RoleName.find(CONF->get_config_value<string>(CONF->player()+".strategy.role"))->second;
 }
 
 void player::run()
@@ -35,9 +38,7 @@ void player::run()
             {
                 btn_count_++;
                 if(btn_count_%40==0)
-                {
                     raise(SIGINT);
-                }
             }
             else
             {
@@ -51,12 +52,13 @@ void player::run()
         else
         {
             list<task_ptr> tasks, tlist;
-            if(period_count_%20 == 0)
+            if(period_count_%10 == 0)
             {
                 if(OPTS->use_gc())
                     tasks.push_back(make_shared<gcret_task>());
                 if(OPTS->use_comm())
                     tasks.push_back(make_shared<say_task>());
+                //LOG << WM->fall_data()<<ENDL;
             }
             tlist = think();
             tasks.insert(tasks.end(), tlist.begin(), tlist.end());    
@@ -72,6 +74,15 @@ list<task_ptr> player::think()
 {
     list<task_ptr> tasks;
     tasks.push_back(make_shared<walk_task>(0.0, 0.0, 0.0, true));
+    //tasks.push_back(make_shared<look_task>(0.0, 20.0, false));
+    /*
+    if((period_count_/200)%3==0)
+        tasks.push_back(make_shared<walk_task>(0.02, 0.0, 0.0, true));
+    else if((period_count_/200)%3==1)
+        tasks.push_back(make_shared<walk_task>(0.0, 0.02, 0.0, true));
+    else
+        tasks.push_back(make_shared<walk_task>(0.0, 0.0, -3.0, true));
+        */
     return tasks;
 }
 

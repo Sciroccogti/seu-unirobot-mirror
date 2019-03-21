@@ -79,6 +79,8 @@ public:
         if(id==1) return bt1_status_;
         else if(id==2) return bt2_status_;
     }
+
+    void navigation(const Eigen::Vector3d &walk_para);
     
 private:
     imu::imu_data imu_data_;
@@ -90,6 +92,7 @@ private:
     std::atomic_int fall_direction_;
     std::atomic_int support_foot_;
 
+    double coef_x_, coef_y_, coef_d_;
     mutable std::mutex imu_mtx_, gc_mtx_, info_mtx_;
 };
 

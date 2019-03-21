@@ -49,14 +49,13 @@ void Vision::set_camera_info(const camera_info &para)
     }
 }
 
-Vector2d Vision::odometry(const Vector2i &pos, const transform_matrix &mat)
+Vector2d Vision::odometry(const Vector2i &pos, const Eigen::Vector3d &vec)
 {
     float Xw, Yw;
-    float OC = mat.p().z();
-    Vector3d rpy = mat.R().eulerAngles(0, 1, 2);
-    float roll = static_cast<float>(rpy.x());
-    float theta = static_cast<float>(rpy.y());
-    Vector2f centerPos(pos.x() - params_.cx, params_.cy - pos.y());
+    float OC = vec[0];
+    float roll = static_cast<float>(vec[1]);
+    float theta = static_cast<float>(vec[2]);
+    Vector2f centerPos(pos.x()*2 - params_.cx, params_.cy - pos.y()*2);
     Vector2i calCenterPos(static_cast<int>(centerPos.x()/cos(roll)), 
             static_cast<int>(centerPos.y()+centerPos.x()*tan(roll)));
     Vector2i calPos(calCenterPos.x() + params_.cx, params_.cy - calCenterPos.y());
@@ -64,7 +63,7 @@ Vector2d Vision::odometry(const Vector2i &pos, const transform_matrix &mat)
     double O_C_P = M_PI_2-theta+gama;
     Yw = OC*tan(O_C_P);
     Xw = ((float)calPos.x()-params_.cx)*OC*cos(gama)/(cos(O_C_P)*params_.fx);
-    return Vector2d(Yw, Xw);
+    return Vector2d(Xw, Yw);
 }
 
 void Vision::run()
@@ -84,7 +83,7 @@ void Vision::run()
             return;
         }
 
-        transform_matrix camera_matrix;
+        Vector3d camera_vec;
         float head_yaw;
         double t1 = clock();
         cudaError_t err;
@@ -93,7 +92,7 @@ void Vision::run()
         check_error(err);
         if(OPTS->use_robot())
         {
-            camera_matrix = camera_matrix_;
+            camera_vec = camera_vec_;
             head_yaw = head_yaw_;
         }
         frame_mtx_.unlock();
@@ -125,7 +124,9 @@ void Vision::run()
                 Vector2d ball_pos;
                 bool find_ball=false;
                 vector<Vector2d> post_pos;
-                Vector2d obj_pos = rotation_mat_2d(head_yaw)*odometry(Vector2i(r.x, r.y), camera_matrix);
+                Vector2d odo_res = odometry(Vector2i(r.x, r.y), camera_vec);
+                //LOG << odo_res[0] << '\t' << odo_res[1] << "\tball: "<<odo_res.norm()<<ENDL;
+                Vector2d obj_pos = rotation_mat_2d(-head_yaw)*odo_res;
                 if(r.id == ball_.id)
                 {
                     find_ball = true;
@@ -137,7 +138,8 @@ void Vision::run()
                 player_info p = WM->my_info();
                 if(find_ball)
                 {
-                    Vector2d temp_ball = Vector2d(p.x, p.y)+rotation_mat_2d(p.dir)*ball_pos;
+                    Vector2d temp_ball = Vector2d(p.x, p.y)+rotation_mat_2d(-p.dir)*ball_pos;
+                    //LOG << p.dir << '\n' << temp_ball.transpose()<<ENDL;
                     WM->set_ball_pos(temp_ball);
                 }
                 
@@ -154,7 +156,7 @@ void Vision::run()
                 string name = get_time();
                 imwrite(String(name+".png"), bgr);
                 ofstream out(name);
-                out<<camera_matrix;
+                out<<camera_vec;
                 out.close();
             }
 
@@ -232,10 +234,12 @@ void Vision::updata(const pub_ptr &pub, const int &type)
             std::vector<double> head_degs = ROBOT->get_head_degs();
             transform_matrix body = ROBOT->leg_forward_kinematics(foot_degs, spf);
             body.set_R(quat.matrix());
-            camera_matrix_ = body*transform_matrix(0,0,ROBOT->trunk_length())*transform_matrix(head_degs[0],'z')
+            robot_math::transform_matrix camera_matrix;
+            camera_matrix = body*transform_matrix(0,0,ROBOT->trunk_length())*transform_matrix(head_degs[0],'z')
                             *transform_matrix(0, 0, ROBOT->neck_length())*transform_matrix(head_degs[1], 'y')
                             *transform_matrix(0,0,ROBOT->head_length());
             head_yaw_  = head_degs[0];
+            camera_vec_ = Vector3d(camera_matrix.p().z(), deg2rad(imu_data_.roll), deg2rad(imu_data_.pitch+head_degs[1]));
         }
         frame_mtx_.unlock();
         return;

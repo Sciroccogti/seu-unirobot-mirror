@@ -16,6 +16,9 @@ WorldModel::WorldModel()
     player_infos_[CONF->id()].dir = init_pos[2];
     player_infos_[CONF->id()].ball_x = 0.0;
     player_infos_[CONF->id()].ball_y = 0.0;
+    coef_x_ = CONF->get_config_value<double>(CONF->player()+".nav.cx");
+    coef_y_ = CONF->get_config_value<double>(CONF->player()+".nav.cy");
+    coef_d_ = CONF->get_config_value<double>(CONF->player()+".nav.cd");
 }
 
 void WorldModel::updata(const pub_ptr &pub, const int &type)
@@ -56,4 +59,14 @@ void WorldModel::updata(const pub_ptr &pub, const int &type)
         info_mtx_.unlock();
         return;
     }
+}
+
+void WorldModel::navigation(const Eigen::Vector3d &walk_para)
+{
+    player_info info = my_info();
+    Vector2d currpos(info.x, info.y);
+    double dir = info.dir+rad2deg(walk_para[2])*coef_d_;
+    dir = dir>180.0?-(360.0-dir):dir<-180.0?360.0-dir:dir;
+    Vector2d temp=currpos+rotation_mat_2d(-dir)*Vector2d(-walk_para[1]*coef_y_, walk_para[0]*coef_x_);
+    set_my_pos(Vector3d(temp[0], temp[1], dir));
 }

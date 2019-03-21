@@ -24,9 +24,19 @@ public:
         return is_alive_;
     }
 
+    enum PlayerRole
+    {
+        KEEPER = 0,
+        GUARD = 1,
+        ATTACKER = 2
+    };
+
+    static const std::map<std::string, PlayerRole> RoleName;
+
 private:
     void run();
     void play_with_remote();
+    std::list<task_ptr> play_with_gc();
     std::list<task_ptr> think();
     bool regist();
     void unregist();
@@ -35,4 +45,5 @@ private:
     unsigned long period_count_;
     std::map<std::string, sensor_ptr> sensors_;
     unsigned int btn_count_;
+    PlayerRole role_;
 };

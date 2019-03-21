@@ -238,8 +238,6 @@ namespace motion
         Eigen::Vector2d xrange, yrange, drange;
         imu::imu_data imu_data_;
         mutable std::mutex para_mutex_, imu_mtx_, dxl_mtx_;
-
-
     };
 
 #define WE WalkEngine::instance()

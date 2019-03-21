@@ -35,7 +35,7 @@ public:
     void set_camera_info(const camera_info &para);
 
 private:
-    Eigen::Vector2d odometry(const Eigen::Vector2i &pos, const robot_math::transform_matrix &mat);
+    Eigen::Vector2d odometry(const Eigen::Vector2i &pos, const Eigen::Vector3d &vec);
 private:
     void run();
     void send_image(const cv::Mat &src);
@@ -69,7 +69,7 @@ private:
     object_prob ball_, post_;
 
     camera_param params_;
-    robot_math::transform_matrix camera_matrix_;
+    Eigen::Vector3d camera_vec_;
 
     mutable std::mutex frame_mtx_, imu_mtx_;
 };

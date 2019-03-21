@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <map>
 
 struct filed_info
 {
@@ -48,15 +49,6 @@ struct object_prob
     float prob;
     int x, y;
     object_prob(int i=0, float p=1, int xx=0, int yy=0): id(i), prob(p), x(xx), y(yy){}
-};
-
-enum FallDirection
-{
-    FALL_NONE = 0,
-    FALL_FORWARD = 1,
-    FALL_BACKWARD = -1,
-    FALL_LEFT = 2,
-    FALL_RIGHT = -2
 };
 
 enum { player_info_size = sizeof(player_info)};

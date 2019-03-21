@@ -1,19 +1,23 @@
 #include "imu.hpp"
 #include <boost/asio.hpp>
 #include "configuration.hpp"
+#include "math/math.hpp"
+#include "core/worldmodel.hpp"
 
 using namespace std;
 using namespace boost::asio;
+using namespace robot_math;
+using namespace Eigen;
 
 boost::asio::io_service imu_service;
 
-#define RST_CMD "AT+RST"
+const char RST_CMD[] = "AT+RST";
 
 const float g_ = 9.8;
 
-imu::imu(): sensor("imu"), serial_(imu_service), timer(1000)
+imu::imu(): sensor("imu"), serial_(imu_service)
 {
-    reset_ = false;
+    record_ = true;
     std::vector<float> range = CONF->get_config_vector<float>("not_fall_range.pitch");
     pitch_range_.x() = range[0];
     pitch_range_.y() = range[1];
@@ -21,6 +25,7 @@ imu::imu(): sensor("imu"), serial_(imu_service), timer(1000)
     roll_range_.x() = range[0];
     roll_range_.y() = range[1];
     fall_direction_ = FALL_NONE;
+    init_dir_ = 0.0;
 }
 
 bool imu::open()
@@ -39,20 +44,6 @@ bool imu::open()
     {
         LOG << "imu: " << e.what() << ENDL;
         return false;
-    }
-}
-
-void imu::run()
-{
-    if (timer::is_alive_)
-    {
-        if (reset_)
-        {
-            auto self(shared_from_this());
-            boost::asio::async_write(serial_, boost::asio::buffer(RST_CMD, 6),
-            [this, self](boost::system::error_code ec, std::size_t length) {});
-            reset_ = false;
-        }
     }
 }
 
@@ -201,6 +192,9 @@ void imu::OnDataReceived(Packet_t &pkt)
             case kItemAccFiltered:
             case kItemAccLinear:
                 memcpy(acc, p + offset + 1, sizeof(acc));
+                imu_data_.ax = acc[0]*0.01;
+                imu_data_.ay = acc[1]*0.01;
+                imu_data_.az = acc[2]*0.01;
                 offset += 7;
                 break;
             case kItemGyoRaw:
@@ -222,15 +216,13 @@ void imu::OnDataReceived(Packet_t &pkt)
                 imu_data_.pitch = eular[0];
                 imu_data_.roll = eular[1];
                 imu_data_.yaw = eular[2];
-
-                //LOG << imu_data_.pitch<<'\t'<<imu_data_.roll<<'\t'<<imu_data_.yaw<<ENDL;
-
+                
                 if(imu_data_.pitch<pitch_range_.x()) fall_direction_ = FALL_BACKWARD;
                 else if(imu_data_.pitch>pitch_range_.y()) fall_direction_ = FALL_FORWARD;
-                else fall_direction_ = FALL_NONE;
-                if(imu_data_.roll<roll_range_.x()) fall_direction_ = FALL_RIGHT;
+                else if(imu_data_.roll<roll_range_.x()) fall_direction_ = FALL_RIGHT;
                 else if(imu_data_.roll>roll_range_.y()) fall_direction_ = FALL_LEFT;
                 else fall_direction_ = FALL_NONE;
+
                 offset += 7;
                 break;
             case kItemRotationEular2:
@@ -252,6 +244,12 @@ void imu::OnDataReceived(Packet_t &pkt)
                 break;
         }
     }
+    if(record_)
+    {
+        init_dir_=imu_data_.yaw;
+        record_ = false;
+    }
+    imu_data_.yaw = imu_data_.yaw-init_dir_;
     notify(SENSOR_IMU);
 }
 
@@ -277,14 +275,12 @@ bool imu::start()
     }
 
     is_open_ = true;
-    sensor::is_alive_ = true;
+    is_alive_ = true;
     td_ = std::move(thread([this]()
     {
         this->read_data();
         imu_service.run();
     }));
-    timer::is_alive_ = true;
-    start_timer();
     return true;
 }
 
@@ -292,9 +288,7 @@ void imu::stop()
 {
     serial_.close();
     imu_service.stop();
-    sensor::is_alive_ = false;
-    timer::is_alive_ = false;
-    delete_timer();
+    is_alive_ = false;
     is_open_ = false;
 }
 

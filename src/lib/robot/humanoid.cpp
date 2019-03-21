@@ -95,18 +95,6 @@ namespace robot
                 *transform_matrix(0, 0, B_)*transform_matrix(-degs[3], 'y')*transform_matrix(0, 0, A_)
                 *transform_matrix(-degs[2], 'y')*transform_matrix(-degs[1], 'x')*transform_matrix(-degs[0], 'z')
                 *transform_matrix(0, -sg*D_ / 2.0, bone_map_["rhip2"]->length_);
-/*
-        transform_matrix T10, T21, T32, T43, T54, T65, T76, T_Mat;
-        T10 = transform_matrix(90, 'z') * transform_matrix(180, 'x') * transform_matrix(D_ / 2.0, 0, 0);
-        T21 = transform_matrix(deg[0], 'z') * transform_matrix(-90, 'x');
-        T32 = transform_matrix(deg[1] - 90, 'z') * transform_matrix(-90, 'x');
-        T43 = transform_matrix(deg[2], 'z') * transform_matrix(A_, 0, 0);
-        T54 = transform_matrix(deg[3], 'z') * transform_matrix(B_, 0, 0);
-        T65 = transform_matrix(deg[4], 'z') * transform_matrix(90, 'x');
-        T76 = transform_matrix(deg[5], 'z') * transform_matrix(-90, 'y') * transform_matrix(0, 0, -C_);
-        transform_matrix foot(0, sg * D_ / 2.0, 0);
-        T_Mat = T10 * T21 * T32 * T43 * T54 * T65 * T76;
-        */
         return body;
     }
 

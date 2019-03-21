@@ -8,10 +8,18 @@
 #include <atomic>
 #include <eigen3/Eigen/Dense>
 #include "sensor.hpp"
-#include "timer.hpp"
 #include "model.hpp"
 
-class imu: public sensor, public timer
+enum FallDirection
+{
+    FALL_NONE = 0,
+    FALL_FORWARD = 1,
+    FALL_BACKWARD = -1,
+    FALL_LEFT = 2,
+    FALL_RIGHT = -2
+};
+
+class imu: public sensor
 {
 public:
     struct imu_data
@@ -68,7 +76,7 @@ public:
     }
     void set_zero()
     {
-        reset_ = true;
+        record_ = true;
     }
     int fall_direction() const
     {
@@ -77,7 +85,6 @@ public:
 private:
     bool open();
     void read_data();
-    void run();
 
     bool Packet_Decode(uint8_t c);
     void OnDataReceived(Packet_t &pkt);
@@ -89,11 +96,12 @@ private:
     std::thread td_;
 
     boost::asio::serial_port serial_;
-    std::atomic_bool reset_;
+    std::atomic_bool record_;
     std::atomic_int fall_direction_;
 
     Eigen::Vector2f pitch_range_;
     Eigen::Vector2f roll_range_;
+
     Packet_t rx_pkt_;
     int16_t acc[3];
     int16_t gyo[3];
@@ -101,4 +109,6 @@ private:
     float eular[3];
     float quat[4];
     uint8_t id;
+
+    float init_dir_;
 };
