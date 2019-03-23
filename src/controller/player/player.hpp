@@ -16,14 +16,6 @@
 class player: public timer, public std::enable_shared_from_this<player>
 {
 public:
-    player();
-    bool init();
-    void stop();
-    bool is_alive() const
-    {
-        return is_alive_;
-    }
-
     enum PlayerRole
     {
         KEEPER = 0,
@@ -31,7 +23,23 @@ public:
         ATTACKER = 2
     };
 
+    enum RobotState
+    {
+        STATE_NOTMAL=1,
+        STATE_GETUP=2,
+        STATE_KICK=3,
+        STATE_SEARCH=4
+    };
+    
     static const std::map<std::string, PlayerRole> RoleName;
+public:
+    player();
+    bool init();
+    void stop();
+    bool is_alive() const
+    {
+        return is_alive_;
+    }
 
 private:
     void run();
@@ -46,4 +54,5 @@ private:
     std::map<std::string, sensor_ptr> sensors_;
     unsigned int btn_count_;
     PlayerRole role_;
+    RobotState state_;
 };

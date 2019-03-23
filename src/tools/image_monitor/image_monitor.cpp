@@ -15,6 +15,7 @@ image_monitor::image_monitor()
     height_ = CONF->get_config_value<int>("image.height");
     width_ = CONF->get_config_value<int>("image.width");
     first_connect = true;
+    save_=false;
 
     imageLab = new ImageLabel(width_, height_);
     curr_image_.create(height_, width_, CV_8UC3);
@@ -114,6 +115,11 @@ void image_monitor::data_handler(const tcp_command cmd)
         try
         {
             Mat bgr = imdecode(buf, cv::IMREAD_COLOR);
+            if(save_)
+            {
+                imwrite(String(get_time()+".png"), bgr);
+                save_=false;
+            }
             Mat dst;
             cvtColor(bgr, dst, CV_BGR2RGB);
             QImage dstImage((const unsigned char *)(dst.data), dst.cols, dst.rows, QImage::Format_RGB888);
@@ -248,4 +254,17 @@ void image_monitor::procYawSlider(int v)
 void image_monitor::closeEvent(QCloseEvent *event)
 {
     client_.stop();
+}
+
+void image_monitor::keyPressEvent(QKeyEvent *event)
+{
+    switch (event->key())
+    {
+        case Qt::Key_C:
+            save_=true;
+            break;
+        default:
+            break;
+    }
+    this->update();
 }

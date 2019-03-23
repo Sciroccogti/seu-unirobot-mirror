@@ -41,6 +41,7 @@ struct camera_param
     float cx, cy;
     float k1, k2;
     float p1, p2;
+    float h_v, v_v;
 };
 
 struct object_prob

@@ -3,6 +3,7 @@
 #include <mutex>
 #include <list>
 #include <map>
+#include <atomic>
 #include "robot/humanoid.hpp"
 #include "singleton.hpp"
 #include "worldmodel.hpp"
@@ -19,7 +20,8 @@ public:
     };
     adapter()
     {
-        act_mode_ = MODE_NONE;
+        act_mode_ = MODE_ACT;
+        last_mode_ = MODE_NONE;
     }
     inline std::map<int, float> get_degs()
     {
@@ -129,13 +131,21 @@ public:
     {
         is_alive_ = false;
     }
-    act_mode mode() const
+    int get_mode() const
     {
         return act_mode_;
     }
-    act_mode &mode()
+    void set_mode(act_mode m)
     {
-        return act_mode_;
+        act_mode_ = m;
+    }
+    int get_last_mode() const
+    {
+        return last_mode_;
+    }
+    void set_last_mode(act_mode m)
+    {
+        last_mode_ = m;
     }
 private:
     std::list< std::map<int, float> > head_degs_list;
@@ -144,7 +154,8 @@ private:
     std::map<int, float> latest_body_deg;
     mutable std::mutex bd_mutex_, hd_mutex_;
     bool is_alive_;
-    act_mode act_mode_;
+    std::atomic_int act_mode_;
+    std::atomic_int last_mode_;
 };
 
 #define MADT adapter::instance()

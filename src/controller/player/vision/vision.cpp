@@ -125,6 +125,7 @@ void Vision::run()
                 bool find_ball=false;
                 vector<Vector2d> post_pos;
                 Vector2d odo_res = odometry(Vector2i(r.x, r.y), camera_vec);
+                Vector2d odo_cen = odometry(Vector2i(w_/2, h_/2), camera_vec);
                 //LOG << odo_res[0] << '\t' << odo_res[1] << "\tball: "<<odo_res.norm()<<ENDL;
                 Vector2d obj_pos = rotation_mat_2d(-head_yaw)*odo_res;
                 if(r.id == ball_.id)
@@ -139,8 +140,8 @@ void Vision::run()
                 if(find_ball)
                 {
                     Vector2d temp_ball = Vector2d(p.x, p.y)+rotation_mat_2d(-p.dir)*ball_pos;
-                    //LOG << p.dir << '\n' << temp_ball.transpose()<<ENDL;
-                    WM->set_ball_pos(temp_ball);
+                    int tempx=r.x-w_/2, tempy=r.y-h_/2;
+                    WM->set_ball_pos(temp_ball, ball_pos, Vector2d(tempx/(float)w_*params_.h_v, tempy/(float)h_*params_.v_v));
                 }
                 
             }

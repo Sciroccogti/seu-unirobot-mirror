@@ -1,0 +1,10 @@
+##############################
+## Folders                  ##
+##############################
+build
+bin
+x86_64-build
+aarch64-build
+.vscode
+.kdev4
+.idea

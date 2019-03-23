@@ -2,10 +2,12 @@
 #include "configuration.hpp"
 #include "robot/humanoid.hpp"
 #include "core/adapter.hpp"
+#include "math/math.hpp"
 #include <cmath>
 
 using namespace std;
 using namespace robot;
+using namespace robot_math;
 
 namespace motion
 {
@@ -20,7 +22,7 @@ ScanEngine::ScanEngine()
     div_ = CONF->get_config_value<float>("scan.div");
     yaw_ = 0.0;
     pitch_ = 0.0;
-    scan_ = true;
+    scan_ = false;
     pitches_[0] = pitch_range_[0];
     pitches_[1] = pitch_range_[0]+(pitch_range_[1]-pitch_range_[0])/2.0f;
     pitches_[2] = pitch_range_[1];
@@ -95,6 +97,8 @@ void ScanEngine::run()
         }
         else
         {
+            bound(yaw_range_[0], yaw_range_[1], yaw);
+            bound(pitch_range_[0], pitch_range_[1], pitch);
             jdmap[id_yaw] = yaw;
             jdmap[id_pitch] = pitch;
             while (!MADT->head_empty())

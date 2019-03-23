@@ -23,6 +23,7 @@ player::player(): timer(CONF->get_config_value<int>("think_period"))
     period_count_ = 0;
     btn_count_ = 0;
     role_ = RoleName.find(CONF->get_config_value<string>(CONF->player()+".strategy.role"))->second;
+    state_ = STATE_NOTMAL;
 }
 
 void player::run()
@@ -62,8 +63,10 @@ void player::run()
             }
             tlist = think();
             tasks.insert(tasks.end(), tlist.begin(), tlist.end());    
+            
             for(auto &tsk:tasks)
             {
+                //LOG<<tsk->name()<<ENDL;
                 tsk->perform();
             }
         }
@@ -72,17 +75,9 @@ void player::run()
 
 list<task_ptr> player::think()
 {
-    list<task_ptr> tasks;
-    tasks.push_back(make_shared<walk_task>(0.0, 0.0, 0.0, true));
-    //tasks.push_back(make_shared<look_task>(0.0, 20.0, false));
-    /*
-    if((period_count_/200)%3==0)
-        tasks.push_back(make_shared<walk_task>(0.02, 0.0, 0.0, true));
-    else if((period_count_/200)%3==1)
-        tasks.push_back(make_shared<walk_task>(0.0, 0.02, 0.0, true));
-    else
-        tasks.push_back(make_shared<walk_task>(0.0, 0.0, -3.0, true));
-        */
+    list<task_ptr> tasks, tlists;
+    tlists = play_with_gc();
+    tasks.insert(tasks.end(), tlists.begin(), tlists.end());
     return tasks;
 }
 

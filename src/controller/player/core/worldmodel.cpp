@@ -19,6 +19,10 @@ WorldModel::WorldModel()
     coef_x_ = CONF->get_config_value<double>(CONF->player()+".nav.cx");
     coef_y_ = CONF->get_config_value<double>(CONF->player()+".nav.cy");
     coef_d_ = CONF->get_config_value<double>(CONF->player()+".nav.cd");
+    ball_in_my_space_[0] = 0.0;
+    ball_in_my_space_[1] = -init_pos[1];
+    ball_in_camera_[0] = 0.0;
+    ball_in_camera_[0] = 0.0;
 }
 
 void WorldModel::updata(const pub_ptr &pub, const int &type)

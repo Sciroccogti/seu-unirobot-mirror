@@ -12,6 +12,12 @@ public:
 
     }
 
+    look_task(bool enable): e_(enable), task("scan")
+    {
+        yaw_=0.0;
+        pitch_=0.0;
+    }
+
     bool perform()
     {
         motion::SE->set_params(yaw_, pitch_, e_);

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QtWidgets>
+#include <atomic>
 #include "robot/humanoid.hpp"
 #include "tcp_client/tcp_client.hpp"
 #include "ui/ImageLabel.hpp"
@@ -23,6 +24,7 @@ public slots:
 
 protected:
     void closeEvent(QCloseEvent *event);
+    void keyPressEvent(QKeyEvent *event);
 private:
     QPushButton *btnWR, *btnCS;
     ImageLabel *imageLab;
@@ -38,4 +40,5 @@ private:
     cv::Mat curr_image_;
     int width_;
     int height_;
+    std::atomic_bool save_;
 };

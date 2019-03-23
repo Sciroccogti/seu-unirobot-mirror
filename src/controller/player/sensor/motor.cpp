@@ -149,13 +149,13 @@ void motor::real_act()
             LOG << "Voltage: " << voltage_ / 10.0f << "V !" << ENDL;
 
             //read_pos();
-            //set_torq(1);
+            set_torq(1);
             is_connected_ = true;
         }
     }
     else
     {
-        //set_gpos();
+        set_gpos();
         if ((p_count_ * period_ms_ % 1000) == 0)
         {
             led_status_ = 1 - led_status_;

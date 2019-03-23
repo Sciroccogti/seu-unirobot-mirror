@@ -8,6 +8,8 @@
 namespace motion
 {
 
+using namespace robot;
+
 ActionEngine::ActionEngine()
 {
     step_ = CONF->get_config_value<float>("hardware.motor.period");
@@ -58,20 +60,19 @@ void ActionEngine::run()
         param_mtx_.unlock();
         if(!poses_temp.empty())
         {
-            if (MADT->mode() == adapter::MODE_WALK)
+            if (MADT->get_mode() == adapter::MODE_WALK)
             {
-                MADT->mode() = adapter::MODE_READY;
+                MADT->set_mode(adapter::MODE_READY);
+                MADT->set_last_mode(adapter::MODE_WALK);
             }
-            else if (MADT->mode() == adapter::MODE_NONE)
-            {
-                MADT->mode() = adapter::MODE_ACT;
-            }
+            else if(MADT->get_mode()==adapter::MODE_READY&&MADT->get_last_mode()==adapter::MODE_ACT)
+                MADT->set_mode(adapter::MODE_ACT);
 
-            while (MADT->mode() != adapter::MODE_ACT)
+            while (MADT->get_mode() != adapter::MODE_ACT && is_alive_)
             {
-                usleep(10000);
+                usleep(1000);
             }
-
+            if(!is_alive_) break;
             int act_time;
             std::map<int, float> one_pos_deg;
 
@@ -95,14 +96,15 @@ void ActionEngine::run()
 
                 if (get_degs(body_mat, leftfoot_mat, rightfoot_mat, lefthand, righthand, one_pos_deg))
                 {
-                    if (!set_joints(one_pos_deg, act_time))
+                    int odc=0;
+                    for(auto od:one_pos_deg)
                     {
-                        break;
+                        if(fabs(ROBOT->get_joint(od.first)->get_deg()-od.second)<1E-2)
+                            ++odc;
                     }
-                }
-                else
-                {
-                    LOG << "ik error" << ENDL;
+                    if(odc!=one_pos_deg.size())
+                        if (!set_joints(one_pos_deg, act_time))
+                            break;
                 }
 
                 if (poses_temp.size() >= 2)
@@ -139,20 +141,14 @@ void ActionEngine::run()
                     }
                 }
             }
+            param_mtx_.lock();
+            poses_.clear();
+            pos_times_.clear();
+            param_mtx_.unlock();
+            MADT->set_mode(adapter::MODE_READY);
+            MADT->set_last_mode(adapter::MODE_ACT);
         }
-        else
-        {
-            if(MADT->mode()!=adapter::MODE_WALK)
-            {
-                MADT->mode() = adapter::MODE_WALK;
-                //LOG << "change to walk"<<ENDL;
-            }
-        }
-        param_mtx_.lock();
-        poses_.clear();
-        pos_times_.clear();
-        param_mtx_.unlock();
-        usleep(10000);
+        usleep(1000);
     }
 }
 

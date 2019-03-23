@@ -23,7 +23,8 @@ class Vision: public timer, public subscriber, public singleton<Vision>
 public:
     Vision();
     ~Vision();
-
+    int w(){return w_;}
+    int h(){return h_;}
     void updata(const pub_ptr &pub, const int &type);
     bool start();
     void stop();

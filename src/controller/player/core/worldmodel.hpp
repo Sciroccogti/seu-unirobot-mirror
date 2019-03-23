@@ -59,11 +59,25 @@ public:
         return player_infos_[CONF->id()];
     }
 
-    void set_ball_pos(const Eigen::Vector2d &ball)
+    void set_ball_pos(const Eigen::Vector2d &gloabal, const Eigen::Vector2d &my, const Eigen::Vector2d &cm)
     {
         std::lock_guard<std::mutex> lk(info_mtx_);
-        player_infos_[CONF->id()].ball_x = ball.x();
-        player_infos_[CONF->id()].ball_y = ball.y();
+        player_infos_[CONF->id()].ball_x = gloabal.x();
+        player_infos_[CONF->id()].ball_y = gloabal.y();
+        ball_in_my_space_ = my;
+        ball_in_camera_ = cm;
+    }
+
+    Eigen::Vector2d ball_in_my_space()
+    {
+        std::lock_guard<std::mutex> lk(info_mtx_);
+        return ball_in_my_space_;
+    }
+
+    Eigen::Vector2d ball_in_camera()
+    {
+        std::lock_guard<std::mutex> lk(info_mtx_);
+        return ball_in_camera_;
     }
 
     void set_my_pos(const Eigen::Vector3d &my)
@@ -86,6 +100,8 @@ private:
     imu::imu_data imu_data_;
     RoboCupGameControlData gc_data_;
     std::map< int, player_info > player_infos_;
+    Eigen::Vector2d ball_in_my_space_;
+    Eigen::Vector2d ball_in_camera_;
 
     std::atomic_bool bt1_status_;
     std::atomic_bool bt2_status_;

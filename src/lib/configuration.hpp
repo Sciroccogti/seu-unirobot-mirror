@@ -16,6 +16,7 @@ public:
         }
 
         player_ = "players." + std::to_string(id_);
+        team_number_ = config_tree_.get<int>("team_number");
         return true;
     }
 
@@ -55,6 +56,10 @@ public:
     {
         return id_;
     }
+    inline int team_number() const
+    {
+        return team_number_;
+    }
     inline std::string player() const
     {
         return player_;
@@ -79,7 +84,7 @@ public:
 private:
     parser::bpt::ptree config_tree_;
     std::string player_;
-    int id_;
+    int id_, team_number_;;
 };
 
 #define CONF configuration::instance()

@@ -240,27 +240,14 @@ namespace motion
             tempParams = params_;
             para_mutex_.unlock();
 
-            if (MADT->mode() == adapter::MODE_READY || MADT->mode() == adapter::MODE_WALK)
-            {   
-                if (MADT->mode() == adapter::MODE_READY)
-                {
-                    tempParams.stepGain = 0.0;
-                    tempParams.lateralGain = 0.0;
-                    tempParams.turnGain = 0.0;
-                }
-                /*else if(tempParams.enableFlag == 1.0){
-                    tempParams.enabledGain += 0.15;
-                    if(tempParams.enabledGain > 1.0) tempParams.enabledGain = 1.0;  
-                }else if(tempParams.enableFlag == 0.0){
-                    tempParams.enabledGain -= 0.2;
-                    if(tempParams.enabledGain < 0.0) tempParams.enabledGain = 0.0;  
-                }
-
-                if(tempParams.enabledGain != 1.0){
-                    tempParams.stepGain = 0.0;
-                }
-                */
-                
+            if (MADT->get_mode() == adapter::MODE_READY)
+            {
+                tempParams.stepGain = 0.0;
+                tempParams.lateralGain = 0.0;
+                tempParams.turnGain = 0.0;
+            }
+            if((fabs(tempParams.enabledGain)>1E-2) &&(MADT->get_mode() == adapter::MODE_READY || MADT->get_mode() == adapter::MODE_WALK))
+            {                   
                 while (phase_ < 0.5)
                 {   
                     phaseLeft = (phase_flag==true ? phase_ : phase_+0.5);
@@ -437,10 +424,10 @@ namespace motion
                         LOG << phase_ << '\t' << "right leg_inverse_kinematics faied!" << ENDL;
                     }
 
-                    jdegs[ROBOT->get_joint("jlshoulder1")->jid_] = 60;
-                    jdegs[ROBOT->get_joint("jlelbow")->jid_] = -120;
-                    jdegs[ROBOT->get_joint("jrshoulder1")->jid_] = 60;
-                    jdegs[ROBOT->get_joint("jrelbow")->jid_] = 120;
+                    jdegs[ROBOT->get_joint("jlshoulder1")->jid_] = 49.43;
+                    jdegs[ROBOT->get_joint("jlelbow")->jid_] = -119.24;
+                    jdegs[ROBOT->get_joint("jrshoulder1")->jid_] = 49.43;
+                    jdegs[ROBOT->get_joint("jrelbow")->jid_] = 119.24;
         
 
                     if((phase_+ dt_ * tempParams.freq) >= 0.5 && tempParams.enabledGain == 1.0)
@@ -478,9 +465,15 @@ namespace motion
                     ROBOT->conveyFeedbackParams.update_flag = false;  
                 }
 
-                if (MADT->mode() == adapter::MODE_READY)
+                if (MADT->get_mode() == adapter::MODE_READY)
                 {
-                    MADT->mode() = adapter::MODE_ACT;
+                    para_mutex_.lock();
+                    params_.enabledGain = 0.0;
+                    para_mutex_.unlock();
+                    if(MADT->get_last_mode() == adapter::MODE_ACT)
+                        MADT->set_mode(adapter::MODE_WALK);
+                    else
+                        MADT->set_mode(adapter::MODE_ACT);
                 }
             }
             usleep(500);
