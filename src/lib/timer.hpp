@@ -17,6 +17,11 @@ public:
         period_ms_ = ms;
     }
 
+    int period_ms() const
+    {
+        return period_ms_;
+    }
+
     static void timer_thread(union sigval v)
     {
         timer *t = (timer *) v.sival_ptr;

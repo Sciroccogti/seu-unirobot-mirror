@@ -59,11 +59,12 @@ public:
         return player_infos_[CONF->id()];
     }
 
-    void set_ball_pos(const Eigen::Vector2d &gloabal, const Eigen::Vector2d &my, const Eigen::Vector2d &cm)
+    void set_ball_pos(const Eigen::Vector2d &gloabal, const Eigen::Vector2d &my, const Eigen::Vector2d &cm, bool can=true)
     {
         std::lock_guard<std::mutex> lk(info_mtx_);
         player_infos_[CONF->id()].ball_x = gloabal.x();
         player_infos_[CONF->id()].ball_y = gloabal.y();
+        player_infos_[CONF->id()].available = can;
         ball_in_my_space_ = my;
         ball_in_camera_ = cm;
     }

@@ -67,8 +67,9 @@ private:
     int sized_size_;
     int rgbf_size_;
     std::vector<std::string> names_;
-    object_prob ball_, post_;
 
+    object_prob ball_, post_;
+    int cant_see_ball_count_;
     camera_param params_;
     Eigen::Vector3d camera_vec_;
 

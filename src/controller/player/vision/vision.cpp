@@ -20,6 +20,7 @@ using namespace robot;
 Vision::Vision(): timer(CONF->get_config_value<int>("vision_period"))
 {
     p_count_ = 0;
+    cant_see_ball_count_ = 0;
     is_busy_ = false;
     w_ = CONF->get_config_value<int>("image.width");
     h_ = CONF->get_config_value<int>("image.height");
@@ -139,10 +140,18 @@ void Vision::run()
                 player_info p = WM->my_info();
                 if(find_ball)
                 {
+                    cant_see_ball_count_=0;
                     Vector2d temp_ball = Vector2d(p.x, p.y)+rotation_mat_2d(-p.dir)*ball_pos;
                     int tempx=r.x-w_/2, tempy=r.y-h_/2;
                     WM->set_ball_pos(temp_ball, ball_pos, Vector2d(tempx/(float)w_*params_.h_v, tempy/(float)h_*params_.v_v));
                 }
+                else
+                {
+                    cant_see_ball_count_++;
+                    if(cant_see_ball_count_*period_ms_>10000)
+                        WM->set_ball_pos(Vector2d(0,0), Vector2d(0,0), Vector2d(0,0), false);
+                }
+                
                 
             }
         }
