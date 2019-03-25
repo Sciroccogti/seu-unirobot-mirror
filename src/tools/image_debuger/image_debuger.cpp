@@ -10,7 +10,7 @@
 
 using namespace cv;
 using namespace std;
-using namespace imageproc;
+using namespace vision;
 
 image_debuger::image_debuger()
 {

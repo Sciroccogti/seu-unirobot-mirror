@@ -17,6 +17,7 @@
 #include "math/math.hpp"
 #include "sensor/imu.hpp"
 #include "sensor/motor.hpp"
+#include "imageproc/detector/detector.h"
 
 class Vision: public timer, public subscriber, public singleton<Vision>
 {
@@ -49,7 +50,11 @@ private:
     int w_, h_;
     int camera_w_,  camera_h_, camera_size_;
     std::map<std::string, camera_info> camera_infos_;
-    
+    std::map<int, float> dets_prob_;
+    std::vector<detection> ball_dets_;
+    std::vector<detection> post_dets_;
+
+
     bool is_busy_;
     image_send_type img_sd_type_;
 
@@ -59,11 +64,13 @@ private:
     unsigned char *dev_undistored_;
     unsigned char *dev_ori_;
     unsigned char *dev_sized_;
+    unsigned char *dev_yuyv_;
     unsigned char *camera_src_;
     float *dev_rgbfp_;
     int src_size_;
     int bgr_size_;
     int ori_size_;
+    int yuyv_size_;
     int sized_size_;
     int rgbf_size_;
     std::vector<std::string> names_;
@@ -72,6 +79,8 @@ private:
     int cant_see_ball_count_;
     camera_param params_;
     Eigen::Vector3d camera_vec_;
+
+    std::shared_ptr<vision::Detector> detector_;
 
     mutable std::mutex frame_mtx_, imu_mtx_;
 };

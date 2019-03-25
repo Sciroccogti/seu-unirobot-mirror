@@ -14,7 +14,7 @@ using namespace std;
 using namespace cv;
 using namespace robot_math;
 using namespace Eigen;
-using namespace imageproc;
+using namespace vision;
 using namespace robot;
 
 Vision::Vision(): timer(CONF->get_config_value<int>("vision_period"))
@@ -26,11 +26,15 @@ Vision::Vision(): timer(CONF->get_config_value<int>("vision_period"))
     h_ = CONF->get_config_value<int>("image.height");
     img_sd_type_ = IMAGE_SEND_RESULT;
     camera_src_ = nullptr;
+    detector_ = make_shared<Detector>(w_, h_);
     parser::camera_info_parser::parse(CONF->get_config_value<string>(CONF->player() + ".camera_info_file"), camera_infos_);
     parser::camera_param_parser::parse(CONF->get_config_value<string>(CONF->player() + ".camera_params_file"), params_);
     LOG << setw(12) << "algorithm:" << setw(18) << "[vision]" << " started!" << ENDL;
     ball_ = object_prob(0, CONF->get_config_value<float>("detection_prob.ball"));
     post_ = object_prob(1, CONF->get_config_value<float>("detection_prob.post"));
+    dets_prob_[0] = CONF->get_config_value<float>("detection_prob.ball");
+    dets_prob_[1] = CONF->get_config_value<float>("detection_prob.post");
+
 }
 
 Vision::~Vision()
@@ -111,13 +115,49 @@ void Vision::run()
             cudaYUYV2BGR(dev_src_,  dev_bgr_,  camera_w_,  camera_h_);
             cudaResizePacked(dev_bgr_, camera_w_,  camera_h_,  dev_ori_, w_,  h_);
         }
-
+        //cudaBGR2YUV422(dev_ori_, dev_yuyv_, w_, h_);
         cudaResizePacked(dev_ori_, w_, h_, dev_sized_, net_.w, net_.h);
         cudaBGR2RGBfp(dev_sized_, dev_rgbfp_, net_.w, net_.h);
 
         is_busy_ = true;
-        vector<object_prob> res;
-        res = ball_and_post_detection(net_, dev_rgbfp_, true, ball_, post_, w_, h_);
+
+        //detector_->process(dev_yuyv_);
+        layer l = net_.layers[net_.n - 1];
+        //double t1 = clock();
+        network_predict(net_, dev_rgbfp_, 0);
+        int nboxes = 0;
+        float nms = .45;
+        detection *dets = get_network_boxes(&net_, w_, h_, 0.5, 0.5, 0, 1, &nboxes, 0);
+
+        if (nms)
+        {
+            do_nms_sort(dets, nboxes, l.classes, nms);
+        }
+        ball_dets_.clear();
+        post_dets_.clear();
+        for (int i = 0; i < nboxes; i++)
+        {
+            if(dets[i].prob[0] > dets[i].prob[1])
+            {
+                detection d = dets[i];
+                d.prob[0] = dets[i].prob[0];
+                if(d.prob[0] > dets_prob_[0])
+                    ball_dets_.push_back(d);
+            }
+            else
+            {
+                detection d = dets[i];
+                d.prob[0] = dets[i].prob[1];
+                if(d.prob[0] > dets_prob_[1])
+                    post_dets_.push_back(d);
+            }
+        }
+        sort(ball_dets_.begin(), ball_dets_.end(), CompareDetGreater);
+        sort(post_dets_.begin(), post_dets_.end(), CompareDetGreater);
+
+        //vector<object_prob> res;
+        //res = ball_and_post_detection(net_, dev_rgbfp_, true, ball_, post_, w_, h_);
+        /*
         for(auto &r:res)
         {
             if(OPTS->use_robot())
@@ -151,10 +191,9 @@ void Vision::run()
                     if(cant_see_ball_count_*period_ms_>10000)
                         WM->set_ball_pos(Vector2d(0,0), Vector2d(0,0), Vector2d(0,0), false);
                 }
-                
-                
             }
         }
+        */
 
         if (OPTS->use_debug())
         {
@@ -176,11 +215,43 @@ void Vision::run()
             }
             else if (img_sd_type_ == IMAGE_SEND_RESULT)
             {
+                if(!ball_dets_.empty())
+                {
+                    rectangle(bgr, Point((ball_dets_[0].bbox.x - ball_dets_[0].bbox.w / 2.0)*w_, (ball_dets_[0].bbox.y - ball_dets_[0].bbox.h / 2.0)*h_),
+                              Point((ball_dets_[0].bbox.x + ball_dets_[0].bbox.w / 2.0)*w_, (ball_dets_[0].bbox.y + ball_dets_[0].bbox.h / 2.0)*h_),
+                              Scalar(255, 0, 0, 0), 2);
+                    putText(bgr, to_string(ball_dets_[0].prob[0]).substr(0,4), Point(ball_dets_[0].bbox.x * w_-40, ball_dets_[0].bbox.y * h_-40),
+                                    FONT_HERSHEY_SIMPLEX, 1, Scalar(255, 0, 0), 2, 8);
+                }
+                int i=0;
+                for(auto &dd: post_dets_)
+                {
+                    if(i>=2) break;
+                    rectangle(bgr, Point((post_dets_[i].bbox.x - post_dets_[i].bbox.w / 2.0)*w_, (post_dets_[i].bbox.y - post_dets_[i].bbox.h / 2.0)*h_),
+                              Point((post_dets_[i].bbox.x + post_dets_[i].bbox.w / 2.0)*w_, (post_dets_[i].bbox.y + post_dets_[i].bbox.h / 2.0)*h_),
+                              Scalar(0, 0, 255, 0), 2);
+                    putText(bgr, to_string(post_dets_[i].prob[0]).substr(0,4), Point(post_dets_[i].bbox.x * w_-40, post_dets_[i].bbox.y * h_-40),
+                                    FONT_HERSHEY_SIMPLEX, 1, Scalar(0, 0, 255), 2, 8);
+                    i++;
+                }
+
+                /*
+                for(int j=0;j<h_;j++)
+                {
+                    for(int i=0;i<w_;i++)
+                    {
+                        if(detector_->isGreen(i, j))
+                        {
+                            circle(bgr, Point(i, j), 1, Scalar(255,0,0), -1);
+                        }
+                    }
+                }
+                
                 for(int i=0; i<res.size();i++)
                 {
                     Scalar clr = res[i].id == ball_.id ? Scalar(255,0,0):Scalar(0,0,255);
                     circle(bgr, Point(res[i].x, res[i].y), 10, clr, -1);
-                }
+                }*/
                 send_image(bgr);
             }
         }
@@ -286,11 +357,14 @@ bool Vision::start()
     srand(2222222);
 
     ori_size_ = w_ * h_ * 3;
+    yuyv_size_ = w_*h_*2;
     sized_size_ = net_.w * net_.h * 3;
     rgbf_size_ = w_ * h_ * 3 * sizeof(float);
 
     cudaError_t err;
     err = cudaMalloc((void **)&dev_ori_, ori_size_);
+    check_error(err);
+    err = cudaMalloc((void**)&dev_yuyv_, yuyv_size_);
     check_error(err);
     err = cudaMalloc((void **)&dev_sized_, sized_size_);
     check_error(err);
@@ -309,6 +383,7 @@ void Vision::stop()
         free_network(net_);
         free(camera_src_);
         cudaFree(dev_ori_);
+        cudaFree(dev_yuyv_);
         cudaFree(dev_src_);
         cudaFree(dev_bgr_);
         cudaFree(dev_undistored_);

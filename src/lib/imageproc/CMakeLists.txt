@@ -1,3 +1,4 @@
+add_subdirectory(detector)
 add_library(imageproc
         imageproc.cpp)
 

@@ -4,7 +4,7 @@
 using namespace cv;
 using namespace std;
 
-namespace imageproc
+namespace vision
 {
     bool obj_prob_greater(const object_prob &a, const object_prob &b)
     {

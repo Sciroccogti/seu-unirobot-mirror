@@ -1,4 +1,5 @@
 #include <cuda_runtime.h>
+#include <cstdint>
 
 __device__ unsigned char rgb_bound(int v)
 {
@@ -87,6 +88,31 @@ __global__ void bgr2yuv422_kernal(unsigned char *in, unsigned char *out, int w, 
     out[out_tmp+dst_offset+1] = (unsigned char)(int)(-0.169*r1-0.331*g1+0.499*b1+128);
     out[out_tmp+dst_offset+2] = (unsigned char)(int)(0.299*r2+0.587*g2+0.114*b2);
     out[out_tmp+dst_offset+3] = (unsigned char)(int)(0.498*r2-0.419*g2-0.0813*b2+128);
+}
+
+__global__ void kernel_rgb2yuv(uint8_t *out, const uint8_t* in, int w, int h, const uint32_t width, const uint32_t height)
+{
+    int idx = blockIdx.x*blockDim.x*blockDim.y + (threadIdx.x + threadIdx.y * blockDim.x);
+	if( idx >= w*h){
+		return;
+	}
+	int x = (idx - idx/w*w)  * 2;
+    int y = idx/w;
+
+    const int start = x * 3 + y * width * 3;
+    const float r1 = in[start];
+    const float g1 = in[start+1];
+    const float b1 = in[start+2];
+    const float r2 = in[start+3];
+    const float g2 = in[start+4];
+    const float b2 = in[start+5];
+    const int outIdx = x * 2 + y * width * 2;
+    /* Y1  */ out[outIdx]   = (uint8_t) ( 0.299f * r1 + 0.587f * g1 + 0.114f  * b1);
+    /* Cb1 */ out[outIdx+1] = (uint8_t) (-0.169f * r1 - 0.331f * g1 + 0.499f  * b1 + 128);
+    /* Y2  */ out[outIdx+2] = (uint8_t) ( 0.299f * r2 + 0.587f * g2 + 0.114f  * b2);
+    /* Cr1 */ out[outIdx+3] = (uint8_t) ( 0.498f * r2 - 0.419f * g2 - 0.0813f * b2 + 128);
+
+
 }
 
 __global__ void baygr2bgr_kernal(unsigned char *bayergr, unsigned char *bgr, int w, int h,
@@ -255,6 +281,15 @@ void cudaBGR2RGBfp(unsigned char *bgr, float *rgbfp, int w, int h)
 
 void cudaBGR2YUV422(unsigned char *bgr, unsigned char *yuv422, int w, int h)
 {
+    /*
+    int xi = w / 2;
+    int yi = h;
+	
+	int max = xi*yi;
+    int block_num = max / 256 + 1;
+    dim3 dim_(16, 16);
+    kernel_rgb2yuv<<<block_num, dim_>>>(yuv422, bgr, xi, yi, w, h);
+    */
     bgr2yuv422_kernal<<<w/2, h>>>(bgr, yuv422, w, h);
 }
 

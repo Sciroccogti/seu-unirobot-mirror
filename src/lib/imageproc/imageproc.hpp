@@ -7,7 +7,7 @@
 #include "darknet/network.h"
 #include "model.hpp"
 
-namespace imageproc
+namespace vision
 {
     std::vector<object_prob> ball_and_post_detection(network &net, float *rgbfp, bool from_gpu, object_prob ball,
         object_prob post, int w, int h, float thresh=0.5, float hier=0.5);

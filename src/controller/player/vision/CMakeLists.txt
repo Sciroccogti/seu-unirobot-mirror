@@ -7,6 +7,7 @@ target_link_libraries(vision
         opencv_imgproc
         cudaproc
         imageproc
+        detector
         darknet
         server
         pthread
