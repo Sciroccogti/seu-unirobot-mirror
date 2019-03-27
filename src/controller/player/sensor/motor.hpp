@@ -8,7 +8,7 @@
 #include "timer.hpp"
 #include "sensor.hpp"
 #include "robot/humanoid.hpp"
-#include "dynamixel/dynamixel_sdk.h"
+#include "drivers/dynamixel/dynamixel_sdk.h"
 
 
 class motor: public sensor, public timer

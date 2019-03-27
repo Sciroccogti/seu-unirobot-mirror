@@ -5,7 +5,6 @@
 #include "cuda/cudaproc.h"
 #include "server/server.hpp"
 #include <algorithm>
-#include "compare.hpp"
 #include "core/worldmodel.hpp"
 #include "imageproc/imageproc.hpp"
 #include <fstream>
@@ -30,11 +29,10 @@ Vision::Vision(): timer(CONF->get_config_value<int>("vision_period"))
     parser::camera_info_parser::parse(CONF->get_config_value<string>(CONF->player() + ".camera_info_file"), camera_infos_);
     parser::camera_param_parser::parse(CONF->get_config_value<string>(CONF->player() + ".camera_params_file"), params_);
     LOG << setw(12) << "algorithm:" << setw(18) << "[vision]" << " started!" << ENDL;
-    ball_ = object_prob(0, CONF->get_config_value<float>("detection_prob.ball"));
-    post_ = object_prob(1, CONF->get_config_value<float>("detection_prob.post"));
-    dets_prob_[0] = CONF->get_config_value<float>("detection_prob.ball");
-    dets_prob_[1] = CONF->get_config_value<float>("detection_prob.post");
-
+    ball_id_=0;
+    post_id_=1;
+    ball_prob_ = CONF->get_config_value<float>("detection_prob.ball");
+    post_prob_ = CONF->get_config_value<float>("detection_prob.post");
 }
 
 Vision::~Vision()
@@ -54,15 +52,14 @@ void Vision::set_camera_info(const camera_info &para)
     }
 }
 
-Vector2d Vision::odometry(const Vector2i &pos, const Eigen::Vector3d &vec)
+Vector2d Vision::odometry(const Vector2i &pos, const robot_math::transform_matrix &camera_matrix)
 {
     float Xw, Yw;
-    float OC = vec[0];
-    float roll = static_cast<float>(vec[1]);
-    float theta = static_cast<float>(vec[2]);
+    float OC = camera_matrix.p().z();
+    float roll = static_cast<float>(camera_matrix.x_rotate());
+    float theta = static_cast<float>(camera_matrix.y_rotate());
     Vector2f centerPos(pos.x()*2 - params_.cx, params_.cy - pos.y()*2);
-    Vector2i calCenterPos(static_cast<int>(centerPos.x()/cos(roll)), 
-            static_cast<int>(centerPos.y()+centerPos.x()*tan(roll)));
+    Vector2i calCenterPos(centerPos.x()/cos(roll), centerPos.y()+centerPos.x()*tan(roll));
     Vector2i calPos(calCenterPos.x() + params_.cx, params_.cy - calCenterPos.y());
     double gama = atan((params_.cy-(float)calPos.y())/params_.fy);
     double O_C_P = M_PI_2-theta+gama;
@@ -75,33 +72,26 @@ void Vision::run()
 {
     if (is_alive_)
     {
-
         if (camera_src_ == nullptr)
-        {
             return;
-        }
-
-        p_count_ ++;
-
         if (is_busy_)
-        {
             return;
-        }
-
-        Vector3d camera_vec;
+        is_busy_ = true;
+        p_count_ ++;
+        robot_math::transform_matrix camera_matrix;
         float head_yaw;
-        double t1 = clock();
+        
         cudaError_t err;
         frame_mtx_.lock();
         err = cudaMemcpy(dev_src_, camera_src_, src_size_, cudaMemcpyHostToDevice);
         check_error(err);
         if(OPTS->use_robot())
         {
-            camera_vec = camera_vec_;
+            camera_matrix = camera_matrix_;
             head_yaw = head_yaw_;
         }
         frame_mtx_.unlock();
-        
+
         if (use_mv_)
         {
             cudaBayer2BGR(dev_src_, dev_bgr_,  camera_w_,  camera_h_, camera_infos_["saturation"].value,
@@ -115,98 +105,90 @@ void Vision::run()
             cudaYUYV2BGR(dev_src_,  dev_bgr_,  camera_w_,  camera_h_);
             cudaResizePacked(dev_bgr_, camera_w_,  camera_h_,  dev_ori_, w_,  h_);
         }
-        //cudaBGR2YUV422(dev_ori_, dev_yuyv_, w_, h_);
+        cudaBGR2YUV422(dev_ori_, dev_yuyv_, w_, h_);
         cudaResizePacked(dev_ori_, w_, h_, dev_sized_, net_.w, net_.h);
         cudaBGR2RGBfp(dev_sized_, dev_rgbfp_, net_.w, net_.h);
-
-        is_busy_ = true;
-
-        //detector_->process(dev_yuyv_);
+        
+        detector_->process(dev_yuyv_);
+        
         layer l = net_.layers[net_.n - 1];
-        //double t1 = clock();
         network_predict(net_, dev_rgbfp_, 0);
         int nboxes = 0;
         float nms = .45;
         detection *dets = get_network_boxes(&net_, w_, h_, 0.5, 0.5, 0, 1, &nboxes, 0);
 
         if (nms)
-        {
             do_nms_sort(dets, nboxes, l.classes, nms);
-        }
         ball_dets_.clear();
         post_dets_.clear();
         for (int i = 0; i < nboxes; i++)
         {
-            if(dets[i].prob[0] > dets[i].prob[1])
+            if(dets[i].prob[ball_id_] > dets[i].prob[post_id_])
             {
-                detection d = dets[i];
-                d.prob[0] = dets[i].prob[0];
-                if(d.prob[0] > dets_prob_[0])
-                    ball_dets_.push_back(d);
+                if(dets[i].prob[ball_id_] >= ball_prob_)
+                    ball_dets_.push_back(object_det(ball_id_, dets[i].prob[ball_id_],
+                        (dets[i].bbox.x - dets[i].bbox.w / 2.0)*w_, (dets[i].bbox.y - dets[i].bbox.h / 2.0)*h_,
+                        dets[i].bbox.w*w_, dets[i].bbox.h*h_));
             }
             else
             {
-                detection d = dets[i];
-                d.prob[0] = dets[i].prob[1];
-                if(d.prob[0] > dets_prob_[1])
-                    post_dets_.push_back(d);
+                if(dets[i].prob[post_id_] >= post_prob_)
+                    post_dets_.push_back(object_det(post_id_, dets[i].prob[post_id_],
+                        (dets[i].bbox.x - dets[i].bbox.w / 2.0)*w_, (dets[i].bbox.y - dets[i].bbox.h / 2.0)*h_,
+                        dets[i].bbox.w*w_, dets[i].bbox.h*h_));
             }
         }
-        sort(ball_dets_.begin(), ball_dets_.end(), CompareDetGreater);
-        sort(post_dets_.begin(), post_dets_.end(), CompareDetGreater);
+        sort(ball_dets_.rbegin(), ball_dets_.rend());
+        sort(post_dets_.begin(), post_dets_.end());
+        free_detections(dets, nboxes);
 
-        //vector<object_prob> res;
-        //res = ball_and_post_detection(net_, dev_rgbfp_, true, ball_, post_, w_, h_);
-        /*
-        for(auto &r:res)
+        if(OPTS->use_robot())
         {
-            if(OPTS->use_robot())
+            player_info p = WM->my_info();
+            if(!ball_dets_.empty())
             {
-                Vector2d ball_pos;
-                bool find_ball=false;
-                vector<Vector2d> post_pos;
-                Vector2d odo_res = odometry(Vector2i(r.x, r.y), camera_vec);
-                Vector2d odo_cen = odometry(Vector2i(w_/2, h_/2), camera_vec);
-                //LOG << odo_res[0] << '\t' << odo_res[1] << "\tball: "<<odo_res.norm()<<ENDL;
-                Vector2d obj_pos = rotation_mat_2d(-head_yaw)*odo_res;
-                if(r.id == ball_.id)
-                {
-                    find_ball = true;
-                    ball_pos = obj_pos;
-                }
-                else
-                    post_pos.push_back(obj_pos);
-                //selflocation
-                player_info p = WM->my_info();
-                if(find_ball)
-                {
-                    cant_see_ball_count_=0;
-                    Vector2d temp_ball = Vector2d(p.x, p.y)+rotation_mat_2d(-p.dir)*ball_pos;
-                    int tempx=r.x-w_/2, tempy=r.y-h_/2;
-                    WM->set_ball_pos(temp_ball, ball_pos, Vector2d(tempx/(float)w_*params_.h_v, tempy/(float)h_*params_.v_v));
-                }
-                else
-                {
-                    cant_see_ball_count_++;
-                    if(cant_see_ball_count_*period_ms_>10000)
-                        WM->set_ball_pos(Vector2d(0,0), Vector2d(0,0), Vector2d(0,0), false);
-                }
+                Vector2d odo_res = odometry(Vector2i(ball_dets_[0].x+ball_dets_[0].w/2, ball_dets_[0].y+ball_dets_[0].h), camera_matrix);
+                LOG << odo_res[0] << '\t' << odo_res[1] << "\tball: "<<odo_res.norm()<<ENDL;
+                Vector2d ball_pos = rotation_mat_2d(head_yaw)*odo_res;
+                cant_see_ball_count_=0;
+                Vector2d temp_ball = Vector2d(p.x, p.y)+rotation_mat_2d(-p.dir)*ball_pos;
+                int tempx=ball_dets_[0].x+ball_dets_[0].w/2-w_/2, tempy=ball_dets_[0].y+ball_dets_[0].h-h_/2;
+                WM->set_ball_pos(temp_ball, ball_pos, Vector2d(tempx/(float)w_*params_.h_v, tempy/(float)h_*params_.v_v));
             }
+            else
+            {
+                cant_see_ball_count_++;
+                if(cant_see_ball_count_*period_ms_>10000)
+                    WM->set_ball_pos(Vector2d(0,0), Vector2d(0,0), Vector2d(0,0), false);
+            }
+            /*
+            vector<Vector2d> post_pos;
+            
+            LOG << odo_res[0] << '\t' << odo_res[1] << "\tball: "<<odo_res.norm()<<ENDL;
+            Vector2d obj_pos = rotation_mat_2d(head_yaw)*odo_res;
+            if(r.id == ball_id_)
+            {
+                find_ball = true;
+                ball_pos = obj_pos;
+            }
+            else
+                post_pos.push_back(obj_pos);
+            //selflocation
+            player_info p = WM->my_info();
+            */
         }
-        */
 
         if (OPTS->use_debug())
         {
             Mat bgr(h_, w_, CV_8UC3);
             err = cudaMemcpy(bgr.data, dev_ori_, ori_size_, cudaMemcpyDeviceToHost);
-            check_error(err);
-            if(OPTS->image_record()&&p_count_%20==0)
+            check_error(err);    
+                  
+            if(OPTS->image_record())
             {
-                string name = get_time();
-                imwrite(String(name+".png"), bgr);
-                ofstream out(name);
-                out<<camera_vec;
-                out.close();
+                send_image(bgr);
+                is_busy_ = false;
+                return;
             }
 
             if (img_sd_type_ == IMAGE_SEND_ORIGIN)
@@ -214,49 +196,32 @@ void Vision::run()
                 send_image(bgr);
             }
             else if (img_sd_type_ == IMAGE_SEND_RESULT)
-            {
+            {   
+                for(int j=0;j<480;j++)
+                    for(int i=0;i<640;i++)
+                        if(detector_->isGreen(i, j))
+                            bgr.at<Vec3b>(j, i) = Vec3b(0, 255, 0);
                 if(!ball_dets_.empty())
                 {
-                    rectangle(bgr, Point((ball_dets_[0].bbox.x - ball_dets_[0].bbox.w / 2.0)*w_, (ball_dets_[0].bbox.y - ball_dets_[0].bbox.h / 2.0)*h_),
-                              Point((ball_dets_[0].bbox.x + ball_dets_[0].bbox.w / 2.0)*w_, (ball_dets_[0].bbox.y + ball_dets_[0].bbox.h / 2.0)*h_),
-                              Scalar(255, 0, 0, 0), 2);
-                    putText(bgr, to_string(ball_dets_[0].prob[0]).substr(0,4), Point(ball_dets_[0].bbox.x * w_-40, ball_dets_[0].bbox.y * h_-40),
-                                    FONT_HERSHEY_SIMPLEX, 1, Scalar(255, 0, 0), 2, 8);
+                    rectangle(bgr, Point(ball_dets_[0].x, ball_dets_[0].y), Point(ball_dets_[0].x + ball_dets_[0].w,
+                        ball_dets_[0].y + ball_dets_[0].h), Scalar(255, 0, 0), 2);
+                    putText(bgr, to_string(ball_dets_[0].prob).substr(0,4), Point(ball_dets_[0].x, ball_dets_[0].y),
+                        FONT_HERSHEY_SIMPLEX, 1, Scalar(255, 0, 0), 2, 8);
                 }
                 int i=0;
                 for(auto &dd: post_dets_)
                 {
                     if(i>=2) break;
-                    rectangle(bgr, Point((post_dets_[i].bbox.x - post_dets_[i].bbox.w / 2.0)*w_, (post_dets_[i].bbox.y - post_dets_[i].bbox.h / 2.0)*h_),
-                              Point((post_dets_[i].bbox.x + post_dets_[i].bbox.w / 2.0)*w_, (post_dets_[i].bbox.y + post_dets_[i].bbox.h / 2.0)*h_),
-                              Scalar(0, 0, 255, 0), 2);
-                    putText(bgr, to_string(post_dets_[i].prob[0]).substr(0,4), Point(post_dets_[i].bbox.x * w_-40, post_dets_[i].bbox.y * h_-40),
-                                    FONT_HERSHEY_SIMPLEX, 1, Scalar(0, 0, 255), 2, 8);
+                    rectangle(bgr, Point(post_dets_[i].x, post_dets_[i].y), Point(post_dets_[i].x + post_dets_[i].w,
+                        post_dets_[i].y + post_dets_[i].h), Scalar(0, 0, 255), 2);
+                    putText(bgr, to_string(post_dets_[i].prob).substr(0,4), Point(post_dets_[i].x, post_dets_[i].y),
+                        FONT_HERSHEY_SIMPLEX, 1, Scalar(0, 0, 255), 2, 8);
                     i++;
                 }
-
-                /*
-                for(int j=0;j<h_;j++)
-                {
-                    for(int i=0;i<w_;i++)
-                    {
-                        if(detector_->isGreen(i, j))
-                        {
-                            circle(bgr, Point(i, j), 1, Scalar(255,0,0), -1);
-                        }
-                    }
-                }
-                
-                for(int i=0; i<res.size();i++)
-                {
-                    Scalar clr = res[i].id == ball_.id ? Scalar(255,0,0):Scalar(0,0,255);
-                    circle(bgr, Point(res[i].x, res[i].y), 10, clr, -1);
-                }*/
                 send_image(bgr);
             }
         }
         is_busy_ = false;
-
     }
 }
 
@@ -315,12 +280,10 @@ void Vision::updata(const pub_ptr &pub, const int &type)
             std::vector<double> head_degs = ROBOT->get_head_degs();
             transform_matrix body = ROBOT->leg_forward_kinematics(foot_degs, spf);
             body.set_R(quat.matrix());
-            robot_math::transform_matrix camera_matrix;
-            camera_matrix = body*transform_matrix(0,0,ROBOT->trunk_length())*transform_matrix(head_degs[0],'z')
+            camera_matrix_ = body*transform_matrix(0,0,ROBOT->trunk_length())*transform_matrix(head_degs[0],'z')
                             *transform_matrix(0, 0, ROBOT->neck_length())*transform_matrix(head_degs[1], 'y')
-                            *transform_matrix(0,0,ROBOT->head_length());
-            head_yaw_  = head_degs[0];
-            camera_vec_ = Vector3d(camera_matrix.p().z(), deg2rad(imu_data_.roll), deg2rad(imu_data_.pitch+head_degs[1]));
+                            *transform_matrix(-0.02,0,ROBOT->head_length());
+            head_yaw_  = -head_degs[0];
         }
         frame_mtx_.unlock();
         return;
@@ -390,6 +353,5 @@ void Vision::stop()
         cudaFree(dev_rgbfp_);
         cudaFree(dev_sized_);
     }
-
     is_alive_ = false;
 }

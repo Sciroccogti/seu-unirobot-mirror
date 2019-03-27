@@ -7,6 +7,7 @@
 #include "region_classifier.h"
 #include "field_d.h"
 
+
 namespace vision{
 class Detector{
 public:

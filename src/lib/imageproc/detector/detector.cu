@@ -3,12 +3,11 @@
 using namespace std;
 using namespace cv;
 
-namespace vision
-{
-Detector::Detector(int width, int height):_width(width), _height(height)
-{
-    lutCb = (int8_t*)malloc(sizeof(*lutCb)*width);
-    lutCr = (int8_t*)malloc(sizeof(*lutCr)*width);
+namespace vision{
+
+Detector::Detector(int width, int height):_width(width), _height(height){
+    lutCb=(int8_t*)malloc(sizeof(*lutCb)*width);
+    lutCr=(int8_t*)malloc(sizeof(*lutCr)*width);
     buf = (uint8_t*) malloc(sizeof(uint8_t) * _width * _height * 2);
     for(int i=0;i<width;i++){
         if((i&1)==0){
@@ -24,18 +23,16 @@ Detector::Detector(int width, int height):_width(width), _height(height)
     fd = new FieldDetector(width, height, lutCb, lutCr);
 }
 
-void Detector::process(uint8_t *_img_d)
-{
+void Detector::process(uint8_t *_img_d){
     img_d = _img_d;
     fcd->proceed(img_d);
-    cudaMemcpy( buf, img_d, sizeof(uint8_t) * _width * _height * 2, cudaMemcpyDeviceToHost ) ;
+    cudaMemcpy( buf, img_d, sizeof(uint8_t) * _width * _height * 2, cudaMemcpyDeviceToHost );
     rc->proceed(buf, fcd);
     fd->proceed(buf, fcd, rc->getLineSpacing(), rc->getScanVertical());
     
 }
 
-bool Detector::isGreen(int x, int y)
-{
+bool Detector::isGreen(int x, int y){
     int cy=fcd->getY(buf,x,y);
     int cb=fcd->getCb(buf,x,y);
     int cr=fcd->getCr(buf,x,y);
@@ -46,4 +43,5 @@ bool Detector::isGreen(int x, int y)
         return false;
     }
 }
+
 }

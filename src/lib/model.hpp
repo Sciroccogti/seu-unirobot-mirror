@@ -44,12 +44,17 @@ struct camera_param
     float h_v, v_v;
 };
 
-struct object_prob
+struct object_det
 {
     int id;
     float prob;
-    int x, y;
-    object_prob(int i=0, float p=1, int xx=0, int yy=0): id(i), prob(p), x(xx), y(yy){}
+    int x, y, w, h;
+    object_det(int i=0, float p=1, int x_=0, int y_=0, int w_=0, int h_=0) 
+        : id(i), prob(p), x(x_), y(y_), w(w_), h(h_){}
+    bool operator< (const object_det &obj)
+    {
+        return prob<obj.prob;
+    }
 };
 
 enum { player_info_size = sizeof(player_info)};

@@ -4,7 +4,7 @@
 #include <memory>
 #include <atomic>
 #include "sensor.hpp"
-#include "gpio/gpio.hpp"
+#include "drivers/gpio/gpio.hpp"
 
 class button: public sensor
 {

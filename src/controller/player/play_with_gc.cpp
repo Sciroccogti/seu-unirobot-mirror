@@ -52,27 +52,21 @@ std::list<task_ptr> player::play_with_gc()
                     tasks.push_back(make_shared<look_task>(true));
                 else
                 {
-                    if(WM->my_info().available)
+                    Vector2d temp = WM->ball_in_my_space();
+                    double d=temp.norm();
+                    if(d<1.0)
                     {
-                        Vector2d temp = WM->ball_in_my_space();
-                        double d=temp.norm();
-                        if(d<1.0)
-                        {
-                            state_=STATE_KICK;
-                            Vector2d v=WM->ball_in_camera();
-                            std::vector<double> head_degs = ROBOT->get_head_degs();
-                            tasks.push_back(make_shared<look_task>(head_degs[0]-v[0], head_degs[1]+v[1], false));
-                        }
-                        else
-                        {
-                            state_=STATE_SEARCH;
-                            tasks.push_back(make_shared<look_task>(true));
-                        } 
+                        state_=STATE_KICK;
+                        Vector2d v=WM->ball_in_camera();
+                        std::vector<double> head_degs = ROBOT->get_head_degs();
+                        tasks.push_back(make_shared<look_task>(head_degs[0]-v[0], head_degs[1]+v[1], false));
+                        
                     }
                     else
                     {
-                        
-                    }
+                        state_=STATE_SEARCH;
+                        tasks.push_back(make_shared<look_task>(true));
+                    } 
                 }
             }
             break;
@@ -81,6 +75,8 @@ std::list<task_ptr> player::play_with_gc()
             tasks.push_back(make_shared<look_task>(head_init[0], head_init[1], false));
             break;
         default:
+            tasks.push_back(make_shared<action_task>("ready"));
+            tasks.push_back(make_shared<look_task>(head_init[0], head_init[1], false));
             break;
     }
     return tasks;

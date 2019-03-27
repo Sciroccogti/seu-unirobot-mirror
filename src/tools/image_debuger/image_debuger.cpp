@@ -75,8 +75,6 @@ image_debuger::image_debuger()
     fuse_conv_batchnorm(net_);
     calculate_binary_weights(net_);
     srand(2222222);
-    ball_ = object_prob(0, CONF->get_config_value<float>("detection_prob.ball"));
-    ball_ = object_prob(1, CONF->get_config_value<float>("detection_prob.post"));
 }
 
 void image_debuger::show_src()
@@ -113,12 +111,6 @@ void image_debuger::proc_image(const unsigned int &index)
         cv::resize(rgb_src_, rgb, Size(net_.w, net_.h));
         Mat rgb_c = rgb_src_.clone();
         float *rgbpf = rgb2rgbpf(rgb);
-        vector<object_prob> res = ball_and_post_detection(net_, rgbpf, false, ball_, post_, width_, height_, 0.1, 0.1);
-        for(int i=0; i<res.size();i++)
-        {
-            Scalar clr = res[i].id == ball_.id ? Scalar(255,0,0):Scalar(0,0,255);
-            circle(rgb_c, Point(res[i].x, res[i].y), 10, clr, -1);
-        }
         delete []rgbpf;
         show_dst(rgb_c);
     }

@@ -14,6 +14,11 @@ namespace robot_math
             *this = Eigen::Matrix4d::Identity(4, 4);
         }
 
+        transform_matrix(const transform_matrix &m)
+        {
+            this->block<4, 4>(0, 0) = m;
+        }
+
         transform_matrix(const Eigen::Matrix4d &m)
         {
             this->block<4, 4>(0, 0) = m;
@@ -101,6 +106,24 @@ namespace robot_math
         Eigen::Vector3d a() const
         {
             return this->block<3, 1>(0, 2);
+        }
+
+        double x_rotate() const
+        {
+            Eigen::Matrix3d rot=R();
+            return atan2(rot(2,1), rot(2,2));
+        }
+
+        double y_rotate() const
+        {
+            Eigen::Matrix3d rot=R();
+            return atan2(-rot(2,0), std::sqrt(std::pow(rot(2,1), 2)+std::pow(rot(2,2), 2)));
+        }
+
+        double z_rotate() const
+        {
+            Eigen::Matrix3d rot=R();
+            return atan2(rot(1,0), rot(0,0));
         }
 
         void set_p(const Eigen::Vector3d &p)

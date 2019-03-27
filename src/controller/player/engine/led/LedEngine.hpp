@@ -4,7 +4,7 @@
 #include <memory>
 #include <atomic>
 #include "singleton.hpp"
-#include "gpio/gpio.hpp"
+#include "drivers/gpio/gpio.hpp"
 
 enum led_state
 {

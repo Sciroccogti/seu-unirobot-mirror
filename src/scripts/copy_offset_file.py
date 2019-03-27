@@ -10,6 +10,7 @@ import sys
 if __name__ == '__main__':
     if not common.check_argv(sys.argv, 2):
         common.print_error('no enough arguments')
+        common.print_info('%s id'%__file__)
         exit(2)
 
     robot_id = sys.argv[1]
@@ -21,7 +22,7 @@ if __name__ == '__main__':
         common.print_error('get offset file error')
         exit(4)
 
-    new_offset_file = config.project_dir + '/bin/' + offset_file
+    new_offset_file = config.project_dir + '/bin/x86_64/' + offset_file
     origin_offset_file = config.project_dir + '/src/' + offset_file
     os.rename(origin_offset_file, origin_offset_file+'.bak')
     shutil.copyfile(new_offset_file, origin_offset_file)

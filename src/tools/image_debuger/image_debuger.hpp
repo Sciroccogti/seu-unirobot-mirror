@@ -41,5 +41,4 @@ private:
     int width_;
     int height_;
     network net_;
-    object_prob ball_, post_;
 };

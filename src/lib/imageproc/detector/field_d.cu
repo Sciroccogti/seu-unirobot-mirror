@@ -285,6 +285,7 @@ void FieldDetector::proceed(
     cudaMemcpy( distance_data, distance_d, sizeof(int) * width, cudaMemcpyDeviceToHost ) ;
 
     float *max_val, *sec_val;
+    corner.clear();
     get_max_sec_element(distance_data, distance_data+width, max_val, sec_val);
     //float = sec_element(distance_data, distance_data+width);
     if(*max_val > MIN_DIS){
@@ -292,11 +293,11 @@ void FieldDetector::proceed(
         corner.push_back(point_2d(max_i, fieldBorderFull[max_i]));
         if(*sec_val > MIN_DIS){
             int sec_i = distance(distance_data, sec_val);
-            printf("sec_i %d sec_val %f\n", sec_i, *sec_val);
+            //printf("sec_i %d sec_val %f\n", sec_i, *sec_val);
             if(abs(sec_i - max_i) > width/6)
                 corner.push_back(point_2d(sec_i, fieldBorderFull[sec_i]));
         }
-        printf("max_i %d max_val %f\n", max_i, *max_val);
+        //printf("max_i %d max_val %f\n", max_i, *max_val);
     }
     cudaFree(border_d);
     cudaFree(distance_d);

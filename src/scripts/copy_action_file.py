@@ -11,6 +11,7 @@ import common
 if __name__ == '__main__':
     if not common.check_argv(sys.argv, 2):
         common.print_error('no enough arguments')
+        common.print_info('%s id'%__file__)
         exit(2)
 
     robot_id = sys.argv[1]
@@ -22,7 +23,8 @@ if __name__ == '__main__':
         common.print_error('get action file error')
         exit(4)
 
-    new_action_file = config.project_dir + '/bin/' + action_file
+    new_action_file = config.project_dir + '/bin/x86_64/' + action_file
     origin_action_file = config.project_dir + '/src/' + action_file
     os.rename(origin_action_file, origin_action_file+'.bak')
     shutil.copyfile(new_action_file, origin_action_file)
+    common.print_info("copy file from %s to %s complete!")

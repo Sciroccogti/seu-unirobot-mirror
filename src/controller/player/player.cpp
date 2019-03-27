@@ -83,7 +83,8 @@ list<task_ptr> player::think()
 
 bool player::init()
 {
-    SERVER->start();
+    if(OPTS->use_debug())
+        SERVER->start();
 
     if (!regist())
     {
@@ -140,7 +141,8 @@ void player::stop()
     sleep(1);
     unregist();
     sleep(1);
-    SERVER->stop();
+    if(OPTS->use_debug())
+        SERVER->stop();
 }
 
 bool player::regist()

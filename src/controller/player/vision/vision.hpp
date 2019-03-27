@@ -37,7 +37,7 @@ public:
     void set_camera_info(const camera_info &para);
 
 private:
-    Eigen::Vector2d odometry(const Eigen::Vector2i &pos, const Eigen::Vector3d &vec);
+    Eigen::Vector2d odometry(const Eigen::Vector2i &pos, const robot_math::transform_matrix &camera_matrix);
 private:
     void run();
     void send_image(const cv::Mat &src);
@@ -50,15 +50,22 @@ private:
     int w_, h_;
     int camera_w_,  camera_h_, camera_size_;
     std::map<std::string, camera_info> camera_infos_;
-    std::map<int, float> dets_prob_;
-    std::vector<detection> ball_dets_;
-    std::vector<detection> post_dets_;
-
+    camera_param params_;
+    robot_math::transform_matrix camera_matrix_;
+    
+    std::vector<object_det> ball_dets_, post_dets_; 
+    int ball_id_, post_id_;
+    float ball_prob_, post_prob_;
+    int cant_see_ball_count_;
 
     bool is_busy_;
     image_send_type img_sd_type_;
 
     network net_;
+    std::vector<std::string> names_;
+
+    std::shared_ptr<vision::Detector> detector_;
+
     unsigned char *dev_src_;
     unsigned char *dev_bgr_;
     unsigned char *dev_undistored_;
@@ -73,15 +80,7 @@ private:
     int yuyv_size_;
     int sized_size_;
     int rgbf_size_;
-    std::vector<std::string> names_;
-
-    object_prob ball_, post_;
-    int cant_see_ball_count_;
-    camera_param params_;
-    Eigen::Vector3d camera_vec_;
-
-    std::shared_ptr<vision::Detector> detector_;
-
+    
     mutable std::mutex frame_mtx_, imu_mtx_;
 };
 

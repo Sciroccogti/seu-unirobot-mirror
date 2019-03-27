@@ -9,12 +9,10 @@
 #include "base_detector.h"
 #include "line.h"
 #include "region_classifier.h"
-#include <thrust/host_vector.h>
-#include <thrust/device_vector.h>
 
 namespace vision {
 
-#define MIN_DIS 5.0
+#define MIN_DIS 20.0
 
 struct Region {
     int xLeft, xRight, yTop, yBottom;

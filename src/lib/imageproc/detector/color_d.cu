@@ -35,10 +35,16 @@ __global__ void makeHistCr(const uint8_t * const img, int w, int h, int width, i
 	if( idx >= w*h){
 		return;
 	}
+	if(idx < 256){
+		histCr[idx] = 0;
+		//printf("%d ", histCr[idx]);
+	}
+	//printf("%d ", histCr[idx]);
 	int x = seedSearchBorder + (idx - idx/w*w)  * pixelSpacing;
     int y = seedSearchBorder + (idx/w ) * pixelSpacing;
 	int cr = img[((x + y * width) << 1) | 3];
 	// atomic operation
+	
 	atomicAdd(&histCr[cr], 1);
 }
 
@@ -46,6 +52,10 @@ __global__ void makeHistCb(const uint8_t * const img, int w, int h, int width, i
     int idx = blockIdx.x*blockDim.x*blockDim.y + (threadIdx.x + threadIdx.y * blockDim.x);
 	if( idx >= w*h){
 		return;
+	}
+	if(idx < 256){
+		histCb[idx] = 0;
+		//printf("%d ", histCb[idx]);
 	}
 	int x = (idx - idx/w*w)  * pixelSpacing;
     int y = idx/w * pixelSpacing;
@@ -60,6 +70,10 @@ __global__ void makeHistY(const uint8_t * const img, int w, int h, int width, in
     int idx = blockIdx.x*blockDim.x*blockDim.y + (threadIdx.x + threadIdx.y * blockDim.x);
 	if( idx >= w*h){
 		return;
+	}
+	if(idx < 256){
+		histY[idx] = 0;
+		//printf("%d ", histY[idx]);
 	}
 	int x = (idx - idx/w*w)  * pixelSpacing;
     int y = idx/w * pixelSpacing;
@@ -146,8 +160,6 @@ void FieldColorDetector::setYCbCrCube(float* features){
 		minCb+=30*thetas[idx++]*feature;
 		minCr+=30*thetas[idx++]*feature;
 	}
-	float gY=3;
-	float gC=2;
 	if(minCy<1)minCy=1;
 	if(minCy>80)minCy=80;
 	if(minCb<1)minCb=1;
@@ -276,9 +288,11 @@ void FieldColorDetector::searchInitialSeed(const uint8_t * const img_d){
 	if( error_check != cudaSuccess ){
 	    printf("%s\n" , cudaGetErrorString( error_check ) );
 	}
+
+
 	cudaMemcpy( histCr, histCr_d, 256*sizeof(int),cudaMemcpyDeviceToHost ) ;
 	cudaFree(histCr_d);
-	
+
     //finding initial cr-value (later used as a seed color)
 	seedCr=clamp(colorBorder,getStableMin(histCr,minFieldArea),255-colorBorder);
 
