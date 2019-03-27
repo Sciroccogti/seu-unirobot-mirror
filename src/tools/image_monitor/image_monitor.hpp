@@ -6,6 +6,40 @@
 #include "tcp_client/tcp_client.hpp"
 #include "ui/ImageLabel.hpp"
 #include <opencv2/opencv.hpp>
+#include <eigen3/Eigen/Dense>
+
+class DisDialog: public QDialog
+{
+public:
+    DisDialog()
+    {
+        xEdit = new QLineEdit("x real");
+        yEdit = new QLineEdit("y real");
+        okBtn = new QPushButton("OK");
+        QHBoxLayout *layout = new QHBoxLayout();
+        layout->addWidget(xEdit);
+        layout->addWidget(yEdit);
+        layout->addWidget(okBtn);
+        setLayout(layout);
+        connect(okBtn, &QPushButton::clicked, this, &DisDialog::procBtnOK);
+    }
+
+    Eigen::Vector2f get_real_dis()
+    {
+        bool ok1, ok2;
+        float x = xEdit->text().toFloat(&ok1);
+        float y = yEdit->text().toFloat(&ok2);
+        return (ok1&&ok2)?Eigen::Vector2f(x,y):Eigen::Vector2f(-1, -1);
+    }
+
+    void procBtnOK()
+    {
+        close();
+    }
+private:
+    QLineEdit *xEdit, *yEdit;
+    QPushButton *okBtn;
+};
 
 class image_monitor: public QMainWindow
 {
@@ -21,6 +55,9 @@ public slots:
     void procBtnCS();
     void procShot(QRect rect);
     void procImageBox(int idx);
+    void procDisRecved(float x, float y);
+signals:
+    void disRecved(float, float);
 
 protected:
     void closeEvent(QCloseEvent *event);
@@ -30,8 +67,7 @@ private:
     ImageLabel *imageLab;
     QLabel *yawLab, *pitchLab, *netLab;
     QSlider *pitchSlider, *yawSlider;
-    QComboBox *colorBox;
-    QCheckBox *colorCheck;
+    QComboBox *sendBox;
     QComboBox *imageBox;
     QTimer *timer;
     tcp_client client_;

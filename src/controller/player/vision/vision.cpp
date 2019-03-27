@@ -65,7 +65,34 @@ Vector2d Vision::odometry(const Vector2i &pos, const robot_math::transform_matri
     double O_C_P = M_PI_2-theta+gama;
     Yw = OC*tan(O_C_P);
     Xw = ((float)calPos.x()-params_.cx)*OC*cos(gama)/(cos(O_C_P)*params_.fx);
+    
+    double ax=1.287, bx=-0.1167, cx=11.71;
+    Xw=ax*(sin(Xw-M_PI))+bx*pow(Xw-10, 2)+cx;
+    double ay=1.04, by=-0.09479, cy=9.578;
+    Yw=ay*(sin(Yw-M_PI))+by*pow(Yw-10, 2)+cy;
     return Vector2d(Xw, Yw);
+}
+
+void Vision::get_point_dis(int x, int y)
+{
+    transform_matrix camera_matrix;
+    frame_mtx_.lock();
+    camera_matrix = camera_matrix_;
+    frame_mtx_.unlock();
+    Vector2d dis(0.0, 0.0);
+    dis=odometry(Vector2i(x,y), camera_matrix);
+    float xx=static_cast<float>(dis[0]), yy=static_cast<float>(dis[1]);
+    tcp_command cmd;
+    cmd.type = REMOTE_DATA;
+    cmd.size = 2*enum_size+2*float_size;
+    remote_data_type t1=IMAGE_SEND_TYPE;
+    image_send_type t2=IMAGE_SEND_DIS;
+    cmd.data.clear();
+    cmd.data.append((char *) &t1, enum_size);
+    cmd.data.append((char *) &t2, enum_size);
+    cmd.data.append((char *) &xx, float_size);
+    cmd.data.append((char *) &yy, float_size);
+    SERVER->write(cmd);
 }
 
 void Vision::run()
@@ -148,7 +175,7 @@ void Vision::run()
             if(!ball_dets_.empty())
             {
                 Vector2d odo_res = odometry(Vector2i(ball_dets_[0].x+ball_dets_[0].w/2, ball_dets_[0].y+ball_dets_[0].h), camera_matrix);
-                LOG << odo_res[0] << '\t' << odo_res[1] << "\tball: "<<odo_res.norm()<<ENDL;
+                LOG <<odo_res.norm()<<ENDL;
                 Vector2d ball_pos = rotation_mat_2d(head_yaw)*odo_res;
                 cant_see_ball_count_=0;
                 Vector2d temp_ball = Vector2d(p.x, p.y)+rotation_mat_2d(-p.dir)*ball_pos;
@@ -197,10 +224,12 @@ void Vision::run()
             }
             else if (img_sd_type_ == IMAGE_SEND_RESULT)
             {   
+                /*
                 for(int j=0;j<480;j++)
                     for(int i=0;i<640;i++)
                         if(detector_->isGreen(i, j))
                             bgr.at<Vec3b>(j, i) = Vec3b(0, 255, 0);
+                */
                 if(!ball_dets_.empty())
                 {
                     rectangle(bgr, Point(ball_dets_[0].x, ball_dets_[0].y), Point(ball_dets_[0].x + ball_dets_[0].w,

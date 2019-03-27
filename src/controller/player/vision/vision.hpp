@@ -35,6 +35,7 @@ public:
     }
 
     void set_camera_info(const camera_info &para);
+    void get_point_dis(int x, int y);
 
 private:
     Eigen::Vector2d odometry(const Eigen::Vector2i &pos, const robot_math::transform_matrix &camera_matrix);

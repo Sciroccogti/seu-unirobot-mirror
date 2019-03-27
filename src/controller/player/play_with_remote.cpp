@@ -83,20 +83,29 @@ void player::play_with_remote()
         shared_ptr<camera> cm = dynamic_pointer_cast<camera>(get_sensor("camera"));
         cm->set_camera_info(info);
     }
-    else if (rdata.type == COLOR_SAMPLE)
-    {
-        int c, x, y, w, h;
-        memcpy(&c, rdata.data.c_str(), int_size);
-        memcpy(&(x), rdata.data.c_str() + int_size, int_size);
-        memcpy(&(y), rdata.data.c_str() + 2 * int_size, int_size);
-        memcpy(&(w), rdata.data.c_str() + 3 * int_size, int_size);
-        memcpy(&(h), rdata.data.c_str() + 4 * int_size, int_size);
-    }
     else if (rdata.type == IMAGE_SEND_TYPE)
     {
-        int t;
-        memcpy(&t, rdata.data.c_str(), int_size);
-        VISION->set_img_send_type(static_cast<image_send_type>(t));
+        image_send_type t;
+        memcpy(&t, rdata.data.c_str(), enum_size);
+        switch (t)
+        {
+            case IMAGE_SEND_ORIGIN:
+            case IMAGE_SEND_RESULT:
+                VISION->set_img_send_type(static_cast<image_send_type>(t));
+                break;
+            case IMAGE_SEND_POINT:
+                {
+                    int x,y;
+                    memcpy(&x, rdata.data.c_str()+enum_size, int_size);
+                    memcpy(&y, rdata.data.c_str()+enum_size+int_size, int_size);
+                    VISION->get_point_dis(x,y);
+                    break;
+                }
+            case IMAGE_SEND_RECT:
+                break;
+            default:
+                break;
+        }
     }
 
     SERVER->reset_rmt_data();

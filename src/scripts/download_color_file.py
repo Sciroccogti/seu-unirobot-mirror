@@ -20,5 +20,5 @@ if __name__ == '__main__':
         exit(4)
 
     remote_path = config.remote_dir+"/data/"+color_file
-    cmd = "python download.py %s %s"%(robot_id, remote_path)
+    cmd = "python3 download.py %s %s"%(robot_id, remote_path)
     common.run_cmd(cmd)

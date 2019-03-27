@@ -3,10 +3,20 @@
 #include "ui/walk_remote.hpp"
 #include "ui/camera_setter.hpp"
 #include <opencv2/opencv.hpp>
+#include <fstream>
 
 using namespace cv;
 using namespace std;
 using namespace robot;
+using namespace Eigen;
+
+map<string, image_send_type> image_send_types =
+    {
+        {"origin", IMAGE_SEND_ORIGIN},
+        {"result", IMAGE_SEND_RESULT},
+        {"point", IMAGE_SEND_POINT},
+        {"rect", IMAGE_SEND_POINT},
+    };
 
 image_monitor::image_monitor()
     : client_(CONF->get_config_value<string>(CONF->player() + ".address"), CONF->get_config_value<int>("net.tcp.port"),
@@ -28,35 +38,25 @@ image_monitor::image_monitor()
     btnWR = new QPushButton("Walk Remote");
     btnCS = new QPushButton("Camera Setting");
 
-    colorBox = new QComboBox();
-    colorCheck = new QCheckBox("Color");
-
-    QStringList clrs;
-    clrs << "none";
-    colorBox->addItems(clrs);
-    QHBoxLayout *colorLayout = new QHBoxLayout();
-    colorLayout->addWidget(colorCheck);
-    colorLayout->addWidget(colorBox);
-
     imageBox = new QComboBox();
-    map<image_send_type, string> image_send_types =
-    {
-        {IMAGE_SEND_ORIGIN, "origin"},
-        {IMAGE_SEND_COLOR, "color"},
-        {IMAGE_SEND_RESULT, "result"}
-    };
-    clrs.clear();
+    QStringList func;
+    func<<"origin"<<"result";
+    imageBox->addItems(func);
+    imageBox->setCurrentIndex(1);
 
-    for (auto ist : image_send_types)
-    {
-        clrs << QString::fromStdString(ist.second);
-    }
+    sendBox = new QComboBox();
+    func.clear();
+    func<<"none"<<"point"<<"rect";
+    sendBox->addItems(func);
+    sendBox->setCurrentIndex(0);
 
-    imageBox->addItems(clrs);
-    imageBox->setCurrentIndex(IMAGE_SEND_RESULT);
     QHBoxLayout *imageLayout = new QHBoxLayout();
     imageLayout->addWidget(new QLabel("image"));
     imageLayout->addWidget(imageBox);
+
+    QHBoxLayout *sendLayout = new QHBoxLayout();
+    sendLayout->addWidget(new QLabel("send"));
+    sendLayout->addWidget(sendBox);
 
     QVBoxLayout *leftLayout = new QVBoxLayout();
     leftLayout->addWidget(imageLab);
@@ -66,7 +66,7 @@ image_monitor::image_monitor()
     ctrlLayout->addWidget(btnWR);
     ctrlLayout->addWidget(btnCS);
     ctrlLayout->addLayout(imageLayout);
-    ctrlLayout->addLayout(colorLayout);
+    ctrlLayout->addLayout(sendLayout);
 
     QHBoxLayout *mainLayout = new QHBoxLayout();
     mainLayout->addLayout(leftLayout);
@@ -100,6 +100,7 @@ image_monitor::image_monitor()
     connect(btnCS, &QPushButton::clicked, this, &image_monitor::procBtnCS);
     connect(imageLab, &ImageLabel::shot, this, &image_monitor::procShot);
     connect(imageBox, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this, &image_monitor::procImageBox);
+    connect(this, &image_monitor::disRecved, this, &image_monitor::procDisRecved);
     client_.start();
     yawSlider->setEnabled(false);
     pitchSlider->setEnabled(false);
@@ -132,6 +133,34 @@ void image_monitor::data_handler(const tcp_command cmd)
             cout << e.what() << endl;
         }
     }
+    else if(cmd.type == REMOTE_DATA)
+    {
+        remote_data_type t1;
+        memcpy(&t1, cmd.data.c_str(), enum_size);
+        if(t1==IMAGE_SEND_TYPE)
+        {
+            image_send_type t2;
+            memcpy(&t2, cmd.data.c_str()+enum_size, enum_size);
+            if(t2==IMAGE_SEND_DIS)
+            {
+                float x,y;
+                memcpy(&x, cmd.data.c_str()+2*enum_size, float_size);
+                memcpy(&y, cmd.data.c_str()+2*enum_size+float_size, float_size);
+                emit disRecved(x, y);
+            }
+        }
+    }
+}
+
+void image_monitor::procDisRecved(float x, float y)
+{
+    DisDialog dlg;
+    dlg.exec();
+    Vector2f dis_real=dlg.get_real_dis();
+    Vector2f dis_odom(x,y);
+    ofstream data("data.txt", ios::out|ios::app);
+    data<<dis_real.transpose()<<'\t'<<dis_odom.transpose()<<endl;
+    data.close();
 }
 
 void image_monitor::procTimer()
@@ -142,15 +171,15 @@ void image_monitor::procTimer()
         {
             client_.regist(IMG_DATA, DIR_APPLY);
             usleep(10000);
-            client_.regist(REMOTE_DATA, DIR_SUPPLY);
+            client_.regist(REMOTE_DATA, DIR_BOTH);
         }
 
         first_connect = false;
         netLab->setStyleSheet("background-color:green");
         yawSlider->setEnabled(true);
         pitchSlider->setEnabled(true);
-        colorCheck->setEnabled(true);
         imageBox->setEnabled(true);
+        sendBox->setEnabled(true);
     }
     else
     {
@@ -158,9 +187,8 @@ void image_monitor::procTimer()
         netLab->setStyleSheet("background-color:red");
         yawSlider->setEnabled(false);
         pitchSlider->setEnabled(false);
-        colorCheck->setChecked(false);
-        colorCheck->setEnabled(false);
         imageBox->setEnabled(false);
+        sendBox->setEnabled(false);
     }
 }
 
@@ -185,21 +213,37 @@ void image_monitor::procShot(QRect rect)
         y = rect.top();
         w = rect.width();
         h = rect.height();
-
-        if (colorCheck->isChecked())
+        QString str=sendBox->currentText();
+        if (str=="rect")
         {
-            int c = colorBox->currentIndex();
-            remote_data_type t = COLOR_SAMPLE;
+            remote_data_type t = IMAGE_SEND_TYPE;
+            image_send_type st = IMAGE_SEND_RECT;
             tcp_command cmd;
             cmd.type = REMOTE_DATA;
-            cmd.size = 5 * int_size + enum_size;
+            cmd.size = 4 * int_size + 2*enum_size;
             cmd.data.clear();
             cmd.data.append((char *)(&t), enum_size);
-            cmd.data.append((char *)(&c), int_size);
+            cmd.data.append((char *)(&st), enum_size);
             cmd.data.append((char *)(&x), int_size);
             cmd.data.append((char *)(&y), int_size);
             cmd.data.append((char *)(&w), int_size);
             cmd.data.append((char *)(&h), int_size);
+            client_.write(cmd);
+        }
+        else if (str=="point")
+        {
+            x=x+w/2;
+            y=y+h/2;
+            remote_data_type t = IMAGE_SEND_TYPE;
+            image_send_type st = IMAGE_SEND_POINT;
+            tcp_command cmd;
+            cmd.type = REMOTE_DATA;
+            cmd.size = 2 * int_size + 2*enum_size;
+            cmd.data.clear();
+            cmd.data.append((char *)(&t), enum_size);
+            cmd.data.append((char *)(&st), enum_size);
+            cmd.data.append((char *)(&x), int_size);
+            cmd.data.append((char *)(&y), int_size);
             client_.write(cmd);
         }
     }
@@ -209,11 +253,12 @@ void image_monitor::procImageBox(int idx)
 {
     remote_data_type t = IMAGE_SEND_TYPE;
     tcp_command cmd;
+    image_send_type st = image_send_types[imageBox->itemText(idx).toStdString()];
     cmd.type = REMOTE_DATA;
-    cmd.size = int_size + enum_size;
+    cmd.size = 2*enum_size;
     cmd.data.clear();
     cmd.data.append((char *)(&t), enum_size);
-    cmd.data.append((char *)(&idx), int_size);
+    cmd.data.append((char *)(&st), enum_size);
     client_.write(cmd);
 }
 

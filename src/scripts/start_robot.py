@@ -13,14 +13,20 @@ import ssh_connection
 if __name__ == '__main__': 
     if not common.check_argv(sys.argv):
         common.print_error('no enough arguments')
+        common.print_info('%s id params')
         exit(2)
 
     robot_id = sys.argv[1]
     if not common.check_id(robot_id):
         common.print_error('please check the robot id')
         exit(3)
-    
-    if not common.build_project(True):
+    j=2
+    for i in range(2,len(sys.argv)):
+        if '-j' in sys.argv[i]:
+            j=int(sys.argv[i][2:])
+            break
+
+    if not common.build_project(True, j):
         common.print_error('build error, please check code')
         exit(4)
 

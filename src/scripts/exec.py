@@ -10,7 +10,7 @@ import config
 if __name__ == '__main__':
     common.print_info('''how to use
     function: run command in remote machine
-    example: python exec.py id cmd1 cmd2 cmd3 ...
+    example: ./exec.py id cmd1 cmd2 cmd3 ...
     ''')
 
     if not common.check_argv(sys.argv, 3):

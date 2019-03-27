@@ -63,6 +63,9 @@ void ImageLabel::paintEvent(QPaintEvent *event)
         {
             painter.setPen(QPen(Qt::red, 4, Qt::SolidLine, Qt::FlatCap));
             painter.drawRect(shotRect);
+            painter.setPen(QPen(Qt::red, 2, Qt::SolidLine, Qt::FlatCap));
+            painter.drawLine(shotRect.topLeft(), shotRect.bottomRight());
+            painter.drawLine(shotRect.topRight(), shotRect.bottomLeft());
         }
     }
 }

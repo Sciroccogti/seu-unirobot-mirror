@@ -17,9 +17,9 @@ options::options(): opts_desc_("  Options description")
      "If you want to use camera.")
     ("robot,r", value<bool>()->default_value(true),
      "If you want to use robot")
-    ("gamectrl,g", value<bool>()->default_value(false),
+    ("gamectrl,g", value<bool>()->default_value(true),
     "If you want to use game controller")
-    ("say,s", value<bool>()->default_value(false),
+    ("say,s", value<bool>()->default_value(true),
     "If you want to use communication")
     ("mote,m", value<bool>()->default_value(false),
      "If you want to use remote.")
