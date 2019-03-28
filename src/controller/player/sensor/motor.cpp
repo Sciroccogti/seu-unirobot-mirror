@@ -7,6 +7,8 @@
 #include "math/math.hpp"
 #include "server/server.hpp"
 #include <fstream>
+#include "logger.hpp"
+
 #define ZERO_POS 2048
 #define MAX_POS  4096
 #define MIN_POS  0
@@ -146,7 +148,7 @@ void motor::real_act()
         if (dxl_comm_result == COMM_SUCCESS && not_alert_error == 0)
         {
             read_voltage();
-            LOG << "Voltage: " << voltage_ / 10.0f << "V !" << ENDL;
+            LOG(LOG_INFO) << "Voltage: " << voltage_ / 10.0f << "V !" << endll;
 
             //read_pos();
             set_torq(1);
@@ -210,7 +212,7 @@ void motor::read_pos()
     
     if (dxl_comm_result != COMM_SUCCESS)
     {
-        LOG << packetHandler_->getTxRxResult(dxl_comm_result) << ENDL;
+        LOG(LOG_WARN) << packetHandler_->getTxRxResult(dxl_comm_result) << endll;
     }
     else
     {
@@ -221,7 +223,7 @@ void motor::read_pos()
             if (pposRead_->isAvailable(id, ADDR_PPOS, SIZE_PPOS))
             {
                 curr_degs_[static_cast<int>(id)] = pos2float(pposRead_->getData(id, ADDR_PPOS, SIZE_PPOS));
-                //LOG << static_cast<int>(id) << '\t' << curr_degs_[static_cast<int>(id)] << ENDL;
+                //LOG << static_cast<int>(id) << '\t' << curr_degs_[static_cast<int>(id)] << endll;
             }
             else
             {

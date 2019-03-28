@@ -42,7 +42,7 @@ void hear::receive()
             recv_header.append(pkt_.header, sizeof(comm_packet::header));
             if(recv_header==COMM_DATA_HEADER && pkt_.info.id != CONF->id())
             {
-                //LOG<<pkt_.info.id<<'\t'<<pkt_.info.y<<ENDL;
+                //LOG<<pkt_.info.id<<'\t'<<pkt_.info.y<<endll;
                 notify(SENSOR_HEAR);
             }
         }

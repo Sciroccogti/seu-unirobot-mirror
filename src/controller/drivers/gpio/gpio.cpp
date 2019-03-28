@@ -6,7 +6,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <poll.h>
-#include "common.hpp"
+#include "logger.hpp"
 
 #define SYSFS_GPIO_DIR "/sys/class/gpio"
 #define POLL_TIMEOUT (3 * 1000)
@@ -35,7 +35,7 @@ bool gpio::gpio_export()
     fileDescriptor = open(SYSFS_GPIO_DIR "/export", O_WRONLY);
     if (fileDescriptor < 0) 
     {
-        LOG << "gpio_export unable to open gpio: "<< find_io(io_) <<ENDL;
+        LOG(LOG_WARN) << "gpio_export unable to open gpio: "<< find_io(io_) << endll;
         return false;
     }
 
@@ -46,7 +46,7 @@ bool gpio::gpio_export()
     {
         if (write(fileDescriptor, commandBuffer, length) != length) 
         {
-            LOG << "gpio "<<find_io(io_)<<" export error!" <<ENDL;
+            LOG(LOG_WARN) << "gpio "<<find_io(io_)<<" export error!" <<endll;
             return false;
         }
     }
@@ -63,14 +63,14 @@ bool gpio::gpio_unexport()
     fileDescriptor = open(SYSFS_GPIO_DIR "/unexport", O_WRONLY);
     if (fileDescriptor < 0) 
     {
-        LOG << "gpio_unexport unable to open gpio: "<< find_io(io_) <<ENDL;
+        LOG(LOG_WARN) << "gpio_unexport unable to open gpio: "<< find_io(io_) <<endll;
         return false;
     }
 
     length = snprintf(commandBuffer, sizeof(commandBuffer), "%d", io_);
     if (write(fileDescriptor, commandBuffer, length) != length) 
     {
-        LOG << "gpio "<<find_io(io_)<<" unexport error!" <<ENDL;
+        LOG(LOG_WARN) << "gpio "<<find_io(io_)<<" unexport error!" <<endll;
         return false ;
     }
     close(fileDescriptor);
@@ -87,7 +87,7 @@ bool gpio::set_direction(pin_direction dir)
     fileDescriptor = open(commandBuffer, O_WRONLY);
     if (fileDescriptor < 0) 
     {
-        LOG << "gpio_export unable to open gpio: "<< find_io(io_) <<ENDL;
+        LOG(LOG_WARN) << "gpio_export unable to open gpio: "<< find_io(io_) <<endll;
         return false;
     }
 
@@ -95,7 +95,7 @@ bool gpio::set_direction(pin_direction dir)
     {
         if (write(fileDescriptor, "out", 4) != 4) 
         {
-            LOG << "gpio set direction error!" <<ENDL;
+            LOG(LOG_WARN) << "gpio set direction error!" <<endll;
             return false ;
         }
     }
@@ -103,7 +103,7 @@ bool gpio::set_direction(pin_direction dir)
     {
         if (write(fileDescriptor, "in", 3) != 3) 
         {
-            LOG << "gpio set direction error!" <<ENDL;
+            LOG(LOG_WARN) << "gpio set direction error!" <<endll;
             return false ;
         }
     }
@@ -122,7 +122,7 @@ bool gpio::set_value(pin_value v)
     fileDescriptor = open(commandBuffer, O_WRONLY);
     if (fileDescriptor < 0) 
     {
-        LOG << "unable to open gpio: "<< find_io(io_) <<ENDL;
+        LOG(LOG_WARN) << "unable to open gpio: "<< find_io(io_) <<endll;
         return false;
     }
 
@@ -130,7 +130,7 @@ bool gpio::set_value(pin_value v)
     {
         if (write(fileDescriptor, "1", 2) != 2) 
         {
-            LOG << "gpio set value error!" <<ENDL;
+            LOG(LOG_WARN) << "gpio set value error!" <<endll;
             return false ;
         }
     }
@@ -138,7 +138,7 @@ bool gpio::set_value(pin_value v)
     {
         if (write(fileDescriptor, "0", 2) != 2) 
         {
-            LOG << "gpio set value error!" <<ENDL;
+            LOG(LOG_WARN) << "gpio set value error!" <<endll;
             return false ;
         }
     }
@@ -157,13 +157,13 @@ bool gpio::set_edge(char *edge)
     fileDescriptor = open(commandBuffer, O_WRONLY);
     if (fileDescriptor < 0) 
     {
-        LOG << "unable to open gpio: "<< find_io(io_) <<ENDL;
+        LOG(LOG_WARN) << "unable to open gpio: "<< find_io(io_) <<endll;
         return false;
     }
 
     if (write(fileDescriptor, edge, strlen(edge) + 1) != ((int)(strlen(edge) + 1))) 
     {
-        LOG << "gpio set edge error!" <<ENDL;
+        LOG(LOG_WARN) << "gpio set edge error!" <<endll;
         return false ;
     }
     close(fileDescriptor);
@@ -183,13 +183,13 @@ int gpio::get_value()
     fileDescriptor = open(commandBuffer, O_RDONLY);
     if (fileDescriptor < 0) 
     {
-        LOG << "unable to open gpio: "<< find_io(io_) <<ENDL;
+        LOG(LOG_WARN) << "unable to open gpio: "<< find_io(io_) <<endll;
         return -1;
     }
 
     if (read(fileDescriptor, &ch, 1) != 1) 
     {
-        LOG << "gpio get value error!" <<ENDL;
+        LOG(LOG_WARN) << "gpio get value error!" <<endll;
         return -1;
      }
 

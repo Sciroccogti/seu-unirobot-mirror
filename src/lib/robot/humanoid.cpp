@@ -355,20 +355,20 @@ namespace robot
     void humanoid::print_real_joint_map(){
         joint_map jmap = real_joint_map_;
    
-        std::cout<<"real_joint_map:"<<std::endl;
+        LOG(LOG_INFO)<<"real_joint_map:"<<endll;
         for (auto &j : jmap)
         {      
-            std::cout<<j.first<<":  "<<j.second->get_deg()<<std::endl;
+            LOG(LOG_INFO)<<j.first<<":  "<<j.second->get_deg()<<endll;
         }
     }
 
     void humanoid::print_joint_map(){
         joint_map jmap = joint_map_;
         
-        std::cout<<"joint_map:"<<std::endl;
+        LOG(LOG_INFO)<<"joint_map:"<<endll;
         for (auto &j : jmap)
         {       
-            std::cout<<j.first<<":  "<<j.second->get_deg()<<std::endl;
+            LOG(LOG_INFO)<<j.first<<":  "<<j.second->get_deg()<<endll;
         }
     }
 

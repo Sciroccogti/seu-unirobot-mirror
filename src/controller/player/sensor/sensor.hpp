@@ -4,7 +4,7 @@
 #include <memory>
 #include "observer.hpp"
 #include <iostream>
-#include "common.hpp"
+#include "logger.hpp"
 
 class sensor: public publisher
 {
@@ -23,12 +23,12 @@ public:
     };
     sensor(const std::string &name): name_(name)
     {
-        LOG << std::setw(12) << "sensor:" << std::setw(18) << "[" + name_ + "]" << " started!" << ENDL;
+        LOG(LOG_INFO) << std::setw(12) << "sensor:" << std::setw(18) << "[" + name_ + "]" << " started!" << endll;
     }
 
     ~sensor()
     {
-        LOG << std::setw(12) << "sensor:" << std::setw(18) << "[" + name_ + "]" << " ended!" << ENDL;
+        LOG(LOG_INFO) << std::setw(12) << "sensor:" << std::setw(18) << "[" + name_ + "]" << " ended!" << endll;
     }
 
     virtual bool start() = 0;

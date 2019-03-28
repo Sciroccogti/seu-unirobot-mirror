@@ -5,7 +5,7 @@
 #include "robot/humanoid.hpp"
 #include "options/options.hpp"
 #include "player/player.hpp"
-#include "common.hpp"
+#include "logger.hpp"
 #include "player/server/server.hpp"
 using namespace std;
 using namespace robot;
@@ -14,9 +14,9 @@ shared_ptr<player> maxwell;
 
 void exit_handler(int sig)
 {
-    LOG << "\n--------------------------------------------------------\n"
+    LOG(LOG_HIGH) << "\n--------------------------------------------------------\n"
         << "                         Good bye!                      \n"
-        << "--------------------------------------------------------" << ENDL;
+        << "--------------------------------------------------------" << endll;
 
     if (sig == SIGINT)
     {
@@ -27,7 +27,7 @@ void exit_handler(int sig)
 
 void greeting()
 {
-    LOG << "\n---------------------------------------------------------------------\n"
+    LOG(LOG_HIGH) << "\n---------------------------------------------------------------------\n"
         " .---. ----- .    .     .    .         .---.        .           .    \n"
         "|      |     |    |     |    |         |    \\       |           |    \n"
         "|      |     |    |     |    | .---. ` |    /       |          -|--  \n"
@@ -43,7 +43,7 @@ void greeting()
         << left << setw(15) << "team-name: " << CONF->get_config_value<string>("team_name") << "\n"
         << left << setw(15) << "team-number: " << CONF->get_config_value<string>("team_number") << "\n"
         << left << setw(15) << "player-id: " << CONF->id() << "\n"
-        <<  "--------------------------------------------------------" << ENDL;
+        <<  "--------------------------------------------------------" << endll;
 }
 
 int main(int argc, char *argv[])
@@ -57,13 +57,13 @@ int main(int argc, char *argv[])
 
     if (!OPTS->init(argc, argv))
     {
-        LOG << "options init failed" << ENDL;
+        LOG(LOG_ERROR) << "options init failed" << endll;
         return 1;
     }
 
     if (!CONF->init(OPTS->id()))
     {
-        LOG << "config init failed" << ENDL;
+        LOG(LOG_ERROR) << "config init failed" << endll;
         return 2;
     }
 
@@ -75,7 +75,7 @@ int main(int argc, char *argv[])
 
     if (!maxwell->init())
     {
-        LOG << "robot init failed" << ENDL;
+        LOG(LOG_ERROR) << "robot init failed" << endll;
         return 3;
     }
 

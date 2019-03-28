@@ -24,7 +24,7 @@ public:
             pkt.header[i] = init[i];
         pkt.number = pkt_num++;
         pkt.info = WM->my_info();
-        //LOG<<pkt.info.x<<'\t'<<pkt.info.y<<ENDL;
+        //LOG<<pkt.info.x<<'\t'<<pkt.info.y<<endll;
 
         try
         {
@@ -38,7 +38,7 @@ public:
         }
         catch (std::exception &e)
         {
-            LOG << e.what() << ENDL;
+            LOG(LOG_WARN) << e.what() << endll;
             return false;
         }
     }

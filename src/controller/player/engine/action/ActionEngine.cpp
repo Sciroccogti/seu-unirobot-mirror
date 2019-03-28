@@ -1,6 +1,6 @@
 #include "ActionEngine.hpp"
 #include "configuration.hpp"
-#include "common.hpp"
+#include "logger.hpp"
 #include "robot/humanoid.hpp"
 #include "core/adapter.hpp"
 #include <unistd.h>
@@ -23,12 +23,12 @@ ActionEngine::~ActionEngine()
     {
         td_.join();
     }
-    LOG << std::setw(12) << "engine:" << std::setw(18) << "[ActionEngine]" << " ended!" << ENDL;
+    LOG(LOG_INFO) << std::setw(12) << "engine:" << std::setw(18) << "[ActionEngine]" << " ended!" << endll;
 }
 
 void ActionEngine::start()
 {
-    LOG << std::setw(12) << "engine:" << std::setw(18) << "[ActionEngine]" << " started!" << ENDL;
+    LOG(LOG_INFO) << std::setw(12) << "engine:" << std::setw(18) << "[ActionEngine]" << " started!" << endll;
     is_alive_ = true;
     td_ = std::move(std::thread(&ActionEngine::run, this));
 }
@@ -135,7 +135,7 @@ void ActionEngine::run()
                             }
                             else
                             {
-                                LOG << "ik error" << ENDL;
+                                LOG(LOG_WARN) << "ik error" << endll;
                             }
                         }
                     }

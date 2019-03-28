@@ -3,6 +3,7 @@
 #include "robot/humanoid.hpp"
 #include <string>
 #include <iostream>
+#include "logger.hpp"
 
 using namespace std;
 using namespace robot;
@@ -10,13 +11,13 @@ using boost::asio::ip::tcp;
 
 void tcp_pool::join(tcp_session_ptr session)
 {
-    LOG << setw(12) << "connection:" << setw(18) << "[" + session->info() + "]" << " joined!" << ENDL;
+    LOG(LOG_INFO) << setw(12) << "connection:" << setw(18) << "[" + session->info() + "]" << " joined!" << endll;
     sessions_.insert(session);
 }
 
 void tcp_pool::leave(tcp_session_ptr session)
 {
-    LOG << setw(12) << "connection:" << setw(18) << "[" + session->info() + "]" << " leaved!" << ENDL;
+    LOG(LOG_INFO) << setw(12) << "connection:" << setw(18) << "[" + session->info() + "]" << " leaved!" << endll;
     sessions_.erase(session);
 }
 
@@ -183,7 +184,7 @@ tcp_server::tcp_server(): acceptor_(tcp_service, tcp::endpoint(tcp::v4(), CONF->
     rmt_data_.type = NON_DATA;
     rmt_data_.size = 0;
     is_alive_ = false;
-    LOG << std::setw(12) << "sensor:" << std::setw(18) << "[server]" << " started!" << ENDL;
+    LOG(LOG_INFO) << std::setw(12) << "sensor:" << std::setw(18) << "[server]" << " started!" << endll;
 }
 
 void tcp_server::accept()
@@ -294,5 +295,5 @@ tcp_server::~tcp_server()
         td_.join();
     }
 
-    LOG << std::setw(12) << "sensor:" << std::setw(18) << "[server]" << " ended!" << ENDL;
+    LOG(LOG_INFO) << std::setw(12) << "sensor:" << std::setw(18) << "[server]" << " ended!" << endll;
 }

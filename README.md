@@ -2,7 +2,7 @@
 
 ## Description
 
-This project contains a controller, some debug tools and some scripts for seu-robocup kidszie team. The controller and debug tools are written in c++. The scripts are written in python.
+This project contains a controller, some debug tools and some scripts for seu-robocup kidszie team. The controller and debug tools are written in C++. The scripts are written in Python3.
 
 ## Build tools
 * cmake >= 3.12
@@ -12,7 +12,7 @@ This project contains a controller, some debug tools and some scripts for seu-ro
 
 ## Dependencies
 
-### c++ libraries
+### C++ libraries
 * cuda >= 9.0
 * cudnn >= 7.0
 * opencv >= 3.3.1
@@ -22,12 +22,16 @@ This project contains a controller, some debug tools and some scripts for seu-ro
 * libv4l-dev
 * MVSDK (library for our camera)
 * qt5-default
-* astyle
 
 You can use Jetpack-3.3 to install cuda, opencv and cross compiler tools.
 
-### python3 libraries
+### Python3 libraries
 * ssh2-python
+* if there is no pip3 in your computer, you should install python3-pip first
+
+### Tools
+* astyle (for code format)
+
 
 ## Compile & Run
 
@@ -43,8 +47,15 @@ You can use Jetpack-3.3 to install cuda, opencv and cross compiler tools.
 * Then you find the executable files in bin/aarch64
 * If you want to run program, you should connect with robot, then use the script start_robot.py in bin/
 
+### Start the robot
+* Be sure that your computer is connected to the robot by network
+* cd path/to/project/bin, if there is no bin, you should compile first
+* Run script: ./start_robot.py id -params
+* id is the id of robot, params is start parameters for the app
+* if you don't know about the parameters, you can cd into path/to/project/bin/x86_64, run cmd: ./controller -h
+
 ## Recommend OS
 * ubuntu 16.04 64bit
 
 ## Recommend IDE
-* Visual Studio Code(with c++ and python plugin)
+* Visual Studio Code(with C/C++ and python plugin)

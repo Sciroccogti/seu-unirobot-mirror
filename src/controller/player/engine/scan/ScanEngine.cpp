@@ -4,6 +4,7 @@
 #include "core/adapter.hpp"
 #include "math/math.hpp"
 #include <cmath>
+#include "logger.hpp"
 
 using namespace std;
 using namespace robot;
@@ -34,12 +35,12 @@ ScanEngine::~ScanEngine()
     {
         td_.join();
     }
-    LOG << std::setw(12) << "engine:" << std::setw(18) << "[ScanEngine]" << " ended!" << ENDL;
+    LOG(LOG_INFO) << std::setw(12) << "engine:" << std::setw(18) << "[ScanEngine]" << " ended!" << endll;
 }
 
 void ScanEngine::start()
 {
-    LOG << std::setw(12) << "engine:" << std::setw(18) << "[ScanEngine]" << " started!" << ENDL;
+    LOG(LOG_INFO) << std::setw(12) << "engine:" << std::setw(18) << "[ScanEngine]" << " started!" << endll;
     is_alive_ = true;
     td_ = std::move(std::thread(&ScanEngine::run, this));
 }

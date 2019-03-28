@@ -21,7 +21,7 @@ public:
 
         if (aiter == robot::ROBOT->get_act_map().end())
         {
-            LOG << "cannot find action: " + act_name_ << ENDL;
+            LOG(LOG_WARN) << "cannot find action: " + act_name_ << endll;
             return false;
         }
         else

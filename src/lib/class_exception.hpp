@@ -2,7 +2,7 @@
 
 #include <exception>
 #include <iostream>
-#include "common.hpp"
+#include "logger.hpp"
 
 template <class CLASS>
 class class_exception
@@ -10,7 +10,7 @@ class class_exception
 public:
     class_exception(std::string msg, int id = 0): msg_(msg), id_(id)
     {
-        LOG << "exception: " + msg_ << ENDL;
+        LOG(LOG_WARN) << "exception: " + msg_ << endll;
     }
 
     ~class_exception() {};

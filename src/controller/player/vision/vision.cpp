@@ -28,7 +28,7 @@ Vision::Vision(): timer(CONF->get_config_value<int>("vision_period"))
     detector_ = make_shared<Detector>(w_, h_);
     parser::camera_info_parser::parse(CONF->get_config_value<string>(CONF->player() + ".camera_info_file"), camera_infos_);
     parser::camera_param_parser::parse(CONF->get_config_value<string>(CONF->player() + ".camera_params_file"), params_);
-    LOG << setw(12) << "algorithm:" << setw(18) << "[vision]" << " started!" << ENDL;
+    LOG(LOG_INFO) << setw(12) << "algorithm:" << setw(18) << "[vision]" << " started!" << endll;
     ball_id_=0;
     post_id_=1;
     ball_prob_ = CONF->get_config_value<float>("detection_prob.ball");
@@ -37,7 +37,7 @@ Vision::Vision(): timer(CONF->get_config_value<int>("vision_period"))
 
 Vision::~Vision()
 {
-    LOG << setw(12) << "algorithm:" << setw(18) << "[vision]" << " ended!" << ENDL;
+    LOG(LOG_INFO) << setw(12) << "algorithm:" << setw(18) << "[vision]" << " ended!" << endll;
 }
 
 void Vision::set_camera_info(const camera_info &para)
@@ -171,7 +171,7 @@ void Vision::run()
             if(!ball_dets_.empty())
             {
                 Vector2d odo_res = odometry(Vector2i(ball_dets_[0].x+ball_dets_[0].w/2, ball_dets_[0].y+ball_dets_[0].h*0.8), camera_matrix);
-                //LOG <<odo_res.norm()<<ENDL;
+                //LOG <<odo_res.norm()<<endll;
                 Vector2d ball_pos = rotation_mat_2d(head_yaw)*odo_res;
                 cant_see_ball_count_=0;
                 Vector2d temp_ball = Vector2d(p.x, p.y)+rotation_mat_2d(-p.dir)*ball_pos;
@@ -187,7 +187,7 @@ void Vision::run()
             /*
             vector<Vector2d> post_pos;
             
-            LOG << odo_res[0] << '\t' << odo_res[1] << "\tball: "<<odo_res.norm()<<ENDL;
+            LOG << odo_res[0] << '\t' << odo_res[1] << "\tball: "<<odo_res.norm()<<endll;
             Vector2d obj_pos = rotation_mat_2d(head_yaw)*odo_res;
             if(r.id == ball_id_)
             {

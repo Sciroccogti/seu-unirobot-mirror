@@ -32,7 +32,7 @@ public:
         }
         catch (std::exception &e)
         {
-            LOG << e.what() << ENDL;
+            LOG(LOG_WARN) << e.what() << endll;
             return false;
         }
     }

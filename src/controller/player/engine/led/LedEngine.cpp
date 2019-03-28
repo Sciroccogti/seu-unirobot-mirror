@@ -1,6 +1,6 @@
 #include "LedEngine.hpp"
 #include <unistd.h>
-#include "common.hpp"
+#include "logger.hpp"
 #include "configuration.hpp"
 
 using namespace std;
@@ -28,13 +28,13 @@ LedEngine::~LedEngine()
     {
         td_.join();
     }
-    LOG << std::setw(12) << "engine:" << std::setw(18) << "[LedEngine]" << " ended!" << ENDL;
+    LOG(LOG_INFO) << std::setw(12) << "engine:" << std::setw(18) << "[LedEngine]" << " ended!" << endll;
 }
 
 void LedEngine::start()
 {
     is_alive_ = true;
-    LOG << std::setw(12) << "engine:" << std::setw(18) << "[LedEngine]" << " started!" << ENDL;
+    LOG(LOG_INFO) << std::setw(12) << "engine:" << std::setw(18) << "[LedEngine]" << " started!" << endll;
     td_ = std::move(std::thread(&LedEngine::run, this));
 }
 

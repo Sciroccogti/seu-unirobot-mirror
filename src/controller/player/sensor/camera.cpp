@@ -8,6 +8,7 @@
 #include <sstream>
 #include <fcntl.h>
 #include <sys/ioctl.h>
+#include "logger.hpp"
 
 using namespace std;
 
@@ -86,7 +87,7 @@ void camera::run()
 
             if (ioctl(fd_, VIDIOC_DQBUF, &buf_) == -1)
             {
-                LOG << "VIDIOC_DQBUF failed.\n";
+                LOG(LOG_ERROR) << "VIDIOC_DQBUF failed."<<endll;
                 break;
             }
 
@@ -98,7 +99,7 @@ void camera::run()
 
             if (ioctl(fd_, VIDIOC_QBUF, &buf_) == -1)
             {
-                LOG << "VIDIOC_QBUF error\n";
+                LOG(LOG_ERROR) << "VIDIOC_QBUF error"<<endll;
                 break;
             }
 
@@ -135,7 +136,7 @@ void camera::close()
 
             if (ioctl(fd_, VIDIOC_STREAMOFF, &type))
             {
-                LOG << "VIDIOC_STREAMOFF error\n";
+                LOG(LOG_ERROR) << "VIDIOC_STREAMOFF error"<<endll;
                 return;
             }
 
@@ -164,7 +165,7 @@ bool camera::open()
     if (iCameraCounts == 0)
     {
         use_mv_ = false;
-        LOG<<"open MV camera failed!"<<ENDL;
+        LOG(LOG_ERROR)<<"open MV camera failed!"<<endll;
     }
 
     if (use_mv_)
@@ -191,7 +192,7 @@ bool camera::open()
 
         if (fd_ < 0)
         {
-            LOG << "open camera: " + CONF->get_config_value<string>("image.dev_name") + " failed\n";
+            LOG(LOG_ERROR) << "open camera: " + CONF->get_config_value<string>("image.dev_name") + " failed"<<endll;
             return false;
         }
 
@@ -206,25 +207,16 @@ bool camera::open()
 
         if (ioctl(fd_, VIDIOC_S_FMT, &fmt) < 0)
         {
-            LOG << "set format failed\n";
+            LOG(LOG_ERROR) << "set format failed"<<endll;
             return false;
         }
 
         if (ioctl(fd_, VIDIOC_G_FMT, &fmt) < 0)
         {
-            LOG << "get format failed\n";
+            LOG(LOG_ERROR) << "get format failed"<<endll;
             return false;
         }
 
-        /*
-        LOG << "--------------------------------------------------------\n";
-        LOG << "Image Info: [";
-        LOG << "format: " << (char)(fmt.fmt.pix.pixelformat & 0xFF) << (char)((fmt.fmt.pix.pixelformat >> 8)
-                & 0xFF) << (char)((fmt.fmt.pix.pixelformat >> 16) & 0xFF) << (char)((fmt.fmt.pix.pixelformat >> 24) & 0xFF);
-        LOG << " width: " << fmt.fmt.pix.width;
-        LOG << " height: " << fmt.fmt.pix.height << "]\n";
-        LOG << "--------------------------------------------------------\n";
-        */
         v4l2_requestbuffers req;
         req.count = 4;
         req.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
@@ -232,7 +224,7 @@ bool camera::open()
 
         if (ioctl(fd_, VIDIOC_REQBUFS, &req) == -1)
         {
-            LOG << "request buffer error \n";
+            LOG(LOG_ERROR) << "request buffer error"<<endll;
             return false;
         }
 
@@ -246,7 +238,7 @@ bool camera::open()
 
             if (ioctl(fd_, VIDIOC_QUERYBUF, &buf_) == -1)
             {
-                LOG << "query buffer error\n";
+                LOG(LOG_ERROR) << "query buffer error"<<endll;
                 return false;
             }
 
@@ -258,13 +250,13 @@ bool camera::open()
             if (buffers_[num_bufs_].start == MAP_FAILED)
             {
                 int err = errno;
-                LOG << "buffer map error: " << err << "\n";
+                LOG(LOG_ERROR) << "buffer map error: " << err << endll;
                 return false;
             }
 
             if (ioctl(fd_, VIDIOC_QBUF, &buf_) == -1)
             {
-                LOG << "VIDIOC_QBUF error\n";
+                LOG(LOG_ERROR) << "VIDIOC_QBUF error"<<endll;
                 return false;
             }
         }
@@ -274,7 +266,7 @@ bool camera::open()
 
         if (ioctl(fd_, VIDIOC_STREAMON, &type) == -1)
         {
-            LOG << "VIDIOC_STREAMON error\n";
+            LOG(LOG_ERROR) << "VIDIOC_STREAMON error"<<endll;
             return false;
         }
     }

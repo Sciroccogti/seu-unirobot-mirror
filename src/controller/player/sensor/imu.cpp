@@ -3,6 +3,7 @@
 #include "configuration.hpp"
 #include "math/math.hpp"
 #include "core/worldmodel.hpp"
+#include "logger.hpp"
 
 using namespace std;
 using namespace boost::asio;
@@ -42,7 +43,7 @@ bool imu::open()
     }
     catch (exception &e)
     {
-        LOG << "imu: " << e.what() << ENDL;
+        LOG(LOG_WARN) << "imu: " << e.what() << endll;
         return false;
     }
 }

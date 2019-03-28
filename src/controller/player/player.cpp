@@ -34,7 +34,7 @@ void player::run()
 
         if (OPTS->use_robot())
         {
-            //LOG << WM->button_status(1)<<'\t'<<WM->button_status(2)<<ENDL;
+            //LOG << WM->button_status(1)<<'\t'<<WM->button_status(2)<<endll;
             if(WM->button_status(1)&&WM->button_status(2))
             {
                 btn_count_++;
@@ -59,14 +59,14 @@ void player::run()
                     tasks.push_back(make_shared<gcret_task>());
                 if(OPTS->use_comm())
                     tasks.push_back(make_shared<say_task>());
-                //LOG << WM->fall_data()<<ENDL;
+                //LOG << WM->fall_data()<<endll;
             }
             tlist = think();
             tasks.insert(tasks.end(), tlist.begin(), tlist.end());    
             
             for(auto &tsk:tasks)
             {
-                //LOG<<tsk->name()<<ENDL;
+                //LOG<<tsk->name()<<endll;
                 tsk->perform();
             }
         }
@@ -106,7 +106,7 @@ bool player::init()
     {
         while (!dynamic_pointer_cast<motor>(sensors_["motor"])->is_connected() && is_alive_)
         {
-            LOG << "waiting for motor connection, please turn on the power." << ENDL;
+            LOG(LOG_WARN) << "waiting for motor connection, please turn on the power." << endll;
             sleep(1);
         }
 

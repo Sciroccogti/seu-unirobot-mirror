@@ -3,11 +3,7 @@
 #include <ctime>
 #include <cstdio>
 #include <string>
-#include <iostream>
 #include <iomanip>
-
-#define LOG std::cout<<"\033[32m[controller]\t"
-#define ENDL "\033[0m"<<std::endl;
 
 inline std::string get_time()
 {

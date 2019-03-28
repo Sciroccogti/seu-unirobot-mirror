@@ -1,6 +1,6 @@
 #include "options.hpp"
 #include <iostream>
-#include "common.hpp"
+#include "logger.hpp"
 
 using namespace std;
 using namespace boost::program_options;
@@ -43,17 +43,19 @@ bool options::init(int argc, char **argv)
 
         if (var_map_.count("help"))
         {
-            LOG << '\n' << opts_desc_ << ENDL;
+            LOG(LOG_INFO) << '\n' << opts_desc_ << endll;
             return false;
         }
     }
     catch (boost::program_options::unknown_option &e)
     {
-        LOG << e.what() << ENDL;
+        LOG(LOG_ERROR) << e.what() << endll;
+        LOG(LOG_INFO) << '\n' << opts_desc_ << endll;
     }
     catch (std::exception &e)
     {
-        LOG << e.what() << ENDL;
+        LOG(LOG_ERROR)<< e.what() << endll;
+        LOG(LOG_INFO) << '\n' << opts_desc_ << endll;
         return false;
     }
 

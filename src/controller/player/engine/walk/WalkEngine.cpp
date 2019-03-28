@@ -10,6 +10,7 @@
 #include "core/adapter.hpp"
 #include "sensor/motor.hpp"
 #include "core/worldmodel.hpp"
+#include "logger.hpp"
 
 namespace motion
 {
@@ -120,7 +121,7 @@ namespace motion
         {
             td_.join();
         }
-        LOG << std::setw(12) << "engine:" << std::setw(18) << "[WalkEngine]" << " ended!" << ENDL;
+        LOG(LOG_INFO) << std::setw(12) << "engine:" << std::setw(18) << "[WalkEngine]" << " ended!" << endll;
     }
 
     void WalkEngine::start()
@@ -128,7 +129,7 @@ namespace motion
         dt_ = 1.0 / (1000.0 / CONF->get_config_value<double>("hardware.motor.period"));
         is_alive_ = true;
         td_ = std::move(std::thread(&WalkEngine::run, this));
-        LOG << std::setw(12) << "engine:" << std::setw(18) << "[WalkEngine]" << " started!" << ENDL;
+        LOG(LOG_INFO) << std::setw(12) << "engine:" << std::setw(18) << "[WalkEngine]" << " started!" << endll;
     }
 
     void WalkEngine::boundPhase(double &phase)
@@ -407,7 +408,7 @@ namespace motion
                     }
                     else
                     {
-                        LOG << phase_ << '\t' << "left leg_inverse_kinematics faied!" << ENDL;
+                        LOG(LOG_WARN) << phase_ << '\t' << "left leg_inverse_kinematics faied!" << endll;
                     }
 
                     if (ROBOT->leg_inverse_kinematics_walk(body_mat, rightfoot_mat, degs, false))
@@ -421,7 +422,7 @@ namespace motion
                     }
                     else
                     {
-                        LOG << phase_ << '\t' << "right leg_inverse_kinematics faied!" << ENDL;
+                        LOG(LOG_WARN) << phase_ << '\t' << "right leg_inverse_kinematics faied!" << endll;
                     }
 
                     jdegs[ROBOT->get_joint("jlshoulder1")->jid_] = 49.43;

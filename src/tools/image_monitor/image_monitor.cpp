@@ -4,6 +4,7 @@
 #include "ui/camera_setter.hpp"
 #include <opencv2/opencv.hpp>
 #include <fstream>
+#include "common.hpp"
 
 using namespace cv;
 using namespace std;

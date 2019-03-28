@@ -35,7 +35,7 @@ void gamectrl::receive()
             recv_header.append(data_.header, sizeof(RoboCupGameControlData::header));
             if (recv_header == GAMECONTROLLER_STRUCT_HEADER)
             {
-                //LOG << (int)data_.secondaryTime<<ENDL;
+                //LOG << (int)data_.secondaryTime<<endll;
                 notify(SENSOR_GC);
             }
         }
