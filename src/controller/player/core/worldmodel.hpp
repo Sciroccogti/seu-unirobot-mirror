@@ -2,7 +2,7 @@
 
 #include <mutex>
 #include <atomic>
-#include "pattern.hpp"
+#include "observer.hpp"
 #include "sensor/imu.hpp"
 #include "sensor/button.hpp"
 #include "sensor/gamectrl.hpp"
@@ -81,12 +81,12 @@ public:
         return ball_in_camera_;
     }
 
-    void set_my_pos(const Eigen::Vector3d &my)
+    void set_my_pos(const Eigen::Vector2d &my)
     {
         std::lock_guard<std::mutex> lk(info_mtx_);
         player_infos_[CONF->id()].x = my.x();
         player_infos_[CONF->id()].y = my.y();
-        player_infos_[CONF->id()].dir = my.z();
+        //player_infos_[CONF->id()].dir = my.z();
     }
 
     bool button_status(int id)

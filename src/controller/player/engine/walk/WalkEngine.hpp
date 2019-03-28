@@ -4,7 +4,7 @@
 #include <thread>
 #include <mutex>
 #include <eigen3/Eigen/Dense>
-#include "pattern.hpp"
+#include "observer.hpp"
 #include "sensor/imu.hpp"
 #include "robot/robot_define.hpp"
 #include "singleton.hpp"

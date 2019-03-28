@@ -69,6 +69,7 @@ private:
     QSlider *pitchSlider, *yawSlider;
     QComboBox *sendBox;
     QComboBox *imageBox;
+    QCheckBox *sampleBox;
     QTimer *timer;
     tcp_client client_;
     QString net_info;
@@ -76,5 +77,6 @@ private:
     cv::Mat curr_image_;
     int width_;
     int height_;
+    unsigned int image_count_;
     std::atomic_bool save_;
 };

@@ -58,6 +58,7 @@ Vector2d Vision::odometry(const Vector2i &pos, const robot_math::transform_matri
     float OC = camera_matrix.p().z();
     float roll = static_cast<float>(camera_matrix.x_rotate());
     float theta = static_cast<float>(camera_matrix.y_rotate());
+    theta = theta-0.05*(M_PI_2-theta);
     Vector2f centerPos(pos.x()*2 - params_.cx, params_.cy - pos.y()*2);
     Vector2i calCenterPos(centerPos.x()/cos(roll), centerPos.y()+centerPos.x()*tan(roll));
     Vector2i calPos(calCenterPos.x() + params_.cx, params_.cy - calCenterPos.y());
@@ -65,11 +66,6 @@ Vector2d Vision::odometry(const Vector2i &pos, const robot_math::transform_matri
     double O_C_P = M_PI_2-theta+gama;
     Yw = OC*tan(O_C_P);
     Xw = ((float)calPos.x()-params_.cx)*OC*cos(gama)/(cos(O_C_P)*params_.fx);
-    
-    double ax=1.287, bx=-0.1167, cx=11.71;
-    Xw=ax*(sin(Xw-M_PI))+bx*pow(Xw-10, 2)+cx;
-    double ay=1.04, by=-0.09479, cy=9.578;
-    Yw=ay*(sin(Yw-M_PI))+by*pow(Yw-10, 2)+cy;
     return Vector2d(Xw, Yw);
 }
 
@@ -174,8 +170,8 @@ void Vision::run()
             player_info p = WM->my_info();
             if(!ball_dets_.empty())
             {
-                Vector2d odo_res = odometry(Vector2i(ball_dets_[0].x+ball_dets_[0].w/2, ball_dets_[0].y+ball_dets_[0].h), camera_matrix);
-                LOG <<odo_res.norm()<<ENDL;
+                Vector2d odo_res = odometry(Vector2i(ball_dets_[0].x+ball_dets_[0].w/2, ball_dets_[0].y+ball_dets_[0].h*0.8), camera_matrix);
+                //LOG <<odo_res.norm()<<ENDL;
                 Vector2d ball_pos = rotation_mat_2d(head_yaw)*odo_res;
                 cant_see_ball_count_=0;
                 Vector2d temp_ball = Vector2d(p.x, p.y)+rotation_mat_2d(-p.dir)*ball_pos;

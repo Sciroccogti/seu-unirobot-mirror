@@ -33,6 +33,7 @@ void WorldModel::updata(const pub_ptr &pub, const int &type)
         std::shared_ptr<imu> sptr = std::dynamic_pointer_cast<imu>(pub);
         imu_data_ = sptr->data();
         fall_direction_ = sptr->fall_direction();
+        player_infos_[CONF->id()].dir = imu_data_.yaw;
         imu_mtx_.unlock();
         return;
     }
@@ -72,5 +73,5 @@ void WorldModel::navigation(const Eigen::Vector3d &walk_para)
     double dir = info.dir+rad2deg(walk_para[2])*coef_d_;
     dir = dir>180.0?-(360.0-dir):dir<-180.0?360.0-dir:dir;
     Vector2d temp=currpos+rotation_mat_2d(-dir)*Vector2d(-walk_para[1]*coef_y_, walk_para[0]*coef_x_);
-    set_my_pos(Vector3d(temp[0], temp[1], dir));
+    set_my_pos(Vector2d(temp[0], temp[1]));
 }

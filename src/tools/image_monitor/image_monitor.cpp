@@ -37,6 +37,7 @@ image_monitor::image_monitor()
 
     btnWR = new QPushButton("Walk Remote");
     btnCS = new QPushButton("Camera Setting");
+    sampleBox = new QCheckBox("Image Sample");
 
     imageBox = new QComboBox();
     QStringList func;
@@ -65,6 +66,7 @@ image_monitor::image_monitor()
     QVBoxLayout *ctrlLayout = new QVBoxLayout;
     ctrlLayout->addWidget(btnWR);
     ctrlLayout->addWidget(btnCS);
+    ctrlLayout->addWidget(sampleBox);
     ctrlLayout->addLayout(imageLayout);
     ctrlLayout->addLayout(sendLayout);
 
@@ -92,6 +94,7 @@ image_monitor::image_monitor()
 
     timer = new QTimer;
     timer->start(1000);
+    image_count_=0;
 
     connect(timer, &QTimer::timeout, this, &image_monitor::procTimer);
     connect(yawSlider, &QSlider::valueChanged, this, &image_monitor::procYawSlider);
@@ -112,11 +115,10 @@ void image_monitor::data_handler(const tcp_command cmd)
     {
         vector<unsigned char> buf(cmd.size);
         memcpy(&buf[0], cmd.data.c_str(), cmd.size);
-
         try
         {
             Mat bgr = imdecode(buf, cv::IMREAD_COLOR);
-            if(save_)
+            if(save_||(sampleBox->isChecked()&&image_count_++%10==0))
             {
                 imwrite(String(get_time()+".png"), bgr);
                 save_=false;
@@ -265,8 +267,8 @@ void image_monitor::procImageBox(int idx)
 void image_monitor::procPitchSlider(int v)
 {
     pitchLab->setText(QString::number(v));
-    float yaw = (float)(yawSlider->value());
-    float pitch = (float)v;
+    float yaw = -(float)(yawSlider->value());
+    float pitch = -(float)v;
     remote_data_type t = LOOKAT_DATA;
 
     tcp_command cmd;
@@ -282,8 +284,8 @@ void image_monitor::procPitchSlider(int v)
 void image_monitor::procYawSlider(int v)
 {
     yawLab->setText(QString::number(v));
-    float yaw = (float)v;
-    float pitch = (float)(pitchSlider->value());
+    float yaw = -(float)v;
+    float pitch = -(float)(pitchSlider->value());
     remote_data_type t = LOOKAT_DATA;
 
     tcp_command cmd;

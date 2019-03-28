@@ -5,7 +5,7 @@
 #include <fstream>
 #include <opencv2/opencv.hpp>
 #include "timer.hpp"
-#include "pattern.hpp"
+#include "observer.hpp"
 #include "sensor/camera.hpp"
 #include "configuration.hpp"
 #include "options/options.hpp"

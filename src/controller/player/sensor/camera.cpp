@@ -164,6 +164,7 @@ bool camera::open()
     if (iCameraCounts == 0)
     {
         use_mv_ = false;
+        LOG<<"open MV camera failed!"<<ENDL;
     }
 
     if (use_mv_)

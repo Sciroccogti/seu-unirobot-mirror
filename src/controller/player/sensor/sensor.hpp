@@ -2,7 +2,7 @@
 
 #include <iomanip>
 #include <memory>
-#include "pattern.hpp"
+#include "observer.hpp"
 #include <iostream>
 #include "common.hpp"
 
