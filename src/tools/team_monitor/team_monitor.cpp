@@ -97,7 +97,7 @@ void team_monitor::paintEvent(QPaintEvent *event)
     {
         painter.setPen(QPen(Qt::white, 2, Qt::SolidLine, Qt::FlatCap));
         painter.save();
-        painter.translate(p.second.y * 100, p.second.x * 100);
+        painter.translate(p.second.x * 100, -p.second.y * 100);
         painter.drawEllipse(-ballsize / 2, -ballsize / 2, ballsize, ballsize);
         painter.drawText(-ballsize / 2, -ballsize / 2, QString::number(p.second.id));
         painter.rotate(-p.second.dir);
@@ -105,8 +105,8 @@ void team_monitor::paintEvent(QPaintEvent *event)
         painter.restore();
         if(p.second.available)
         {
-            painter.drawEllipse(p.second.ball_y * 100 - ballsize / 2, p.second.ball_x * 100 - ballsize / 2, ballsize, ballsize);
-            painter.drawText(p.second.ball_y * 100 - ballsize / 2, p.second.ball_x * 100 - ballsize / 2, QString::number(p.second.id));
+            painter.drawEllipse(p.second.ball_x * 100 - ballsize / 2, -p.second.ball_y * 100 - ballsize / 2, ballsize, ballsize);
+            painter.drawText(p.second.ball_x * 100 - ballsize / 2, -p.second.ball_y * 100 - ballsize / 2, QString::number(p.second.id));
         }
     }
     p_mutex_.unlock();

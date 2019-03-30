@@ -34,7 +34,6 @@ void player::run()
 
         if (OPTS->use_robot())
         {
-            //LOG << WM->button_status(1)<<'\t'<<WM->button_status(2)<<endll;
             if(WM->button_status(1)&&WM->button_status(2))
             {
                 btn_count_++;
@@ -59,14 +58,12 @@ void player::run()
                     tasks.push_back(make_shared<gcret_task>());
                 if(OPTS->use_comm())
                     tasks.push_back(make_shared<say_task>());
-                //LOG << WM->fall_data()<<endll;
             }
             tlist = think();
             tasks.insert(tasks.end(), tlist.begin(), tlist.end());    
             
             for(auto &tsk:tasks)
             {
-                //LOG<<tsk->name()<<endll;
                 tsk->perform();
             }
         }
@@ -78,11 +75,15 @@ list<task_ptr> player::think()
     list<task_ptr> tasks, tlists;
     if(OPTS->image_record())
     {
-        tasks.push_back(make_shared<look_task>(true));
-        tasks.push_back(make_shared<walk_task>(0.0, 0.0, 0.0, true));
+        //tasks.push_back(make_shared<look_task>(true));
+        //tasks.push_back(make_shared<walk_task>(0.0, 0.0, 0.0, true));
     }
     else
-        tlists = play_with_gc();
+    {
+        //tlists = play_with_gc();
+        tasks.push_back(make_shared<look_task>(true));
+        //tasks.push_back(make_shared<walk_task>(0.0, 0.0, 0.0, true));
+    }
     //tasks.push_back(make_shared<look_task>(true));
     //tasks.push_back(make_shared<walk_task>(0.0, 0.0, 0.0, true));
     //tasks.push_back(make_shared<action_task>("reset"));

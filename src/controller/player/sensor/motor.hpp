@@ -47,7 +47,9 @@ private:
     void set_torq(uint8_t e);
     void set_led(uint8_t s);
     void set_gpos();
-    void read_pos();
+    bool read_all_pos();
+    bool read_legs_pos();
+    bool read_head_pos();
     void read_voltage();
 
     void virtul_act();
@@ -60,7 +62,6 @@ private:
     uint16_t voltage_;
     uint8_t ping_id_;
     uint8_t led_status_;
-    std::map<int, float> curr_degs_;
     float min_volt_, max_volt_;
     
     std::atomic_bool is_connected_;

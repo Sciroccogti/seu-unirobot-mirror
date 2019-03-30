@@ -17,35 +17,37 @@ namespace motion
     using namespace Eigen;
     using namespace robot;
     using namespace robot_math;
+    using namespace std;
 
     WalkEngine::WalkEngine()
     {
-        std::vector<double> range = CONF->get_config_vector<double>("walk.x");
+        string part=CONF->player()+".walk";
+        std::vector<double> range = CONF->get_config_vector<double>(part+".x");
         xrange[0] = range[0];
         xrange[1] = range[1];
-        range = CONF->get_config_vector<double>("walk.y");
+        range = CONF->get_config_vector<double>(part+".y");
         yrange[0] = range[0];
         yrange[1] = range[1];
-        range = CONF->get_config_vector<double>("walk.dir");
+        range = CONF->get_config_vector<double>(part+".dir");
         drange[0] = range[0];
         drange[1] = range[1];
 
-        params_.freq = CONF->get_config_value<double>("walk.freq");
-        params_.riseGain = CONF->get_config_value<double>("walk.rise");
+        params_.freq = CONF->get_config_value<double>(part+".freq");
+        params_.riseGain = CONF->get_config_value<double>(part+".rise");
 
-        params_.footYOffset = CONF->get_config_value<double>("walk.footYOffset");
-        params_.trunkZOffset = CONF->get_config_value<double>("walk.trunkZOffset");
-        params_.trunkXOffset = CONF->get_config_value<double>("walk.trunkXOffset");
-        params_.trunkYOffset = CONF->get_config_value<double>("walk.trunkYOffset");
+        params_.footYOffset = CONF->get_config_value<double>(part+".footYOffset");
+        params_.trunkZOffset = CONF->get_config_value<double>(part+".trunkZOffset");
+        params_.trunkXOffset = CONF->get_config_value<double>(part+".trunkXOffset");
+        params_.trunkYOffset = CONF->get_config_value<double>(part+".trunkYOffset");
 
-        params_.trunkPitch = deg2rad(CONF->get_config_value<double>("walk.trunkPitch"));
+        params_.trunkPitch = deg2rad(CONF->get_config_value<double>(part+".trunkPitch"));
 
         
         params_.trunkRoll = 0.0;
 
-        params_.supportPhaseRatio = CONF->get_config_value<double>("walk.doubleSupportRatio");
-        params_.swingGain = CONF->get_config_value<double>("walk.swingGain");
-        params_.swingPhase = CONF->get_config_value<double>("walk.swingPhase");
+        params_.supportPhaseRatio = CONF->get_config_value<double>(part+".doubleSupportRatio");
+        params_.swingGain = CONF->get_config_value<double>(part+".swingGain");
+        params_.swingPhase = CONF->get_config_value<double>(part+".swingPhase");
         params_.swingRollGain = 0.0;
 
         params_.stepUpVel = 4.5; 
@@ -55,12 +57,12 @@ namespace motion
         params_.swingPause = 0.1;
         params_.swingVel = 4.0;
 
-        params_.extraLeftX = CONF->get_config_value<double>("walk.extraLeftX");  
-        params_.extraLeftY = CONF->get_config_value<double>("walk.extraLeftY");                                                   //0.002;
-        params_.extraLeftZ = CONF->get_config_value<double>("walk.extraLeftZ");
-        params_.extraRightX = CONF->get_config_value<double>("walk.extraRightX");
-        params_.extraRightY = CONF->get_config_value<double>("walk.extraRightY");
-        params_.extraRightZ = CONF->get_config_value<double>("walk.extraRightZ");
+        params_.extraLeftX = CONF->get_config_value<double>(part+".extraLeftX");  
+        params_.extraLeftY = CONF->get_config_value<double>(part+".extraLeftY");                                                   //0.002;
+        params_.extraLeftZ = CONF->get_config_value<double>(part+".extraLeftZ");
+        params_.extraRightX = CONF->get_config_value<double>(part+".extraRightX");
+        params_.extraRightY = CONF->get_config_value<double>(part+".extraRightY");
+        params_.extraRightZ = CONF->get_config_value<double>(part+".extraRightZ");
         params_.extraLeftYaw = 0.0;
         params_.extraLeftPitch = 0.0;
         params_.extraLeftRoll = 0.0;
@@ -69,12 +71,15 @@ namespace motion
         params_.extraRightRoll = 0.0;
 
         //for walking step
-        params_.stepKxr = CONF->get_config_value<double>("walk.stepKxr");
-        params_.stepKxl = CONF->get_config_value<double>("walk.stepKxl");
-        params_.stepKyr = CONF->get_config_value<double>("walk.stepKyr");
-        params_.stepKyl = CONF->get_config_value<double>("walk.stepKyl");
-        params_.stepKzr = CONF->get_config_value<double>("walk.stepKzr");
-        params_.stepKzl = CONF->get_config_value<double>("walk.stepKzl");
+        params_.openFeedbackLoop = CONF->get_config_value<int>(part+".openFeedbackLoop");
+        params_.initStepGain = CONF->get_config_value<double>(part+".initStepGain");
+        params_.initDir = CONF->get_config_value<double>(part+".initDir");
+        params_.stepKxr = CONF->get_config_value<double>(part+".stepKxr");
+        params_.stepKxl = CONF->get_config_value<double>(part+".stepKxl");
+        params_.stepKyr = CONF->get_config_value<double>(part+".stepKyr");
+        params_.stepKyl = CONF->get_config_value<double>(part+".stepKyl");
+        params_.stepKzr = CONF->get_config_value<double>(part+".stepKzr");
+        params_.stepKzl = CONF->get_config_value<double>(part+".stepKzl");
 
         //intial for feedback parameters
         params_.feedStepKxl = 1.0;
@@ -99,8 +104,8 @@ namespace motion
     {
         if (type == sensor::SENSOR_IMU)
         {
-            imu_mtx_.lock();
             std::shared_ptr<imu> sptr = std::dynamic_pointer_cast<imu>(pub);
+            imu_mtx_.lock();
             imu_data_ = sptr->data();
             imu_mtx_.unlock();
             return;
@@ -108,8 +113,9 @@ namespace motion
 
         if (type == sensor::SENSOR_MOTOR)
         {
-            dxl_mtx_.lock();
             std::shared_ptr<motor> sptr = std::dynamic_pointer_cast<motor>(pub);
+            dxl_mtx_.lock();
+            
             dxl_mtx_.unlock();
             return;
         }
@@ -145,6 +151,17 @@ namespace motion
         }
     }
 
+    double WalkEngine::limit(const float &input, const float &min, const float &max)
+    {
+        if(input < min){
+            return min;
+        }else if(input > max){
+            return max;
+        }else{
+            return input;
+        }
+    }
+
     void WalkEngine::switchPhaseFlag()
     {
         if(phase_flag == false){
@@ -161,7 +178,7 @@ namespace motion
         params_.stepGain = x;
         params_.lateralGain = y;
         params_.turnGain = d;
-        params_.enabledGain = enable?1.0:0.0;
+        params_.enableFlag = enable?1.0:0.0;
         bound(xrange[0], xrange[1], params_.stepGain);
         bound(yrange[0], yrange[1], params_.lateralGain);
         bound(drange[0], drange[1], params_.turnGain);
@@ -209,13 +226,6 @@ namespace motion
         turnSpline.addPoint(1.0 - len, 0.0);
         turnSpline.addPoint(1.0, 0.0);
 
-        SmoothSpline handSpline;
-        handSpline.addPoint(0.0, 0.0);
-        handSpline.addPoint(0.25, 1.0);
-        handSpline.addPoint(0.5, 0.0);
-        handSpline.addPoint(0.75, -1.0);
-        handSpline.addPoint(1.0, 0.0);
-
         transform_matrix body_mat, leftfoot_mat, rightfoot_mat;
         Quaternion<double> quat;
         AngleAxisd yawRot, pitchRot, rollRot;
@@ -228,9 +238,7 @@ namespace motion
 
         phase_flag = false;
         feedbackWalkComputor FWC;
-        
-        int recode = 0;
-
+        FWC.openFeedbackLoop = params_.openFeedbackLoop==1 ? true : false;
 
         while (is_alive_)
         {   
@@ -246,6 +254,31 @@ namespace motion
                 tempParams.stepGain = 0.0;
                 tempParams.lateralGain = 0.0;
                 tempParams.turnGain = 0.0;
+            }
+            else if(tempParams.enableFlag == 1.0 && phase_flag == true)
+            {
+                    // tempParams.enabledGain = 1.0;
+                    tempParams.enabledGain += 0.17;
+                    if(tempParams.enabledGain > 1.0) tempParams.enabledGain = 1.0;  
+            }else if(tempParams.enableFlag == 0.0){
+                tempParams.enabledGain -= 0.2;
+                if(tempParams.enabledGain < 0.0) tempParams.enabledGain = 0.0;  
+            }
+
+            params_.enabledGain = tempParams.enabledGain;
+            
+            //it won't excute orders untils it finish the mark time
+            if(tempParams.enabledGain != 1.0){
+                tempParams.stepGain = 0.0;
+                tempParams.lateralGain = 0.0;
+                tempParams.turnGain = 0.0;
+            }
+            
+            FWC.aimLen = tempParams.stepGain;             //remenber the stepLenth
+            if(tempParams.enabledGain == 1.0){
+                tempParams.stepGain += tempParams.initStepGain;
+                tempParams.turnGain += FWC.aimLen == 0 ? tempParams.initDir : 0.0;
+
             }
             if((fabs(tempParams.enabledGain)>1E-2) &&(MADT->get_mode() == adapter::MODE_READY || MADT->get_mode() == adapter::MODE_WALK))
             {                   
@@ -270,8 +303,8 @@ namespace motion
                                       * swingSpline.posMod(0.5 + phaseLeft + tempParams.swingPhase + len);
 
                     //Compute feet forward (step) oscillation
-                    double leftX = tempParams.enabledGain * tempParams.stepGain * stepSpline.pos(phaseLeft) * tempParams.stepKxl;
-                    double rightX = tempParams.enabledGain * tempParams.stepGain * stepSpline.pos(phaseRight) * tempParams.stepKxr;
+                    double leftX = tempParams.enabledGain * tempParams.stepGain * stepSpline.pos(phaseLeft) * tempParams.stepKxl * tempParams.feedStepKxl;
+                    double rightX = tempParams.enabledGain * tempParams.stepGain * stepSpline.pos(phaseRight) * tempParams.stepKxr * tempParams.feedStepKxr;
 
                     //Compute feet swing oscillation
                     double leftY = swingVal;       
@@ -425,10 +458,10 @@ namespace motion
                         LOG(LOG_WARN) << phase_ << '\t' << "right leg_inverse_kinematics faied!" << endll;
                     }
 
-                    jdegs[ROBOT->get_joint("jlshoulder1")->jid_] = 49.43;
-                    jdegs[ROBOT->get_joint("jlelbow")->jid_] = -119.24;
-                    jdegs[ROBOT->get_joint("jrshoulder1")->jid_] = 49.43;
-                    jdegs[ROBOT->get_joint("jrelbow")->jid_] = 119.24;
+                    jdegs[ROBOT->get_joint("jlshoulder1")->jid_] = 40;
+                    jdegs[ROBOT->get_joint("jlelbow")->jid_] = -90;
+                    jdegs[ROBOT->get_joint("jrshoulder1")->jid_] = 40;
+                    jdegs[ROBOT->get_joint("jrelbow")->jid_] = 90;
         
 
                     if((phase_+ dt_ * tempParams.freq) >= 0.5 && tempParams.enabledGain == 1.0)
@@ -462,8 +495,42 @@ namespace motion
                     } 
                     //std::cout<<"calculate the feed walk params. ======="<<std::endl;
                     /*use the conveyFeedbackParams to update feedback parameters in the place*/
+                    if(ROBOT->conveyFeedbackParams.isValidData &&  FWC.aimLen > 0 && FWC.openFeedbackLoop){
+                        // LOG<<"rel left pose  "<<std::endl<<ROBOT->conveyFeedbackParams.leftfoot_pose<<ENDL;
+                        // LOG<<"rel righ pose  "<<std::endl<<ROBOT->conveyFeedbackParams.rightfoot_pose<<ENDL;
+                        double err = (ROBOT->conveyFeedbackParams.leftfoot_pose - ROBOT->conveyFeedbackParams.rightfoot_pose).x();
 
+                        if(phase_flag == true){
+                            FWC.realRightLen = -err;
+                            FWC.rightUpdateFlag = true;
+                        }else{
+                            FWC.realLeftLen = err;
+                            FWC.leftUpdateFlag = true;
+                        }
+
+                        if(FWC.rightUpdateFlag && FWC.leftUpdateFlag){
+                            float len_err = FWC.realRightLen - FWC.realLeftLen;
+                        
+                            float temp_err = fabs(len_err);
+                            
+                            if(temp_err >= 0.0015)                          FWC.stepLen_k = 100;
+                            else if(temp_err < 0.0015 && temp_err >= 0.0005) FWC.stepLen_k = 100;
+                            else                                           FWC.stepLen_k = 20;  
+
+                            params_.feedStepKxl += limit(FWC.stepLen_k * len_err / FWC.realLeftLen, -0.15, 0.15);
+                            params_.feedStepKxr += limit(FWC.stepLen_k * (-len_err) / FWC.realRightLen, -0.15, 0.15);
+                        }
+                    }
+                      
+                    params_.feedStepKxl = limit(params_.feedStepKxl, 0.7, 1.4);
+                    params_.feedStepKxr = limit(params_.feedStepKxr, 0.7, 1.4);
                     ROBOT->conveyFeedbackParams.update_flag = false;  
+                }
+                else{
+                        params_.feedStepKxl = 1.0;
+                        params_.feedStepKxr = 1.0;
+                        FWC.rightUpdateFlag = false;
+                        FWC.leftUpdateFlag = false; 
                 }
 
                 if (MADT->get_mode() == adapter::MODE_READY)

@@ -196,7 +196,11 @@ namespace motion
         double feedStepKzr;
         double feedStepKzl;
         
+        /*=1, means open*/
+        int openFeedbackLoop;
 
+        double initStepGain;
+        double initDir;
     };
 
     class WalkEngine: public subscriber, public singleton<WalkEngine>
@@ -213,12 +217,16 @@ namespace motion
         void updata(const pub_ptr &pub, const int &type);
         
         struct feedbackWalkComputor{
-            double aim_step_height;
-            double aim_fwd_len;
-            double step_height_left;  //the real height of foot lift in step
-            double step_height_right;
-            double forward_len_left;  //the real forward distance in a step
-            double forward_len_right;
+            double aimHeight;
+            double aimLen;
+            double realLeftHeight;  //the real height of foot lift in step
+            double realRightHeight;
+            double realLeftLen;     //the real forward distance in a step
+            double realRightLen;
+            bool leftUpdateFlag;    //when flag is true,  it means the data of leftFoot has updated
+            bool rightUpdateFlag;
+            float stepLen_k;        //feedback parameter of stepLen 
+            bool openFeedbackLoop;  //=true, means open
 
             Eigen::Vector3d Com;      //center of mass
             Eigen::Vector3d leftfoot_pose;     //the real pose
@@ -228,6 +236,7 @@ namespace motion
     private:
         static void boundPhase(double &phase);
         void switchPhaseFlag(); 
+        double limit(const float &input, const float &min, const float &max);
         bool phase_flag;
 
         double phase_, dt_;

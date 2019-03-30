@@ -47,12 +47,6 @@ motor::motor(): sensor("motor"), timer(CONF->get_config_value<int>("hardware.mot
     min_volt_ = CONF->get_config_value<float>("hardware.battery.min_volt");
     max_volt_ = CONF->get_config_value<float>("hardware.battery.max_volt");
     voltage_ = static_cast<uint16_t>(max_volt_ * 10);
-
-    for (auto &r : ROBOT->get_joint_map())
-    {
-        if(r.second->jid_>10)
-            pposRead_->addParam(static_cast<uint8_t>(r.second->jid_));
-    }
 }
 
 inline uint32_t float2pos(const float &deg)
@@ -87,23 +81,7 @@ void motor::run()
     if (timer::is_alive_)
     {
         ROBOT->set_degs(MADT->get_degs());
-         /*feed back loop Test*/
-        std::map<int, float> real_jdegs;
-
-        for (auto &jm : ROBOT->get_joint_map())
-            /*feed back loop Test*/
-            real_jdegs[jm.second->jid_] = jm.second->get_deg();
-
-        /*feed back loop Test*/
-        ROBOT->set_real_degs(real_jdegs);
-        updateMotorFeedbackParams();
-        if(ROBOT->finished_one_step_flag == true)
-        {  
-            //cout<<"after one half step: updateConveyFeedbackParams "<<endl;
-            updateConveyFeedbackParams();
-            clearMotorFeedbackParams();
-            ROBOT->down_finished_one_step_flag();
-        }
+         
         if (OPTS->use_debug())
             virtul_act();
 
@@ -121,11 +99,25 @@ void motor::virtul_act()
     robot_joint_deg jd;
     string j_data;
     j_data.clear();
+    /*feed back loop Test*/
+    std::map<int, float> real_jdegs;
     for (auto &jm : ROBOT->get_joint_map())
     {
         jd.id = jm.second->jid_;
         jd.deg = jm.second->get_deg();
         j_data.append((char *)(&jd), sizeof(robot_joint_deg));
+        /*feed back loop Test*/
+        real_jdegs[jd.id] = jd.deg;
+    }
+    /*feed back loop Test*/
+    ROBOT->set_real_degs(real_jdegs);
+    updateMotorFeedbackParams();
+    if(ROBOT->finished_one_step_flag == true)
+    {  
+       //cout<<"after one half step: updateConveyFeedbackParams "<<endl;
+       updateConveyFeedbackParams();
+       clearMotorFeedbackParams();
+       ROBOT->down_finished_one_step_flag();
     }
 
     cmd.size = ROBOT->get_joint_map().size() * sizeof(robot_joint_deg);
@@ -139,7 +131,7 @@ void motor::real_act()
     int not_alert_error = 0;
     int dxl_comm_result = COMM_TX_FAIL;
     uint16_t dxl_model_number;
-
+    std::map<int, float> real_jdegs;
     if (!is_connected_)
     {
         dxl_comm_result = packetHandler_->ping(portHandler_, ping_id_, &dxl_model_number, &dxl_error);
@@ -150,7 +142,6 @@ void motor::real_act()
             read_voltage();
             LOG(LOG_INFO) << "Voltage: " << voltage_ / 10.0f << "V !" << endll;
 
-            //read_pos();
             set_torq(1);
             is_connected_ = true;
         }
@@ -158,6 +149,19 @@ void motor::real_act()
     else
     {
         set_gpos();
+        /*feed back loop*/ 
+        if(ROBOT->finished_one_step_flag == true)
+        {  
+            //cout<<"after one real half step: updateConveyFeedbackParams "<<endl;
+            ROBOT->conveyFeedbackParams.isValidData = false;
+            if(read_legs_pos()) {
+                ROBOT->conveyFeedbackParams.isValidData = true;
+            }
+            updateMotorFeedbackParams();
+            updateConveyFeedbackParams();
+            clearMotorFeedbackParams();
+            ROBOT->down_finished_one_step_flag();
+        }
         if ((p_count_ * period_ms_ % 1000) == 0)
         {
             led_status_ = 1 - led_status_;
@@ -165,6 +169,132 @@ void motor::real_act()
         }
         //read_pos();
     }
+}
+
+bool motor::read_all_pos()
+{
+    int dxl_comm_result = COMM_TX_FAIL;
+    uint8_t id = 0;
+    std::map<int, float>  curr_degs_;
+
+    pposRead_->clearParam();
+    for (auto &r : ROBOT->get_joint_map())
+    {   
+        pposRead_->addParam(static_cast<uint8_t>(r.second->jid_));
+    }
+    dxl_comm_result = pposRead_->txRxPacket();
+    
+    if (dxl_comm_result != COMM_SUCCESS)
+    {
+        LOG(LOG_WARN) << packetHandler_->getTxRxResult(dxl_comm_result) << endll;
+        return false;
+    }
+    else
+    {
+        for (auto &r : ROBOT->get_joint_map())
+        {
+            id = static_cast<uint8_t >(r.second->jid_);
+
+            if (pposRead_->isAvailable(id, ADDR_PPOS, SIZE_PPOS))
+            {   
+                float temp_cur = pos2float(pposRead_->getData(id, ADDR_PPOS, SIZE_PPOS));
+                curr_degs_[static_cast<int>(id)] = temp_cur/r.second->inverse_ - r.second->offset_;
+               
+                // LOG <<"real deg  "<<static_cast<int>(id) << '\t' <<(temp_cur/r.second->inverse_ - r.second->offset_) << ENDL;
+            }
+            else
+            {
+                curr_degs_[static_cast<int>(id)] = ROBOT->get_joint(static_cast<int>(id))->get_deg();
+            }
+        }
+    }
+
+    ROBOT->set_real_degs(curr_degs_);
+    return true;
+}
+
+bool motor::read_legs_pos()
+{
+    int dxl_comm_result = COMM_TX_FAIL;
+    uint8_t id = 0;
+    std::map<int, float>  curr_degs_;
+
+    pposRead_->clearParam();
+    for (int k=11; k<=22; k++)
+    {   
+        pposRead_->addParam(static_cast<uint8_t>(k));
+    }
+    dxl_comm_result = pposRead_->txRxPacket();
+    
+    if (dxl_comm_result != COMM_SUCCESS)
+    {
+        LOG(LOG_WARN) << packetHandler_->getTxRxResult(dxl_comm_result) << endll;
+        return false;
+    }
+    else
+    {
+        for (auto &r : ROBOT->get_joint_map())
+        {
+            id = static_cast<uint8_t >(r.second->jid_);
+
+            if (id > 10 && pposRead_->isAvailable(id, ADDR_PPOS, SIZE_PPOS))
+            {   
+                float temp_cur = pos2float(pposRead_->getData(id, ADDR_PPOS, SIZE_PPOS));
+                curr_degs_[static_cast<int>(id)] = temp_cur/r.second->inverse_ - r.second->offset_;
+               
+                // LOG <<"real deg  "<<static_cast<int>(id) << '\t' <<(temp_cur/r.second->inverse_ - r.second->offset_) << ENDL;
+            }
+            else
+            {
+                curr_degs_[static_cast<int>(id)] = ROBOT->get_joint(static_cast<int>(id))->get_deg();
+            }
+        }
+    }
+
+    ROBOT->set_real_degs(curr_degs_);
+    return true;
+}
+
+bool motor::read_head_pos()
+{
+    int dxl_comm_result = COMM_TX_FAIL;
+    uint8_t id = 0;
+    std::map<int, float>  curr_degs_;
+
+    pposRead_->clearParam();
+    for (int k=5; k<=6; k++)
+    {   
+        pposRead_->addParam(static_cast<uint8_t>(k));
+    }
+    dxl_comm_result = pposRead_->txRxPacket();
+    
+    if (dxl_comm_result != COMM_SUCCESS)
+    {
+        LOG(LOG_WARN) << packetHandler_->getTxRxResult(dxl_comm_result) << endll;
+        return false;
+    }
+    else
+    {
+        for (auto &r : ROBOT->get_joint_map())
+        {
+            id = static_cast<uint8_t >(r.second->jid_);
+
+            if (id < 7 && pposRead_->isAvailable(id, ADDR_PPOS, SIZE_PPOS))
+            {   
+                float temp_cur = pos2float(pposRead_->getData(id, ADDR_PPOS, SIZE_PPOS));
+                curr_degs_[static_cast<int>(id)] = temp_cur/r.second->inverse_ - r.second->offset_;
+               
+                // LOG <<"real deg  "<<static_cast<int>(id) << '\t' <<(temp_cur/r.second->inverse_ - r.second->offset_) << ENDL;
+            }
+            else
+            {
+                curr_degs_[static_cast<int>(id)] = ROBOT->get_joint(static_cast<int>(id))->get_deg();
+            }
+        }
+    }
+
+    ROBOT->set_real_degs(curr_degs_);
+    return true;
 }
 
 bool motor::open()
@@ -202,35 +332,6 @@ void motor::stop()
     timer::is_alive_ = false;
     close();
     delete_timer();
-}
-
-void motor::read_pos()
-{
-    int dxl_comm_result = COMM_TX_FAIL;
-    uint8_t id = 0;
-    dxl_comm_result = pposRead_->txRxPacket();
-    
-    if (dxl_comm_result != COMM_SUCCESS)
-    {
-        LOG(LOG_WARN) << packetHandler_->getTxRxResult(dxl_comm_result) << endll;
-    }
-    else
-    {
-        for (auto &r : ROBOT->get_joint_map())
-        {
-            id = static_cast<uint8_t >(r.second->jid_);
-
-            if (pposRead_->isAvailable(id, ADDR_PPOS, SIZE_PPOS))
-            {
-                curr_degs_[static_cast<int>(id)] = pos2float(pposRead_->getData(id, ADDR_PPOS, SIZE_PPOS));
-                //LOG << static_cast<int>(id) << '\t' << curr_degs_[static_cast<int>(id)] << endll;
-            }
-            else
-            {
-                curr_degs_[static_cast<int>(id)] = ROBOT->get_joint(static_cast<int>(id))->get_deg();
-            }
-        }
-    }
 }
 
 void motor::read_voltage()
@@ -275,14 +376,8 @@ void motor::set_gpos()
     uint32_t gpos;
     float deg;
 
-    /*feed back loop Test*/
-    std::map<int, float> real_jdegs;
-
     for (auto &j : ROBOT->get_joint_map())
     {
-        /*feed back loop Test*/
-        real_jdegs[j.second->jid_] = j.second->get_deg();
-
         deg = (j.second->inverse_) * (j.second->get_deg() + j.second->offset_);
         gpos = float2pos(deg);
         gpos_data[0] = DXL_LOBYTE(DXL_LOWORD(gpos));
@@ -295,17 +390,6 @@ void motor::set_gpos()
             return;
         }
     }
-
-    /*feed back loop Test*/
-    ROBOT->set_real_degs(real_jdegs);
-    updateMotorFeedbackParams();
-    if(ROBOT->finished_one_step_flag == true)
-    {  
-       //cout<<"after one real half step: updateConveyFeedbackParams "<<endl;
-       updateConveyFeedbackParams();
-       clearMotorFeedbackParams();
-       ROBOT->down_finished_one_step_flag();
-    }
     gposWrite_->txPacket();
 }
 
@@ -315,14 +399,14 @@ void motor::updateMotorFeedbackParams()
                                         motorFeedbackParams.rightfoot_pose_pre);
 
     //cout<<"footleft       "<<motorFeedbackParams.leftfoot_pose_pre<<endl;
+    /*
     if(motorFeedbackParams.leftfoot_pose_maxh.z() < motorFeedbackParams.leftfoot_pose_pre.z()){
         motorFeedbackParams.leftfoot_pose_maxh = motorFeedbackParams.leftfoot_pose_pre;
     }
 
     if(motorFeedbackParams.rightfoot_pose_maxh.z() < motorFeedbackParams.rightfoot_pose_pre.z()){
         motorFeedbackParams.rightfoot_pose_maxh = motorFeedbackParams.rightfoot_pose_pre;
-    }
-
+    }*/
 }
 
 void motor::updateConveyFeedbackParams()
@@ -331,8 +415,8 @@ void motor::updateConveyFeedbackParams()
     ROBOT->conveyFeedbackParams.leftfoot_pose = motorFeedbackParams.leftfoot_pose_pre;
     ROBOT->conveyFeedbackParams.rightfoot_pose = motorFeedbackParams.rightfoot_pose_pre;
 
-    ROBOT->conveyFeedbackParams.leftfoot_pose_maxh = motorFeedbackParams.leftfoot_pose_maxh;
-    ROBOT->conveyFeedbackParams.rightfoot_pose_maxh = motorFeedbackParams.rightfoot_pose_maxh;
+    //ROBOT->conveyFeedbackParams.leftfoot_pose_maxh = motorFeedbackParams.leftfoot_pose_maxh;
+    //ROBOT->conveyFeedbackParams.rightfoot_pose_maxh = motorFeedbackParams.rightfoot_pose_maxh;
     ROBOT->conveyFeedbackParams.update_flag = true;
     
 }

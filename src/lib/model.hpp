@@ -2,6 +2,7 @@
 
 #include <string>
 #include <map>
+#include <eigen3/Eigen/Dense>
 
 struct filed_info
 {
@@ -23,6 +24,21 @@ struct player_info
     float x, y, dir;
     float ball_x, ball_y;
     bool available = true;
+};
+
+struct ball_block
+{
+    Eigen::Vector2d global;
+    Eigen::Vector2d self;
+    Eigen::Vector2d pixel;
+    bool sure=true;
+};
+
+struct self_block
+{
+    Eigen::Vector2d global;
+    double dir;
+    bool sure=true;
 };
 
 struct camera_info

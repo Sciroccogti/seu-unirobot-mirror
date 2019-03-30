@@ -40,9 +40,9 @@ std::list<task_ptr> player::play_with_gc()
                 state_ = STATE_GETUP;
                 tasks.push_back(make_shared<look_task>(head_init[0], head_init[1], false));
                 if(WM->fall_data()==FALL_FORWARD)
-                    tasks.push_back(make_shared<action_task>("getup_front"));
+                    tasks.push_back(make_shared<action_task>("front_getup"));
                 else if(WM->fall_data()==FALL_FORWARD)
-                    tasks.push_back(make_shared<action_task>("getup_back"));
+                    tasks.push_back(make_shared<action_task>("back_getup"));
             }
             else
             {
@@ -52,12 +52,12 @@ std::list<task_ptr> player::play_with_gc()
                     tasks.push_back(make_shared<look_task>(true));
                 else
                 {
-                    Vector2d temp = WM->ball_in_my_space();
-                    double d=temp.norm();
+                    ball_block bb = WM->ball();
+                    double d=bb.self.norm();
                     if(d<1.0)
                     {
                         state_=STATE_KICK;
-                        Vector2d v=WM->ball_in_camera();
+                        Vector2d v=bb.pixel;
                         std::vector<double> head_degs = ROBOT->get_head_degs();
                         tasks.push_back(make_shared<look_task>(head_degs[0]-v[0], head_degs[1]+v[1], false));
                         

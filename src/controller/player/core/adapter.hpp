@@ -82,10 +82,11 @@ public:
         }
         if(WM->fall_data()!=FALL_NONE)
         {
-            for(auto &jd:jdmap)
-            {
-                jd.second = 0.0;
-            }
+            jdmap[robot::ROBOT->get_joint("jhead1")->jid_]=0;
+            if(WM->fall_data()==FALL_FORWARD)
+                jdmap[robot::ROBOT->get_joint("jhead2")->jid_]=-15;
+            else
+                jdmap[robot::ROBOT->get_joint("jhead2")->jid_]=15;
         }
         hd_mutex_.lock();
         head_degs_list.push_back(jdmap);

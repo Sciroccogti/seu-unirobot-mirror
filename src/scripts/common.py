@@ -112,6 +112,8 @@ def compress_files():
 def parse_argv(argv=[], start=2):
     args = ' -p'+argv[1]
     for i in range(start,len(argv)):
+        if '-j' in argv[i]:
+            continue
         args += (' '+argv[i])
     return args
 

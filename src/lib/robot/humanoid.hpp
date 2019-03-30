@@ -48,7 +48,8 @@ namespace robot
         joint_ptr get_real_joint(const std::string &name);       //for real joints
         
         struct{
-            bool update_flag;    
+            bool update_flag; 
+            bool isValidData;                                    //=1: read success,data is valid   
             Eigen::Vector3d Com;                                 //center of mass
             Eigen::Vector3d leftfoot_pose;                       //the real pose in the end of step
             Eigen::Vector3d rightfoot_pose;

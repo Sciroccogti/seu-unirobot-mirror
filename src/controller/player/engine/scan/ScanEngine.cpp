@@ -80,7 +80,7 @@ void ScanEngine::run()
         {
             int idx = line%4-2;
             if(idx<0) idx = -idx;
-            jdmap[id_pitch] = pitches_[idx];
+            jdmap[id_pitch] = 30.0;//pitches_[idx];
             float s = pow(-1, idx);
             for(float yawt = yaw_range_[0]; yawt <= yaw_range_[1]&&is_alive_; yawt += div_)
             {

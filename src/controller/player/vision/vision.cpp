@@ -57,16 +57,41 @@ Vector2d Vision::odometry(const Vector2i &pos, const robot_math::transform_matri
     float Xw, Yw;
     float OC = camera_matrix.p().z();
     float roll = static_cast<float>(camera_matrix.x_rotate());
+    //LOG(LOG_WARN)<<"roll: "<<roll<<"y: "<<pos.y()<<endll;
     float theta = static_cast<float>(camera_matrix.y_rotate());
-    theta = theta-0.05*(M_PI_2-theta);
-    Vector2f centerPos(pos.x()*2 - params_.cx, params_.cy - pos.y()*2);
-    Vector2i calCenterPos(centerPos.x()/cos(roll), centerPos.y()+centerPos.x()*tan(roll));
-    Vector2i calPos(calCenterPos.x() + params_.cx, params_.cy - calCenterPos.y());
-    double gama = atan((params_.cy-(float)calPos.y())/params_.fy);
+    //theta = theta-0.05*(M_PI_2-theta);
+    Vector2d Pos=rotation_mat_2d(rad2deg(roll))*Vector2d(pos.x(), pos.y());
+    //Vector2i calCenterPos(Pos.x()/cos(roll), Pos.y()+Pos.x()*tan(roll));
+    //Vector2i calPos(calCenterPos.x() + params_.cx, params_.cy - calCenterPos.y());
+    double gama = atan((params_.cy-Pos.y())/params_.fy);
     double O_C_P = M_PI_2-theta+gama;
     Yw = OC*tan(O_C_P);
-    Xw = ((float)calPos.x()-params_.cx)*OC*cos(gama)/(cos(O_C_P)*params_.fx);
+    Xw = (Pos.x()-params_.cx)*OC*cos(gama)/(cos(O_C_P)*params_.fx);
     return Vector2d(Xw, Yw);
+}
+
+Vector2d Vision::camera2self(const Vector2d &pos, double head_yaw)
+{
+    return rotation_mat_2d(head_yaw+90.0)*pos;
+}
+
+Vector2i Vision::undistored(const Eigen::Vector2i &pix)
+{
+    int x = pix.x(), y=pix.y();
+    float u_distorted = 0, v_distorted = 0;
+    float x1,y1,x2,y2;
+    x1 = (x-params_.cx)/params_.fx;
+    y1 = (y-params_.cy)/params_.fy;
+    float r2;
+    r2 = pow(x1,2)+pow(y1,2);
+    x2  = x1*(1+params_.k1*r2+params_.k2*pow(r2,2))+2*params_.p1*x1*y1+params_.p2*(r2+2*x1*x1);
+    y2 = y1*(1+params_.k1*r2+params_.k2*pow(r2,2))+params_.p1*(r2+2*y1*y1)+2*params_.p2*x1*y1;
+    u_distorted = params_.fx*x2+params_.cx;
+    v_distorted = params_.fy*y2+params_.cy;
+    int ox=u_distorted, oy=v_distorted;
+    bound(0, w_, ox);
+    bound(0, h_, oy);
+    return Vector2i(ox, oy);   
 }
 
 void Vision::get_point_dis(int x, int y)
@@ -119,15 +144,12 @@ void Vision::run()
         {
             cudaBayer2BGR(dev_src_, dev_bgr_,  camera_w_,  camera_h_, camera_infos_["saturation"].value,
                         camera_infos_["red_gain"].value, camera_infos_["green_gain"].value, camera_infos_["blue_gain"].value);
-            cudaUndistored(dev_bgr_, dev_undistored_, camera_w_, camera_h_, params_.fx, params_.fy, params_.cx, params_.cy,
-                        params_.k1, params_.k2, params_.p1, params_.p2);
-            cudaResizePacked(dev_undistored_, camera_w_,  camera_h_,  dev_ori_, w_,  h_);
         }
         else
         {
             cudaYUYV2BGR(dev_src_,  dev_bgr_,  camera_w_,  camera_h_);
-            cudaResizePacked(dev_bgr_, camera_w_,  camera_h_,  dev_ori_, w_,  h_);
         }
+        cudaResizePacked(dev_bgr_, camera_w_,  camera_h_,  dev_ori_, w_,  h_);
         cudaBGR2YUV422(dev_ori_, dev_yuyv_, w_, h_);
         cudaResizePacked(dev_ori_, w_, h_, dev_sized_, net_.w, net_.h);
         cudaBGR2RGBfp(dev_sized_, dev_rgbfp_, net_.w, net_.h);
@@ -167,14 +189,21 @@ void Vision::run()
 
         if(OPTS->use_robot())
         {
-            player_info p = WM->my_info();
+            self_block p = WM->self();
             if(!ball_dets_.empty())
             {
-                Vector2d odo_res = odometry(Vector2i(ball_dets_[0].x+ball_dets_[0].w/2, ball_dets_[0].y+ball_dets_[0].h*0.8), camera_matrix);
-                //LOG <<odo_res.norm()<<endll;
-                Vector2d ball_pos = rotation_mat_2d(head_yaw)*odo_res;
+                //LOG(LOG_INFO)<<"*********************\n";
+                Vector2i ball_pix(ball_dets_[0].x+ball_dets_[0].w/2, ball_dets_[0].y+ball_dets_[0].h*0.8);
+                Vector2d odo_res = odometry(ball_pix, camera_matrix);
+                //LOG(LOG_INFO) <<odo_res.transpose()<<endll;
+                LOG(LOG_INFO)<<"ball: " <<odo_res.norm()<<endll;
+                Vector2d ball_pos = camera2self(odo_res, head_yaw);
+                //LOG(LOG_INFO) <<ball_pos.transpose()<<endll;
                 cant_see_ball_count_=0;
-                Vector2d temp_ball = Vector2d(p.x, p.y)+rotation_mat_2d(-p.dir)*ball_pos;
+                //LOG(LOG_INFO)<<p.global.x()<<'\t'<< p.global.y()<<endll;
+                Vector2d temp_ball = Vector2d(p.global.x(), p.global.y())+rotation_mat_2d(-p.dir)*ball_pos;
+                //LOG(LOG_INFO) <<temp_ball.transpose()<<endll;
+                //LOG(LOG_INFO)<<"*********************"<<endll;
                 int tempx=ball_dets_[0].x+ball_dets_[0].w/2-w_/2, tempy=ball_dets_[0].y+ball_dets_[0].h-h_/2;
                 WM->set_ball_pos(temp_ball, ball_pos, Vector2d(tempx/(float)w_*params_.h_v, tempy/(float)h_*params_.v_v));
             }
@@ -184,21 +213,15 @@ void Vision::run()
                 if(cant_see_ball_count_*period_ms_>10000)
                     WM->set_ball_pos(Vector2d(0,0), Vector2d(0,0), Vector2d(0,0), false);
             }
-            /*
-            vector<Vector2d> post_pos;
-            
-            LOG << odo_res[0] << '\t' << odo_res[1] << "\tball: "<<odo_res.norm()<<endll;
-            Vector2d obj_pos = rotation_mat_2d(head_yaw)*odo_res;
-            if(r.id == ball_id_)
+            int post_num=0;
+            for(auto &post: post_dets_)
             {
-                find_ball = true;
-                ball_pos = obj_pos;
+                Vector2i post_pix(post.x+post.w/2, post.y+post.h);
+                Vector2d odo_res = odometry(undistored(post_pix), camera_matrix);
+                //LOG(LOG_INFO)<<"post: "<<odo_res.norm()<<endll;
+                Vector2d ball_pos = camera2self(odo_res, head_yaw);
+                if(++post_num>=2) break;
             }
-            else
-                post_pos.push_back(obj_pos);
-            //selflocation
-            player_info p = WM->my_info();
-            */
         }
 
         if (OPTS->use_debug())
@@ -274,7 +297,6 @@ void Vision::updata(const pub_ptr &pub, const int &type)
     if (type == sensor::SENSOR_CAMERA)
     {
         shared_ptr<camera> sptr = dynamic_pointer_cast<camera>(pub);
-
         if (camera_src_ ==  nullptr)
         {
             camera_w_ = sptr->camera_w();
@@ -303,12 +325,12 @@ void Vision::updata(const pub_ptr &pub, const int &type)
             int spf = WM->support_foot();
             std::vector<double> foot_degs = ROBOT->get_foot_degs(spf);
             std::vector<double> head_degs = ROBOT->get_head_degs();
+            head_yaw_  = -head_degs[0];
             transform_matrix body = ROBOT->leg_forward_kinematics(foot_degs, spf);
             body.set_R(quat.matrix());
             camera_matrix_ = body*transform_matrix(0,0,ROBOT->trunk_length())*transform_matrix(head_degs[0],'z')
-                            *transform_matrix(0, 0, ROBOT->neck_length())*transform_matrix(head_degs[1], 'y')
-                            *transform_matrix(-0.02,0,ROBOT->head_length());
-            head_yaw_  = -head_degs[0];
+                            *transform_matrix(0, 0, ROBOT->neck_length())*transform_matrix(head_degs[1], 'y');
+            
         }
         frame_mtx_.unlock();
         return;
