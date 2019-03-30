@@ -56,17 +56,16 @@ Vector2d Vision::odometry(const Vector2i &pos, const robot_math::transform_matri
 {
     float Xw, Yw;
     float OC = camera_matrix.p().z();
-    float roll = static_cast<float>(camera_matrix.x_rotate());
-    //LOG(LOG_WARN)<<"roll: "<<roll<<"y: "<<pos.y()<<endll;
+    float roll = -static_cast<float>(camera_matrix.x_rotate());
     float theta = static_cast<float>(camera_matrix.y_rotate());
     //theta = theta-0.05*(M_PI_2-theta);
-    Vector2d Pos=rotation_mat_2d(rad2deg(roll))*Vector2d(pos.x(), pos.y());
-    //Vector2i calCenterPos(Pos.x()/cos(roll), Pos.y()+Pos.x()*tan(roll));
-    //Vector2i calPos(calCenterPos.x() + params_.cx, params_.cy - calCenterPos.y());
-    double gama = atan((params_.cy-Pos.y())/params_.fy);
+    Vector2i Pos(pos.x()-params_.cx, params_.cy-pos.y());
+    Vector2i calCenterPos(Pos.x()/cos(roll), Pos.y()+Pos.x()*tan(roll));
+    Vector2i calPos(calCenterPos.x()+params_.cx, params_.cy-calCenterPos.y());
+    double gama = atan((params_.cy-calPos.y())/params_.fy);
     double O_C_P = M_PI_2-theta+gama;
     Yw = OC*tan(O_C_P);
-    Xw = (Pos.x()-params_.cx)*OC*cos(gama)/(cos(O_C_P)*params_.fx);
+    Xw = (calPos.x()-params_.cx)*OC*cos(gama)/(cos(O_C_P)*params_.fx);
     return Vector2d(Xw, Yw);
 }
 
@@ -80,15 +79,14 @@ Vector2i Vision::undistored(const Eigen::Vector2i &pix)
     int x = pix.x(), y=pix.y();
     float u_distorted = 0, v_distorted = 0;
     float x1,y1,x2,y2;
-    x1 = (x-params_.cx)/params_.fx;
-    y1 = (y-params_.cy)/params_.fy;
+    x1 = (x-w_/2)/params_.fx;
+    y1 = (y-h_/2)/params_.fy;
     float r2;
     r2 = pow(x1,2)+pow(y1,2);
-    x2  = x1*(1+params_.k1*r2+params_.k2*pow(r2,2))+2*params_.p1*x1*y1+params_.p2*(r2+2*x1*x1);
-    y2 = y1*(1+params_.k1*r2+params_.k2*pow(r2,2))+params_.p1*(r2+2*y1*y1)+2*params_.p2*x1*y1;
-    u_distorted = params_.fx*x2+params_.cx;
-    v_distorted = params_.fy*y2+params_.cy;
-    int ox=u_distorted, oy=v_distorted;
+    x2  = x1/(1+params_.k1*r2+params_.k2*pow(r2,2));
+    y2 = y1/(1+params_.k1*r2+params_.k2*pow(r2,2));
+    int ox = params_.fx*x2+params_.cx;
+    int oy = params_.fy*y2+params_.cy;
     bound(0, w_, ox);
     bound(0, h_, oy);
     return Vector2i(ox, oy);   
@@ -214,6 +212,7 @@ void Vision::run()
                     WM->set_ball_pos(Vector2d(0,0), Vector2d(0,0), Vector2d(0,0), false);
             }
             int post_num=0;
+            list< GoalPost > posts_;
             for(auto &post: post_dets_)
             {
                 Vector2i post_pix(post.x+post.w/2, post.y+post.h);
@@ -222,6 +221,7 @@ void Vision::run()
                 Vector2d ball_pos = camera2self(odo_res, head_yaw);
                 if(++post_num>=2) break;
             }
+            SL->update(player_info(p.global.x(), p.global.y(), p.dir), posts_);
         }
 
         if (OPTS->use_debug())
@@ -311,8 +311,6 @@ void Vision::updata(const pub_ptr &pub, const int &type)
             check_error(err);
             err = cudaMalloc((void **) &dev_bgr_, bgr_size_);
             check_error(err);
-            err = cudaMalloc((void **) &dev_undistored_, bgr_size_);
-            check_error(err);
         }
         frame_mtx_.lock();
         memcpy(camera_src_, sptr->buffer(), src_size_);
@@ -329,8 +327,8 @@ void Vision::updata(const pub_ptr &pub, const int &type)
             transform_matrix body = ROBOT->leg_forward_kinematics(foot_degs, spf);
             body.set_R(quat.matrix());
             camera_matrix_ = body*transform_matrix(0,0,ROBOT->trunk_length())*transform_matrix(head_degs[0],'z')
-                            *transform_matrix(0, 0, ROBOT->neck_length())*transform_matrix(head_degs[1], 'y');
-            
+                            *transform_matrix(0, 0, ROBOT->neck_length())*transform_matrix(head_degs[1], 'y')
+                            *transform_matrix(-0.02, 0, ROBOT->head_length());
         }
         frame_mtx_.unlock();
         return;
@@ -396,7 +394,6 @@ void Vision::stop()
         cudaFree(dev_yuyv_);
         cudaFree(dev_src_);
         cudaFree(dev_bgr_);
-        cudaFree(dev_undistored_);
         cudaFree(dev_rgbfp_);
         cudaFree(dev_sized_);
     }

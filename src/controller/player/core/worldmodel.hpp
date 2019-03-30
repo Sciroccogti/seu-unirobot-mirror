@@ -12,6 +12,7 @@
 #include "model.hpp"
 #include "math/math.hpp"
 #include "robot/humanoid.hpp"
+#include "localization/SelfLocalization.h"
 
 class WorldModel: public subscriber, public singleton<WorldModel>
 {
@@ -19,6 +20,7 @@ public:
     WorldModel();
 
     void updata(const pub_ptr &pub, const int &type);
+    void updata_glb();
 
     int support_foot()
     {
@@ -116,6 +118,7 @@ private:
     std::atomic_bool bt2_status_;
     std::atomic_int fall_direction_;
     std::atomic_int support_foot_;
+
 
     double coef_x_, coef_y_, coef_d_;
     mutable std::mutex imu_mtx_, gc_mtx_, info_mtx_, ball_mtx_, self_mtx_;

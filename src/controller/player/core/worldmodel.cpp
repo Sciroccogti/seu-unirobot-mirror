@@ -78,3 +78,4 @@ void WorldModel::navigation(const Eigen::Vector3d &walk_para)
     Vector2d temp=currpos+rotation_mat_2d(-dir)*Vector2d(-walk_para[0]*coef_x_, walk_para[1]*coef_y_);
     set_my_pos(temp);
 }
+

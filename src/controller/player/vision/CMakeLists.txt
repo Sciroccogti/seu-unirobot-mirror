@@ -10,6 +10,7 @@ target_link_libraries(vision
         detector
         darknet
         server
+        SL
         pthread
         rt
         stdc++

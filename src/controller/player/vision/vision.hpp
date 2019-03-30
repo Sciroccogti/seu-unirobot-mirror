@@ -18,6 +18,7 @@
 #include "sensor/imu.hpp"
 #include "sensor/motor.hpp"
 #include "imageproc/detector/detector.h"
+#include "localization/SelfLocalization.h"
 
 class Vision: public timer, public subscriber, public singleton<Vision>
 {
@@ -71,7 +72,6 @@ private:
 
     unsigned char *dev_src_;
     unsigned char *dev_bgr_;
-    unsigned char *dev_undistored_;
     unsigned char *dev_ori_;
     unsigned char *dev_sized_;
     unsigned char *dev_yuyv_;

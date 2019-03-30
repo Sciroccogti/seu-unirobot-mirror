@@ -3,6 +3,29 @@
 #include <string>
 #include <map>
 #include <eigen3/Eigen/Dense>
+#include "math/Math.hpp"
+
+struct GoalPost
+{
+    enum TYPE
+    {
+        SENSORMODEL_POST_UNKNOWN,
+        SENSORMODEL_POST_L, //left post
+        SENSORMODEL_POST_R, //right post
+    };
+
+    enum SIDE
+    {
+        SENSORMODEL_SIDE_OUR,
+        SENSORMODEL_SIDE_OPP,
+        SENSORMODEL_SIDE_UNKNOW,
+    };
+
+    TYPE _type = SENSORMODEL_POST_UNKNOWN;
+    SIDE _side = SENSORMODEL_SIDE_UNKNOW;
+    seumath::AngDeg _theta = 0.0f;
+    float _distance = 1000.0f;
+};
 
 struct filed_info
 {
@@ -24,6 +47,10 @@ struct player_info
     float x, y, dir;
     float ball_x, ball_y;
     bool available = true;
+    player_info(float m_x, float m_y, float m_d)
+        :x(m_x), y(m_y), dir(m_d){}
+
+    player_info(){}
 };
 
 struct ball_block
