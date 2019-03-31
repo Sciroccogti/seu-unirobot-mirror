@@ -3,7 +3,7 @@
 
 #include <map>
 #include "singleton.hpp"
-#include "math/Math.hpp"
+#include "math/math.hpp"
 #include "configuration.hpp"
 #include "model.hpp"
 
@@ -23,9 +23,9 @@ public:
     struct PlayerData
     {
         float x, y;
-        seumath::AngDeg bodydir;
-        seumath::AngDeg camdir;
-        seumath::AngDeg camWidth;
+        float bodydir;
+        float camdir;
+        float camWidth;
         float camDis;
     };
 
@@ -46,11 +46,11 @@ private:
     filed_info filed_info_;
 
     //some intermediate variable.
-    seumath::Vector2i _center;
-    std::map<GoalPostType, seumath::Vector2f> _goal_post_position;
+    Eigen::Vector2i _center;
+    std::map<GoalPostType, Eigen::Vector2f> _goal_post_position;
 
     int _xMax, _xMin, _yMax, _yMin;
-    seumath::Vector2f _opp_goal, _our_goal;
+    Eigen::Vector2f _opp_goal, _our_goal;
 
 public:
     SoccerMap();
@@ -65,7 +65,7 @@ public:
         return _field_width;
     }
 
-    seumath::Vector2i center() const
+    Eigen::Vector2i center() const
     {
         return _center;
     }
@@ -96,7 +96,7 @@ public:
     }
 
 
-    std::map<GoalPostType, seumath::Vector2f> flagPos() const
+    std::map<GoalPostType, Eigen::Vector2f> flagPos() const
     {
         return _goal_post_position;
     }
@@ -121,32 +121,32 @@ public:
         return _yMin;
     }
 
-    seumath::Vector2f ourGoal() const
+    Eigen::Vector2f ourGoal() const
     {
         return _our_goal;
     }
 
-    seumath::Vector2f ourGoalL() const
+    Eigen::Vector2f ourGoalL() const
     {
         return (_goal_post_position.at(FLAG_DOOR_OUR_P));
     }
 
-    seumath::Vector2f outGoalR() const
+    Eigen::Vector2f outGoalR() const
     {
         return (_goal_post_position.at(FLAG_DOOR_OUR_N));
     }
 
-    seumath::Vector2f oppGoal() const
+    Eigen::Vector2f oppGoal() const
     {
         return _opp_goal;
     }
 
-    seumath::Vector2f oppGoalL() const
+    Eigen::Vector2f oppGoalL() const
     {
         return (_goal_post_position.at(FLAG_DOOR_OPP_P));
     }
 
-    seumath::Vector2f oppGoalR() const
+    Eigen::Vector2f oppGoalR() const
     {
         return (_goal_post_position.at(FLAG_DOOR_OPP_N));
     }

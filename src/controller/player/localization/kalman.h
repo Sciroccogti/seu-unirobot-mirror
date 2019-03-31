@@ -1,10 +1,9 @@
 #ifndef __KALMAN_H
 #define __KALMAN_H
+
 #include <iostream>
 #include <limits.h>
-//#include "math/Vector.hpp"
-//#include "math/Angle.hpp"
-#include "math/Math.hpp"
+#include <list>
 #include "math/math.hpp"
 #include "SoccerMap.h"
 #include "model.hpp"
@@ -17,7 +16,7 @@ public:
   struct State 
   {
     float x, y;
-    seumath::AngDeg dir;
+    float dir;
     State& operator=(const State& s)
     {
       x=s.x;
@@ -48,7 +47,7 @@ public:
   float R2[4][4];
   float detq;
   float detr;
-  seumath::Vector2f doublepost[2];
+  Eigen::Vector2f doublepost[2];
   float dirErr[4];
  
 private:

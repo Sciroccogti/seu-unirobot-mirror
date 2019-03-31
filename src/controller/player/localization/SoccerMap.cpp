@@ -4,16 +4,17 @@
 #include "parser/field_parser.hpp"
 
 using namespace std;
-using namespace seumath;
+using namespace robot_math;
+using namespace Eigen;
 
 SoccerMap::SoccerMap()
 {
     getConfigInfo();
     _center = Vector2i(_field_length / 2, _field_width / 2);
-    _goal_post_position[FLAG_DOOR_OPP_P] = Vector2i(_field_length / 2, _goal_width / 2);
-    _goal_post_position[FLAG_DOOR_OPP_N] = Vector2i(_field_length / 2, -_goal_width / 2);
-    _goal_post_position[FLAG_DOOR_OUR_P] = Vector2i(-_field_length / 2, _goal_width / 2);
-    _goal_post_position[FLAG_DOOR_OUR_N] = Vector2i(-_field_length / 2, -_goal_width / 2);
+    _goal_post_position[FLAG_DOOR_OPP_P] = Vector2f(_field_length / 2, _goal_width / 2);
+    _goal_post_position[FLAG_DOOR_OPP_N] = Vector2f(_field_length / 2, -_goal_width / 2);
+    _goal_post_position[FLAG_DOOR_OUR_P] = Vector2f(-_field_length / 2, _goal_width / 2);
+    _goal_post_position[FLAG_DOOR_OUR_N] = Vector2f(-_field_length / 2, -_goal_width / 2);
 
     _our_goal = Vector2f(-_field_length / 2, 0);
     _opp_goal = Vector2f(_field_length / 2, 0);

@@ -3,7 +3,6 @@
 #include <string>
 #include <map>
 #include <eigen3/Eigen/Dense>
-#include "math/Math.hpp"
 
 struct GoalPost
 {
@@ -23,7 +22,7 @@ struct GoalPost
 
     TYPE _type = SENSORMODEL_POST_UNKNOWN;
     SIDE _side = SENSORMODEL_SIDE_UNKNOW;
-    seumath::AngDeg _theta = 0.0f;
+    float _theta = 0.0f;
     float _distance = 1000.0f;
 };
 
