@@ -57,7 +57,7 @@ std::list<task_ptr> player::play_with_gc()
                     if(d<1.0)
                     {
                         state_=STATE_KICK;
-                        Vector2d v=bb.pixel;
+                        Vector2i v=bb.pixel;
                         std::vector<double> head_degs = ROBOT->get_head_degs();
                         tasks.push_back(make_shared<look_task>(head_degs[0]-v[0], head_degs[1]+v[1], false));
                         

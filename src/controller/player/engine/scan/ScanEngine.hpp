@@ -23,7 +23,8 @@ namespace motion
         float div_;
         float yaw_, pitch_;
         bool scan_;
-        Eigen::Vector2f yaw_range_, pitch_range_;
+        Eigen::Vector2f pitch_range_;
+        std::vector<Eigen::Vector2f> yaw_ranges_;
         Eigen::Vector3f pitches_;
         mutable std::mutex param_mtx_;
     };

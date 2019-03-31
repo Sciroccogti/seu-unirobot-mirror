@@ -46,7 +46,7 @@ struct player_info
     int id;
     float x, y, dir;
     float ball_x, ball_y;
-    bool available = true;
+    bool available = false;
     player_info(float m_x, float m_y, float m_d)
         :x(m_x), y(m_y), dir(m_d){}
 
@@ -57,15 +57,16 @@ struct ball_block
 {
     Eigen::Vector2d global;
     Eigen::Vector2d self;
-    Eigen::Vector2d pixel;
-    bool sure=true;
+    Eigen::Vector2i pixel;
+    float alpha, beta;
+    bool sure=false;
 };
 
 struct self_block
 {
     Eigen::Vector2d global;
     double dir;
-    bool sure=true;
+    bool sure=false;
 };
 
 struct camera_info

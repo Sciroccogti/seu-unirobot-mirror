@@ -6,9 +6,10 @@ add_subdirectory(localization)
 add_subdirectory(server)
 
 add_library(player STATIC 
-            skill.cpp
             play_with_remote.cpp
+            play_without_gc.cpp
             play_with_gc.cpp
+            skill.cpp
             player.cpp)
             
 target_link_libraries(player

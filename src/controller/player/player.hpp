@@ -45,6 +45,7 @@ private:
     void run();
     void play_with_remote();
     std::list<task_ptr> play_with_gc();
+    std::list<task_ptr> play_without_gc();
     std::list<task_ptr> think();
     bool regist();
     void unregist();
@@ -55,4 +56,5 @@ private:
     unsigned int btn_count_;
     PlayerRole role_;
     RobotState state_;
+    int w_, h_;
 };

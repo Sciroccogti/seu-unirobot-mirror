@@ -9,6 +9,7 @@
 using namespace std;
 using namespace robot;
 using namespace robot_math;
+using namespace Eigen;
 
 namespace motion
 {
@@ -18,8 +19,9 @@ ScanEngine::ScanEngine()
     pitch_range_[0] = range[0];
     pitch_range_[1] = range[1];
     range = CONF->get_config_vector<float>("scan.yaw");
-    yaw_range_[0] = range[0];
-    yaw_range_[1] = range[1];
+    yaw_ranges_.push_back(Vector2f(range[0], range[1]));
+    yaw_ranges_.push_back(Vector2f(range[0]+30.0, range[1]-30.0));
+    yaw_ranges_.push_back(Vector2f(range[0]+60.0, range[1]-60.0));
     div_ = CONF->get_config_value<float>("scan.div");
     yaw_ = 0.0;
     pitch_ = 0.0;
@@ -80,8 +82,9 @@ void ScanEngine::run()
         {
             int idx = line%4-2;
             if(idx<0) idx = -idx;
-            jdmap[id_pitch] = 30.0;//pitches_[idx];
+            jdmap[id_pitch] = pitches_[idx];
             float s = pow(-1, idx);
+            Vector2f yaw_range_=yaw_ranges_[idx];
             for(float yawt = yaw_range_[0]; yawt <= yaw_range_[1]&&is_alive_; yawt += div_)
             {
                 jdmap[id_yaw] = s*yawt;
@@ -98,7 +101,7 @@ void ScanEngine::run()
         }
         else
         {
-            bound(yaw_range_[0], yaw_range_[1], yaw);
+            bound(yaw_ranges_[0][0], yaw_ranges_[0][1], yaw);
             bound(pitch_range_[0], pitch_range_[1], pitch);
             jdmap[id_yaw] = yaw;
             jdmap[id_pitch] = pitch;
