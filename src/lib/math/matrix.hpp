@@ -3,6 +3,7 @@
 #include <cmath>
 #include <eigen3/Eigen/Dense>
 #include "number.hpp"
+#include "angle.hpp"
 
 namespace robot_math
 {

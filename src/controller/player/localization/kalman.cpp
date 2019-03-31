@@ -4,7 +4,8 @@
 #include "inverse.h"
 
 using namespace std;
-using namespace seumath;
+using namespace robot_math;
+using namespace Eigen;
 
 void KA::init()
 {
@@ -86,11 +87,11 @@ int KA::goalPostUpdate(const list< GoalPost > & posts_)
 	      Vector2f pos(now_state.x, now_state.y);
               BOOST_FOREACH(const Vector2f & fp, postPos)
 	      {
-	          bearErr = normalizeAngle<AngDeg>((fp - pos).angle()-now_state.dir-post._theta);
-            distErr = (fp - pos).length() - post._distance;
+	          bearErr = normalize_deg(azimuth(fp - pos)-now_state.dir-post._theta);
+            distErr = (fp - pos).norm() - post._distance;
 	          // cout<<fp.x()<<"  "<<fp.y()<<"  "<<abs(bearErr)<<"  "<<abs(distErr)<<endl;
 	          // cout<<(fp - pos).angle()<<"  "<<now_state.dir<<"  "<<post._theta<<endl;
-	          if(abs(bearErr)+abs(distErr)<minErr && abs(normalizeAngle<AngDeg>((fp - pos).angle()-now_state.dir))<=50)
+	          if(abs(bearErr)+abs(distErr)<minErr && abs(normalize_deg(azimuth(fp - pos)-now_state.dir))<=50)
 	          {
 	            minErr=abs(bearErr)+abs(distErr);
 	            float M=fp.y()-now_state.y;

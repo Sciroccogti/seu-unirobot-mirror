@@ -3,7 +3,6 @@
 
 #include <iostream>
 #include <limits.h>
-#include "math/Math.hpp"
 #include "model.hpp"
 #include "kalman.h"
 #include "math/math.hpp"
