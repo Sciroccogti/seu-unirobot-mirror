@@ -24,6 +24,8 @@ player::player(): timer(CONF->get_config_value<int>("think_period"))
     btn_count_ = 0;
     role_ = RoleName.find(CONF->get_config_value<string>(CONF->player()+".strategy.role"))->second;
     state_ = STATE_NOTMAL;
+    w_ = CONF->get_config_value<int>("image.width");
+    h_ = CONF->get_config_value<int>("image.height");
 }
 
 void player::run()
@@ -78,10 +80,14 @@ list<task_ptr> player::think()
         //tasks.push_back(make_shared<look_task>(true));
         //tasks.push_back(make_shared<walk_task>(0.0, 0.0, 0.0, true));
     }
+    else if(OPTS->use_gc())
+    {
+        tlists = play_with_gc();
+    }
     else
     {
-        //tlists = play_with_gc();
-        tasks.push_back(make_shared<look_task>(true));
+        tlists = play_without_gc();
+        //tasks.push_back(make_shared<look_task>(true));
         //tasks.push_back(make_shared<walk_task>(0.0, 0.0, 0.0, true));
     }
     //tasks.push_back(make_shared<look_task>(true));

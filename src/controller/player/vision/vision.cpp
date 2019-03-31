@@ -58,7 +58,7 @@ Vector2d Vision::odometry(const Vector2i &pos, const robot_math::transform_matri
     float OC = camera_matrix.p().z();
     float roll = -static_cast<float>(camera_matrix.x_rotate());
     float theta = static_cast<float>(camera_matrix.y_rotate());
-    //theta = theta-0.05*(M_PI_2-theta);
+    theta = theta-0.02*(M_PI_2-theta);
     Vector2i Pos(pos.x()-params_.cx, params_.cy-pos.y());
     Vector2i calCenterPos(Pos.x()/cos(roll), Pos.y()+Pos.x()*tan(roll));
     Vector2i calPos(calCenterPos.x()+params_.cx, params_.cy-calCenterPos.y());
@@ -191,37 +191,36 @@ void Vision::run()
             if(!ball_dets_.empty())
             {
                 //LOG(LOG_INFO)<<"*********************\n";
-                Vector2i ball_pix(ball_dets_[0].x+ball_dets_[0].w/2, ball_dets_[0].y+ball_dets_[0].h*0.8);
+                Vector2i ball_pix(ball_dets_[0].x+ball_dets_[0].w/2, ball_dets_[0].y+ball_dets_[0].h);
+                ball_pix = undistored(ball_pix);
                 Vector2d odo_res = odometry(ball_pix, camera_matrix);
-                //LOG(LOG_INFO) <<odo_res.transpose()<<endll;
-                LOG(LOG_INFO)<<"ball: " <<odo_res.norm()<<endll;
                 Vector2d ball_pos = camera2self(odo_res, head_yaw);
-                //LOG(LOG_INFO) <<ball_pos.transpose()<<endll;
                 cant_see_ball_count_=0;
-                //LOG(LOG_INFO)<<p.global.x()<<'\t'<< p.global.y()<<endll;
-                Vector2d temp_ball = Vector2d(p.global.x(), p.global.y())+rotation_mat_2d(-p.dir)*ball_pos;
-                //LOG(LOG_INFO) <<temp_ball.transpose()<<endll;
-                //LOG(LOG_INFO)<<"*********************"<<endll;
-                int tempx=ball_dets_[0].x+ball_dets_[0].w/2-w_/2, tempy=ball_dets_[0].y+ball_dets_[0].h-h_/2;
-                WM->set_ball_pos(temp_ball, ball_pos, Vector2d(tempx/(float)w_*params_.h_v, tempy/(float)h_*params_.v_v));
+                Vector2d temp_ball = p.global+rotation_mat_2d(-p.dir)*ball_pos;
+                float alpha = (ball_pix.x()-params_.cx)/(float)w_;
+                float beta = (ball_pix.y()-params_.cy)/(float)h_;
+                WM->set_ball_pos(temp_ball, ball_pos, ball_pix, alpha, beta, true);
             }
             else
             {
+                /*
                 cant_see_ball_count_++;
                 if(cant_see_ball_count_*period_ms_>10000)
                     WM->set_ball_pos(Vector2d(0,0), Vector2d(0,0), Vector2d(0,0), false);
+                */
             }
             int post_num=0;
             list< GoalPost > posts_;
             for(auto &post: post_dets_)
             {
+                GoalPost temp;
                 Vector2i post_pix(post.x+post.w/2, post.y+post.h);
                 Vector2d odo_res = odometry(undistored(post_pix), camera_matrix);
                 //LOG(LOG_INFO)<<"post: "<<odo_res.norm()<<endll;
-                Vector2d ball_pos = camera2self(odo_res, head_yaw);
+                Vector2d post_pos = camera2self(odo_res, head_yaw);
                 if(++post_num>=2) break;
             }
-            SL->update(player_info(p.global.x(), p.global.y(), p.dir), posts_);
+            //SL->update(player_info(p.global.x(), p.global.y(), p.dir), posts_);
         }
 
         if (OPTS->use_debug())

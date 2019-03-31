@@ -55,20 +55,8 @@ public:
         return player_infos_;
     }
 
-    void set_ball_pos(const Eigen::Vector2d &global, const Eigen::Vector2d &my, const Eigen::Vector2d &cm, bool can=true)
-    {
-        info_mtx_.lock();
-        player_infos_[CONF->id()].ball_x = global.x();
-        player_infos_[CONF->id()].ball_y = global.y();
-        player_infos_[CONF->id()].available = can;
-        info_mtx_.unlock();
-        ball_mtx_.lock();
-        ball_block_.global=global;
-        ball_block_.self = my;
-        ball_block_.pixel = cm;
-        ball_block_.sure = can;
-        ball_mtx_.unlock();
-    }
+    void set_ball_pos(const Eigen::Vector2d &global, const Eigen::Vector2d &my, const Eigen::Vector2i &pix,
+        float alpha, float beta, bool can=true);
 
     void set_my_pos(const Eigen::Vector2d &my)
     {
