@@ -1,5 +1,3 @@
-#include <boost/foreach.hpp>
-#include <boost/make_shared.hpp>
 #include "SoccerMap.h"
 #include "parser/field_parser.hpp"
 

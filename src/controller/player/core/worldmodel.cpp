@@ -76,7 +76,7 @@ void WorldModel::navigation(const Eigen::Vector3d &walk_para)
     double dir = blk.dir+rad2deg(walk_para[2])*coef_d_;
     dir = normalize_deg(dir);
     Vector2d temp=currpos+rotation_mat_2d(-dir)*Vector2d(-walk_para[0]*coef_x_, walk_para[1]*coef_y_);
-    set_my_pos(temp);
+    //set_my_pos(temp);
 }
 
 void WorldModel::set_ball_pos(const Eigen::Vector2d &global, const Eigen::Vector2d &my, const Eigen::Vector2i &pix,

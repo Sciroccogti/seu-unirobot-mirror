@@ -35,12 +35,7 @@ std::list<task_ptr> player::play_without_gc()
             //if(d<0.5)
             {
                 state_=STATE_KICK;
-                Vector2i pix(bb.pixel.x()-w_/2, h_-bb.pixel.y());
-                if(pix.y()<1) pix.y()=1;
-                float yaw=rad2deg(atan(pix.x()/(float)pix.y()));
-                std::vector<double> head_degs = ROBOT->get_head_degs();
-                LOG(LOG_INFO)<<yaw<<endll;
-                //tasks.push_back(make_shared<look_task>(head_degs[0]-yaw, head_degs[1], false));//+sign(pix.y()-h_/2)*0.05*std::abs(pix.y()-h_/2)
+                tasks.push_back(skill_track_ball());
             }
             /*
             else

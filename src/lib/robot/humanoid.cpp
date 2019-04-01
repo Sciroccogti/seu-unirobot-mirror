@@ -266,6 +266,7 @@ namespace robot
 
     void humanoid::set_degs(const std::map<int, float> &jdmap)
     {
+        //std::lock_guard<std::mutex> lk(robot_mtx_);
         std::map<int, float> map = jdmap;
         std::map<int, float>::iterator iter = map.find(0); 
         if(iter != map.end())
@@ -282,6 +283,7 @@ namespace robot
 
     std::vector<double> humanoid::get_foot_degs(int support)
     {
+        //std::lock_guard<std::mutex> lk(robot_mtx_);
         std::vector<double> res;
         if(support == LEFT_SUPPORT)
         {
@@ -306,6 +308,7 @@ namespace robot
 
     joint_ptr humanoid::get_joint(const int &id)
     {
+        //std::lock_guard<std::mutex> lk(robot_mtx_);
         for (auto &j : joint_map_)
             if (j.second->jid_ == id)
             {
@@ -317,6 +320,7 @@ namespace robot
 
     joint_ptr humanoid::get_joint(const std::string &name)
     {
+        //std::lock_guard<std::mutex> lk(robot_mtx_);
         for (auto &j : joint_map_)
             if (j.second->name_ == name)
             {

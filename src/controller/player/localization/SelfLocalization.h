@@ -27,7 +27,7 @@ public:
     SelfLocalization();
     ~SelfLocalization();
 
-    bool update(const player_info &player_info_,const std::list< GoalPost > & posts_);
+    bool update(const player_info &player_info_,const std::vector< GoalPost > & posts_);
     //bool update1(const SensorModel &sensormodel,const Vector3f &moveVec,SoccerMap::PlayerData *player);
 
     SLF_conf getConfig() const

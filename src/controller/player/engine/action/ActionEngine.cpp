@@ -115,6 +115,8 @@ void ActionEngine::run()
                         pos2 = poses_temp[i];
                         std::vector< std::map<robot::robot_motion, robot::robot_pose> > act_poses;
                         act_poses = get_poses(pos1, pos2, pos_times_temp[i]);
+                        if(i==poses_temp.size()-1)
+                            act_poses.push_back(pos2);
 
                         for (auto act_pos : act_poses)
                         {
@@ -182,13 +184,12 @@ std::vector< std::map<robot::robot_motion, robot::robot_pose> > ActionEngine::ge
     Eigen::Vector3d dpposeb = pposeb2 - pposeb1;
     Eigen::Vector3d dpposel = pposel2 - pposel1;
     Eigen::Vector3d dpposer = pposer2 - pposer1;
+    int count;
+    /*
     double maxdb = std::max(std::max(std::abs(dposeb.x()), std::abs(dposeb.y())), std::abs(dposeb.z()));
     double maxdl = std::max(std::max(std::abs(dposel.x()), std::abs(dposel.y())), std::abs(dposel.z()));
     double maxdr = std::max(std::max(std::abs(dposel.x()), std::abs(dposel.y())), std::abs(dposel.z()));
     double maxv = std::max(std::max(maxdb, maxdl), maxdr);
-    std::vector< std::map<robot::robot_motion, robot::robot_pose> > act_poses;
-
-    int count;
 
     if (robot_math::is_zero(maxv - maxdb))
     {
@@ -240,7 +241,9 @@ std::vector< std::map<robot::robot_motion, robot::robot_pose> > ActionEngine::ge
     {
         count = act_time;
     }
+    */
 
+    count = act_time;
     double dbx = dposeb.x() / count, dby = dposeb.y() / count, dbz = dposeb.z() / count;
     double dbpi = dpposeb.x() / count, dbro = dpposeb.y() / count, dbya = dpposeb.z() / count;
     double dlx = dposel.x() / count, dly = dposel.y() / count, dlz = dposel.z() / count;
@@ -250,7 +253,7 @@ std::vector< std::map<robot::robot_motion, robot::robot_pose> > ActionEngine::ge
 
     double dlhx = dposelh.x() / count, dlhz = dposelh.z() / count;
     double drhx = dposerh.x() / count, drhz = dposerh.z() / count;
-
+    std::vector< std::map<robot::robot_motion, robot::robot_pose> > act_poses;
     for (int i = 0; i < count; i++)
     {
         std::map<robot::robot_motion, robot::robot_pose> temp_pose_map;
@@ -284,7 +287,6 @@ std::vector< std::map<robot::robot_motion, robot::robot_pose> > ActionEngine::ge
         temp_pose_map[robot::MOTION_RIGHT_FOOT] = temp_pose;
         act_poses.push_back(temp_pose_map);
     }
-
     return act_poses;
 }
 
@@ -306,6 +308,7 @@ bool ActionEngine::get_degs(const robot_math::transform_matrix &body_mat, const 
     }
     else
     {
+        LOG(LOG_ERROR) <<"IK ERROR!"<<endll;
         return false;
     }
 
@@ -320,6 +323,7 @@ bool ActionEngine::get_degs(const robot_math::transform_matrix &body_mat, const 
     }
     else
     {
+        LOG(LOG_ERROR) <<"IK ERROR!"<<endll;
         return false;
     }
 
@@ -330,6 +334,7 @@ bool ActionEngine::get_degs(const robot_math::transform_matrix &body_mat, const 
     }
     else
     {
+        LOG(LOG_ERROR) <<"IK ERROR!"<<endll;
         return false;
     }
 
@@ -340,6 +345,7 @@ bool ActionEngine::get_degs(const robot_math::transform_matrix &body_mat, const 
     }
     else
     {
+        LOG(LOG_ERROR) <<"IK ERROR!"<<endll;
         return false;
     }
 

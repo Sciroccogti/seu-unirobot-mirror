@@ -4,6 +4,7 @@
 #include <iostream>
 #include <limits.h>
 #include <list>
+#include <vector>
 #include "math/math.hpp"
 #include "SoccerMap.h"
 #include "model.hpp"
@@ -100,7 +101,7 @@ private:
 public:
   void init();
   void forecast(const player_info &player_info_);
-  int goalPostUpdate(const std::list< GoalPost > & posts_);
+  int goalPostUpdate(const std::vector< GoalPost > & posts_);
   //bool fieldLineUpdate(const list< sm::Line > &fieldlines);
   State obeupdate1();
   State obeupdate2();
