@@ -73,7 +73,7 @@ namespace motion
         //for walking step
         params_.openFeedbackLoop = CONF->get_config_value<int>(part+".openFeedbackLoop");
         params_.initStepGain = CONF->get_config_value<double>(part+".initStepGain");
-        params_.initDir = CONF->get_config_value<double>(part+".initDir");
+        params_.initDir = deg2rad(CONF->get_config_value<double>(part+".initDir"));
         params_.stepKxr = CONF->get_config_value<double>(part+".stepKxr");
         params_.stepKxl = CONF->get_config_value<double>(part+".stepKxl");
         params_.stepKyr = CONF->get_config_value<double>(part+".stepKyr");
@@ -280,7 +280,7 @@ namespace motion
                 tempParams.turnGain += FWC.aimLen == 0 ? tempParams.initDir : 0.0;
 
             }
-            if((fabs(tempParams.enabledGain)>1E-2) &&(MADT->get_mode() == adapter::MODE_READY || MADT->get_mode() == adapter::MODE_WALK))
+            if(float_equals(tempParams.enableFlag, 1.0) &&(MADT->get_mode() == adapter::MODE_READY || MADT->get_mode() == adapter::MODE_WALK))
             {                   
                 while (phase_ < 0.5)
                 {   
@@ -513,9 +513,9 @@ namespace motion
                         
                             float temp_err = fabs(len_err);
                             
-                            if(temp_err >= 0.0015)                          FWC.stepLen_k = 100;
+                            if(temp_err >= 0.0015)                           FWC.stepLen_k = 100;
                             else if(temp_err < 0.0015 && temp_err >= 0.0005) FWC.stepLen_k = 100;
-                            else                                           FWC.stepLen_k = 20;  
+                            else                                             FWC.stepLen_k = 20;  
 
                             params_.feedStepKxl += limit(FWC.stepLen_k * len_err / FWC.realLeftLen, -0.15, 0.15);
                             params_.feedStepKxr += limit(FWC.stepLen_k * (-len_err) / FWC.realRightLen, -0.15, 0.15);

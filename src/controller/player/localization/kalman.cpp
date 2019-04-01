@@ -30,8 +30,8 @@ void KA::setPzero()
 
 void KA::forecast(const player_info &player_info_)
 { 
-  now_state.x= player_info_.x*100;
-  now_state.y= player_info_.y*100;
+  now_state.x= player_info_.x*100.0;
+  now_state.y= player_info_.y*100.0;
   now_state.dir= player_info_.dir;
   addPQ();
 }
@@ -90,9 +90,9 @@ int KA::goalPostUpdate(const vector< GoalPost > & posts_)
             distErr = (fp - pos).norm() - post._distance;
 	          // cout<<fp.x()<<"  "<<fp.y()<<"  "<<abs(bearErr)<<"  "<<abs(distErr)<<endl;
 	          // cout<<(fp - pos).angle()<<"  "<<now_state.dir<<"  "<<post._theta<<endl;
-	          if(abs(bearErr)+abs(distErr)<minErr && abs(normalize_deg(azimuth(fp - pos)-now_state.dir))<=50)
+	          if(20*abs(bearErr)+abs(distErr)<minErr)// && abs(normalize_deg(azimuth(fp - pos)-now_state.dir))<=50)
 	          {
-	            minErr=abs(bearErr)+abs(distErr);
+	            minErr=20*abs(bearErr)+abs(distErr);
 	            float M=fp.y()-now_state.y;
               float N1=fp.x()-now_state.x;
 	            if(size==1)
@@ -172,7 +172,7 @@ void KA::getK1()
     }
 }
 
-void KA::getK2()
+bool KA::getK2()
 {
   float ph[2][4]={0};
   for(int i=0;i<2;i++)
@@ -191,7 +191,10 @@ void KA::getK2()
       hph[i][j]=hph[i][j]+R2[i][j];
     
   float ni[4][4]={0};
-   LUP_solve_inverse(hph,ni);
+   if(!LUP_solve_inverse(hph,ni))
+   {
+     return false;
+   }
   /*
   float I[4][4];
   for(int i=0;i<4;i++)
@@ -213,6 +216,8 @@ void KA::getK2()
 	b+=ph[i][k]*ni[k][j];  
       K2[i][j]=b;
     }
+
+  return true;
 }
 
 KA::State KA::obeupdate1()
@@ -262,7 +267,8 @@ KA::State KA::obeupdate1()
 
 KA::State KA::obeupdate2()
 {
-  getK2();
+  if(!getK2())
+    return now_state;
   float kz[2];
   for(int i=0;i<2;i++)
     kz[i]=K2[i][0]*(Z2[0].x-ZT2[0].x)

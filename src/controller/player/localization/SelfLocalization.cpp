@@ -45,17 +45,27 @@ bool SelfLocalization::update(const player_info &player_info_,const vector< Goal
         state=_kalman.obeupdate1();
  
       }
-
       else if(num==2)
       {
         state=_kalman.obeupdate2();
       }
+      else if(num==0)
+      {
+        state.x=player_info_.x*100.0;
+        state.y=player_info_.y*100.0;
+      }
 
       flag=num;
     }
-    LOG(LOG_INFO)<<state.x/100.0<<'\t'<<state.y/100.0<<endll;
-    WM->set_my_pos(Eigen::Vector2d(state.x/100.0, state.y/100.0));
-
+    //LOG(LOG_INFO)<<state.x/100.0<<'\t'<<state.y/100.0<<endll;
+    if(abs(state.x)<=SOCCERMAP->width()/2 && abs(state.y)<=SOCCERMAP->height())
+      WM->set_my_pos(Eigen::Vector2d(state.x/100.0, state.y/100.0));
+    else
+    {
+      LOG(LOG_INFO)<<"out"<<endll;
+      _kalman.setPzero();
+    }
+    
     clock_t finish = clock();
     
     _haslocated = true;
