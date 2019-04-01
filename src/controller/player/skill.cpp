@@ -6,15 +6,37 @@
 using namespace std;
 using namespace Eigen;
 using namespace robot_math;
+using namespace robot;
 
 const double skill_goto_max_omnidirectional_distance = 0.5;
-const double skill_goto_max_speed = 0.04;
+const double skill_goto_max_speed = 0.03;
 const double skill_goto_stop_distance = 0.3;
 const double skill_goto_stop_direction = 10.0;
 
 
 task_ptr skill_goto_forward(const Vector2d &p, double dir);
 task_ptr skill_goto_omnidirectional(const Vector2d &p, double dir);
+
+task_ptr skill_track_ball()
+{
+    ball_block ball = WM->ball();
+    std::vector<double> head_degs = ROBOT->get_head_degs();
+    float curYawDeg = head_degs[0];
+
+    if (fabs(ball.alpha) > 0.2f)
+    {
+        curYawDeg += -(sign(ball.alpha) * 10.0f);
+    }
+        
+    if (ball.self.x() < 0.8f)
+    {
+        return make_shared<look_task>(curYawDeg, 60.0, false);
+    }
+    else
+    {
+        return make_shared<look_task>(curYawDeg, 30.0, true);
+    }
+}
 
 task_ptr skill_goto(const Vector2d &p, double dir, bool omnidirectional)
 {
@@ -38,7 +60,7 @@ task_ptr skill_goto_forward(const Vector2d &p, double dir)
 
     if (fabs(drift_angle) > 20.0f)
     {
-        return make_shared<walk_task>(0,0,drift_angle,true);
+        return make_shared<walk_task>(0,0,10.0,true);
     }
     else
     {
@@ -56,6 +78,11 @@ task_ptr skill_goto_omnidirectional(const Vector2d &p, double dir)
 
     Vector2d relativeTarget = p-me.global;
     return make_shared<walk_task>(relativeTarget.x(), relativeTarget.y(), drift_angle, true);
+}
+
+task_ptr skill_kick()
+{
+    
 }
 
 task_ptr skill_goto_behind_the_ball(const Vector2f &relativeOffset, const Vector2f &aimAt)

@@ -190,7 +190,6 @@ void Vision::run()
             self_block p = WM->self();
             if(!ball_dets_.empty())
             {
-                //LOG(LOG_INFO)<<"*********************\n";
                 Vector2i ball_pix(ball_dets_[0].x+ball_dets_[0].w/2, ball_dets_[0].y+ball_dets_[0].h);
                 ball_pix = undistored(ball_pix);
                 Vector2d odo_res = odometry(ball_pix, camera_matrix);
@@ -210,17 +209,36 @@ void Vision::run()
                 */
             }
             int post_num=0;
-            list< GoalPost > posts_;
+            vector< GoalPost > posts_;
             for(auto &post: post_dets_)
             {
                 GoalPost temp;
                 Vector2i post_pix(post.x+post.w/2, post.y+post.h);
-                Vector2d odo_res = odometry(undistored(post_pix), camera_matrix);
+                post_pix = undistored(post_pix);
+                Vector2d odo_res = odometry(post_pix, camera_matrix);
                 //LOG(LOG_INFO)<<"post: "<<odo_res.norm()<<endll;
+                temp._distance = odo_res.norm()*100;
                 Vector2d post_pos = camera2self(odo_res, head_yaw);
-                if(++post_num>=2) break;
+                temp._theta = azimuth(post_pos);
+                posts_.push_back(temp);
+                if(posts_.size()==2)
+                {
+                    if(post_dets_[0].x<post_dets_[1].x)
+                    {
+                        posts_[0]._type = GoalPost::SENSORMODEL_POST_L;
+                        posts_[1]._type = GoalPost::SENSORMODEL_POST_R;
+                    }
+                    else
+                    {
+                        posts_[0]._type = GoalPost::SENSORMODEL_POST_R;
+                        posts_[1]._type = GoalPost::SENSORMODEL_POST_L;
+                    }
+                    //LOG(LOG_INFO)<<posts_[0]._type<<'\t'<<posts_[0]._distance<<'\t'<<posts_[0]._theta<<endll;
+                    //LOG(LOG_INFO)<<posts_[1]._type<<'\t'<<posts_[1]._distance<<'\t'<<posts_[1]._theta<<endll;
+                    break;
+                }
             }
-            //SL->update(player_info(p.global.x(), p.global.y(), p.dir), posts_);
+            SL->update(player_info(p.global.x(), p.global.y(), p.dir), posts_);
         }
 
         if (OPTS->use_debug())

@@ -35,6 +35,7 @@ namespace robot
         std::vector<double> get_foot_degs(int support);
         std::vector<double> get_head_degs()
         {
+            //std::lock_guard<std::mutex> lk(robot_mtx_);
             std::vector<double> res = {joint_map_["jhead1"]->get_deg(), joint_map_["jhead2"]->get_deg()};
             return res;
         }
@@ -114,12 +115,9 @@ namespace robot
             return A_ + B_;
         }
 
-        joint_map &get_joint_map()
+        joint_map get_joint_map()
         {
-            return joint_map_;
-        }
-        joint_map get_joint_map() const
-        {
+            //std::lock_guard<std::mutex> lk(robot_mtx_);
             return joint_map_;
         }
         bone_map &get_bone_map()
@@ -161,6 +159,7 @@ namespace robot
         }
 
     private:
+        //mutable std::mutex robot_mtx_;
         bone_ptr main_bone_;
         joint_map joint_map_;
         joint_map real_joint_map_;

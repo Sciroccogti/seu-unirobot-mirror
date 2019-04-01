@@ -12,4 +12,10 @@ namespace robot_math
                 -std::sin(rad), std::cos(rad);
         return temp;
     }
+
+    template<typename T>
+    inline bool float_equals(T v1, T v2)
+    {
+        return fabs(v1-v2)<1E-5;
+    }
 }

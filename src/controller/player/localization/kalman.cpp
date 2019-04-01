@@ -1,5 +1,4 @@
 #include "kalman.h"
-#include <boost/foreach.hpp>
 #include <stdio.h>
 #include "inverse.h"
 
@@ -9,9 +8,9 @@ using namespace Eigen;
 
 void KA::init()
 {
-  now_state.x=-250;//SOCCERMAP.width() - SOCCERMAP.center().x();
-  now_state.y=-300;//SOCCERMAP.height() - SOCCERMAP.center().y();
-  now_state.dir=90;
+  now_state.x=SOCCERMAP->width() - SOCCERMAP->center().x();
+  now_state.y=SOCCERMAP->height() - SOCCERMAP->center().y();
+  now_state.dir=0;
   detq=exp(-20);
   detr=exp(-20);
   setzero();
@@ -31,19 +30,19 @@ void KA::setPzero()
 
 void KA::forecast(const player_info &player_info_)
 { 
-  now_state.x= player_info_.x;
-  now_state.y= player_info_.y;
+  now_state.x= player_info_.x*100;
+  now_state.y= player_info_.y*100;
   now_state.dir= player_info_.dir;
   addPQ();
 }
 
 
 
-int KA::goalPostUpdate(const list< GoalPost > & posts_)
+int KA::goalPostUpdate(const vector< GoalPost > & posts_)
 {
      int size=posts_.size();
      int flag=0;  
-     BOOST_FOREACH(const GoalPost & post, posts_)
+     for(const GoalPost & post: posts_)
     {
         vector<Vector2f> postPosL, postPosR; 
 
@@ -85,7 +84,7 @@ int KA::goalPostUpdate(const list< GoalPost > & posts_)
         float bearErr, distErr;
 	      float minErr=1000000;
 	      Vector2f pos(now_state.x, now_state.y);
-              BOOST_FOREACH(const Vector2f & fp, postPos)
+        for(const Vector2f & fp: postPos)
 	      {
 	          bearErr = normalize_deg(azimuth(fp - pos)-now_state.dir-post._theta);
             distErr = (fp - pos).norm() - post._distance;
@@ -224,8 +223,8 @@ KA::State KA::obeupdate1()
   for(int i=0;i<2;i++)
       kz[i]=K1[i][0]*(Z1.x-ZT1.x)
            +K1[i][1]*(Z1.y-ZT1.y);
-  cout<<Z1.x<<"          "<<ZT1.x<<endl;
-  cout<<Z1.y<<"          "<<ZT1.y<<endl;
+  //cout<<Z1.x<<"          "<<ZT1.x<<endl;
+  //cout<<Z1.y<<"          "<<ZT1.y<<endl;
   //cout<<now_state.x<<"  "<<now_state.y<<endl;
   if(kz[1]<100)
   {
@@ -233,7 +232,7 @@ KA::State KA::obeupdate1()
     now_state.y+=kz[1];
   }
   //now_state.dir=normalizeAngle<AngDeg>(kz[2]+now_state.dir);
-  cout<<kz[0]<<"  "<<kz[1]<<endl;
+  //cout<<kz[0]<<"  "<<kz[1]<<endl;
   //cout<<now_state.x<<"  "<<now_state.y<<endl;
   
  
@@ -273,7 +272,7 @@ KA::State KA::obeupdate2()
   now_state.x+=kz[0];
   now_state.y+=kz[1];
  // now_state.dir=normalizeAngle<AngDeg>(kz[2]+now_state.dir);
-  cout<<kz[0]<<"    "<<kz[1]<<endl;
+  //cout<<kz[0]<<"    "<<kz[1]<<endl;
   //cout<<now_state.x<<"  "<<now_state.y<<endl;
   float ikh[2][2];
   for(int i=0;i<2;i++)

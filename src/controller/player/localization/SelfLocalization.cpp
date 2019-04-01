@@ -1,7 +1,6 @@
 #include <ctime>
 #include <stdlib.h>
 #include <limits.h>
-#include <boost/foreach.hpp>
 #include "SelfLocalization.h"
 #include "configuration.hpp"
 #include "core/worldmodel.hpp"
@@ -13,7 +12,7 @@ SelfLocalization::SelfLocalization(): _haslocated(false)
 {
     srand(time(0));
 
-    _conf._sample_num = 60;
+    //_conf._sample_num = 60;
     _conf._div_dir = 36;
     _conf._observation_update_counter = 1;
     _kalman.init();
@@ -25,7 +24,7 @@ SelfLocalization::~SelfLocalization()
 }
 
 
-bool SelfLocalization::update(const player_info &player_info_,const list< GoalPost > & posts_)
+bool SelfLocalization::update(const player_info &player_info_,const vector< GoalPost > & posts_)
 {
     clock_t start = clock();  
     _kalman.forecast(player_info_);
@@ -54,7 +53,8 @@ bool SelfLocalization::update(const player_info &player_info_,const list< GoalPo
 
       flag=num;
     }
-    WM->set_my_pos(Eigen::Vector2d(state.x, state.y));
+    LOG(LOG_INFO)<<state.x/100.0<<'\t'<<state.y/100.0<<endll;
+    WM->set_my_pos(Eigen::Vector2d(state.x/100.0, state.y/100.0));
 
     clock_t finish = clock();
     
