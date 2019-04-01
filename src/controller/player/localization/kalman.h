@@ -92,7 +92,7 @@ private:
   void getH1(float M, float N1);
   void getH2(float M, float N1, int flag);
   void getK1();
-  void getK2();
+  bool getK2();
   float getA(float arcs[Nn][Nn],int n);
   void getAStart(float arcs[Nn][Nn],int n,float ans[Nn][Nn]); 
   bool GetMatrixInverse(float src[Nn][Nn],int n,float des[Nn][Nn]);

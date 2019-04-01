@@ -212,14 +212,18 @@ void Vision::run()
             vector< GoalPost > posts_;
             for(auto &post: post_dets_)
             {
+                //LOG(LOG_WARN)<<post.w<<'\t'<<post.h<<endll;
+                if(post.w<20||post.h<30) continue;
                 GoalPost temp;
-                Vector2i post_pix(post.x+post.w/2, post.y+post.h);
+                Vector2i post_pix(post.x+post.w/2, post.y+post.h*0.8);
                 post_pix = undistored(post_pix);
                 Vector2d odo_res = odometry(post_pix, camera_matrix);
                 //LOG(LOG_INFO)<<"post: "<<odo_res.norm()<<endll;
                 temp._distance = odo_res.norm()*100;
                 Vector2d post_pos = camera2self(odo_res, head_yaw);
                 temp._theta = azimuth(post_pos);
+                LOG(LOG_INFO)<<"###########################"<<endll;
+                LOG(LOG_INFO)<<'\t'<<temp._distance<<'\t'<<temp._theta<<endll;
                 posts_.push_back(temp);
                 if(posts_.size()==2)
                 {
@@ -233,6 +237,7 @@ void Vision::run()
                         posts_[0]._type = GoalPost::SENSORMODEL_POST_R;
                         posts_[1]._type = GoalPost::SENSORMODEL_POST_L;
                     }
+                    //LOG(LOG_INFO)<<"###########################"<<endll;
                     //LOG(LOG_INFO)<<posts_[0]._type<<'\t'<<posts_[0]._distance<<'\t'<<posts_[0]._theta<<endll;
                     //LOG(LOG_INFO)<<posts_[1]._type<<'\t'<<posts_[1]._distance<<'\t'<<posts_[1]._theta<<endll;
                     break;

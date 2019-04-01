@@ -34,7 +34,7 @@ float * mul(float A[N*N],float B[N*N])
 }
 
 //LUP分解
-void LUP_Descomposition(float A[N*N],float L[N*N],float U[N*N],int P[N])
+bool LUP_Descomposition(float A[N*N],float L[N*N],float U[N*N],int P[N])
 {
     int row=0;
     for(int i=0;i<N;i++)
@@ -55,7 +55,7 @@ void LUP_Descomposition(float A[N*N],float L[N*N],float U[N*N],int P[N])
         if(0==p)
         {
             cout<< "矩阵奇异，无法计算逆" <<endl;
-            return ;
+            return false;
         }
 
         //交换P[i]和P[row]
@@ -105,6 +105,7 @@ void LUP_Descomposition(float A[N*N],float L[N*N],float U[N*N],int P[N])
             U[i*N+k]=A[i*N+k];
         }
     }
+    return true;
 
 }
 
@@ -180,7 +181,7 @@ void transpose(float *mtx, int m, int n)
 /*****************矩阵原地转置END********************/
 
 //LUP求逆(将每列b求出的各列x进行组装)
-void LUP_solve_inverse(float A[N][N],float inv[N][N])
+bool LUP_solve_inverse(float A[N][N],float inv[N][N])
 {
     //创建矩阵A的副本，注意不能直接用A计算，因为LUP分解算法已将其改变
     float *A_mirror = new float[N*N]();
@@ -209,7 +210,8 @@ void LUP_solve_inverse(float A[N][N],float inv[N][N])
              A_mirror[i*N+j]=A[i][j];
           }
 
-        LUP_Descomposition(A_mirror,L,U,P);
+        if(!LUP_Descomposition(A_mirror,L,U,P))
+            return false;
 
         inv_A_each=LUP_Solve (L,U,P,b);
         memcpy(inv_A+i*N,inv_A_each,N*sizeof(float));//将各列拼接起来
@@ -219,6 +221,8 @@ void LUP_solve_inverse(float A[N][N],float inv[N][N])
     for(int i=0;i<N;i++)
       for(int j=0;j<N;j++)
 	inv[i][j]=inv_A[i*N+j];
+
+    return true;
 	
     //return inv_A;
 }
