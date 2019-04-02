@@ -94,6 +94,10 @@ public:
     }
 
     void navigation(const Eigen::Vector3d &walk_para);
+
+public:
+    std::atomic_bool find_two_posts;
+    Eigen::Vector2d opp_post_left, opp_post_right;
     
 private:
     imu::imu_data imu_data_;
@@ -106,7 +110,6 @@ private:
     std::atomic_bool bt2_status_;
     std::atomic_int fall_direction_;
     std::atomic_int support_foot_;
-
 
     double coef_x_, coef_y_, coef_d_;
     mutable std::mutex imu_mtx_, gc_mtx_, info_mtx_, ball_mtx_, self_mtx_;

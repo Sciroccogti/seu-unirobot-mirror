@@ -38,6 +38,35 @@ task_ptr skill_track_ball()
     }
 }
 
+task_ptr skill_head_scan(bool search_ball)
+{
+    const float skill_head_pitch_min_angle = 0.0f;
+    const float skill_head_pitch_mid_angle = 30.0f;
+    const float skill_head_pitch_max_angle = 60.0f;
+    const int scan_table_size = 16;
+    const float head_scan_table[scan_table_size][2] =
+    {
+        {skill_head_pitch_min_angle, 87.5},
+        {skill_head_pitch_min_angle, 52.5}, 
+        {skill_head_pitch_min_angle, 17.5},
+        {skill_head_pitch_min_angle, -17.5}, 
+        {skill_head_pitch_min_angle, -52.5},
+        {skill_head_pitch_min_angle, -87.5},
+
+        {skill_head_pitch_mid_angle, 75.0},
+        {skill_head_pitch_mid_angle, 45.0},
+        {skill_head_pitch_mid_angle, 15.0},
+        {skill_head_pitch_mid_angle, -15.0},
+        {skill_head_pitch_mid_angle, -45.0},
+        {skill_head_pitch_mid_angle, -75.0},
+        
+        {skill_head_pitch_max_angle, 45.0}, 
+        {skill_head_pitch_max_angle, 15.0},
+        {skill_head_pitch_max_angle, -15.0}, 
+        {skill_head_pitch_max_angle, -45.0}
+    };
+}
+
 task_ptr skill_goto(const Vector2d &p, double dir, bool omnidirectional)
 {
     self_block me = WM->self();

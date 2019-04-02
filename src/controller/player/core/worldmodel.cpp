@@ -1,4 +1,5 @@
 #include "worldmodel.hpp"
+#include "localization/SoccerMap.h"
 
 using namespace Eigen;
 using namespace robot_math;
@@ -21,6 +22,9 @@ WorldModel::WorldModel()
     coef_x_ = CONF->get_config_value<double>(CONF->player()+".nav.cx");
     coef_y_ = CONF->get_config_value<double>(CONF->player()+".nav.cy");
     coef_d_ = CONF->get_config_value<double>(CONF->player()+".nav.cd");
+    find_two_posts = false;
+    opp_post_left = Vector2d(SOCCERMAP->width()/200.0, SOCCERMAP->goalWidth()/200.0);
+    opp_post_left = Vector2d(SOCCERMAP->width()/200.0, -SOCCERMAP->goalWidth()/200.0);
 }
 
 void WorldModel::updata(const pub_ptr &pub, const int &type)
@@ -94,6 +98,6 @@ void WorldModel::set_ball_pos(const Eigen::Vector2d &global, const Eigen::Vector
     ball_block_.pixel = pix;
     ball_block_.alpha = alpha;
     ball_block_.beta = beta;
-    ball_block_.sure = can;
+    ball_block_.can_see = can;
     ball_mtx_.unlock();
 }

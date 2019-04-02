@@ -190,23 +190,24 @@ void Vision::run()
             self_block p = WM->self();
             if(!ball_dets_.empty())
             {
-                Vector2i ball_pix(ball_dets_[0].x+ball_dets_[0].w/2, ball_dets_[0].y+ball_dets_[0].h);
-                ball_pix = undistored(ball_pix);
-                Vector2d odo_res = odometry(ball_pix, camera_matrix);
-                Vector2d ball_pos = camera2self(odo_res, head_yaw);
-                cant_see_ball_count_=0;
-                Vector2d temp_ball = p.global+rotation_mat_2d(-p.dir)*ball_pos;
-                float alpha = (ball_pix.x()-params_.cx)/(float)w_;
-                float beta = (ball_pix.y()-params_.cy)/(float)h_;
-                WM->set_ball_pos(temp_ball, ball_pos, ball_pix, alpha, beta, true);
+                if(ball_dets_[0].w>=20&&ball_dets_[0].h>=20)
+                {
+                    Vector2i ball_pix(ball_dets_[0].x+ball_dets_[0].w/2, ball_dets_[0].y+ball_dets_[0].h);
+                    ball_pix = undistored(ball_pix);
+                    Vector2d odo_res = odometry(ball_pix, camera_matrix);
+                    Vector2d ball_pos = camera2self(odo_res, head_yaw);
+                    cant_see_ball_count_=0;
+                    Vector2d temp_ball = p.global+rotation_mat_2d(-p.dir)*ball_pos;
+                    float alpha = (ball_pix.x()-params_.cx)/(float)w_;
+                    float beta = (ball_pix.y()-params_.cy)/(float)h_;
+                    WM->set_ball_pos(temp_ball, ball_pos, ball_pix, alpha, beta, true);
+                }
             }
             else
             {
-                /*
                 cant_see_ball_count_++;
-                if(cant_see_ball_count_*period_ms_>10000)
-                    WM->set_ball_pos(Vector2d(0,0), Vector2d(0,0), Vector2d(0,0), false);
-                */
+                if(cant_see_ball_count_*period_ms_>500)
+                    WM->set_ball_pos(Vector2d(0,0), Vector2d(0,0), Vector2i(0,0), 0, 0, false);
             }
             int post_num=0;
             vector< GoalPost > posts_;
@@ -222,8 +223,8 @@ void Vision::run()
                 temp._distance = odo_res.norm()*100;
                 Vector2d post_pos = camera2self(odo_res, head_yaw);
                 temp._theta = azimuth(post_pos);
-                LOG(LOG_INFO)<<"###########################"<<endll;
-                LOG(LOG_INFO)<<'\t'<<temp._distance<<'\t'<<temp._theta<<endll;
+                //LOG(LOG_INFO)<<"###########################"<<endll;
+                //LOG(LOG_INFO)<<'\t'<<temp._distance<<'\t'<<temp._theta<<endll;
                 posts_.push_back(temp);
                 if(posts_.size()==2)
                 {
@@ -240,10 +241,15 @@ void Vision::run()
                     //LOG(LOG_INFO)<<"###########################"<<endll;
                     //LOG(LOG_INFO)<<posts_[0]._type<<'\t'<<posts_[0]._distance<<'\t'<<posts_[0]._theta<<endll;
                     //LOG(LOG_INFO)<<posts_[1]._type<<'\t'<<posts_[1]._distance<<'\t'<<posts_[1]._theta<<endll;
+                    WM->find_two_posts = true;
                     break;
                 }
+                else
+                {
+                    WM->find_two_posts = false;
+                }
             }
-            SL->update(player_info(p.global.x(), p.global.y(), p.dir), posts_);
+            //SL->update(player_info(p.global.x(), p.global.y(), p.dir), posts_);
         }
 
         if (OPTS->use_debug())

@@ -28,22 +28,49 @@ std::list<task_ptr> player::play_without_gc()
     }
     else
     {
-        ball_block bb = WM->ball();
-        if(bb.sure)
+        ball_block ball = WM->ball();
+        self_block self = WM->self();
+        if(ball.can_see)
         {
-            double d=bb.self.norm();
-            //if(d<0.5)
+            double dir = azimuth(ball.self);
+            double dis = ball.self.norm();
+            //LOG(LOG_INFO)<<dis<<'\t'<<dir<<endll;
+            if(dis>0.12)
             {
-                state_=STATE_KICK;
-                tasks.push_back(skill_track_ball());
+                if(fabs(dir)>15.0)
+                    tasks.push_back(make_shared<walk_task>(0.0, 0.0, -dir, true));
+                else
+                    tasks.push_back(make_shared<walk_task>(0.027, 0.0, 0.0, true));
             }
-            /*
             else
             {
-                state_=STATE_SEARCH;
-                tasks.push_back(make_shared<look_task>(true));
-                tasks.push_back(skill_goto(bb.global, 0, false));
-            } */
+                if(fabs(ball.self.y())>0.08)
+                    tasks.push_back(make_shared<walk_task>(0.0, sign(ball.self.y())*0.02, 0.0, true));
+                else
+                {
+                    if(ball.self.x()>0.05)
+                        tasks.push_back(make_shared<walk_task>(0.02, 0.0, 0.0, true));
+                    else
+                    {
+                        if(ball.self.y()>0)
+                        {
+                            tasks.push_back(make_shared<action_task>("left_kick"));
+                            //tasks.push_back(make_shared<walk_task>(0.0, 0.0, 0.0, false));
+                            //LOG(LOG_WARN)<<"left_kick"<<endll;
+                        }
+                        else
+                        {
+                            tasks.push_back(make_shared<action_task>("right_kick"));
+                            //tasks.push_back(make_shared<walk_task>(0.0, 0.0, 0.0, false));
+                            //LOG(LOG_WARN)<<"right_kick"<<endll;
+                        }
+                    }
+                }
+            }
+        }
+        else
+        {
+            tasks.push_back(make_shared<walk_task>(-0.02, 0.0, 0.0, true));
         }
     }
     return tasks;

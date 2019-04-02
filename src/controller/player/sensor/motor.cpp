@@ -186,7 +186,7 @@ bool motor::read_all_pos()
     
     if (dxl_comm_result != COMM_SUCCESS)
     {
-        LOG(LOG_WARN) << packetHandler_->getTxRxResult(dxl_comm_result) << endll;
+        //LOG(LOG_WARN) << packetHandler_->getTxRxResult(dxl_comm_result) << endll;
         return false;
     }
     else
@@ -228,7 +228,7 @@ bool motor::read_legs_pos()
     
     if (dxl_comm_result != COMM_SUCCESS)
     {
-        LOG(LOG_WARN) << packetHandler_->getTxRxResult(dxl_comm_result) << endll;
+        //LOG(LOG_WARN) << packetHandler_->getTxRxResult(dxl_comm_result) << endll;
         return false;
     }
     else
@@ -270,7 +270,7 @@ bool motor::read_head_pos()
     
     if (dxl_comm_result != COMM_SUCCESS)
     {
-        LOG(LOG_WARN) << packetHandler_->getTxRxResult(dxl_comm_result) << endll;
+        //LOG(LOG_WARN) << packetHandler_->getTxRxResult(dxl_comm_result) << endll;
         return false;
     }
     else
