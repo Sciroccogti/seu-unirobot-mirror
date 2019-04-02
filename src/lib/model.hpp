@@ -58,7 +58,7 @@ struct ball_block
     Eigen::Vector2d self;
     Eigen::Vector2i pixel;
     float alpha, beta;
-    bool sure=false;
+    bool can_see=false;
 };
 
 struct self_block
