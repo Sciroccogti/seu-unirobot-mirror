@@ -15,7 +15,7 @@ camera_setter::camera_setter(tcp_client &client, QString netinfo, QWidget *paren
     first_connect = true;
     CtrlSlider *slider;
 
-    parser::camera_info_parser::parse(CONF->get_config_value<string>(CONF->player() + ".camera_file"), ctrl_items_);
+    parser::camera_info_parser::parse(CONF->get_config_value<string>(CONF->player() + ".camera_info_file"), ctrl_items_);
 
     for (auto it : ctrl_items_)
     {
