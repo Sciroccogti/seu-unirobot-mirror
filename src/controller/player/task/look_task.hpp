@@ -6,13 +6,13 @@
 class look_task: public task
 {
 public:
-    look_task(float yaw, float pitch, bool enable=false)
-        : yaw_(yaw), pitch_(pitch), e_(enable), task("look")
+    look_task(float yaw, float pitch, motion::Head_State state)
+        : yaw_(yaw), pitch_(pitch), s_(state), task("look")
     {
 
     }
 
-    look_task(bool enable): e_(enable), task("scan")
+    look_task(motion::Head_State state): s_(state), task("look")
     {
         yaw_=0.0;
         pitch_=0.0;
@@ -20,10 +20,10 @@ public:
 
     bool perform()
     {
-        motion::SE->set_params(yaw_, pitch_, e_);
+        motion::SE->set_params(yaw_, pitch_, s_);
         return true;
     }
 private:
     float yaw_, pitch_;
-    bool e_;
+    motion::Head_State s_;
 };

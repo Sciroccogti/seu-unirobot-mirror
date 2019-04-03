@@ -2,7 +2,7 @@
 
 #include "Spline.hpp"
 
-namespace motion
+namespace Leph
 {
 
     /**

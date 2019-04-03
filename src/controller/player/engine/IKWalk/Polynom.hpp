@@ -1,21 +1,21 @@
-#pragma once
+#ifndef LEPH_POLYNOM_HPP
+#define LEPH_POLYNOM_HPP
 
 #include <cstdlib>
 #include <vector>
 #include <iostream>
 
-namespace motion
-{
+namespace Leph {
 
-    /**
-     * Polynom
-     *
-     * Simple one dimentional
-     * polynom class for spline
-     * generation
-     */
-    class Polynom
-    {
+/**
+ * Polynom
+ *
+ * Simple one dimentional 
+ * polynom class for spline 
+ * generation
+ */
+class Polynom
+{
     public:
 
         /**
@@ -29,14 +29,14 @@ namespace motion
          * indexed from constant to
          * higher degree
          */
-        const std::vector<double> &getCoefs() const;
-        std::vector<double> &getCoefs();
+        const std::vector<double>& getCoefs() const;
+        std::vector<double>& getCoefs();
 
         /**
          * Access to coefficient
          */
-        const double &operator()(size_t index) const;
-        double &operator()(size_t index);
+        const double& operator()(size_t index) const;
+        double& operator()(size_t index);
 
         /**
          * Return polynom degree
@@ -56,7 +56,7 @@ namespace motion
          * Some useful operators
          */
         void operator*=(double coef);
-        void operator+=(const Polynom &p);
+        void operator+=(const Polynom& p);
 
     private:
 
@@ -64,11 +64,14 @@ namespace motion
          * Polynom coeficients
          */
         std::vector<double> _coefs;
-    };
+};
 
-    /**
-     * Print operator
-     */
-    std::ostream &operator<<(std::ostream &os, const Polynom &p);
+/**
+ * Print operator
+ */
+std::ostream& operator<<(std::ostream& os, const Polynom& p);
 
 }
+
+#endif
+

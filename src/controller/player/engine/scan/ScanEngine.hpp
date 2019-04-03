@@ -2,11 +2,20 @@
 
 #include <thread>
 #include <mutex>
+#include <atomic>
 #include <eigen3/Eigen/Dense>
 #include "singleton.hpp"
 
 namespace motion
 {
+    enum Head_State
+    {
+        HEAD_STATE_LOOKAT,
+        HEAD_STATE_SEARCH_BALL,
+        HEAD_STATE_SEARCH_POST,
+        HEAD_STATE_TRACK_BALL
+    };
+
     class ScanEngine: public singleton<ScanEngine>
     {
     public:
@@ -14,15 +23,15 @@ namespace motion
         ~ScanEngine();
         void start();
         void stop();
-        void set_params(float yaw, float pitch, bool scan);
+        void set_params(float yaw, float pitch, Head_State state);
 
     private:
         void run();
         std::thread td_;
         bool is_alive_;
-        float div_;
         float yaw_, pitch_;
-        bool scan_;
+
+        std::atomic_int head_state_;
         const float search_ball_div_ = 3.0;
         const float localization_div_ = 1.0;
         Eigen::Vector2f pitch_range_;

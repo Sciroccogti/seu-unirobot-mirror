@@ -33,6 +33,10 @@ Vision::Vision(): timer(CONF->get_config_value<int>("vision_period"))
     post_id_=1;
     ball_prob_ = CONF->get_config_value<float>("detection_prob.ball");
     post_prob_ = CONF->get_config_value<float>("detection_prob.post");
+    min_ball_w_ = CONF->get_config_value<int>("detection_prob.ball_w");
+    min_ball_h_ = CONF->get_config_value<int>("detection_prob.ball_h");
+    min_post_w_ = CONF->get_config_value<int>("detection_prob.post_w");
+    min_post_h_ = CONF->get_config_value<int>("detection_prob.post_h");
 }
 
 Vision::~Vision()
@@ -58,7 +62,7 @@ Vector2d Vision::odometry(const Vector2i &pos, const robot_math::transform_matri
     float OC = camera_matrix.p().z();
     float roll = -static_cast<float>(camera_matrix.x_rotate());
     float theta = static_cast<float>(camera_matrix.y_rotate());
-    theta = theta-0.02*(M_PI_2-theta);
+    theta = theta-0.03*(M_PI_2-theta);
     Vector2i Pos(pos.x()-params_.cx, params_.cy-pos.y());
     Vector2i calCenterPos(Pos.x()/cos(roll), Pos.y()+Pos.x()*tan(roll));
     Vector2i calPos(calCenterPos.x()+params_.cx, params_.cy-calCenterPos.y());
@@ -151,9 +155,9 @@ void Vision::run()
         cudaBGR2YUV422(dev_ori_, dev_yuyv_, w_, h_);
         cudaResizePacked(dev_ori_, w_, h_, dev_sized_, net_.w, net_.h);
         cudaBGR2RGBfp(dev_sized_, dev_rgbfp_, net_.w, net_.h);
-        
+
         detector_->process(dev_yuyv_);
-        
+        const int *fieldBorders = detector_->getBorder();
         layer l = net_.layers[net_.n - 1];
         network_predict(net_, dev_rgbfp_, 0);
         int nboxes = 0;
@@ -169,16 +173,24 @@ void Vision::run()
             if(dets[i].prob[ball_id_] > dets[i].prob[post_id_])
             {
                 if(dets[i].prob[ball_id_] >= ball_prob_)
-                    ball_dets_.push_back(object_det(ball_id_, dets[i].prob[ball_id_],
-                        (dets[i].bbox.x - dets[i].bbox.w / 2.0)*w_, (dets[i].bbox.y - dets[i].bbox.h / 2.0)*h_,
-                        dets[i].bbox.w*w_, dets[i].bbox.h*h_));
+                {
+                    int bx = (dets[i].bbox.x - dets[i].bbox.w / 2.0)*w_;
+                    int by = (dets[i].bbox.y - dets[i].bbox.h / 2.0)*h_;
+                    int bw = dets[i].bbox.w*w_, bh = dets[i].bbox.h*h_;
+                    if(bw>=min_ball_w_ && bh>=min_ball_h_)
+                        ball_dets_.push_back(object_det(ball_id_, dets[i].prob[ball_id_], bx, by, bw, bh));
+                }
             }
             else
             {
                 if(dets[i].prob[post_id_] >= post_prob_)
-                    post_dets_.push_back(object_det(post_id_, dets[i].prob[post_id_],
-                        (dets[i].bbox.x - dets[i].bbox.w / 2.0)*w_, (dets[i].bbox.y - dets[i].bbox.h / 2.0)*h_,
-                        dets[i].bbox.w*w_, dets[i].bbox.h*h_));
+                {
+                    int px = (dets[i].bbox.x - dets[i].bbox.w / 2.0)*w_;
+                    int py = (dets[i].bbox.y - dets[i].bbox.h / 2.0)*h_;
+                    int pw = dets[i].bbox.w*w_, ph = dets[i].bbox.h*h_;
+                    if(pw>=min_post_w_ && ph>=min_post_h_ && py+ph>fieldBorders[px+pw/2])
+                        post_dets_.push_back(object_det(post_id_, dets[i].prob[post_id_], px, py, pw, ph));
+                }
             }
         }
         sort(ball_dets_.rbegin(), ball_dets_.rend());
@@ -190,23 +202,21 @@ void Vision::run()
             self_block p = WM->self();
             if(!ball_dets_.empty())
             {
-                if(ball_dets_[0].w>=20&&ball_dets_[0].h>=20)
-                {
-                    Vector2i ball_pix(ball_dets_[0].x+ball_dets_[0].w/2, ball_dets_[0].y+ball_dets_[0].h);
-                    ball_pix = undistored(ball_pix);
-                    Vector2d odo_res = odometry(ball_pix, camera_matrix);
-                    Vector2d ball_pos = camera2self(odo_res, head_yaw);
-                    cant_see_ball_count_=0;
-                    Vector2d temp_ball = p.global+rotation_mat_2d(-p.dir)*ball_pos;
-                    float alpha = (ball_pix.x()-params_.cx)/(float)w_;
-                    float beta = (ball_pix.y()-params_.cy)/(float)h_;
-                    WM->set_ball_pos(temp_ball, ball_pos, ball_pix, alpha, beta, true);
-                }
+                Vector2i ball_pix(ball_dets_[0].x+ball_dets_[0].w/2, ball_dets_[0].y+ball_dets_[0].h);
+                ball_pix = undistored(ball_pix);
+                Vector2d odo_res = odometry(ball_pix, camera_matrix);
+                LOG(LOG_INFO)<<odo_res.norm()<<endll;
+                Vector2d ball_pos = camera2self(odo_res, head_yaw);
+                cant_see_ball_count_=0;
+                Vector2d temp_ball = p.global+rotation_mat_2d(-p.dir)*ball_pos;
+                float alpha = (ball_pix.x()-params_.cx)/(float)w_;
+                float beta = (ball_pix.y()-params_.cy)/(float)h_;
+                WM->set_ball_pos(temp_ball, ball_pos, ball_pix, alpha, beta, true);
             }
             else
             {
                 cant_see_ball_count_++;
-                if(cant_see_ball_count_*period_ms_>500)
+                if(cant_see_ball_count_*period_ms_>200)
                     WM->set_ball_pos(Vector2d(0,0), Vector2d(0,0), Vector2i(0,0), 0, 0, false);
             }
             int post_num=0;
@@ -214,7 +224,6 @@ void Vision::run()
             for(auto &post: post_dets_)
             {
                 //LOG(LOG_WARN)<<post.w<<'\t'<<post.h<<endll;
-                if(post.w<20||post.h<30) continue;
                 GoalPost temp;
                 Vector2i post_pix(post.x+post.w/2, post.y+post.h*0.8);
                 post_pix = undistored(post_pix);
@@ -271,12 +280,8 @@ void Vision::run()
             }
             else if (img_sd_type_ == IMAGE_SEND_RESULT)
             {   
-                /*
-                for(int j=0;j<480;j++)
-                    for(int i=0;i<640;i++)
-                        if(detector_->isGreen(i, j))
-                            bgr.at<Vec3b>(j, i) = Vec3b(0, 255, 0);
-                */
+                for(int i=0;i<w_;i++)
+                    bgr.at<Vec3b>(fieldBorders[i], i) = Vec3b(0, 255, 255);
                 if(!ball_dets_.empty())
                 {
                     rectangle(bgr, Point(ball_dets_[0].x, ball_dets_[0].y), Point(ball_dets_[0].x + ball_dets_[0].w,

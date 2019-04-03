@@ -17,56 +17,6 @@ const double skill_goto_stop_direction = 10.0;
 task_ptr skill_goto_forward(const Vector2d &p, double dir);
 task_ptr skill_goto_omnidirectional(const Vector2d &p, double dir);
 
-task_ptr skill_track_ball()
-{
-    ball_block ball = WM->ball();
-    std::vector<double> head_degs = ROBOT->get_head_degs();
-    float curYawDeg = head_degs[0];
-
-    if (fabs(ball.alpha) > 0.2f)
-    {
-        curYawDeg += -(sign(ball.alpha) * 10.0f);
-    }
-        
-    if (ball.self.x() < 0.8f)
-    {
-        return make_shared<look_task>(curYawDeg, 60.0, false);
-    }
-    else
-    {
-        return make_shared<look_task>(curYawDeg, 30.0, true);
-    }
-}
-
-task_ptr skill_head_scan(bool search_ball)
-{
-    const float skill_head_pitch_min_angle = 0.0f;
-    const float skill_head_pitch_mid_angle = 30.0f;
-    const float skill_head_pitch_max_angle = 60.0f;
-    const int scan_table_size = 16;
-    const float head_scan_table[scan_table_size][2] =
-    {
-        {skill_head_pitch_min_angle, 87.5},
-        {skill_head_pitch_min_angle, 52.5}, 
-        {skill_head_pitch_min_angle, 17.5},
-        {skill_head_pitch_min_angle, -17.5}, 
-        {skill_head_pitch_min_angle, -52.5},
-        {skill_head_pitch_min_angle, -87.5},
-
-        {skill_head_pitch_mid_angle, 75.0},
-        {skill_head_pitch_mid_angle, 45.0},
-        {skill_head_pitch_mid_angle, 15.0},
-        {skill_head_pitch_mid_angle, -15.0},
-        {skill_head_pitch_mid_angle, -45.0},
-        {skill_head_pitch_mid_angle, -75.0},
-        
-        {skill_head_pitch_max_angle, 45.0}, 
-        {skill_head_pitch_max_angle, 15.0},
-        {skill_head_pitch_max_angle, -15.0}, 
-        {skill_head_pitch_max_angle, -45.0}
-    };
-}
-
 task_ptr skill_goto(const Vector2d &p, double dir, bool omnidirectional)
 {
     self_block me = WM->self();

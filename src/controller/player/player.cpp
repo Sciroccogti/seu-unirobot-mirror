@@ -7,7 +7,7 @@
 #include "task/say_task.hpp"
 #include "server/server.hpp"
 #include "core/adapter.hpp"
-#include "engine/walk/WalkEngine.hpp"
+#include "engine/IKWalk/WalkEngine.hpp"
 #include "engine/scan/ScanEngine.hpp"
 #include "engine/action/ActionEngine.hpp"
 #include "engine/led/LedEngine.hpp"
@@ -89,7 +89,7 @@ list<task_ptr> player::think()
     {
         //tlists = play_without_gc();
         //tasks.push_back(make_shared<look_task>(true));
-        tasks.push_back(make_shared<walk_task>(0.02, 0.0, 0.0, true));
+        tasks.push_back(make_shared<walk_task>(0.0, 0.0, 0.0, true));
     }
     //tasks.push_back(make_shared<look_task>(true));
     //tasks.push_back(make_shared<walk_task>(0.0, 0.0, 0.0, true));
@@ -107,7 +107,6 @@ bool player::init()
     {
         return false;
     }
-
     is_alive_ = true;
 
     if (OPTS->use_robot())

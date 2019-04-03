@@ -18,6 +18,7 @@ std::list<task_ptr> player::play_with_gc()
     list<task_ptr> tasks;
     RoboCupGameControlData gc_data = WM->gc_data();
     vector<float> head_init = CONF->get_config_vector<float>("scan.init");
+    /*
     switch (gc_data.state)
     {
         case STATE_INITIAL:
@@ -79,5 +80,6 @@ std::list<task_ptr> player::play_with_gc()
             tasks.push_back(make_shared<look_task>(head_init[0], head_init[1], false));
             break;
     }
+    */
     return tasks;
 }

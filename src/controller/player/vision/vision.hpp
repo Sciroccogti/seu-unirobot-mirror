@@ -60,6 +60,8 @@ private:
     std::vector<object_det> ball_dets_, post_dets_; 
     int ball_id_, post_id_;
     float ball_prob_, post_prob_;
+    int min_ball_w_, min_ball_h_;
+    int min_post_w_, min_post_h_;
     int cant_see_ball_count_;
 
     bool is_busy_;

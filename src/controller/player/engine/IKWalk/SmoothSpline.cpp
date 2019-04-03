@@ -3,7 +3,7 @@
 #include <cmath>
 #include "SmoothSpline.hpp"
 
-namespace motion
+namespace Leph
 {
 
     void SmoothSpline::addPoint(double time, double position,
