@@ -53,13 +53,12 @@ ScanEngine::ScanEngine()
     yaw_ranges_.push_back(Vector2f(range[0], range[1]));
     yaw_ranges_.push_back(Vector2f(range[0]+30.0, range[1]-30.0));
     yaw_ranges_.push_back(Vector2f(range[0]+60.0, range[1]-60.0));
-    div_ = CONF->get_config_value<float>("scan.div");
-    yaw_ = 0.0;
-    pitch_ = 0.0;
-    scan_ = false;
     pitches_[0] = pitch_range_[0];
     pitches_[1] = pitch_range_[0]+(pitch_range_[1]-pitch_range_[0])/2.0f;
     pitches_[2] = pitch_range_[1];
+    head_state_ = HEAD_STATE_LOOKAT;
+    yaw_ = 0.0;
+    pitch_ = skill_head_pitch_mid_angle;
 }
 
 ScanEngine::~ScanEngine()
@@ -83,46 +82,45 @@ void ScanEngine::stop()
     is_alive_ = false;
 }
 
-void ScanEngine::set_params(float yaw, float pitch, bool scan)
+void ScanEngine::set_params(float yaw, float pitch, Head_State state)
 {
     param_mtx_.lock();
     yaw_ = yaw;
     pitch_ = pitch;
-    scan_ = scan;
+    head_state_ = state;
     param_mtx_.unlock();
 }
 
 void ScanEngine::run()
 {
-    unsigned int line = 0;
     int id_yaw = ROBOT->get_joint("jhead1")->jid_;
     int id_pitch = ROBOT->get_joint("jhead2")->jid_;
     std::map<int, float> jdmap;
     jdmap[id_yaw] = 0.0;
     jdmap[id_pitch] = 0.0;
     float yaw, pitch;
-    bool scan;
-    bool search_ball=true;
-    bool search_post=false;
     while(is_alive_)
     {
         ball_block ball = WM->ball();
-        for(int i=scan_ball-1;i>=0&&!ball.can_see;i--)
+        if(head_state_ == HEAD_STATE_SEARCH_BALL)
         {
-            jdmap[id_pitch] = ball_search_table[i][0];
-            jdmap[id_yaw] = ball_search_table[i][1];
-            while (!MADT->head_empty())
+            for(int i=scan_ball-1;i>=0&&!ball.can_see;i--)
             {
-                usleep(1000);
+                jdmap[id_pitch] = ball_search_table[i][0];
+                jdmap[id_yaw] = ball_search_table[i][1];
+                while (!MADT->head_empty())
+                {
+                    usleep(1000);
+                }
+                if (!MADT->add_head_degs(jdmap))
+                {
+                    break;
+                }
+                usleep(1000000);
+                ball = WM->ball();
             }
-            if (!MADT->add_head_degs(jdmap))
-            {
-                break;
-            }
-            usleep(1000000);
-            ball = WM->ball();
         }
-        if(search_post)
+        else if(head_state_ == HEAD_STATE_SEARCH_POST)
         {
             float search_div = 1.2;
             for(int i=1;i>=0;i--)
@@ -146,42 +144,25 @@ void ScanEngine::run()
         }
         else
         {
-            std::vector<double> head_degs = ROBOT->get_head_degs();
-            yaw = head_degs[0];
-            pitch = head_degs[1];
-            if (fabs(ball.alpha) > 0.2f)
+            if(head_state_ == HEAD_STATE_TRACK_BALL)
             {
-                yaw += -(sign(ball.alpha)*1.0f);
-            }  
-            if (fabs(ball.beta) > 0.2f)
-            {
-                pitch += sign(ball.beta)*1.0f;
-            }
+                std::vector<double> head_degs = ROBOT->get_head_degs();
+                yaw = head_degs[0];
+                pitch = head_degs[1];
+                if (fabs(ball.alpha) > 0.2f)
+                {
+                    yaw += -(sign(ball.alpha)*1.0f);
+                }  
+                if (fabs(ball.beta) > 0.2f)
+                {
+                    pitch += sign(ball.beta)*1.0f;
+                }
 
-            bound(yaw_ranges_[1][0], yaw_ranges_[1][1], yaw);
-            bound(pitch_range_[0], pitch_range_[1], pitch);
-            jdmap[id_yaw] = yaw;
-            jdmap[id_pitch] = pitch;
+                bound(yaw_ranges_[1][0], yaw_ranges_[1][1], yaw);
+                bound(pitch_range_[0], pitch_range_[1], pitch);
+                jdmap[id_yaw] = yaw;
+                jdmap[id_pitch] = pitch;
 
-            while (!MADT->head_empty())
-            {
-                usleep(1000);
-            }
-            if (!MADT->add_head_degs(jdmap))
-            {
-                break;
-            }
-        }
-        /*
-        {
-            int idx = line%4-2;
-            if(idx<0) idx = -idx;
-            jdmap[id_pitch] = pitches_[idx];
-            float s = pow(-1, idx);
-            Vector2f yaw_range_=yaw_ranges_[idx];
-            for(float yawt = yaw_range_[0]; yawt <= yaw_range_[1]&&is_alive_; yawt += div_)
-            {
-                jdmap[id_yaw] = s*yawt;
                 while (!MADT->head_empty())
                 {
                     usleep(1000);
@@ -191,47 +172,26 @@ void ScanEngine::run()
                     break;
                 }
             }
-            line++;
-        }
-        
-        else*/
-        /*
-        param_mtx_.lock();
-        yaw = yaw_;
-        pitch = pitch_;
-        param_mtx_.unlock();
-        */
-       /*
-        std::vector<double> head_degs = ROBOT->get_head_degs();
-        yaw = head_degs[0];
-
-        if (fabs(ball.alpha) > 0.1f)
-        {
-            yaw += -(sign(ball.alpha) * 5.0f);
-        }
-            
-        if (ball.self.x() < 0.8f)
-        {
-            pitch = 60.0;
-        }
-        else
-        {
-            pitch = head_degs[1];
-        }
-        {
-            bound(yaw_ranges_[1][0], yaw_ranges_[1][1], yaw);
-            bound(pitch_range_[0], pitch_range_[1], pitch);
-            jdmap[id_yaw] = yaw;
-            jdmap[id_pitch] = pitch;
-            while (!MADT->head_empty())
+            else if(head_state_ == HEAD_STATE_LOOKAT)
             {
-                usleep(1000);
+                param_mtx_.lock();
+                yaw = yaw_;
+                pitch = pitch_;
+                param_mtx_.unlock();
+                bound(yaw_ranges_[1][0], yaw_ranges_[1][1], yaw);
+                bound(pitch_range_[0], pitch_range_[1], pitch);
+                jdmap[id_yaw] = yaw;
+                jdmap[id_pitch] = pitch;
+                while (!MADT->head_empty())
+                {
+                    usleep(1000);
+                }
+                if (!MADT->add_head_degs(jdmap))
+                {
+                    break;
+                }
             }
-            if (!MADT->add_head_degs(jdmap))
-            {
-                break;
-            }
-        }*/
+        }
         usleep(500);
     }
 }

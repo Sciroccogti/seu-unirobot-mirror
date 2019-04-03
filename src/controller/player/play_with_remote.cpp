@@ -5,7 +5,7 @@
 #include "tcp.hpp"
 #include "server/server.hpp"
 #include "engine/action/ActionEngine.hpp"
-#include "engine/walk/WalkEngine.hpp"
+#include "engine/IKWalk/WalkEngine.hpp"
 #include "engine/scan/ScanEngine.hpp"
 
 using namespace robot;
@@ -62,7 +62,7 @@ void player::play_with_remote()
         float yaw, pitch;
         memcpy(&yaw, rdata.data.c_str(), float_size);
         memcpy(&pitch, rdata.data.c_str() + float_size, float_size);
-        SE->set_params(yaw, pitch, false);
+        SE->set_params(yaw, pitch, motion::HEAD_STATE_LOOKAT);
     }
     else if (rdata.type == JOINT_OFFSET)
     {

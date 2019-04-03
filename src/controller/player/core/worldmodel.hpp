@@ -18,7 +18,7 @@ class WorldModel: public subscriber, public singleton<WorldModel>
 {
 public:
     WorldModel();
-
+    
     void updata(const pub_ptr &pub, const int &type);
     void updata_glb();
 
