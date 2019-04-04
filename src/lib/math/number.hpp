@@ -17,7 +17,7 @@ namespace robot_math
     }
 
     template <typename T>
-    inline void bound(const T &min, const T &max, T &x)
+    inline void bound(const T min, const T max, T &x)
     {
         if (max < min)
         {

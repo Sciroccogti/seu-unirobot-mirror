@@ -28,7 +28,7 @@ namespace motion
     private:
         double engine_frequency_;
 
-        double d0_, x0_, y0_;
+        double d0_, x0_, y0_, g0_;
         double phase_, time_;
         double time_length_;
 
