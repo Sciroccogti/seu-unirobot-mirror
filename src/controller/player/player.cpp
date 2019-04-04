@@ -87,9 +87,9 @@ list<task_ptr> player::think()
     }
     else
     {
-        //tlists = play_without_gc();
+        tlists = play_without_gc();
         //tasks.push_back(make_shared<look_task>(true));
-        tasks.push_back(make_shared<walk_task>(0.0, 0.0, 0.0, true));
+        //tasks.push_back(make_shared<walk_task>(0.0, 0.01, 0.0, true));
     }
     //tasks.push_back(make_shared<look_task>(true));
     //tasks.push_back(make_shared<walk_task>(0.0, 0.0, 0.0, true));

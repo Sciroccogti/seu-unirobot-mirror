@@ -22,6 +22,15 @@ namespace motion
     WalkEngine::WalkEngine()
     {
         string part=CONF->player()+".walk";
+        std::vector<double> range = CONF->get_config_vector<double>(part+".x");
+        xrange[0] = range[0];
+        xrange[1] = range[1];
+        range = CONF->get_config_vector<double>(part+".y");
+        yrange[0] = range[0];
+        yrange[1] = range[1];
+        range = CONF->get_config_vector<double>(part+".dir");
+        drange[0] = range[0];
+        drange[1] = range[1];
         /**
          * Model leg typical length between
          * each rotation axis
@@ -38,7 +47,7 @@ namespace motion
          * Complete (two legs) walk cycle frequency
          * in Hertz
          */
-        params_.freq = 1.5;
+        params_.freq = 1.7;
         /**
          * Global gain multiplying all time
          * dependant movement between 0 and 1.
@@ -61,7 +70,7 @@ namespace motion
          * 0 is default
          * > 0 is both feet external offset
          */
-        params_.footYOffset = 0.035;
+        params_.footYOffset = 0.04;
         /**
          * Forward length of each foot step
          * in meters
@@ -126,9 +135,9 @@ namespace motion
          * forward with non perpendicular tangent.
          */
         params_.stepUpVel = 4.0;
-        params_.stepDownVel = 0.0;
+        params_.stepDownVel = 4.0;
         params_.riseUpVel = 4.0;
-        params_.riseDownVel = 0.0;
+        params_.riseDownVel = 4.0;
         /**
          * Time length in phase time
          * where swing lateral oscillation
@@ -148,7 +157,7 @@ namespace motion
          * >0 moves the trunk forward
          * <0 moves the trunk backward
          */
-        params_.trunkXOffset = 0.01;
+        params_.trunkXOffset = 0.02;
         /**
          * Lateral trunk-foot offset
          * with respect to foot in meters
@@ -162,7 +171,7 @@ namespace motion
          * >0 bends the trunk forward
          * <0 bends the trunk backward
          */
-        params_.trunkPitch = 0.15;
+        params_.trunkPitch = deg2rad(15.0);
         /**
          * Trunk angular rotation
          * around X in radian
@@ -255,9 +264,9 @@ namespace motion
         params_.lateralGain = y;
         params_.turnGain = d;
         params_.enabledGain = enable?1.0:0.0;
-        //bound(xrange[0], xrange[1], params_.stepGain);
-        //bound(yrange[0], yrange[1], params_.lateralGain);
-        //bound(drange[0], drange[1], params_.turnGain);
+        bound(xrange[0], xrange[1], params_.stepGain);
+        bound(yrange[0], yrange[1], params_.lateralGain);
+        bound(drange[0], drange[1], params_.turnGain);
         params_.turnGain = deg2rad(params_.turnGain);
         para_mutex_.unlock();
     }
@@ -280,7 +289,7 @@ namespace motion
                 tempParams.turnGain = 0.0;
             }
             
-            if(float_equals(tempParams.enabledGain, 1.0) &&(MADT->get_mode() == adapter::MODE_READY || MADT->get_mode() == adapter::MODE_WALK))
+            if(MADT->get_mode() == adapter::MODE_READY || MADT->get_mode() == adapter::MODE_WALK)
             {  
                 if( (!is_zero(tempParams.stepGain) && (!is_zero(y0_) || !is_zero(d0_)))
                     || (!is_zero(tempParams.lateralGain) && (!is_zero(x0_) || !is_zero(d0_)))
@@ -291,6 +300,11 @@ namespace motion
                         tempParams.turnGain = 0.0;
                 }
 
+                if(is_zero(g0_) && float_equals(tempParams.enabledGain, 1.0))
+                    tempParams.enabledGain = 0.025;
+                else if(!is_zero(g0_) && g0_<1.0)
+                    tempParams.enabledGain += 0.025;
+                bound(0.0, 1.0, tempParams.enabledGain);
                 //Leg motor computed positions
                 struct Rhoban::IKWalkOutputs outputs;
                 for (double t=0.0;t<=time_length_;t+=1.0/engine_frequency_) 
@@ -335,6 +349,7 @@ namespace motion
                 x0_ = tempParams.stepGain;
                 y0_ = tempParams.lateralGain;
                 d0_ = tempParams.turnGain;
+                g0_ = tempParams.enabledGain;
                 WM->navigation(Vector3d(tempParams.stepGain, tempParams.lateralGain, tempParams.turnGain));
 
                 if (MADT->get_mode() == adapter::MODE_READY)

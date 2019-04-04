@@ -44,9 +44,9 @@ std::list<task_ptr> player::play_without_gc()
                 fisrt_lookat = true;
                 tasks.push_back(make_shared<look_task>(HEAD_STATE_TRACK_BALL));
                 if(fabs(dir)>15.0)
-                    tasks.push_back(make_shared<walk_task>(0.0, 0.0, -dir, true));
+                    tasks.push_back(make_shared<walk_task>(0.0, 0.0, dir, true));
                 else
-                    tasks.push_back(make_shared<walk_task>(0.025, 0.0, 0.0, true));
+                    tasks.push_back(make_shared<walk_task>(0.02, 0.0, 0.0, true));
             }
             else
             {
@@ -59,9 +59,9 @@ std::list<task_ptr> player::play_without_gc()
                     return tasks;
                 }
                 if(ball.alpha>-0.1)
-                    tasks.push_back(make_shared<walk_task>(0.0, -0.02, 0.0, true));
+                    tasks.push_back(make_shared<walk_task>(0.0, -0.01, 0.0, true));
                 else if(ball.alpha<-0.2)
-                    tasks.push_back(make_shared<walk_task>(0.0, 0.02, 0.0, true));
+                    tasks.push_back(make_shared<walk_task>(0.0, 0.01, 0.0, true));
                 else
                 {
                     if(ball.beta<0.3)

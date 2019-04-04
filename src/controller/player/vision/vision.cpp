@@ -205,7 +205,7 @@ void Vision::run()
                 Vector2i ball_pix(ball_dets_[0].x+ball_dets_[0].w/2, ball_dets_[0].y+ball_dets_[0].h);
                 ball_pix = undistored(ball_pix);
                 Vector2d odo_res = odometry(ball_pix, camera_matrix);
-                LOG(LOG_INFO)<<odo_res.norm()<<endll;
+                //LOG(LOG_INFO)<<odo_res.norm()<<endll;
                 Vector2d ball_pos = camera2self(odo_res, head_yaw);
                 cant_see_ball_count_=0;
                 Vector2d temp_ball = p.global+rotation_mat_2d(-p.dir)*ball_pos;
