@@ -47,7 +47,7 @@ namespace motion
          * Complete (two legs) walk cycle frequency
          * in Hertz
          */
-        params_.freq = 1.7;
+        params_.freq = CONF->get_config_value<double>(part+".freq");
         /**
          * Global gain multiplying all time
          * dependant movement between 0 and 1.
@@ -63,14 +63,14 @@ namespace motion
          * 0 is null double support and full single support
          * 1 is full double support and null single support
          */
-        params_.supportPhaseRatio = 0.1;
+        params_.supportPhaseRatio = CONF->get_config_value<double>(part+".doubleSupportRatio");
         /**
          * Lateral offset on default foot 
          * position in meters (foot lateral distance)
          * 0 is default
          * > 0 is both feet external offset
          */
-        params_.footYOffset = 0.04;
+        params_.footYOffset = CONF->get_config_value<double>(part+".footYOffset");;
         /**
          * Forward length of each foot step
          * in meters
@@ -83,7 +83,7 @@ namespace motion
          * Vertical rise height of each foot
          * in meters (positive)
          */
-        params_.riseGain = 0.035;
+        params_.riseGain = CONF->get_config_value<double>(part+".rise");;
         /**
          * Angular yaw rotation of each 
          * foot for each step in radian.
@@ -107,12 +107,12 @@ namespace motion
          * 0 is in init position
          * > 0 set the robot lower to the ground
          */
-        params_.trunkZOffset = 0.02;
+        params_.trunkZOffset = CONF->get_config_value<double>(part+".trunkZOffset");;
         /**
          * Lateral trunk oscillation amplitude
          * in meters (positive)
          */
-        params_.swingGain = 0.02;
+        params_.swingGain = CONF->get_config_value<double>(part+".swingGain");;
         /**
          * Lateral angular oscillation amplitude
          * of swing trunkRoll in radian
@@ -122,7 +122,7 @@ namespace motion
          * Phase shift of lateral trunk oscillation
          * between 0 and 1
          */
-        params_.swingPhase = 0.25;
+        params_.swingPhase = CONF->get_config_value<double>(part+".swingPhase");;
         /**
          * Foot X-Z spline velocities
          * at ground take off and ground landing.
@@ -157,21 +157,21 @@ namespace motion
          * >0 moves the trunk forward
          * <0 moves the trunk backward
          */
-        params_.trunkXOffset = 0.02;
+        params_.trunkXOffset = CONF->get_config_value<double>(part+".trunkXOffset");;
         /**
          * Lateral trunk-foot offset
          * with respect to foot in meters
          * >0 moves the trunk on the left
          * <0 moves the trunk on the right
          */
-        params_.trunkYOffset = 0.0;
+        params_.trunkYOffset = CONF->get_config_value<double>(part+".trunkYOffset");;
         /**
          * Trunk angular rotation
          * around Y in radian
          * >0 bends the trunk forward
          * <0 bends the trunk backward
          */
-        params_.trunkPitch = deg2rad(15.0);
+        params_.trunkPitch = deg2rad(CONF->get_config_value<double>(part+".trunkPitch"));
         /**
          * Trunk angular rotation
          * around X in radian
@@ -218,6 +218,7 @@ namespace motion
         x0_ = 0.0;
         y0_ = 0.0;
         d0_ = 0.0;
+        g0_ = 0.0;
     }
 
     void WalkEngine::updata(const pub_ptr &pub, const int &type)
@@ -301,9 +302,19 @@ namespace motion
                 }
 
                 if(is_zero(g0_) && float_equals(tempParams.enabledGain, 1.0))
-                    tempParams.enabledGain = 0.025;
+                {
+                    tempParams.enabledGain = 0.2;
+                    tempParams.stepGain = 0.0;
+                    tempParams.lateralGain = 0.0;
+                    tempParams.turnGain = 0.0;
+                }
                 else if(!is_zero(g0_) && g0_<1.0)
-                    tempParams.enabledGain += 0.025;
+                {
+                    tempParams.enabledGain = g0_ + 0.2;
+                    tempParams.stepGain = 0.0;
+                    tempParams.lateralGain = 0.0;
+                    tempParams.turnGain = 0.0;
+                }
                 bound(0.0, 1.0, tempParams.enabledGain);
                 //Leg motor computed positions
                 struct Rhoban::IKWalkOutputs outputs;
