@@ -99,27 +99,15 @@ void motor::virtul_act()
     robot_joint_deg jd;
     string j_data;
     j_data.clear();
-    /*feed back loop Test*/
-    std::map<int, float> real_jdegs;
+
     for (auto &jm : ROBOT->get_joint_map())
     {
         jd.id = jm.second->jid_;
         jd.deg = jm.second->get_deg();
         j_data.append((char *)(&jd), sizeof(robot_joint_deg));
-        /*feed back loop Test*/
-        real_jdegs[jd.id] = jd.deg;
-    }
-    /*feed back loop Test*/
-    ROBOT->set_real_degs(real_jdegs);
-    updateMotorFeedbackParams();
-    if(ROBOT->finished_one_step_flag == true)
-    {  
-       //cout<<"after one half step: updateConveyFeedbackParams "<<endl;
-       updateConveyFeedbackParams();
-       clearMotorFeedbackParams();
-       ROBOT->down_finished_one_step_flag();
-    }
 
+    }
+    
     cmd.size = ROBOT->get_joint_map().size() * sizeof(robot_joint_deg);
     cmd.data.assign(j_data.c_str(), cmd.size);
     SERVER->write(cmd);
@@ -150,9 +138,8 @@ void motor::real_act()
     {
         set_gpos();
         /*feed back loop*/ 
-        if(ROBOT->finished_one_step_flag == true)
+        /* if(ROBOT->finished_one_step_flag == true)
         {  
-            //cout<<"after one real half step: updateConveyFeedbackParams "<<endl;
             ROBOT->conveyFeedbackParams.isValidData = false;
             if(read_legs_pos()) {
                 ROBOT->conveyFeedbackParams.isValidData = true;
@@ -161,12 +148,12 @@ void motor::real_act()
             updateConveyFeedbackParams();
             clearMotorFeedbackParams();
             ROBOT->down_finished_one_step_flag();
-        }
+        }*/
         if ((p_count_ * period_ms_ % 1000) == 0)
         {
             led_status_ = 1 - led_status_;
             set_led(led_status_);
-        }
+        } 
         //read_pos();
     }
 }

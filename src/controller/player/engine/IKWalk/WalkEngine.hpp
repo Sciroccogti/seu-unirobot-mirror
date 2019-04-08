@@ -12,6 +12,13 @@
 
 namespace motion
 {
+    enum Walk_State
+    {
+        WALK_STOP,
+        WALK_TO_ACT,
+        WALK_NORMAL,
+        ACT_TO_WALK
+    };
     class WalkEngine: public subscriber, public singleton<WalkEngine>
     {
     public:
