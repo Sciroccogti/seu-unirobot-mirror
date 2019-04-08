@@ -290,7 +290,7 @@ namespace motion
                 tempParams.turnGain = 0.0;
             }
             
-            if(MADT->get_mode() == adapter::MODE_READY || MADT->get_mode() == adapter::MODE_WALK)
+            if( !is_zero(tempParams.enabledGain) && (MADT->get_mode() == adapter::MODE_READY || MADT->get_mode() == adapter::MODE_WALK))
             {  
                 if( (!is_zero(tempParams.stepGain) && (!is_zero(y0_) || !is_zero(d0_)))
                     || (!is_zero(tempParams.lateralGain) && (!is_zero(x0_) || !is_zero(d0_)))
@@ -303,18 +303,19 @@ namespace motion
 
                 if(is_zero(g0_) && float_equals(tempParams.enabledGain, 1.0))
                 {
-                    tempParams.enabledGain = 0.2;
+                    tempParams.enabledGain = 0.16;
                     tempParams.stepGain = 0.0;
                     tempParams.lateralGain = 0.0;
                     tempParams.turnGain = 0.0;
                 }
                 else if(!is_zero(g0_) && g0_<1.0)
                 {
-                    tempParams.enabledGain = g0_ + 0.2;
+                    tempParams.enabledGain = g0_ + 0.16;
                     tempParams.stepGain = 0.0;
                     tempParams.lateralGain = 0.0;
                     tempParams.turnGain = 0.0;
                 }
+
                 bound(0.0, 1.0, tempParams.enabledGain);
                 //Leg motor computed positions
                 struct Rhoban::IKWalkOutputs outputs;

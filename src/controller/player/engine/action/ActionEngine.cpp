@@ -185,64 +185,6 @@ std::vector< std::map<robot::robot_motion, robot::robot_pose> > ActionEngine::ge
     Eigen::Vector3d dpposel = pposel2 - pposel1;
     Eigen::Vector3d dpposer = pposer2 - pposer1;
     int count;
-    /*
-    double maxdb = std::max(std::max(std::abs(dposeb.x()), std::abs(dposeb.y())), std::abs(dposeb.z()));
-    double maxdl = std::max(std::max(std::abs(dposel.x()), std::abs(dposel.y())), std::abs(dposel.z()));
-    double maxdr = std::max(std::max(std::abs(dposel.x()), std::abs(dposel.y())), std::abs(dposel.z()));
-    double maxv = std::max(std::max(maxdb, maxdl), maxdr);
-
-    if (robot_math::is_zero(maxv - maxdb))
-    {
-        if (robot_math::is_zero(maxdb - std::abs(dposeb.x())))
-        {
-            count = dposeb.x() / step_;
-        }
-        else if (robot_math::is_zero(maxdb - std::abs(dposeb.y())))
-        {
-            count = dposeb.y() / step_;
-        }
-        else
-        {
-            count = dposeb.z() / step_;
-        }
-    }
-    else if (robot_math::is_zero(maxv - maxdl))
-    {
-        if (robot_math::is_zero(maxdl - std::abs(dposel.x())))
-        {
-            count = dposel.x() / step_;
-        }
-        else if (robot_math::is_zero(maxdl - std::abs(dposel.y())))
-        {
-            count = dposel.y() / step_;
-        }
-        else
-        {
-            count = dposel.z() / step_;
-        }
-    }
-    else
-    {
-        if (robot_math::is_zero(maxdr - std::abs(dposer.x())))
-        {
-            count = dposer.x() / step_;
-        }
-        else if (robot_math::is_zero(maxdr - std::abs(dposer.y())))
-        {
-            count = dposer.y() / step_;
-        }
-        else
-        {
-            count = dposer.z() / step_;
-        }
-    }
-
-    if (act_time > count)
-    {
-        count = act_time;
-    }
-    */
-
     count = act_time;
     double dbx = dposeb.x() / count, dby = dposeb.y() / count, dbz = dposeb.z() / count;
     double dbpi = dpposeb.x() / count, dbro = dpposeb.y() / count, dbya = dpposeb.z() / count;
