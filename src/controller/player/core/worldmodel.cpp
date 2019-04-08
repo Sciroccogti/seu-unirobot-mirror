@@ -23,8 +23,8 @@ WorldModel::WorldModel()
     coef_y_ = CONF->get_config_value<double>(CONF->player()+".nav.cy");
     coef_d_ = CONF->get_config_value<double>(CONF->player()+".nav.cd");
     find_two_posts = false;
-    opp_post_left = Vector2d(SOCCERMAP->width()/200.0, SOCCERMAP->goalWidth()/200.0-0.3);
-    opp_post_left = Vector2d(SOCCERMAP->width()/200.0, -SOCCERMAP->goalWidth()/200.0+0.3);
+    opp_post_left = Vector2d(SOCCERMAP->width()/200.0, SOCCERMAP->goalWidth()/200.0-0.2);
+    opp_post_right = Vector2d(SOCCERMAP->width()/200.0, -SOCCERMAP->goalWidth()/200.0+0.2);
 }
 
 void WorldModel::updata(const pub_ptr &pub, const int &type)
@@ -77,7 +77,7 @@ void WorldModel::navigation(const Eigen::Vector3d &walk_para)
 {
     self_block blk = self();
     Vector2d currpos(blk.global.x(), blk.global.y());
-    double dir = blk.dir+rad2deg(walk_para[2])*coef_d_;
+    double dir = blk.dir;
     dir = normalize_deg(dir);
     Vector2d temp=currpos+rotation_mat_2d(-dir)*Vector2d(walk_para[0]*coef_x_, walk_para[1]*coef_y_);
     set_my_pos(temp);

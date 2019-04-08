@@ -129,7 +129,7 @@ void Vision::run()
         is_busy_ = true;
         p_count_ ++;
         robot_math::transform_matrix camera_matrix;
-        float head_yaw;
+        float head_yaw, head_pitch;
         
         cudaError_t err;
         frame_mtx_.lock();
@@ -139,6 +139,7 @@ void Vision::run()
         {
             camera_matrix = camera_matrix_;
             head_yaw = head_yaw_;
+            head_pitch = head_pitch_;
         }
         frame_mtx_.unlock();
 
@@ -178,7 +179,15 @@ void Vision::run()
                     int by = (dets[i].bbox.y - dets[i].bbox.h / 2.0)*h_;
                     int bw = dets[i].bbox.w*w_, bh = dets[i].bbox.h*h_;
                     if(bw>=min_ball_w_ && bh>=min_ball_h_)
-                        ball_dets_.push_back(object_det(ball_id_, dets[i].prob[ball_id_], bx, by, bw, bh));
+                    {
+                        if(head_pitch>50.0)
+                            ball_dets_.push_back(object_det(ball_id_, dets[i].prob[ball_id_], bx, by, bw, bh));
+                        else
+                        {
+                            if(by+bh >= fieldBorders[bx+bw/2])
+                                ball_dets_.push_back(object_det(ball_id_, dets[i].prob[ball_id_], bx, by, bw, bh));
+                        }
+                    }
                 }
             }
             else
@@ -188,8 +197,16 @@ void Vision::run()
                     int px = (dets[i].bbox.x - dets[i].bbox.w / 2.0)*w_;
                     int py = (dets[i].bbox.y - dets[i].bbox.h / 2.0)*h_;
                     int pw = dets[i].bbox.w*w_, ph = dets[i].bbox.h*h_;
-                    if(pw>=min_post_w_ && ph>=min_post_h_ && py+ph>fieldBorders[px+pw/2])
-                        post_dets_.push_back(object_det(post_id_, dets[i].prob[post_id_], px, py, pw, ph));
+                    if(pw>=min_post_w_ && ph>=min_post_h_)
+                    {
+                        if(head_pitch_>50.0)
+                            post_dets_.push_back(object_det(post_id_, dets[i].prob[post_id_], px, py, pw, ph));
+                        else
+                        {
+                            if(py+ph>fieldBorders[px+pw/2])
+                                post_dets_.push_back(object_det(post_id_, dets[i].prob[post_id_], px, py, pw, ph));
+                        }
+                    }
                 }
             }
         }
@@ -357,6 +374,7 @@ void Vision::updata(const pub_ptr &pub, const int &type)
             std::vector<double> foot_degs = ROBOT->get_foot_degs(spf);
             std::vector<double> head_degs = ROBOT->get_head_degs();
             head_yaw_  = -head_degs[0];
+            head_pitch_ = head_degs[1];
             transform_matrix body = ROBOT->leg_forward_kinematics(foot_degs, spf);
             body.set_R(quat.matrix());
             camera_matrix_ = body*transform_matrix(0,0,ROBOT->trunk_length())*transform_matrix(head_degs[0],'z')

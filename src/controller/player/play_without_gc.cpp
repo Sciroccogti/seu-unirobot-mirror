@@ -68,16 +68,23 @@ std::list<task_ptr> player::play_without_gc()
                         tasks.push_back(make_shared<walk_task>(0.02, 0.0, 0.0, true));
                     else
                     {
-                        //double self2left_dir = azimuth(WM->opp_post_left-self.global);
-                        //double self2right_dir = azimuth(WM->opp_post_right-self.global);
-                        //if(self.dir>self2right_dir && self.dir<self2left_dir)
+                        double self2left_dir = azimuth(WM->opp_post_left-self.global);
+                        double self2right_dir = azimuth(WM->opp_post_right-self.global);
+                        if(self.dir>=self2right_dir && self.dir<=self2left_dir)
                         {
-                            //if(ball.alpha<0)
+                            if(ball.alpha<0)
                                 tasks.push_back(make_shared<action_task>("left_little_kick"));
-                            //else
-                            //    tasks.push_back(make_shared<action_task>("right_kick"));
-                            //kick_complete = true;
-                        }  
+                            else
+                                tasks.push_back(make_shared<walk_task>(0.0, -0.01, 0.0, true));
+                        }
+                        else if(self.dir>self2left_dir)
+                        {
+                            tasks.push_back(make_shared<walk_task>(-0.01, 0.0, -5.0, true));
+                        }
+                        else
+                        {
+                            tasks.push_back(make_shared<walk_task>(-0.01, 0.0, 5.0, true));
+                        }
                     }
                 }
             }

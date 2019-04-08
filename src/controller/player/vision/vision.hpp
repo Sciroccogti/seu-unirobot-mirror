@@ -47,7 +47,7 @@ private:
     void send_image(const cv::Mat &src);
     
     imu::imu_data imu_data_;
-    float head_yaw_;
+    float head_yaw_, head_pitch_;
 
     bool use_mv_;
     int p_count_;
