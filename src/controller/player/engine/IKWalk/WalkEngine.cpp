@@ -22,6 +22,10 @@ namespace motion
     WalkEngine::WalkEngine()
     {
         string part=CONF->player()+".walk";
+        XOffset_ = CONF->get_config_value<double>(part+".XOffset");
+        YOffset_ = CONF->get_config_value<double>(part+".YOffset");
+        DOffset_ = CONF->get_config_value<double>(part+".DOffset");
+        
         std::vector<double> range = CONF->get_config_vector<double>(part+".x");
         xrange[0] = range[0];
         xrange[1] = range[1];
@@ -215,10 +219,8 @@ namespace motion
         engine_frequency_ = 50.0;
         time_length_ = 1.0/params_.freq;
 
-        x0_ = 0.0;
-        y0_ = 0.0;
-        d0_ = 0.0;
-        g0_ = 0.0;
+        walk_state_ = WALK_STOP;
+        last_walk_state_ = WALK_STOP;
     }
 
     void WalkEngine::updata(const pub_ptr &pub, const int &type)
@@ -265,116 +267,128 @@ namespace motion
         params_.lateralGain = y;
         params_.turnGain = d;
         params_.enabledGain = enable?1.0:0.0;
+        walk_state_ = enable?WALK_NORMAL:WALK_STOP;
         bound(xrange[0], xrange[1], params_.stepGain);
         bound(yrange[0], yrange[1], params_.lateralGain);
         bound(drange[0], drange[1], params_.turnGain);
-        params_.turnGain = deg2rad(params_.turnGain);
+        params_.stepGain += XOffset_;
+        params_.lateralGain += YOffset_;
+        params_.turnGain = deg2rad(params_.turnGain)-deg2rad(DOffset_);
         para_mutex_.unlock();
+    }
+
+    void WalkEngine::run_walk(const Rhoban::IKWalkParameters& params, double timeLength, double& phase, double& time)
+    {
+        //LOG(LOG_WARN)<<walk_state_<<endll;
+        struct Rhoban::IKWalkOutputs outputs;
+        std::map<int, float> jdegs;
+        for (double t=0.0;t<=timeLength;t+=1.0/engine_frequency_) 
+        {
+            time += 1.0/engine_frequency_;
+            bool success = Rhoban::IKWalk::walk(params, 1.0/engine_frequency_, phase, outputs);
+            if (!success) 
+            {
+                LOG(LOG_ERROR) << time << " Inverse Kinematics error. Position not reachable." << endll;
+            } 
+            else 
+            {
+                jdegs[ROBOT->get_joint("jlhip3")->jid_] = rad2deg(outputs.left_hip_yaw);
+                jdegs[ROBOT->get_joint("jlhip2")->jid_] = rad2deg(outputs.left_hip_roll);
+                jdegs[ROBOT->get_joint("jlhip1")->jid_] = rad2deg(outputs.left_hip_pitch);
+                jdegs[ROBOT->get_joint("jlknee")->jid_] = rad2deg(outputs.left_knee);
+                jdegs[ROBOT->get_joint("jlankle2")->jid_] = rad2deg(outputs.left_ankle_pitch);
+                jdegs[ROBOT->get_joint("jlankle1")->jid_] = rad2deg(outputs.left_ankle_roll);
+
+                jdegs[ROBOT->get_joint("jrhip3")->jid_] = rad2deg(outputs.right_hip_yaw);
+                jdegs[ROBOT->get_joint("jrhip2")->jid_] = rad2deg(outputs.right_hip_roll);
+                jdegs[ROBOT->get_joint("jrhip1")->jid_] = rad2deg(outputs.right_hip_pitch);
+                jdegs[ROBOT->get_joint("jrknee")->jid_] = rad2deg(outputs.right_knee);
+                jdegs[ROBOT->get_joint("jrankle2")->jid_] = rad2deg(outputs.right_ankle_pitch);
+                jdegs[ROBOT->get_joint("jrankle1")->jid_] = rad2deg(outputs.right_ankle_roll);
+
+                jdegs[ROBOT->get_joint("jlshoulder1")->jid_] = 40;
+                jdegs[ROBOT->get_joint("jlelbow")->jid_] = -90;
+                jdegs[ROBOT->get_joint("jrshoulder1")->jid_] = 40;
+                jdegs[ROBOT->get_joint("jrelbow")->jid_] = 90;
+
+                while (!MADT->body_empty())
+                {
+                    usleep(500);
+                }
+                if (!MADT->add_body_degs(jdegs))
+                {
+                    break;
+                }
+            }
+        }
+        float rate = timeLength/time_length_;
+        WM->navigation(Vector3d((params.stepGain-XOffset_)*rate, (params.lateralGain-YOffset_)*rate, params.turnGain*rate));
     }
 
     void WalkEngine::run()
     {   
         Rhoban::IKWalkParameters tempParams;
-        std::map<int, float> jdegs;
-
         while (is_alive_)
         {   
             para_mutex_.lock();
             tempParams = params_;
             para_mutex_.unlock();
+            
+            if(last_walk_state_ == WALK_STOP && walk_state_ == WALK_NORMAL && !MADT->run_action_)
+                walk_state_ = WALK_START;
+            /*
+            else if(last_walk_state_ == WALK_NORMAL && walk_state_ == WALK_STOP)
+                walk_state_ = WALK_END;
+            */
 
-            if (MADT->get_mode() == adapter::MODE_READY)
+            if (walk_state_ == WALK_STOP)
+            {
+                usleep(500);
+                last_walk_state_ = WALK_STOP;
+                continue;
+            }
+            if(walk_state_ == WALK_TO_ACT)
             {
                 tempParams.stepGain = 0.0;
                 tempParams.lateralGain = 0.0;
                 tempParams.turnGain = 0.0;
-            }
-            
-            if( !is_zero(tempParams.enabledGain) && (MADT->get_mode() == adapter::MODE_READY || MADT->get_mode() == adapter::MODE_WALK))
-            {  
-                if( (!is_zero(tempParams.stepGain) && (!is_zero(y0_) || !is_zero(d0_)))
-                    || (!is_zero(tempParams.lateralGain) && (!is_zero(x0_) || !is_zero(d0_)))
-                    || (!is_zero(tempParams.turnGain) && (!is_zero(x0_) || !is_zero(y0_))) )
+                if(walk_state_ == WALK_NORMAL)
                 {
-                        tempParams.stepGain = 0.0;
-                        tempParams.lateralGain = 0.0;
-                        tempParams.turnGain = 0.0;
+                    tempParams.enabledGain = 1.0;
+                    run_walk(tempParams, time_length_, phase_, time_);
                 }
-
-                if(is_zero(g0_) && float_equals(tempParams.enabledGain, 1.0))
+                walk_state_ = WALK_STOP;
+            }
+            else
+            {
+                if(MADT->run_action_)
                 {
-                    tempParams.enabledGain = 0.16;
+                    usleep(500);
+                    last_walk_state_ = WALK_STOP;
+                    continue;
+                }
+                if(walk_state_ == WALK_START)
+                {
                     tempParams.stepGain = 0.0;
                     tempParams.lateralGain = 0.0;
                     tempParams.turnGain = 0.0;
+                    run_walk(tempParams, 2*time_length_, phase_, time_);
+                    walk_state_ = WALK_NORMAL;
                 }
-                else if(!is_zero(g0_) && g0_<1.0)
+                else if(walk_state_ == WALK_END)
                 {
-                    tempParams.enabledGain = g0_ + 0.16;
                     tempParams.stepGain = 0.0;
                     tempParams.lateralGain = 0.0;
                     tempParams.turnGain = 0.0;
+                    run_walk(tempParams, time_length_, phase_, time_);
+                    walk_state_ = WALK_STOP;
                 }
-
-                bound(0.0, 1.0, tempParams.enabledGain);
-                //Leg motor computed positions
-                struct Rhoban::IKWalkOutputs outputs;
-                for (double t=0.0;t<=time_length_;t+=1.0/engine_frequency_) 
+                else if(walk_state_ == WALK_NORMAL)
                 {
-                    time_ += 1.0/engine_frequency_;
-                    bool success = Rhoban::IKWalk::walk(tempParams, 1.0/engine_frequency_, phase_, outputs);
-                    if (!success) 
-                    {
-                        LOG(LOG_ERROR) << time_ << " Inverse Kinematics error. Position not reachable." << endll;
-                    } 
-                    else 
-                    {
-                        jdegs[ROBOT->get_joint("jlhip3")->jid_] = rad2deg(outputs.left_hip_yaw);
-                        jdegs[ROBOT->get_joint("jlhip2")->jid_] = rad2deg(outputs.left_hip_roll);
-                        jdegs[ROBOT->get_joint("jlhip1")->jid_] = rad2deg(outputs.left_hip_pitch);
-                        jdegs[ROBOT->get_joint("jlknee")->jid_] = rad2deg(outputs.left_knee);
-                        jdegs[ROBOT->get_joint("jlankle2")->jid_] = rad2deg(outputs.left_ankle_pitch);
-                        jdegs[ROBOT->get_joint("jlankle1")->jid_] = rad2deg(outputs.left_ankle_roll);
-
-                        jdegs[ROBOT->get_joint("jrhip3")->jid_] = rad2deg(outputs.right_hip_yaw);
-                        jdegs[ROBOT->get_joint("jrhip2")->jid_] = rad2deg(outputs.right_hip_roll);
-                        jdegs[ROBOT->get_joint("jrhip1")->jid_] = rad2deg(outputs.right_hip_pitch);
-                        jdegs[ROBOT->get_joint("jrknee")->jid_] = rad2deg(outputs.right_knee);
-                        jdegs[ROBOT->get_joint("jrankle2")->jid_] = rad2deg(outputs.right_ankle_pitch);
-                        jdegs[ROBOT->get_joint("jrankle1")->jid_] = rad2deg(outputs.right_ankle_roll);
-
-                        jdegs[ROBOT->get_joint("jlshoulder1")->jid_] = 40;
-                        jdegs[ROBOT->get_joint("jlelbow")->jid_] = -90;
-                        jdegs[ROBOT->get_joint("jrshoulder1")->jid_] = 40;
-                        jdegs[ROBOT->get_joint("jrelbow")->jid_] = 90;
-
-                        while (!MADT->body_empty())
-                        {
-                            usleep(500);
-                        }
-                        if (!MADT->add_body_degs(jdegs))
-                        {
-                            break;
-                        } 
-                    }
+                    run_walk(tempParams, time_length_, phase_, time_);
                 }
-                x0_ = tempParams.stepGain;
-                y0_ = tempParams.lateralGain;
-                d0_ = tempParams.turnGain;
-                g0_ = tempParams.enabledGain;
-                WM->navigation(Vector3d(tempParams.stepGain, tempParams.lateralGain, tempParams.turnGain));
-
-                if (MADT->get_mode() == adapter::MODE_READY)
-                {
-                    para_mutex_.lock();
-                    params_.enabledGain = 0.0;
-                    para_mutex_.unlock();
-                    if(MADT->get_last_mode() == adapter::MODE_ACT)
-                        MADT->set_mode(adapter::MODE_WALK);
-                    else
-                        MADT->set_mode(adapter::MODE_ACT);
-                }                  
             }
+            last_walk_state_ = walk_state_;
             usleep(500);
         }
     }

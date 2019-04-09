@@ -24,7 +24,7 @@ public:
             pkt.header[i] = init[i];
         pkt.number = pkt_num++;
         pkt.info = WM->my_info();
-        //LOG(LOG_INFO)<<pkt.info.ball_x<<'\t'<<pkt.info.ball_y<<endll;
+        //LOG(LOG_INFO)<<pkt.info.x<<'\t'<<pkt.info.y<<endll;
 
         try
         {

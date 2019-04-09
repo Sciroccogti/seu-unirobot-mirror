@@ -62,7 +62,7 @@ Vector2d Vision::odometry(const Vector2i &pos, const robot_math::transform_matri
     float OC = camera_matrix.p().z();
     float roll = -static_cast<float>(camera_matrix.x_rotate());
     float theta = static_cast<float>(camera_matrix.y_rotate());
-    theta = theta-0.03*(M_PI_2-theta);
+    theta = theta-0.015*(M_PI_2-theta);
     Vector2i Pos(pos.x()-params_.cx, params_.cy-pos.y());
     Vector2i calCenterPos(Pos.x()/cos(roll), Pos.y()+Pos.x()*tan(roll));
     Vector2i calPos(calCenterPos.x()+params_.cx, params_.cy-calCenterPos.y());
@@ -220,7 +220,7 @@ void Vision::run()
             if(!ball_dets_.empty())
             {
                 Vector2i ball_pix(ball_dets_[0].x+ball_dets_[0].w/2, ball_dets_[0].y+ball_dets_[0].h);
-                ball_pix = undistored(ball_pix);
+                //ball_pix = undistored(ball_pix);
                 Vector2d odo_res = odometry(ball_pix, camera_matrix);
                 //LOG(LOG_INFO)<<odo_res.norm()<<endll;
                 Vector2d ball_pos = camera2self(odo_res, head_yaw);
@@ -267,12 +267,7 @@ void Vision::run()
                     //LOG(LOG_INFO)<<"###########################"<<endll;
                     //LOG(LOG_INFO)<<posts_[0]._type<<'\t'<<posts_[0]._distance<<'\t'<<posts_[0]._theta<<endll;
                     //LOG(LOG_INFO)<<posts_[1]._type<<'\t'<<posts_[1]._distance<<'\t'<<posts_[1]._theta<<endll;
-                    WM->find_two_posts = true;
                     break;
-                }
-                else
-                {
-                    WM->find_two_posts = false;
                 }
             }
             //SL->update(player_info(p.global.x(), p.global.y(), p.dir), posts_);
@@ -310,9 +305,12 @@ void Vision::run()
                 for(auto &dd: post_dets_)
                 {
                     if(i>=2) break;
+                    Vector2i post_pix(dd.x+dd.w/2, dd.y+dd.h*0.95);
+                    //post_pix = undistored(post_pix);
+                    Vector2d odo_res = odometry(post_pix, camera_matrix);
                     rectangle(bgr, Point(post_dets_[i].x, post_dets_[i].y), Point(post_dets_[i].x + post_dets_[i].w,
                         post_dets_[i].y + post_dets_[i].h), Scalar(0, 0, 255), 2);
-                    putText(bgr, to_string(post_dets_[i].prob).substr(0,4), Point(post_dets_[i].x, post_dets_[i].y),
+                    putText(bgr, to_string(odo_res.norm()).substr(0,4), Point(post_dets_[i].x, post_dets_[i].y),
                         FONT_HERSHEY_SIMPLEX, 1, Scalar(0, 0, 255), 2, 8);
                     i++;
                 }
