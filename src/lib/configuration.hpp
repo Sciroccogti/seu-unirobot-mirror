@@ -56,6 +56,10 @@ public:
     {
         return id_;
     }
+    inline int keeper_id() const
+    {
+        return config_tree_.get<int>("keeper_id");
+    }
     inline int team_number() const
     {
         return team_number_;

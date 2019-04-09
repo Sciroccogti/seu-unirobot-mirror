@@ -35,7 +35,7 @@ bool IKWalk::walk(
     //During foot backward movement, constant velocity is
     //apply because both foot must have the same velocity 
     //during double support phase.
-    Leph::SmoothSpline stepSpline;
+    Leph::CubicSpline stepSpline;
     stepSpline.addPoint(0.0, 0.5, -1.0/stepLength);
     stepSpline.addPoint(stepLength, -0.5, -1.0/stepLength);
     stepSpline.addPoint(stepLength, -0.5, params.stepUpVel);
@@ -64,7 +64,7 @@ bool IKWalk::walk(
     //moves up and down.
     //Custom velocities (tangents) can be tunned to achieve
     //specific trajectory at foot take off and landing.
-    Leph::SmoothSpline riseSpline;
+    Leph::CubicSpline riseSpline;
     riseSpline.addPoint(0.0, 0.0);
     riseSpline.addPoint(stepLength, 0.0);
     riseSpline.addPoint(stepLength, 0.0, params.riseUpVel);
@@ -75,7 +75,7 @@ bool IKWalk::walk(
     //This is the same as stepSpline but movement occurs 
     //only during single support phase as robot degrees of freedom
     //could not achieve rotation during double support phase.
-    Leph::SmoothSpline turnSpline;
+    Leph::CubicSpline turnSpline;
     turnSpline.addPoint(0.0, 0.0);
     turnSpline.addPoint(stepLength-0.5, 0.0);
     turnSpline.addPoint(0.5, 1.0);

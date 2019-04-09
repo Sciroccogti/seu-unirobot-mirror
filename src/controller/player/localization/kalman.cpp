@@ -84,6 +84,7 @@ int KA::goalPostUpdate(const vector< GoalPost > & posts_)
         float bearErr, distErr;
 	      float minErr=1000000;
 	      Vector2f pos(now_state.x, now_state.y);
+        Vector2f pppp;
         for(const Vector2f & fp: postPos)
 	      {
 	          bearErr = normalize_deg(azimuth(fp - pos)-now_state.dir-post._theta);
@@ -97,6 +98,7 @@ int KA::goalPostUpdate(const vector< GoalPost > & posts_)
               float N1=fp.x()-now_state.x;
 	            if(size==1)
 	            {
+                pppp=fp;
 	              doublepost[0].x()=fp.x();
 		            doublepost[0].y()=fp.y();
 	              float delta=(post._theta+now_state.dir)/180*3.1415926;
@@ -118,6 +120,7 @@ int KA::goalPostUpdate(const vector< GoalPost > & posts_)
 	            }
 	        }
 	      }
+        LOG(LOG_INFO)<<pppp.transpose()<<endll;
 	      flag++;
     }
     return size;

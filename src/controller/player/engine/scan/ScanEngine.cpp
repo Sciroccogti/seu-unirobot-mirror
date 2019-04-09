@@ -58,7 +58,7 @@ ScanEngine::ScanEngine()
     pitches_[2] = pitch_range_[1];
     head_state_ = HEAD_STATE_LOOKAT;
     yaw_ = 0.0;
-    pitch_ = skill_head_pitch_mid_angle;
+    pitch_ = skill_head_pitch_min_angle;
 }
 
 ScanEngine::~ScanEngine()
@@ -122,13 +122,13 @@ void ScanEngine::run()
         }
         else if(head_state_ == HEAD_STATE_SEARCH_POST)
         {
-            float search_div = 1.2;
             for(int i=1;i>=0;i--)
             {
-                for(float ya=post_search_table[i*2][1]; fabs(ya)<=fabs(post_search_table[i*2+1][1])+0.1;ya+=pow(-1, i+1)*search_div)
+                jdmap[id_pitch] = post_search_table[i*2][0];
+                for(float ya=post_search_table[i*2][1]; fabs(ya)<=fabs(post_search_table[i*2+1][1])+0.1;ya+=pow(-1, i+1)*search_post_div_)
                 {
-                    jdmap[id_pitch] = post_search_table[i*2][0];
                     jdmap[id_yaw] = ya;
+                    //LOG(LOG_INFO)<<
                     while (!MADT->head_empty())
                     {
                         usleep(1000);
@@ -137,9 +137,7 @@ void ScanEngine::run()
                     {
                         break;
                     }
-                    if(WM->find_two_posts) break;
                 }
-                if(WM->find_two_posts) break;
             }
         }
         else

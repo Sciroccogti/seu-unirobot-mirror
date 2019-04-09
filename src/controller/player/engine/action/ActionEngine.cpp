@@ -3,6 +3,7 @@
 #include "logger.hpp"
 #include "robot/humanoid.hpp"
 #include "core/adapter.hpp"
+#include "engine/IKWalk/WalkEngine.hpp"
 #include <unistd.h>
 
 namespace motion
@@ -60,19 +61,13 @@ void ActionEngine::run()
         param_mtx_.unlock();
         if(!poses_temp.empty())
         {
-            if (MADT->get_mode() == adapter::MODE_WALK)
-            {
-                MADT->set_mode(adapter::MODE_READY);
-                MADT->set_last_mode(adapter::MODE_WALK);
-            }
-            else if(MADT->get_mode()==adapter::MODE_READY&&MADT->get_last_mode()==adapter::MODE_ACT)
-                MADT->set_mode(adapter::MODE_ACT);
-
-            while (MADT->get_mode() != adapter::MODE_ACT && is_alive_)
+            WE->set_walk_state(WALK_TO_ACT);
+            while (WE->get_walk_state() != WALK_STOP && is_alive_)
             {
                 usleep(1000);
             }
             if(!is_alive_) break;
+            MADT->run_action_ = true;
             int act_time;
             std::map<int, float> one_pos_deg;
 
@@ -147,8 +142,7 @@ void ActionEngine::run()
             poses_.clear();
             pos_times_.clear();
             param_mtx_.unlock();
-            MADT->set_mode(adapter::MODE_READY);
-            MADT->set_last_mode(adapter::MODE_ACT);
+            MADT->run_action_ = false;
         }
         usleep(1000);
     }

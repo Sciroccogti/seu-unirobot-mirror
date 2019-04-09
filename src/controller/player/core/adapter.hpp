@@ -11,17 +11,8 @@
 class adapter: public singleton<adapter>
 {
 public:
-    enum act_mode
-    {
-        MODE_NONE = 0,
-        MODE_WALK = 1,
-        MODE_READY = 2,
-        MODE_ACT = 3
-    };
     adapter()
     {
-        act_mode_ = MODE_ACT;
-        last_mode_ = MODE_NONE;
     }
     inline std::map<int, float> get_degs()
     {
@@ -132,22 +123,9 @@ public:
     {
         is_alive_ = false;
     }
-    int get_mode() const
-    {
-        return act_mode_;
-    }
-    void set_mode(act_mode m)
-    {
-        act_mode_ = m;
-    }
-    int get_last_mode() const
-    {
-        return last_mode_;
-    }
-    void set_last_mode(act_mode m)
-    {
-        last_mode_ = m;
-    }
+
+    std::atomic_bool run_action_;
+
 private:
     std::list< std::map<int, float> > head_degs_list;
     std::list< std::map<int, float> > body_degs_list;
@@ -155,8 +133,6 @@ private:
     std::map<int, float> latest_body_deg;
     mutable std::mutex bd_mutex_, hd_mutex_;
     bool is_alive_;
-    std::atomic_int act_mode_;
-    std::atomic_int last_mode_;
 };
 
 #define MADT adapter::instance()
