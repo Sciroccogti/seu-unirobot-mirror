@@ -94,6 +94,7 @@ public:
     }
 
     void navigation(const Eigen::Vector3d &walk_para);
+    void reset_hear_info();
 
 public:
     std::atomic_bool find_two_posts;

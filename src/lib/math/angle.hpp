@@ -31,9 +31,15 @@ namespace robot_math
     }
 
     template<typename T>
-    inline double azimuth(const T &v)
+    inline double azimuth_deg(const T &v)
     {
         return rad2deg(std::atan2(v.y(), v.x()));
+    }
+
+    template<typename T>
+    inline double azimuth_rad(const T &v)
+    {
+        return std::atan2(v.y(), v.x());
     }
 
     template<typename T>
@@ -44,5 +50,15 @@ namespace robot_math
         while (deg < -180.0)
             deg += 360.0;
         return deg;
+    }
+
+    template<typename T>
+    inline T normalize_rad(T rad)
+    {
+        while (rad > M_PI)
+            rad -= 2*M_PI;
+        while (rad < -M_PI)
+            rad += 2*M_PI;
+        return rad;
     }
 }

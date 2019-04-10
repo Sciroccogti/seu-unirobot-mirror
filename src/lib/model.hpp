@@ -45,7 +45,7 @@ struct player_info
     int id;
     float x, y, dir;
     float ball_x, ball_y;
-    bool available = false;
+    bool can_see = false;
     player_info(float m_x, float m_y, float m_d)
         :x(m_x), y(m_y), dir(m_d){}
 

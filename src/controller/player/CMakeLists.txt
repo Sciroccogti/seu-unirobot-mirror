@@ -9,7 +9,7 @@ add_library(player STATIC
             play_with_remote.cpp
             play_without_gc.cpp
             play_with_gc.cpp
-            skill.cpp
+            play_skill.cpp
             player.cpp)
             
 target_link_libraries(player

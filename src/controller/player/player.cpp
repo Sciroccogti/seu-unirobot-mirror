@@ -39,7 +39,7 @@ void player::run()
             if(WM->button_status(1)&&WM->button_status(2))
             {
                 btn_count_++;
-                if(btn_count_%40==0)
+                if(btn_count_%20==0)
                     raise(SIGINT);
             }
             else
@@ -54,16 +54,20 @@ void player::run()
         else
         {
             list<task_ptr> tasks, tlist;
-            if(period_count_%10 == 0)
+            if((period_count_*period_ms_/100)%5 == 0)
             {
                 if(OPTS->use_gc())
                     tasks.push_back(make_shared<gcret_task>());
                 if(OPTS->use_comm())
                     tasks.push_back(make_shared<say_task>());
             }
+            if((period_count_*period_ms_/100)%20 == 0)
+            {
+                WM->reset_hear_info();
+            }
+
             tlist = think();
             tasks.insert(tasks.end(), tlist.begin(), tlist.end());    
-            
             for(auto &tsk:tasks)
             {
                 if(tsk.get())
@@ -78,23 +82,20 @@ list<task_ptr> player::think()
     list<task_ptr> tasks, tlists;
     if(OPTS->image_record())
     {
-        //tasks.push_back(make_shared<look_task>(true));
-        //tasks.push_back(make_shared<walk_task>(0.0, 0.0, 0.0, true));
+        tasks.push_back(make_shared<look_task>(HEAD_STATE_SEARCH_BALL));
+        tasks.push_back(make_shared<walk_task>(0.0, 0.0, 0.0, true));
     }
     else if(OPTS->use_gc())
     {
-        //tlists = play_with_gc();
+        tlists = play_with_gc();
     }
     else
     {
-        //tlists = play_without_gc();
-        //tasks.push_back(make_shared<look_task>(true));
+        tlists = play_without_gc();
         //tasks.push_back(make_shared<look_task>(HEAD_STATE_SEARCH_POST));
-        tasks.push_back(make_shared<walk_task>(0.02, 0.0, 0.0, true));
+        //tasks.push_back(make_shared<walk_task>(0.02, 0.0, 0.0, true));
     }
-    //tasks.push_back(make_shared<look_task>(true));
-    //tasks.push_back(make_shared<walk_task>(0.0, 0.0, 0.0, true));
-    //tasks.push_back(make_shared<action_task>("reset"));
+
     tasks.insert(tasks.end(), tlists.begin(), tlists.end());
     return tasks;
 }

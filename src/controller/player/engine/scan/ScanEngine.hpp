@@ -25,6 +25,8 @@ namespace motion
         void stop();
         void set_params(float yaw, float pitch, Head_State state);
 
+        std::atomic_bool search_ball_circle_;
+
     private:
         void run();
         std::thread td_;
