@@ -47,6 +47,11 @@ private:
     std::list<task_ptr> play_with_gc();
     std::list<task_ptr> play_without_gc();
     std::list<task_ptr> think();
+
+    task_ptr play_skill_goto(const Eigen::Vector2d &target, double dir);
+    std::list<task_ptr> play_skill_front_kick(const self_block &self, const ball_block &ball);
+    std::list<task_ptr> play_skill_search_ball(const self_block &self);
+
     bool regist();
     void unregist();
     sensor_ptr get_sensor(const std::string &name);

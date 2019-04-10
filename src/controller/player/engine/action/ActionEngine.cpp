@@ -61,13 +61,15 @@ void ActionEngine::run()
         param_mtx_.unlock();
         if(!poses_temp.empty())
         {
+            MADT->run_action_ = true;
             WE->set_walk_state(WALK_TO_ACT);
+            
             while (WE->get_walk_state() != WALK_STOP && is_alive_)
             {
-                usleep(1000);
+                usleep(500);
             }
+
             if(!is_alive_) break;
-            MADT->run_action_ = true;
             int act_time;
             std::map<int, float> one_pos_deg;
 

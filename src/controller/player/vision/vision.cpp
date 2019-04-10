@@ -248,7 +248,7 @@ void Vision::run()
                 //LOG(LOG_INFO)<<"post: "<<odo_res.norm()<<endll;
                 temp._distance = odo_res.norm()*100;
                 Vector2d post_pos = camera2self(odo_res, head_yaw);
-                temp._theta = azimuth(post_pos);
+                temp._theta = azimuth_deg(post_pos);
                 //LOG(LOG_INFO)<<"###########################"<<endll;
                 //LOG(LOG_INFO)<<'\t'<<temp._distance<<'\t'<<temp._theta<<endll;
                 posts_.push_back(temp);

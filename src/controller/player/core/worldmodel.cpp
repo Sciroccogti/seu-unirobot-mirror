@@ -89,7 +89,7 @@ void WorldModel::set_ball_pos(const Eigen::Vector2d &global, const Eigen::Vector
     info_mtx_.lock();
     player_infos_[CONF->id()].ball_x = global.x();
     player_infos_[CONF->id()].ball_y = global.y();
-    player_infos_[CONF->id()].available = can;
+    player_infos_[CONF->id()].can_see = can;
     info_mtx_.unlock();
     
     ball_mtx_.lock();
@@ -100,4 +100,15 @@ void WorldModel::set_ball_pos(const Eigen::Vector2d &global, const Eigen::Vector
     ball_block_.beta = beta;
     ball_block_.can_see = can;
     ball_mtx_.unlock();
+}
+
+void WorldModel::reset_hear_info()
+{
+    info_mtx_.lock();
+    for(auto &item:player_infos_)
+    {
+        if(item.first != CONF->id())
+            item.second.can_see = false;
+    }
+    info_mtx_.unlock();
 }

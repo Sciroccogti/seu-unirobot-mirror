@@ -216,7 +216,7 @@ namespace motion
 
         phase_ = 0.0;
         time_ = 0.0;
-        engine_frequency_ = 50.0;
+        engine_frequency_ = 1000.0/CONF->get_config_value<int>("hardware.motor.period");
         time_length_ = 1.0/params_.freq;
 
         walk_state_ = WALK_STOP;
@@ -262,6 +262,8 @@ namespace motion
 
     void WalkEngine::set_params(float x, float y, float d, bool enable)
     {
+        if(MADT->run_action_) 
+            return;
         para_mutex_.lock();
         params_.stepGain = x;
         params_.lateralGain = y;
@@ -336,11 +338,10 @@ namespace motion
             
             if(last_walk_state_ == WALK_STOP && walk_state_ == WALK_NORMAL && !MADT->run_action_)
                 walk_state_ = WALK_START;
-            /*
+            
             else if(last_walk_state_ == WALK_NORMAL && walk_state_ == WALK_STOP)
                 walk_state_ = WALK_END;
-            */
-
+            
             if (walk_state_ == WALK_STOP)
             {
                 usleep(500);
@@ -352,10 +353,10 @@ namespace motion
                 tempParams.stepGain = 0.0;
                 tempParams.lateralGain = 0.0;
                 tempParams.turnGain = 0.0;
-                if(walk_state_ == WALK_NORMAL)
+                if(last_walk_state_ == WALK_NORMAL)
                 {
                     tempParams.enabledGain = 1.0;
-                    run_walk(tempParams, time_length_, phase_, time_);
+                    run_walk(tempParams, 2*time_length_, phase_, time_);
                 }
                 walk_state_ = WALK_STOP;
             }
@@ -380,7 +381,7 @@ namespace motion
                     tempParams.stepGain = 0.0;
                     tempParams.lateralGain = 0.0;
                     tempParams.turnGain = 0.0;
-                    run_walk(tempParams, time_length_, phase_, time_);
+                    run_walk(tempParams, 2*time_length_, phase_, time_);
                     walk_state_ = WALK_STOP;
                 }
                 else if(walk_state_ == WALK_NORMAL)

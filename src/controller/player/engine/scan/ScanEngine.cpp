@@ -57,8 +57,11 @@ ScanEngine::ScanEngine()
     pitches_[1] = pitch_range_[0]+(pitch_range_[1]-pitch_range_[0])/2.0f;
     pitches_[2] = pitch_range_[1];
     head_state_ = HEAD_STATE_LOOKAT;
-    yaw_ = 0.0;
-    pitch_ = skill_head_pitch_min_angle;
+    vector<float> head_init = CONF->get_config_vector<float>("scan.init");
+
+    yaw_ = head_init[0];
+    pitch_ = head_init[1];
+    search_ball_circle_ = false;
 }
 
 ScanEngine::~ScanEngine()
@@ -104,6 +107,7 @@ void ScanEngine::run()
         ball_block ball = WM->ball();
         if(head_state_ == HEAD_STATE_SEARCH_BALL)
         {
+            search_ball_circle_ = false;
             for(int i=scan_ball-1;i>=0&&!ball.can_see;i--)
             {
                 jdmap[id_pitch] = ball_search_table[i][0];
@@ -119,6 +123,9 @@ void ScanEngine::run()
                 usleep(1000000);
                 ball = WM->ball();
             }
+            if(!ball.can_see) 
+                head_state_ = HEAD_STATE_LOOKAT;
+            search_ball_circle_ = true;
         }
         else if(head_state_ == HEAD_STATE_SEARCH_POST)
         {
@@ -128,7 +135,6 @@ void ScanEngine::run()
                 for(float ya=post_search_table[i*2][1]; fabs(ya)<=fabs(post_search_table[i*2+1][1])+0.1;ya+=pow(-1, i+1)*search_post_div_)
                 {
                     jdmap[id_yaw] = ya;
-                    //LOG(LOG_INFO)<<
                     while (!MADT->head_empty())
                     {
                         usleep(1000);

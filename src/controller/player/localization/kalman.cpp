@@ -87,7 +87,7 @@ int KA::goalPostUpdate(const vector< GoalPost > & posts_)
         Vector2f pppp;
         for(const Vector2f & fp: postPos)
 	      {
-	          bearErr = normalize_deg(azimuth(fp - pos)-now_state.dir-post._theta);
+	          bearErr = normalize_deg(azimuth_deg(fp - pos)-now_state.dir-post._theta);
             distErr = (fp - pos).norm() - post._distance;
 	          // cout<<fp.x()<<"  "<<fp.y()<<"  "<<abs(bearErr)<<"  "<<abs(distErr)<<endl;
 	          // cout<<(fp - pos).angle()<<"  "<<now_state.dir<<"  "<<post._theta<<endl;
