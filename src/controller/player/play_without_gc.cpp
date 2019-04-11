@@ -33,16 +33,7 @@ std::list<task_ptr> player::play_without_gc()
         if(ball.can_see)
             tasks = play_skill_front_kick(self, ball);
         else
-        {
-            tasks.push_back(make_shared<look_task>(HEAD_STATE_SEARCH_BALL));
-            if(SE->search_ball_circle_)
-                tasks.push_back(make_shared<walk_task>(0.0, 0.0, 5.0, true));
-            else
-                tasks.push_back(make_shared<walk_task>(0.0, 0.0, 0.0, false));
-            //LOG(LOG_INFO)<<"can not see ball"<<endll;
-            //kick_complete = true;
-            //tasks.push_back(make_shared<walk_task>(-0.02, 0.0, 0.0, true));
-        }
+            tasks = play_skill_search_ball();
     }
     return tasks;
 }

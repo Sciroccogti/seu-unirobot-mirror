@@ -50,7 +50,7 @@ private:
 
     task_ptr play_skill_goto(const Eigen::Vector2d &target, double dir);
     std::list<task_ptr> play_skill_front_kick(const self_block &self, const ball_block &ball);
-    std::list<task_ptr> play_skill_search_ball(const self_block &self);
+    std::list<task_ptr> play_skill_search_ball();
 
     bool regist();
     void unregist();
