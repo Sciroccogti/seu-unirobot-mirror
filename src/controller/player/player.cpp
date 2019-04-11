@@ -14,6 +14,7 @@
 
 using namespace std;
 using namespace motion;
+using namespace Eigen;
 
 const map<string, player::PlayerRole> player::RoleName{{"keeper", player::KEEPER}, {"attacker", player::ATTACKER}, {"guard", player::GUARD}};
 
@@ -92,6 +93,7 @@ list<task_ptr> player::think()
     else
     {
         tlists = play_without_gc();
+        //tasks.push_back(play_skill_goto(Vector2d(3.0, 0.0), 90.0));
         //tasks.push_back(make_shared<look_task>(HEAD_STATE_SEARCH_POST));
         //tasks.push_back(make_shared<walk_task>(0.02, 0.0, 0.0, true));
     }

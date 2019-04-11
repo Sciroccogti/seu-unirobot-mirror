@@ -31,7 +31,6 @@ std::list<task_ptr> player::play_with_gc()
             tasks.push_back(make_shared<look_task>(head_init[0], head_init[1], HEAD_STATE_LOOKAT));
             break;
         case STATE_SET:
-            tasks.push_back(make_shared<action_task>("ready"));
             tasks.push_back(make_shared<look_task>(head_init[0], head_init[1], HEAD_STATE_LOOKAT));
             //if(OPTS->use_robot())
             //    dynamic_pointer_cast<imu>(get_sensor("imu"))->set_zero();

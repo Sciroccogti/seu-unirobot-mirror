@@ -329,6 +329,12 @@ namespace motion
 
     void WalkEngine::run()
     {   
+        const vector<string> walk_s{
+            "WALK_STOP",
+            "WALK_START",
+            "WALK_END",
+            "WALK_TO_ACT",
+            "WALK_NORMAL"};
         Rhoban::IKWalkParameters tempParams;
         while (is_alive_)
         {   
@@ -338,10 +344,9 @@ namespace motion
             
             if(last_walk_state_ == WALK_STOP && walk_state_ == WALK_NORMAL && !MADT->run_action_)
                 walk_state_ = WALK_START;
-            
-            else if(last_walk_state_ == WALK_NORMAL && walk_state_ == WALK_STOP)
+            if(last_walk_state_ == WALK_NORMAL && walk_state_ == WALK_STOP)
                 walk_state_ = WALK_END;
-            
+
             if (walk_state_ == WALK_STOP)
             {
                 usleep(500);
@@ -356,9 +361,12 @@ namespace motion
                 if(last_walk_state_ == WALK_NORMAL)
                 {
                     tempParams.enabledGain = 1.0;
-                    run_walk(tempParams, 2*time_length_, phase_, time_);
+                    run_walk(tempParams, time_length_, phase_, time_);
+                    tempParams.enabledGain = 0.0;
+                    run_walk(tempParams, time_length_, phase_, time_);
                 }
                 walk_state_ = WALK_STOP;
+                last_walk_state_ = WALK_STOP;
             }
             else
             {
@@ -370,26 +378,39 @@ namespace motion
                 }
                 if(walk_state_ == WALK_START)
                 {
+                    LOG(LOG_INFO)<<"walk start"<<endll;
                     tempParams.stepGain = 0.0;
                     tempParams.lateralGain = 0.0;
                     tempParams.turnGain = 0.0;
-                    run_walk(tempParams, 2*time_length_, phase_, time_);
+                    tempParams.enabledGain = 0.0;
+                    run_walk(tempParams, time_length_, phase_, time_);
+                    tempParams.enabledGain = 0.3;
+                    run_walk(tempParams, time_length_, phase_, time_);
+                    tempParams.enabledGain = 0.7;
+                    run_walk(tempParams, time_length_, phase_, time_);
+                    tempParams.enabledGain = 1.0;
+                    run_walk(tempParams, time_length_, phase_, time_);
                     walk_state_ = WALK_NORMAL;
+                    last_walk_state_ = WALK_NORMAL;
                 }
                 else if(walk_state_ == WALK_END)
                 {
+                    LOG(LOG_INFO)<<"walk end"<<endll;
                     tempParams.stepGain = 0.0;
                     tempParams.lateralGain = 0.0;
                     tempParams.turnGain = 0.0;
+                    run_walk(tempParams, time_length_, phase_, time_);
+                    tempParams.enabledGain = 0.0;
                     run_walk(tempParams, 2*time_length_, phase_, time_);
                     walk_state_ = WALK_STOP;
+                    last_walk_state_ = WALK_STOP;
                 }
                 else if(walk_state_ == WALK_NORMAL)
                 {
                     run_walk(tempParams, time_length_, phase_, time_);
+                    last_walk_state_ = WALK_NORMAL;
                 }
             }
-            last_walk_state_ = walk_state_;
             usleep(500);
         }
     }
