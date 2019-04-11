@@ -95,10 +95,11 @@ list<task_ptr> player::play_skill_front_kick(const self_block &self, const ball_
                 if(ball.beta<0.3)
                     tasks.push_back(make_shared<walk_task>(0.015, 0.0, 0.0, true));
                 else if(ball.beta>0.4)
-                    tasks.push_back(make_shared<walk_task>(0.015, 0.0, 0.0, true));
+                    tasks.push_back(make_shared<walk_task>(-0.01, 0.0, 0.0, true));
                 else
                 {
                     tasks.push_back(make_shared<action_task>("left_little_kick"));
+                    SE->search_ball_circle_ = false;
                 }
             }
         }
@@ -106,7 +107,7 @@ list<task_ptr> player::play_skill_front_kick(const self_block &self, const ball_
     return tasks;
 }
 
-list<task_ptr> player::play_skill_search_ball(const self_block &self)
+list<task_ptr> player::play_skill_search_ball()
 {
     list<task_ptr> tasks;
     map< int, player_info > pinfos = WM->player_infos();
@@ -118,30 +119,28 @@ list<task_ptr> player::play_skill_search_ball(const self_block &self)
         {
             tasks.push_back(make_shared<look_task>(HEAD_STATE_SEARCH_BALL));
             tasks.push_back(play_skill_goto(Vector2d(keeper_info.ball_x, keeper_info.ball_y), 0.0));
+            return tasks;
+        }
+    }
+    if(SE->search_ball_circle_)
+    {
+        double target_dir = normalize_deg(last_dir+90.0);
+        if(fabs(WM->self().dir-target_dir)>skill_goto_turn_direction)
+        {
+            tasks.push_back(make_shared<look_task>(0.0, 45.0, HEAD_STATE_LOOKAT));
+            tasks.push_back(make_shared<walk_task>(0.0, 0.0, 6.0, true));
         }
         else
         {
-            if(SE->search_ball_circle_)
-            {
-                double target_dir = normalize_deg(last_dir+90.0);
-                if(fabs(WM->self().dir-target_dir)>skill_goto_turn_direction)
-                {
-                    tasks.push_back(make_shared<look_task>(HEAD_STATE_LOOKAT));
-                    tasks.push_back(make_shared<walk_task>(0.0, 0.0, 6.0, true));
-                }
-                else
-                {
-                    last_dir = WM->self().dir;
-                    tasks.push_back(make_shared<look_task>(HEAD_STATE_SEARCH_BALL));
-                    tasks.push_back(make_shared<walk_task>(0.0, 0.0, 0.0, false));
-                }
-            }
-            else
-            {
-                tasks.push_back(make_shared<look_task>(HEAD_STATE_SEARCH_BALL));
-                tasks.push_back(make_shared<walk_task>(0.0, 0.0, 0.0, false));
-            }
+            last_dir = WM->self().dir;
+            tasks.push_back(make_shared<look_task>(HEAD_STATE_SEARCH_BALL));
+            tasks.push_back(make_shared<walk_task>(0.0, 0.0, 0.0, false));
         }
+    }
+    else
+    {
+        tasks.push_back(make_shared<look_task>(HEAD_STATE_SEARCH_BALL));
+        tasks.push_back(make_shared<walk_task>(0.0, 0.0, 0.0, false));
     }
     return tasks;
 }
