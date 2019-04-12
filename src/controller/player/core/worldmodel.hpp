@@ -93,11 +93,21 @@ public:
         return player_infos_[CONF->id()];
     }
 
+    void reset_my_pos()
+    {
+        std::lock_guard<std::mutex> lk(info_mtx_);
+        player_infos_[CONF->id()].x = init_pos_[0];
+        player_infos_[CONF->id()].y = init_pos_[1];
+        player_infos_[CONF->id()].ball_x = 0.0;
+        player_infos_[CONF->id()].ball_y = 0.0;
+        self_block_.global = Eigen::Vector2d(init_pos_[0], init_pos_[1]);
+    }
+
     void navigation(const Eigen::Vector3d &walk_para);
     void reset_hear_info();
 
 public:
-    std::atomic_bool find_two_posts;
+    std::atomic_bool self_localization_;
     Eigen::Vector2d opp_post_left, opp_post_right;
     
 private:
@@ -113,6 +123,7 @@ private:
     std::atomic_int support_foot_;
 
     double coef_x_, coef_y_, coef_d_;
+    std::vector<float> init_pos_;
     mutable std::mutex imu_mtx_, gc_mtx_, info_mtx_, ball_mtx_, self_mtx_;
 };
 

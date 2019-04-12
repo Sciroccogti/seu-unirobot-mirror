@@ -23,19 +23,61 @@ std::list<task_ptr> player::play_with_gc()
     switch (gc_data.state)
     {
         case STATE_INITIAL:
+            if(WM->self().dir>45.0) 
+                WM->set_my_pos(Vector2d(0.0, -3.0));
+            else if(WM->self().dir<-45.0)
+                WM->set_my_pos(Vector2d(0.0, 3.0));
             tasks.push_back(make_shared<action_task>("ready"));
             tasks.push_back(make_shared<look_task>(head_init[0], head_init[1], HEAD_STATE_LOOKAT));
             break;
         case STATE_READY:
-            tasks.push_back(make_shared<action_task>("ready"));
+            tasks.push_back(play_skill_goto(Vector2d(-1.0, 0.0), 0.0));
             tasks.push_back(make_shared<look_task>(head_init[0], head_init[1], HEAD_STATE_LOOKAT));
             break;
         case STATE_SET:
+            WM->reset_my_pos();
+            tasks.push_back(make_shared<walk_task>(0.0, 0.0, 0.0, false));
             tasks.push_back(make_shared<look_task>(head_init[0], head_init[1], HEAD_STATE_LOOKAT));
             //if(OPTS->use_robot())
             //    dynamic_pointer_cast<imu>(get_sensor("imu"))->set_zero();
             break;
         case STATE_PLAYING:
+            if(WM->fall_data()!=FALL_NONE)
+            {
+                tasks.push_back(make_shared<look_task>(0.0, 0.0, HEAD_STATE_LOOKAT));
+                if(WM->fall_data()==FALL_FORWARD)
+                    tasks.push_back(make_shared<action_task>("front_getup"));
+            }
+            else
+            {
+                int team_index = gc_data.teams[0].teamNumber == CONF->team_number()?0:1;
+                if(gc_data.teams[team_index].players[CONF->id()-1].penalty == HL_PICKUP_OR_INCAPABLE
+                    || gc_data.teams[team_index].players[CONF->id()-1].penalty == HL_SERVICE)
+                {
+                    tasks.push_back(make_shared<look_task>(0.0, 0.0, HEAD_STATE_LOOKAT));
+                    tasks.push_back(make_shared<walk_task>(0.0, 0.0, 0.0, false));
+                    if(WM->self().dir>45.0) 
+                        WM->set_my_pos(Vector2d(0.0, -3.0));
+                    else if(WM->self().dir<-45.0)
+                        WM->set_my_pos(Vector2d(0.0, 3.0));
+                }
+                else
+                {
+                    int secondT = (int)gc_data.secondaryTime;
+                    int kickoff = (int)gc_data.kickOffTeam;
+                    if(kickoff != DROPBALL && kickoff!=CONF->team_number() && secondT!=0)
+                        tasks.push_back(make_shared<look_task>(HEAD_STATE_SEARCH_BALL));
+                    else
+                    {
+                        ball_block ball = WM->ball();
+                        self_block self = WM->self();
+                        if(ball.can_see)
+                            tasks = play_skill_front_kick(self, ball);
+                        else
+                            tasks = play_skill_search_ball();
+                    }
+                }
+            }
             break;
         case STATE_FINISHED:
             tasks.push_back(make_shared<action_task>("ready"));

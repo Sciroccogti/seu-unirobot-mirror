@@ -11,11 +11,12 @@ using namespace motion;
 
 const double skill_goto_max_speed = 0.03;
 const double skill_goto_stop_distance = 0.2;
-const double skill_goto_stop_direction = 10.0;
-const double skill_goto_turn_direction = 10.0;
+const double skill_goto_stop_direction = 15.0;
+const double skill_goto_turn_direction = 15.0;
 
 task_ptr player::play_skill_goto(const Eigen::Vector2d &target, double dir)
 {
+    WM->self_localization_ = false;
     self_block self = WM->self();
     Vector2d target_in_self = target-self.global;
     double dis = target_in_self.norm();
@@ -24,10 +25,11 @@ task_ptr player::play_skill_goto(const Eigen::Vector2d &target, double dir)
     {
         //LOG(LOG_INFO)<<"far"<<endll;
         double azi_deg = azimuth_deg(target_in_self);
-        if(fabs(azi_deg-self.dir)>skill_goto_turn_direction)
-            return make_shared<walk_task>(0.0, 0.0, sign(azi_deg-self.dir)*5.0, true);
+        double temp = normalize_deg(azi_deg-self.dir);
+        if(fabs(temp)>skill_goto_turn_direction)
+            return make_shared<walk_task>(0.0, 0.0, sign(temp)*10.0, true);
         else
-            return make_shared<walk_task>(skill_goto_max_speed, 0.0, 0.0, true);
+            return make_shared<walk_task>(0.04, 0.0, 0.0, true);
     }
     else if(fabs(self.dir-dir)>skill_goto_stop_direction)
     {
@@ -36,7 +38,7 @@ task_ptr player::play_skill_goto(const Eigen::Vector2d &target, double dir)
         if(fabs(temp_dir)>15.0)
             return make_shared<walk_task>(0.0, 0.0, sign(temp_dir)*10.0, true);
         else
-            return make_shared<walk_task>(0.0, 0.0, sign(temp_dir)*5.0, true);
+            return make_shared<walk_task>(0.0, 0.0, sign(temp_dir)*6.0, true);
     }
     else
     {
@@ -47,6 +49,7 @@ task_ptr player::play_skill_goto(const Eigen::Vector2d &target, double dir)
 
 list<task_ptr> player::play_skill_front_kick(const self_block &self, const ball_block &ball)
 {
+    WM->self_localization_ = false;
     static bool fisrt_lookat = true;
     list<task_ptr> tasks;
 
@@ -95,7 +98,7 @@ list<task_ptr> player::play_skill_front_kick(const self_block &self, const ball_
                 if(ball.beta<0.3)
                     tasks.push_back(make_shared<walk_task>(0.015, 0.0, 0.0, true));
                 else if(ball.beta>0.4)
-                    tasks.push_back(make_shared<walk_task>(-0.01, 0.0, 0.0, true));
+                    tasks.push_back(make_shared<walk_task>(-0.02, 0.0, 0.0, true));
                 else
                 {
                     tasks.push_back(make_shared<action_task>("left_little_kick"));
@@ -127,6 +130,7 @@ list<task_ptr> player::play_skill_search_ball()
         double target_dir = normalize_deg(last_dir+90.0);
         if(fabs(WM->self().dir-target_dir)>skill_goto_turn_direction)
         {
+            WM->self_localization_ = false;
             tasks.push_back(make_shared<look_task>(0.0, 45.0, HEAD_STATE_LOOKAT));
             tasks.push_back(make_shared<walk_task>(0.0, 0.0, 6.0, true));
         }
@@ -139,6 +143,7 @@ list<task_ptr> player::play_skill_search_ball()
     }
     else
     {
+        //WM->self_localization_ = true;
         tasks.push_back(make_shared<look_task>(HEAD_STATE_SEARCH_BALL));
         tasks.push_back(make_shared<walk_task>(0.0, 0.0, 0.0, false));
     }

@@ -11,18 +11,18 @@ WorldModel::WorldModel()
     fall_direction_ = FALL_NONE;
     support_foot_ = robot::DOUBLE_SUPPORT;
     player_infos_[CONF->id()].id = CONF->id();
-    vector<float> init_pos = CONF->get_config_vector<float>(CONF->player()+".strategy.init");
-    player_infos_[CONF->id()].x = init_pos[0];
-    player_infos_[CONF->id()].y = init_pos[1];
-    player_infos_[CONF->id()].dir = init_pos[2];
+    init_pos_ = CONF->get_config_vector<float>(CONF->player()+".strategy.init");
+    player_infos_[CONF->id()].x = init_pos_[0];
+    player_infos_[CONF->id()].y = init_pos_[1];
+    player_infos_[CONF->id()].dir = init_pos_[2];
     player_infos_[CONF->id()].ball_x = 0.0;
     player_infos_[CONF->id()].ball_y = 0.0;
-    self_block_.global = Vector2d(init_pos[0], init_pos[1]);
-    self_block_.dir = init_pos[2];
+    self_block_.global = Vector2d(init_pos_[0], init_pos_[1]);
+    self_block_.dir = init_pos_[2];
     coef_x_ = CONF->get_config_value<double>(CONF->player()+".nav.cx");
     coef_y_ = CONF->get_config_value<double>(CONF->player()+".nav.cy");
     coef_d_ = CONF->get_config_value<double>(CONF->player()+".nav.cd");
-    find_two_posts = false;
+    self_localization_ = false;
     opp_post_left = Vector2d(SOCCERMAP->width()/200.0, SOCCERMAP->goalWidth()/200.0-0.2);
     opp_post_right = Vector2d(SOCCERMAP->width()/200.0, -SOCCERMAP->goalWidth()/200.0+0.2);
 }
