@@ -212,7 +212,7 @@ __global__ void undistored_kernal(unsigned char *in, unsigned char *out, int w, 
     y1 = (y-cy)/fy;
     float r2;
     r2 = powf(x1,2)+powf(y1,2);
-    x2  = x1*(1+k1*r2+k2*powf(r2,2))+2*p1*x1*y1+p2*(r2+2*x1*x1);
+    x2 = x1*(1+k1*r2+k2*powf(r2,2))+2*p1*x1*y1+p2*(r2+2*x1*x1);
     y2 = y1*(1+k1*r2+k2*powf(r2,2))+p1*(r2+2*y1*y1)+2*p2*x1*y1;
     u_distorted = fx*x2+cx;
     v_distorted = fy*y2+cy;

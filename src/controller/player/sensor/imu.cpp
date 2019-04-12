@@ -250,7 +250,7 @@ void imu::OnDataReceived(Packet_t &pkt)
         init_dir_=imu_data_.yaw;
         record_ = false;
     }
-    imu_data_.yaw = imu_data_.yaw-init_dir_;
+    imu_data_.yaw = normalize_deg(imu_data_.yaw-init_dir_);
     notify(SENSOR_IMU);
 }
 

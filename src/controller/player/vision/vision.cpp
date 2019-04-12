@@ -153,6 +153,8 @@ void Vision::run()
             cudaYUYV2BGR(dev_src_,  dev_bgr_,  camera_w_,  camera_h_);
         }
         cudaResizePacked(dev_bgr_, camera_w_,  camera_h_,  dev_ori_, w_,  h_);
+        //cudaUndistored(dev_ori_, dev_undis_, w_, h_, params_.fx, params_.fy, params_.cx, params_.cy,
+        //        params_.k1, params_.k2, params_.p1, params_.k2);
         cudaBGR2YUV422(dev_ori_, dev_yuyv_, w_, h_);
         cudaResizePacked(dev_ori_, w_, h_, dev_sized_, net_.w, net_.h);
         cudaBGR2RGBfp(dev_sized_, dev_rgbfp_, net_.w, net_.h);
@@ -236,41 +238,44 @@ void Vision::run()
                 if(cant_see_ball_count_*period_ms_>200)
                     WM->set_ball_pos(Vector2d(0,0), Vector2d(0,0), Vector2i(0,0), 0, 0, false);
             }
-            int post_num=0;
-            vector< GoalPost > posts_;
-            for(auto &post: post_dets_)
+            if(WM->self_localization_)
             {
-                //LOG(LOG_WARN)<<post.w<<'\t'<<post.h<<endll;
-                GoalPost temp;
-                Vector2i post_pix(post.x+post.w/2, post.y+post.h*0.8);
-                post_pix = undistored(post_pix);
-                Vector2d odo_res = odometry(post_pix, camera_matrix);
-                //LOG(LOG_INFO)<<"post: "<<odo_res.norm()<<endll;
-                temp._distance = odo_res.norm()*100;
-                Vector2d post_pos = camera2self(odo_res, head_yaw);
-                temp._theta = azimuth_deg(post_pos);
-                //LOG(LOG_INFO)<<"###########################"<<endll;
-                //LOG(LOG_INFO)<<'\t'<<temp._distance<<'\t'<<temp._theta<<endll;
-                posts_.push_back(temp);
-                if(posts_.size()==2)
+                int post_num=0;
+                vector< GoalPost > posts_;
+                for(auto &post: post_dets_)
                 {
-                    if(post_dets_[0].x<post_dets_[1].x)
-                    {
-                        posts_[0]._type = GoalPost::SENSORMODEL_POST_L;
-                        posts_[1]._type = GoalPost::SENSORMODEL_POST_R;
-                    }
-                    else
-                    {
-                        posts_[0]._type = GoalPost::SENSORMODEL_POST_R;
-                        posts_[1]._type = GoalPost::SENSORMODEL_POST_L;
-                    }
+                    //LOG(LOG_WARN)<<post.w<<'\t'<<post.h<<endll;
+                    GoalPost temp;
+                    Vector2i post_pix(post.x+post.w/2, post.y+post.h*0.8);
+                    post_pix = undistored(post_pix);
+                    Vector2d odo_res = odometry(post_pix, camera_matrix);
+                    //LOG(LOG_INFO)<<"post: "<<odo_res.norm()<<endll;
+                    temp._distance = odo_res.norm()*100;
+                    Vector2d post_pos = camera2self(odo_res, head_yaw);
+                    temp._theta = azimuth_deg(post_pos);
                     //LOG(LOG_INFO)<<"###########################"<<endll;
-                    //LOG(LOG_INFO)<<posts_[0]._type<<'\t'<<posts_[0]._distance<<'\t'<<posts_[0]._theta<<endll;
-                    //LOG(LOG_INFO)<<posts_[1]._type<<'\t'<<posts_[1]._distance<<'\t'<<posts_[1]._theta<<endll;
-                    break;
+                    //LOG(LOG_INFO)<<'\t'<<temp._distance<<'\t'<<temp._theta<<endll;
+                    posts_.push_back(temp);
+                    if(posts_.size()==2)
+                    {
+                        if(post_dets_[0].x<post_dets_[1].x)
+                        {
+                            posts_[0]._type = GoalPost::SENSORMODEL_POST_L;
+                            posts_[1]._type = GoalPost::SENSORMODEL_POST_R;
+                        }
+                        else
+                        {
+                            posts_[0]._type = GoalPost::SENSORMODEL_POST_R;
+                            posts_[1]._type = GoalPost::SENSORMODEL_POST_L;
+                        }
+                        //LOG(LOG_INFO)<<"###########################"<<endll;
+                        //LOG(LOG_INFO)<<posts_[0]._type<<'\t'<<posts_[0]._distance<<'\t'<<posts_[0]._theta<<endll;
+                        //LOG(LOG_INFO)<<posts_[1]._type<<'\t'<<posts_[1]._distance<<'\t'<<posts_[1]._theta<<endll;
+                        break;
+                    }
                 }
+                SL->update(player_info(p.global.x(), p.global.y(), p.dir), posts_);
             }
-            //SL->update(player_info(p.global.x(), p.global.y(), p.dir), posts_);
         }
 
         if (OPTS->use_debug())
@@ -421,6 +426,8 @@ bool Vision::start()
     cudaError_t err;
     err = cudaMalloc((void **)&dev_ori_, ori_size_);
     check_error(err);
+    err = cudaMalloc((void **)&dev_undis_, ori_size_);
+    check_error(err);
     err = cudaMalloc((void**)&dev_yuyv_, yuyv_size_);
     check_error(err);
     err = cudaMalloc((void **)&dev_sized_, sized_size_);
@@ -440,6 +447,7 @@ void Vision::stop()
         free_network(net_);
         free(camera_src_);
         cudaFree(dev_ori_);
+        cudaFree(dev_undis_);
         cudaFree(dev_yuyv_);
         cudaFree(dev_src_);
         cudaFree(dev_bgr_);

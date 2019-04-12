@@ -40,6 +40,7 @@ void team_monitor::receive()
             {
                 p_mutex_.lock();
                 players_[pkt_.info.id] = pkt_.info;
+                //cout<<pkt_.info.x<<'\t'<<pkt_.info.y<<'\t'<<pkt_.info.dir<<endll;
                 p_mutex_.unlock();
                 update();
             }

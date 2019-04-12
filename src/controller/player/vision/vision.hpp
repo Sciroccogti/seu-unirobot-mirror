@@ -76,6 +76,7 @@ private:
     unsigned char *dev_bgr_;
     unsigned char *dev_ori_;
     unsigned char *dev_sized_;
+    unsigned char *dev_undis_;
     unsigned char *dev_yuyv_;
     unsigned char *camera_src_;
     float *dev_rgbfp_;

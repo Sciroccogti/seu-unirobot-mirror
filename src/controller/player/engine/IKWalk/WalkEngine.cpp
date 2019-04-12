@@ -382,11 +382,13 @@ namespace motion
                     tempParams.stepGain = 0.0;
                     tempParams.lateralGain = 0.0;
                     tempParams.turnGain = 0.0;
-                    tempParams.enabledGain = 0.0;
+                    tempParams.enabledGain = 0.2;
                     run_walk(tempParams, time_length_, phase_, time_);
-                    tempParams.enabledGain = 0.3;
+                    tempParams.enabledGain = 0.4;
                     run_walk(tempParams, time_length_, phase_, time_);
-                    tempParams.enabledGain = 0.7;
+                    tempParams.enabledGain = 0.6;
+                    run_walk(tempParams, time_length_, phase_, time_);
+                    tempParams.enabledGain = 0.8;
                     run_walk(tempParams, time_length_, phase_, time_);
                     tempParams.enabledGain = 1.0;
                     run_walk(tempParams, time_length_, phase_, time_);

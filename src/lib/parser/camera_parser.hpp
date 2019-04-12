@@ -71,8 +71,6 @@ namespace parser
             param.k2 = pt.get<float>("k2");
             param.p1 = pt.get<float>("p1");
             param.p2 = pt.get<float>("p2");
-            param.h_v = pt.get<float>("h_v");
-            param.v_v = pt.get<float>("v_v");
         }
     };
 }
