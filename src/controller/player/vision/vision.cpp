@@ -37,6 +37,32 @@ Vision::Vision(): timer(CONF->get_config_value<int>("vision_period"))
     min_ball_h_ = CONF->get_config_value<int>("detection_prob.ball_h");
     min_post_w_ = CONF->get_config_value<int>("detection_prob.post_w");
     min_post_h_ = CONF->get_config_value<int>("detection_prob.post_h");
+
+    camK = cv::Mat::eye(3, 3, CV_32F);
+	newCamK = cv::Mat::eye(3, 3, CV_32F);
+	invCamK = cv::Mat::eye(3, 3, CV_32F);
+    float rotation_mat[9] = { 0.999956, 0.00837928, 0.00423897,
+		- 0.00839916, 0.999954, 0.00469485, 
+		- 0.00419943, - 0.00473025, 0.99998 };
+	R = cv::Mat(3, 3, CV_32F, rotation_mat);
+
+	D = cv::Mat::zeros(4, 1, CV_32F);
+    D.at<float>(0,0)=params_.k1;
+	D.at<float>(1,0)=params_.k2;
+	D.at<float>(2,0)=params_.p1;
+	D.at<float>(3,0)=params_.p2;
+    
+
+    mapx = cv::Mat(h_, w_, CV_32F);
+	mapy = cv::Mat(h_, w_, CV_32F);
+
+    camK.at<float>(0, 2) = params_.cx;
+	camK.at<float>(1, 2) = params_.cy;
+	camK.at<float>(0, 0) = params_.fx;
+	camK.at<float>(1, 1) = params_.fy;
+	camK.at<float>(2, 2) = 1;
+	newCamK = camK.clone();
+	invCamK = (newCamK*R.t()).inv(cv::DECOMP_LU);
 }
 
 Vision::~Vision()
@@ -76,24 +102,6 @@ Vector2d Vision::odometry(const Vector2i &pos, const robot_math::transform_matri
 Vector2d Vision::camera2self(const Vector2d &pos, double head_yaw)
 {
     return rotation_mat_2d(head_yaw+90.0)*pos;
-}
-
-Vector2i Vision::undistored(const Eigen::Vector2i &pix)
-{
-    int x = pix.x(), y=pix.y();
-    float u_distorted = 0, v_distorted = 0;
-    float x1,y1,x2,y2;
-    x1 = (x-w_/2)/params_.fx;
-    y1 = (y-h_/2)/params_.fy;
-    float r2;
-    r2 = pow(x1,2)+pow(y1,2);
-    x2  = x1/(1+params_.k1*r2+params_.k2*pow(r2,2));
-    y2 = y1/(1+params_.k1*r2+params_.k2*pow(r2,2));
-    int ox = params_.fx*x2+params_.cx;
-    int oy = params_.fy*y2+params_.cy;
-    bound(0, w_, ox);
-    bound(0, h_, oy);
-    return Vector2i(ox, oy);   
 }
 
 void Vision::get_point_dis(int x, int y)
@@ -143,6 +151,7 @@ void Vision::run()
         }
         frame_mtx_.unlock();
 
+        double t1 = clock();
         if (use_mv_)
         {
             cudaBayer2BGR(dev_src_, dev_bgr_,  camera_w_,  camera_h_, camera_infos_["saturation"].value,
@@ -153,10 +162,13 @@ void Vision::run()
             cudaYUYV2BGR(dev_src_,  dev_bgr_,  camera_w_,  camera_h_);
         }
         cudaResizePacked(dev_bgr_, camera_w_,  camera_h_,  dev_ori_, w_,  h_);
-        //cudaUndistored(dev_ori_, dev_undis_, w_, h_, params_.fx, params_.fy, params_.cx, params_.cy,
-        //        params_.k1, params_.k2, params_.p1, params_.k2);
-        cudaBGR2YUV422(dev_ori_, dev_yuyv_, w_, h_);
-        cudaResizePacked(dev_ori_, w_, h_, dev_sized_, net_.w, net_.h);
+        if(use_mv_)
+            cudaUndistored(dev_ori_, dev_undis_, pCamKData, pDistortData, pInvNewCamKData,
+                    pMapxData, pMapyData, w_, h_, 3);
+        else
+            cudaMemcpy(dev_undis_, dev_ori_, ori_size_, cudaMemcpyDeviceToDevice);
+        cudaBGR2YUV422(dev_undis_, dev_yuyv_, w_, h_);
+        cudaResizePacked(dev_undis_, w_, h_, dev_sized_, net_.w, net_.h);
         cudaBGR2RGBfp(dev_sized_, dev_rgbfp_, net_.w, net_.h);
 
         detector_->process(dev_yuyv_);
@@ -212,9 +224,11 @@ void Vision::run()
                 }
             }
         }
-        sort(ball_dets_.rbegin(), ball_dets_.rend());
-        sort(post_dets_.begin(), post_dets_.end());
+        std::sort(ball_dets_.rbegin(), ball_dets_.rend());
+        std::sort(post_dets_.begin(), post_dets_.end());
         free_detections(dets, nboxes);
+        double t2 = clock();
+        //LOG(LOG_INFO)<<(t2-t1)/CLOCKS_PER_SEC<<endll;
 
         if(OPTS->use_robot())
         {
@@ -247,7 +261,6 @@ void Vision::run()
                     //LOG(LOG_WARN)<<post.w<<'\t'<<post.h<<endll;
                     GoalPost temp;
                     Vector2i post_pix(post.x+post.w/2, post.y+post.h*0.8);
-                    post_pix = undistored(post_pix);
                     Vector2d odo_res = odometry(post_pix, camera_matrix);
                     //LOG(LOG_INFO)<<"post: "<<odo_res.norm()<<endll;
                     temp._distance = odo_res.norm()*100;
@@ -281,7 +294,7 @@ void Vision::run()
         if (OPTS->use_debug())
         {
             Mat bgr(h_, w_, CV_8UC3);
-            err = cudaMemcpy(bgr.data, dev_ori_, ori_size_, cudaMemcpyDeviceToHost);
+            err = cudaMemcpy(bgr.data, dev_undis_, ori_size_, cudaMemcpyDeviceToHost);
             check_error(err);    
                   
             if(OPTS->image_record())
@@ -434,6 +447,29 @@ bool Vision::start()
     check_error(err);
     err = cudaMalloc((void **)&dev_rgbfp_, rgbf_size_);
     check_error(err);
+    
+    err = cudaMalloc(&pCamKData, 9 * sizeof(float));
+    check_error(err);
+    err = cudaMalloc(&pInvNewCamKData, 9 * sizeof(float));
+    check_error(err);
+    err = cudaMalloc(&pDistortData, 4 * sizeof(float));
+    check_error(err);
+    err = cudaMalloc(&pMapxData, h_*w_ * sizeof(float));
+    check_error(err);
+    err = cudaMalloc(&pMapyData, h_*w_ * sizeof(float));
+    check_error(err);
+
+    err = cudaMemcpy(pCamKData, camK.data, 9 * sizeof(float), cudaMemcpyHostToDevice);
+    check_error(err);
+    err = cudaMemcpy(pInvNewCamKData, invCamK.data, 9 * sizeof(float), cudaMemcpyHostToDevice);
+    check_error(err);
+    err = cudaMemcpy(pDistortData, D.data, 4 * sizeof(float), cudaMemcpyHostToDevice);
+    check_error(err);
+    err = cudaMemcpy(pMapxData, mapx.data, h_*w_ * sizeof(float), cudaMemcpyHostToDevice);
+    check_error(err);
+    err = cudaMemcpy(pMapyData, mapy.data, h_*w_ * sizeof(float), cudaMemcpyHostToDevice);
+    check_error(err);
+    
     is_alive_ = true;
     start_timer();
     return true;
@@ -453,6 +489,12 @@ void Vision::stop()
         cudaFree(dev_bgr_);
         cudaFree(dev_rgbfp_);
         cudaFree(dev_sized_);
+
+        cudaFree(pCamKData);
+        cudaFree(pInvNewCamKData);
+        cudaFree(pDistortData);
+        cudaFree(pMapxData);
+        cudaFree(pMapyData);
     }
     is_alive_ = false;
 }

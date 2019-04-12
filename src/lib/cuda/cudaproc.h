@@ -9,5 +9,5 @@ void cudaBGR2YUV422(unsigned char *bgr, unsigned char *yuv422, int w, int h);
 void cudaBayer2BGR(unsigned char *bayer, unsigned char *bgr, int w, int h, float sat, float rgain, float ggain, float bgain);
 void cudaResizePacked(float *in, int iw, int ih, float *sized, int ow, int oh);
 void cudaResizePacked(unsigned char *in, int iw, int ih, unsigned char *sized, int ow, int oh);
-void cudaUndistored(unsigned char *in, unsigned char *out, int w, int h, float fx, float fy, float cx, float cy,
-    float k1, float k2, float p1, float p2);
+void cudaUndistored(unsigned char *in, unsigned char *out, float *pCamK, float *pDistort, float *pInvNewCamK, 
+    float* pMapx, float* pMapy, int w, int h, int c);

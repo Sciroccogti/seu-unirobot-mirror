@@ -201,36 +201,83 @@ __global__ void resize_packed_kernal(T *in, int iw, int ih, T *out, int ow, int 
     }
 }
 
-__global__ void undistored_kernal(unsigned char *in, unsigned char *out, int w, int h, float fx, float fy, float cx, float cy,
-    float k1, float k2, float p1, float p2)
+__global__ void build_map_kernal(float *pCamK, float *pDistort, float *pInvNewCamK, float *pMapx, float *pMapy, int outImgW, int outImgH)
 {
-    int x = blockIdx.x;
-    int y = threadIdx.x;
-    float u_distorted = 0, v_distorted = 0;
-    float x1,y1,x2,y2;
-    x1 = (x-cx)/fx;
-    y1 = (y-cy)/fy;
-    float r2;
-    r2 = powf(x1,2)+powf(y1,2);
-    x2 = x1*(1+k1*r2+k2*powf(r2,2))+2*p1*x1*y1+p2*(r2+2*x1*x1);
-    y2 = y1*(1+k1*r2+k2*powf(r2,2))+p1*(r2+2*y1*y1)+2*p2*x1*y1;
-    u_distorted = fx*x2+cx;
-    v_distorted = fy*y2+cy;
-    int inx = u_distorted, iny = v_distorted;
-    int odx = y*w*3+x*3;
-    int idx = iny*w*3+inx*3;
-    if(inx<0||inx>=w||iny<0||iny>=h)
-    {
-        out[odx+0] = 0;
-        out[odx+1] = 0;
-        out[odx+2] = 0;
-    }
-    else
-    {
-        out[odx+0] = in[idx+0];
-        out[odx+1] = in[idx+1];
-        out[odx+2] = in[idx+2];
-    }
+	const int tidx = blockDim.x*blockIdx.x + threadIdx.x;
+	const int tidy = blockDim.y*blockIdx.y + threadIdx.y;
+	if (tidx < outImgW && tidy < outImgH)
+	{
+		float k1 = pDistort[0];
+		float k2 = pDistort[1];
+		float p1 = pDistort[2];
+		float p2 = pDistort[3];
+		float k3, k4, k5, k6, s1, s2, s3, s4;
+		k3 = k4 = k5 = k6 = s1 = s2 = s3 = s4 = 0;
+		float fx = pCamK[0];
+		float fy = pCamK[4];
+		float u0 = pCamK[2];
+		float v0 = pCamK[5];
+
+		float _x = tidx*pInvNewCamK[0] + tidy*pInvNewCamK[1] + pInvNewCamK[2];
+		float _y = tidx*pInvNewCamK[3] + tidy*pInvNewCamK[4] + pInvNewCamK[5];
+        float _w = tidx*pInvNewCamK[6] + tidy*pInvNewCamK[7] + pInvNewCamK[8];
+        
+		float w = 1. / _w;
+		float x = _x * w;
+		float y = _y * w;
+
+		float x2 = x*x;
+		float y2 = y*y;
+		float r2 = x2 + y2;
+		float _2xy = 2 * x*y;
+		float kr = (1 + ((k3*r2 + k2)*r2 + k1)*r2) / (1 + ((k6*r2 + k5)*r2 + k4)*r2);
+		float xd = (x*kr + p1*_2xy + p2*(r2 + 2 * x2) + s1*r2 + s2*r2*r2);
+		float yd = (y*kr + p1*(r2 + 2 * y2) + p2*_2xy + s3*r2 + s4*r2*r2);
+
+		float invProj = 1.;
+		float u = fx*invProj*xd + u0;
+		float v = fy*invProj*yd + v0;
+
+		int mapIdx = tidy*outImgW + tidx;
+		pMapx[mapIdx] = (float)u;
+		pMapy[mapIdx] = (float)v;
+	}
+}
+
+__global__ void remap_kernal(unsigned char* pSrcImg, unsigned char* pDstImg, float* pMapx, float* pMapy, int inWidth, int inHeight, 
+        int outWidth, int outHeight, int channels)
+{
+	const int tidx = blockDim.x*blockIdx.x + threadIdx.x;
+	const int tidy = blockDim.y*blockIdx.y + threadIdx.y;
+	if (tidx < outWidth && tidy < outHeight)
+	{
+		int mapIdx = tidy*outWidth + tidx;
+		float u = pMapx[mapIdx];
+		float v = pMapy[mapIdx];
+
+		int u1 = floor(u);
+		int v1 = floor(v);
+		int u2 = u1 + 1;
+		int v2 = v1 + 1;
+		if (u1 >= 0 && v1 >= 0 && u2 < inWidth && v2 < inHeight)
+		{
+			float dx = u - u1;
+			float dy = v - v1;
+			float weight1 = (1 - dx)*(1 - dy);
+			float weight2 = dx*(1 - dy);
+			float weight3 = (1 - dx)*dy;
+			float weight4 = dx*dy;
+
+			int resultIdx = mapIdx * 3;
+			for (int chan = 0; chan < channels; chan++)
+			{
+				pDstImg[resultIdx + chan] = (unsigned char)(weight1*pSrcImg[(v1*inWidth + u1) * 3 + chan]
+					+ weight2*pSrcImg[(v1*inWidth + u2) * 3 + chan]
+					+ weight3*pSrcImg[(v2*inWidth + u1) * 3 + chan]
+					+ weight4*pSrcImg[(v2*inWidth + u2) * 3 + chan]);
+			}
+		}
+	}
 }
 
 void cudaYUYV2YUV(unsigned char *in, unsigned char *out, int w, int h)
@@ -269,9 +316,14 @@ void cudaResizePacked(unsigned char *in, int iw, int ih, unsigned char *sized, i
     resize_packed_kernal<<<ow, oh>>>(in, iw, ih, sized, ow, oh);
 }
 
-void cudaUndistored(unsigned char *in, unsigned char *out, int w, int h, float fx, float fy, float cx, float cy,
-    float k1, float k2, float p1, float p2)
+void cudaUndistored(unsigned char *in, unsigned char *out, float *pCamK, float *pDistort, float *pInvNewCamK, 
+    float* pMapx, float* pMapy, int w, int h, int c)
 {
-    undistored_kernal<<<w,h>>>(in, out, w, h, fx, fy, cx, cy, k1, k2, p1, p2);
+    dim3 block(16, 16);
+	dim3 grid((w + block.x - 1) / block.x, (h + block.y - 1) / block.y);
+	build_map_kernal <<<grid, block >>> (pCamK, pDistort, pInvNewCamK, pMapx, pMapy, w, h);
+	cudaThreadSynchronize();
+	remap_kernal <<<grid, block >>> (in, out, pMapx, pMapy, w, h, w, h, c);
+	cudaThreadSynchronize();
 }
 
