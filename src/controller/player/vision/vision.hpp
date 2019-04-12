@@ -41,7 +41,6 @@ public:
 private:
     Eigen::Vector2d odometry(const Eigen::Vector2i &pos, const robot_math::transform_matrix &camera_matrix);
     Eigen::Vector2d camera2self(const Eigen::Vector2d &pos, double head_yaw);
-    Eigen::Vector2i undistored(const Eigen::Vector2i &pix);
 private:
     void run();
     void send_image(const cv::Mat &src);
@@ -86,6 +85,21 @@ private:
     int yuyv_size_;
     int sized_size_;
     int rgbf_size_;
+
+    cv::Mat camK;
+	cv::Mat newCamK;
+	cv::Mat invCamK;
+	cv::Mat D;
+	cv::Mat R;
+
+    cv::Mat mapx;
+	cv::Mat mapy;
+
+    float *pCamKData;
+	float *pInvNewCamKData;
+	float *pDistortData;
+	float *pMapxData;
+	float *pMapyData;
     
     mutable std::mutex frame_mtx_, imu_mtx_;
 };
