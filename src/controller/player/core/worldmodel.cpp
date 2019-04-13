@@ -11,7 +11,7 @@ WorldModel::WorldModel()
     fall_direction_ = FALL_NONE;
     support_foot_ = robot::DOUBLE_SUPPORT;
     player_infos_[CONF->id()].id = CONF->id();
-    init_pos_ = CONF->get_config_vector<float>(CONF->player()+".strategy.init");
+    init_pos_ = CONF->get_config_vector<float>("strategy."+CONF->get_my_role()+".init_pos");
     player_infos_[CONF->id()].x = init_pos_[0];
     player_infos_[CONF->id()].y = init_pos_[1];
     player_infos_[CONF->id()].dir = init_pos_[2];

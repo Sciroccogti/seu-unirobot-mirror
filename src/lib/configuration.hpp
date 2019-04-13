@@ -52,6 +52,20 @@ public:
         }
     }
 
+    std::string get_my_role() const
+    {
+        parser::bpt::ptree tpt = config_tree_.get_child("strategy");
+        for(auto &t:tpt)
+        {
+            std::string role = t.first;
+            parser::bpt::ptree cpt = t.second;
+            if(cpt.get<int>("id") == id_)
+                return role;
+        }
+        LOG(LOG_ERROR)<<"can't find my role"<<endll;
+        return "";
+    }
+
     inline int id() const
     {
         return id_;

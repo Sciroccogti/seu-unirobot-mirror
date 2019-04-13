@@ -96,7 +96,16 @@ void team_monitor::paintEvent(QPaintEvent *event)
 
     for (auto &p : players_)
     {
-        painter.setPen(QPen(Qt::white, 2, Qt::SolidLine, Qt::FlatCap));
+        if(p.second.my_kick)
+        {
+            painter.setPen(QPen(Qt::red, 2, Qt::SolidLine, Qt::FlatCap));
+            painter.setBrush(QBrush(Qt::red, Qt::SolidPattern));
+        }
+        else
+        {
+            painter.setPen(QPen(Qt::black, 2, Qt::SolidLine, Qt::FlatCap));
+            painter.setBrush(QBrush(Qt::black, Qt::SolidPattern));
+        }
         painter.save();
         painter.translate(p.second.x * 100, -p.second.y * 100);
         painter.drawEllipse(-ballsize / 2, -ballsize / 2, ballsize, ballsize);

@@ -149,3 +149,30 @@ list<task_ptr> player::play_skill_search_ball()
     }
     return tasks;
 }
+
+task_ptr player::play_skill_penalty_kick(bool left, float init_dir)
+{
+    ball_block ball = WM->ball();
+    self_block self = WM->self();
+    if(left&&fabs(self.dir-init_dir)<10.0)
+        return make_shared<walk_task>(0.0, -0.005, 5.0, true);
+    if(!left&&fabs(self.dir-init_dir)<10.0)
+        return make_shared<walk_task>(0.0, 0.005, -5.0, true);
+    if(ball.alpha>-0.05)
+    {
+        return make_shared<walk_task>(0.0, -0.01, 0.0, true);
+    }
+    else if(ball.alpha<-0.15)
+    {
+        return make_shared<walk_task>(0.0, 0.01, 0.0, true);
+    }
+    else
+    {
+        if(ball.beta<0.32)
+            return make_shared<walk_task>(0.01, 0.0, 0.0, true);
+        else if(ball.beta>0.4)
+            return make_shared<walk_task>(-0.01, 0.0, 0.0, true);
+        else
+            return make_shared<action_task>("left_little_kick");
+    }
+}

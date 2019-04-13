@@ -21,6 +21,8 @@ options::options(): opts_desc_("  Options description")
     "If you want to use game controller")
     ("say,s", value<bool>()->default_value(true),
     "If you want to use communication")
+    ("kick,k", value<int>()->default_value(0),
+     "Kick mode\n0. Normal kick.\n1. Penalty kick")
     ("mote,m", value<bool>()->default_value(false),
      "If you want to use remote.")
     ("image,i", value<bool>()->default_value(false),
@@ -40,6 +42,7 @@ bool options::init(int argc, char **argv)
         use_comm_ = arg<bool>("say");
         use_gc_ = arg<bool>("gamectrl");
         image_record_ = arg<bool>("image");
+        kick_mode_ = arg<int>("kick");
 
         if (var_map_.count("help"))
         {

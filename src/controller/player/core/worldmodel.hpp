@@ -69,6 +69,13 @@ public:
         self_mtx_.unlock();
     }
 
+    void set_my_kick(bool kick)
+    {
+        info_mtx_.lock();
+        player_infos_[CONF->id()].my_kick = kick;
+        info_mtx_.unlock();
+    }
+
     bool button_status(int id)
     {
         if(id==1) return bt1_status_;

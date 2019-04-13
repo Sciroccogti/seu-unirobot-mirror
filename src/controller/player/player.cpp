@@ -16,17 +16,13 @@ using namespace std;
 using namespace motion;
 using namespace Eigen;
 
-const map<string, player::PlayerRole> player::RoleName{{"keeper", player::KEEPER}, {"attacker", player::ATTACKER}, {"guard", player::GUARD}};
-
 player::player(): timer(CONF->get_config_value<int>("think_period"))
 {
     is_alive_ = false;
     period_count_ = 0;
     btn_count_ = 0;
-    role_ = RoleName.find(CONF->get_config_value<string>(CONF->player()+".strategy.role"))->second;
-    state_ = STATE_NOTMAL;
-    w_ = CONF->get_config_value<int>("image.width");
-    h_ = CONF->get_config_value<int>("image.height");
+    role_ = CONF->get_my_role();
+    attack_range_ = CONF->get_config_vector<float>("strategy."+role_+".attack_range");
 }
 
 void player::run()
@@ -86,20 +82,48 @@ list<task_ptr> player::think()
         tasks.push_back(make_shared<look_task>(HEAD_STATE_SEARCH_BALL));
         tasks.push_back(make_shared<walk_task>(0.0, 0.0, 0.0, true));
     }
-    else if(OPTS->use_gc())
+    else 
     {
-        tlists = play_with_gc();
-    }
-    else
-    {
-        tlists = play_without_gc();
-        //tasks.push_back(play_skill_goto(Vector2d(3.0, 0.0), 90.0));
-        //tasks.push_back(make_shared<look_task>(HEAD_STATE_SEARCH_BALL));
-        //tasks.push_back(make_shared<walk_task>(0.02, 0.0, 0.0, true));
+        if(OPTS->kick_mode()==options::KICK_NORMAL)
+        {
+            if(OPTS->use_gc())
+                tlists = play_with_gc();
+            else
+                //tlists = play_without_gc();
+                //tasks.push_back(play_skill_goto(Vector2d(3.0, 0.0), 90.0));
+                //tasks.push_back(make_shared<look_task>(HEAD_STATE_SEARCH_BALL));
+                tasks.push_back(make_shared<walk_task>(0.0, 0.0, 0.0, true));
+        }
+        else if(OPTS->kick_mode()==options::KICK_PENALTY)
+        {
+            static bool start_penalty=false;
+            static bool left=true; 
+            static float init_dir = 0.0;
+            tasks.push_back(make_shared<look_task>(0.0, 60.0, HEAD_STATE_LOOKAT));
+            if(WM->button_status(1))
+            {
+                start_penalty = true;
+                left = true;
+                init_dir = WM->self().dir;
+            }
+            else if(WM->button_status(2))
+            {
+                start_penalty = true;
+                left = false;
+                init_dir = WM->self().dir;
+            }
+            if(start_penalty)
+                tasks.push_back(play_skill_penalty_kick(left, init_dir));
+        }
     }
 
     tasks.insert(tasks.end(), tlists.begin(), tlists.end());
     return tasks;
+}
+
+bool player::in_my_attack_range(const Eigen::Vector2d &ball)
+{
+    return ball.x()>=attack_range_[0]&&ball.x()<=attack_range_[1];
 }
 
 bool player::init()
