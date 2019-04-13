@@ -92,9 +92,9 @@ list<task_ptr> player::think()
     }
     else
     {
-        //tlists = play_without_gc();
+        tlists = play_without_gc();
         //tasks.push_back(play_skill_goto(Vector2d(3.0, 0.0), 90.0));
-        tasks.push_back(make_shared<look_task>(HEAD_STATE_SEARCH_BALL));
+        //tasks.push_back(make_shared<look_task>(HEAD_STATE_SEARCH_BALL));
         //tasks.push_back(make_shared<walk_task>(0.02, 0.0, 0.0, true));
     }
 
