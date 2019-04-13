@@ -314,9 +314,11 @@ void Vision::run()
                     bgr.at<Vec3b>(fieldBorders[i], i) = Vec3b(0, 255, 255);
                 if(!ball_dets_.empty())
                 {
+                    Vector2i ball_pix(ball_dets_[0].x+ball_dets_[0].w/2, ball_dets_[0].y+ball_dets_[0].h*0.95);
+                    Vector2d odo_res = odometry(ball_pix, camera_matrix);
                     rectangle(bgr, Point(ball_dets_[0].x, ball_dets_[0].y), Point(ball_dets_[0].x + ball_dets_[0].w,
                         ball_dets_[0].y + ball_dets_[0].h), Scalar(255, 0, 0), 2);
-                    putText(bgr, to_string(ball_dets_[0].prob).substr(0,4), Point(ball_dets_[0].x, ball_dets_[0].y),
+                    putText(bgr, to_string(odo_res.norm()).substr(0,4), Point(ball_dets_[0].x, ball_dets_[0].y+ball_dets_[0].h),
                         FONT_HERSHEY_SIMPLEX, 1, Scalar(255, 0, 0), 2, 8);
                 }
                 int i=0;
@@ -324,11 +326,10 @@ void Vision::run()
                 {
                     if(i>=2) break;
                     Vector2i post_pix(dd.x+dd.w/2, dd.y+dd.h*0.95);
-                    //post_pix = undistored(post_pix);
                     Vector2d odo_res = odometry(post_pix, camera_matrix);
                     rectangle(bgr, Point(post_dets_[i].x, post_dets_[i].y), Point(post_dets_[i].x + post_dets_[i].w,
                         post_dets_[i].y + post_dets_[i].h), Scalar(0, 0, 255), 2);
-                    putText(bgr, to_string(odo_res.norm()).substr(0,4), Point(post_dets_[i].x, post_dets_[i].y),
+                    putText(bgr, to_string(odo_res.norm()).substr(0,4), Point(post_dets_[i].x, post_dets_[i].y+post_dets_[i].h),
                         FONT_HERSHEY_SIMPLEX, 1, Scalar(0, 0, 255), 2, 8);
                     i++;
                 }
