@@ -16,23 +16,6 @@
 class player: public timer, public std::enable_shared_from_this<player>
 {
 public:
-    enum PlayerRole
-    {
-        KEEPER = 0,
-        GUARD = 1,
-        ATTACKER = 2
-    };
-
-    enum RobotState
-    {
-        STATE_NOTMAL=1,
-        STATE_GETUP=2,
-        STATE_KICK=3,
-        STATE_SEARCH=4
-    };
-    
-    static const std::map<std::string, PlayerRole> RoleName;
-public:
     player();
     bool init();
     void stop();
@@ -49,9 +32,11 @@ private:
     std::list<task_ptr> think();
 
     task_ptr play_skill_goto(const Eigen::Vector2d &target, double dir);
+    task_ptr play_skill_penalty_kick(bool left, float init_dir);
     std::list<task_ptr> play_skill_front_kick(const self_block &self, const ball_block &ball);
     std::list<task_ptr> play_skill_search_ball();
 
+    bool in_my_attack_range(const Eigen::Vector2d &ball);
     bool regist();
     void unregist();
     sensor_ptr get_sensor(const std::string &name);
@@ -59,7 +44,6 @@ private:
     unsigned long period_count_;
     std::map<std::string, sensor_ptr> sensors_;
     unsigned int btn_count_;
-    PlayerRole role_;
-    RobotState state_;
-    int w_, h_;
+    std::string role_;
+    std::vector<float> attack_range_;
 };

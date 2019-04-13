@@ -378,7 +378,7 @@ namespace motion
                 }
                 if(walk_state_ == WALK_START)
                 {
-                    LOG(LOG_INFO)<<"walk start"<<endll;
+                    //LOG(LOG_INFO)<<"walk start"<<endll;
                     tempParams.stepGain = 0.0;
                     tempParams.lateralGain = 0.0;
                     tempParams.turnGain = 0.0;
@@ -397,7 +397,7 @@ namespace motion
                 }
                 else if(walk_state_ == WALK_END)
                 {
-                    LOG(LOG_INFO)<<"walk end"<<endll;
+                    //LOG(LOG_INFO)<<"walk end"<<endll;
                     tempParams.stepGain = 0.0;
                     tempParams.lateralGain = 0.0;
                     tempParams.turnGain = 0.0;

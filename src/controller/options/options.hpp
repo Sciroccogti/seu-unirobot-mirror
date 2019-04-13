@@ -8,10 +8,20 @@ class options: public singleton<options>
 public:
     options();
 
+    enum Kick_Mode
+    {
+        KICK_NORMAL,
+        KICK_PENALTY
+    };
+
     bool init(int argc, char *argv[]);
     int id() const
     {
         return id_;
+    }
+    int kick_mode() const
+    {
+        return kick_mode_;
     }
     bool use_debug() const
     {
@@ -50,6 +60,7 @@ private:
     boost::program_options::options_description opts_desc_;
     boost::program_options::variables_map var_map_;
     int id_;
+    int kick_mode_;
     bool use_debug_;
     bool use_camera_;
     bool use_robot_;
