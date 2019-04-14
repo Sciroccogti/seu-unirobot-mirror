@@ -391,7 +391,7 @@ namespace motion
                     tempParams.enabledGain = 0.8;
                     run_walk(tempParams, time_length_, phase_, time_);
                     tempParams.enabledGain = 1.0;
-                    run_walk(tempParams, time_length_, phase_, time_);
+                    run_walk(tempParams, 2*time_length_, phase_, time_);
                     walk_state_ = WALK_NORMAL;
                     last_walk_state_ = WALK_NORMAL;
                 }

@@ -33,7 +33,9 @@ private:
 
     task_ptr play_skill_goto(const Eigen::Vector2d &target, double dir);
     task_ptr play_skill_penalty_kick(bool left, float init_dir);
-    std::list<task_ptr> play_skill_front_kick(const self_block &self, const ball_block &ball);
+    std::list<task_ptr> play_skill_kick(const self_block &self, const ball_block &ball);
+    std::list<task_ptr> play_skill_side_kick(const self_block &self, const ball_block &ball);
+
     std::list<task_ptr> play_skill_search_ball();
 
     bool in_my_attack_range(const Eigen::Vector2d &ball);

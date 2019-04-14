@@ -23,6 +23,7 @@ public:
         for(unsigned int i = 0; i < sizeof(pkt.header); ++i)
             pkt.header[i] = init[i];
         pkt.number = pkt_num++;
+        pkt.kickoff = WM->kickoff_;
         pkt.info = WM->my_info();
         //LOG(LOG_INFO)<<pkt.info.x<<'\t'<<pkt.info.y<<endll;
 
