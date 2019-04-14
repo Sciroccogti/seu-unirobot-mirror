@@ -35,8 +35,9 @@ std::list<task_ptr> player::play_with_gc()
             tasks.push_back(make_shared<look_task>(head_init[0], head_init[1], HEAD_STATE_LOOKAT));
             break;
         case STATE_SET:
+            WM->kickoff_ = true;
             WM->reset_my_pos();
-            //tasks.push_back(make_shared<walk_task>(0.0, 0.0, 0.0, false));
+            tasks.push_back(make_shared<walk_task>(0.0, 0.0, 0.0, false));
             tasks.push_back(make_shared<look_task>(head_init[0], head_init[1], HEAD_STATE_LOOKAT));
             //if(OPTS->use_robot())
             //    dynamic_pointer_cast<imu>(get_sensor("imu"))->set_zero();
@@ -44,7 +45,7 @@ std::list<task_ptr> player::play_with_gc()
         case STATE_PLAYING:
             if(WM->fall_data()!=FALL_NONE)
             {
-                tasks.push_back(make_shared<look_task>(0.0, 0.0, HEAD_STATE_LOOKAT));
+                tasks.push_back(make_shared<look_task>(HEAD_STATE_LOOKAT));
                 if(WM->fall_data()==FALL_FORWARD)
                     tasks.push_back(make_shared<action_task>("front_getup"));
             }
@@ -69,54 +70,61 @@ std::list<task_ptr> player::play_with_gc()
                         tasks.push_back(make_shared<look_task>(HEAD_STATE_SEARCH_BALL));
                     else
                     {
-                        if(role_ == "front")
+                        ball_block ball = WM->ball();
+                        self_block self = WM->self();
+                        map< int, player_info > pinfos = WM->player_infos();
+                        player_info f_info;
+                        int other_id = CONF->id()%2+1;
+                        if(pinfos.find(other_id)!=pinfos.end())
+                            f_info = pinfos[other_id];
+
+                        if(ball.can_see)
                         {
-                            ball_block ball = WM->ball();
-                            self_block self = WM->self();
-                            if(ball.can_see)
+                            if(!f_info.my_kick&&!WM->my_info().my_kick)
                             {
-                                if(in_my_attack_range(ball.global))
+                                double other_dis = (Vector2d(f_info.ball_x, f_info.ball_y)-Vector2d(f_info.x, f_info.y)).norm();
+                                if(!f_info.can_see)
+                                    other_dis = 10000.0;
+                                double my_dis = ball.self.norm();
+                                if(my_dis<other_dis)
                                 {
-                                    tasks = play_skill_front_kick(self, ball);
                                     WM->set_my_kick(true);
+                                    tasks = play_skill_kick(self, ball);
                                 }
                                 else
                                 {
-                                    tasks.push_back(play_skill_goto(Vector2d(0.0, 0.0), 0.0));
                                     WM->set_my_kick(false);
+                                    tasks.push_back(make_shared<walk_task>(0.0, 0.0, 0.0, false));
+                                }
+                            }
+                            else if(WM->my_info().my_kick)
+                            {
+                                double other_dis = (Vector2d(f_info.ball_x, f_info.ball_y)-Vector2d(f_info.x, f_info.y)).norm();
+                                if(!f_info.can_see)
+                                    other_dis = 10000.0;
+                                double my_dis = ball.self.norm();
+                                if(my_dis-other_dis<0.5)
+                                {
+                                    WM->set_my_kick(true);
+                                    tasks = play_skill_kick(self, ball);
+                                }
+                                else
+                                {
+                                    WM->set_my_kick(false);
+                                    tasks.push_back(make_shared<walk_task>(0.0, 0.0, 0.0, false));
                                 }
                             }
                             else
-                                tasks = play_skill_search_ball();
-                        }
-                        else if(role_ == "guard")
-                        {
-                            ball_block ball = WM->ball();
-                            self_block self = WM->self();
-                            if(ball.can_see)
                             {
-                                map< int, player_info > pinfos = WM->player_infos();
-                                player_info g_info;
-                                if(pinfos.find(CONF->get_config_value<int>("strategy.front.id"))!=pinfos.end())
-                                {
-                                    g_info = pinfos[CONF->get_config_value<int>("strategy.front.id")];
-                                    if(in_my_attack_range(ball.global) && !g_info.my_kick)
-                                    {
-                                        tasks = play_skill_front_kick(self, ball);
-                                        WM->set_my_kick(true);
-                                    }
-                                    else
-                                    {
-                                        tasks.push_back(play_skill_goto(Vector2d(-3.5, 0.0), 0.0));
-                                        WM->set_my_kick(false);
-                                    }
-                                }
-                                else
-                                {
-                                    tasks = play_skill_front_kick(self, ball);
-                                    WM->set_my_kick(true);
-                                }
+                                WM->set_my_kick(false);
+                                tasks.push_back(make_shared<walk_task>(0.0, 0.0, 0.0, false));
                             }
+                        }
+                        else
+                        {
+                            WM->set_my_kick(false);
+                            if(f_info.can_see && f_info.my_kick)
+                                tasks.push_back(make_shared<walk_task>(0.0, 0.0, 0.0, false));
                             else
                                 tasks = play_skill_search_ball();
                         }

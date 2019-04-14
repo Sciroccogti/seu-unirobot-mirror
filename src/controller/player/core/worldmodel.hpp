@@ -115,6 +115,7 @@ public:
 
 public:
     std::atomic_bool self_localization_;
+    std::atomic_bool kickoff_;
     Eigen::Vector2d opp_post_left, opp_post_right;
     
 private:

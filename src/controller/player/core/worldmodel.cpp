@@ -23,8 +23,9 @@ WorldModel::WorldModel()
     coef_y_ = CONF->get_config_value<double>(CONF->player()+".nav.cy");
     coef_d_ = CONF->get_config_value<double>(CONF->player()+".nav.cd");
     self_localization_ = false;
-    opp_post_left = Vector2d(SOCCERMAP->width()/200.0, SOCCERMAP->goalWidth()/200.0-0.2);
-    opp_post_right = Vector2d(SOCCERMAP->width()/200.0, -SOCCERMAP->goalWidth()/200.0+0.2);
+    kickoff_ = true;
+    opp_post_left = Vector2d(SOCCERMAP->width()/200.0, SOCCERMAP->goalWidth()/200.0-0.5);
+    opp_post_right = Vector2d(SOCCERMAP->width()/200.0, -SOCCERMAP->goalWidth()/200.0+0.5);
 }
 
 void WorldModel::updata(const pub_ptr &pub, const int &type)

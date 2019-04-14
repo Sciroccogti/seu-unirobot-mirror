@@ -31,7 +31,7 @@ std::list<task_ptr> player::play_without_gc()
         ball_block ball = WM->ball();
         self_block self = WM->self();
         if(ball.can_see)
-            tasks = play_skill_front_kick(self, ball);
+            tasks = play_skill_kick(self, ball);
         else
             tasks = play_skill_search_ball();
     }

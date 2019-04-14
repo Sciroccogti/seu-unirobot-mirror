@@ -249,7 +249,7 @@ void Vision::run()
             else
             {
                 cant_see_ball_count_++;
-                if(cant_see_ball_count_*period_ms_>200)
+                if(cant_see_ball_count_*period_ms_>500)
                     WM->set_ball_pos(Vector2d(0,0), Vector2d(0,0), Vector2i(0,0), 0, 0, false);
             }
             if(WM->self_localization_)
