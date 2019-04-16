@@ -200,7 +200,7 @@ task_ptr player::play_skill_penalty_kick(bool left, float init_dir)
         else if(ball.beta>0.4)
             return make_shared<walk_task>(-0.01, 0.0, 0.0, true);
         else
-            return make_shared<action_task>("left_little_kick");
+            return make_shared<action_task>("penalty_kick");
     }
 }
 
