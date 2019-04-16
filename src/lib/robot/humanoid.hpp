@@ -117,7 +117,7 @@ namespace robot
 
         joint_map get_joint_map()
         {
-            //std::lock_guard<std::mutex> lk(robot_mtx_);
+            std::lock_guard<std::mutex> lk(robot_mtx_);
             return joint_map_;
         }
         bone_map &get_bone_map()
@@ -159,7 +159,7 @@ namespace robot
         }
 
     private:
-        //mutable std::mutex robot_mtx_;
+        mutable std::mutex robot_mtx_;
         bone_ptr main_bone_;
         joint_map joint_map_;
         joint_map real_joint_map_;

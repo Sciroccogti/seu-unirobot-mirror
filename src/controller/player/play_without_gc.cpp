@@ -20,20 +20,28 @@ std::list<task_ptr> player::play_without_gc()
     list<task_ptr> tasks;
     if(WM->fall_data()!=FALL_NONE)
     {
-        tasks.push_back(make_shared<look_task>(0.0, 0.0, HEAD_STATE_LOOKAT));
         if(WM->fall_data()==FALL_FORWARD)
             tasks.push_back(make_shared<action_task>("front_getup"));
-        else if(WM->fall_data()==FALL_FORWARD)
+        else if(WM->fall_data()==FALL_BACKWARD)
             tasks.push_back(make_shared<action_task>("back_getup"));
     }
     else
     {
         ball_block ball = WM->ball();
         self_block self = WM->self();
+        if(see_last_&&!ball.can_see)
+            SE->search_ball_circle_ = false;
         if(ball.can_see)
+        {
+            in_search_ball_ = false;
             tasks = play_skill_kick(self, ball);
+        }
         else
+        {
+            in_search_ball_ = true;
             tasks = play_skill_search_ball();
+        }
+        see_last_ = ball.can_see;
     }
     return tasks;
 }

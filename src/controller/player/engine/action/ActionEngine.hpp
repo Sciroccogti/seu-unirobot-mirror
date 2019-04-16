@@ -16,6 +16,7 @@ public:
     void start();
     void stop();
     void set_params(const std::vector< std::map<robot::robot_motion, robot::robot_pose> > &poses, const std::vector<int> &pos_times);
+    std::atomic_bool in_action_;
 private:
     void run();
     std::vector< std::map<robot::robot_motion, robot::robot_pose> > get_poses(std::map<robot::robot_motion, robot::robot_pose> &pos1,

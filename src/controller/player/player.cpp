@@ -23,6 +23,9 @@ player::player(): timer(CONF->get_config_value<int>("think_period"))
     btn_count_ = 0;
     role_ = CONF->get_my_role();
     attack_range_ = CONF->get_config_vector<float>("strategy."+role_+".attack_range");
+    last_search_dir_ = 0.0;
+    in_search_ball_ = false;
+    see_last_ = false;
 }
 
 void player::run()
@@ -79,20 +82,44 @@ list<task_ptr> player::think()
     list<task_ptr> tasks, tlists;
     if(OPTS->image_record())
     {
-        tasks.push_back(make_shared<look_task>(HEAD_STATE_SEARCH_BALL));
-        tasks.push_back(make_shared<walk_task>(0.0, 0.0, 0.0, true));
+        play_with_remote();
     }
     else 
     {
         if(OPTS->kick_mode()==options::KICK_NORMAL)
         {
-            if(OPTS->use_gc())
-                tlists = play_with_gc();
+            if(period_count_*period_ms_%120000==0 && period_count_ !=0 
+                && !in_search_ball_ && !AE->in_action_)
+            {
+                LOG(LOG_INFO)<<"localization start"<<endll;
+                tlists = play_skill_localization();
+            }
             else
-                //tlists = play_without_gc();
-                //tasks.push_back(play_skill_goto(Vector2d(3.0, 0.0), 90.0));
-                //tasks.push_back(make_shared<look_task>(HEAD_STATE_SEARCH_BALL));
-                tasks.push_back(make_shared<walk_task>(0.0, 0.0, 0.0, true));
+            {
+                if(!WM->in_localization_)
+                {
+                    if(OPTS->use_gc())
+                    {
+                        tlists = play_with_gc();
+                    }
+                    else
+                    {
+                        tlists = play_without_gc();
+                        //tasks.push_back(make_shared<look_task>(0.0, 40.0, HEAD_STATE_LOOKAT));
+                        //tasks.push_back(make_shared<walk_task>(0.0, 0.0, 0.0, true));
+                        /*
+                        if(WM->fall_data()!=FALL_NONE)
+                        {
+                            LOG(LOG_INFO)<<WM->fall_data()<<endll;
+                            if(WM->fall_data()==FALL_FORWARD)
+                                tasks.push_back(make_shared<action_task>("front_getup"));
+                            else if(WM->fall_data()==FALL_BACKWARD)
+                                tasks.push_back(make_shared<action_task>("back_getup"));
+                        }
+                        */
+                    }
+                }
+            }
         }
         else if(OPTS->kick_mode()==options::KICK_PENALTY)
         {

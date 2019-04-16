@@ -266,7 +266,7 @@ namespace robot
 
     void humanoid::set_degs(const std::map<int, float> &jdmap)
     {
-        //std::lock_guard<std::mutex> lk(robot_mtx_);
+        std::lock_guard<std::mutex> lk(robot_mtx_);
         std::map<int, float> map = jdmap;
         std::map<int, float>::iterator iter = map.find(0); 
         if(iter != map.end())
@@ -283,7 +283,7 @@ namespace robot
 
     std::vector<double> humanoid::get_foot_degs(int support)
     {
-        //std::lock_guard<std::mutex> lk(robot_mtx_);
+        std::lock_guard<std::mutex> lk(robot_mtx_);
         std::vector<double> res;
         if(support == LEFT_SUPPORT)
         {
@@ -296,12 +296,12 @@ namespace robot
         }
         else
         {
-            res.push_back(joint_map_["jlhip3"]->get_deg());
-            res.push_back(joint_map_["jlhip2"]->get_deg());
-            res.push_back(joint_map_["jlhip1"]->get_deg());
-            res.push_back(joint_map_["jlknee"]->get_deg());
-            res.push_back(joint_map_["jlankle2"]->get_deg());
-            res.push_back(joint_map_["jlankle1"]->get_deg());
+            res.push_back(joint_map_["jrhip3"]->get_deg());
+            res.push_back(joint_map_["jrhip2"]->get_deg());
+            res.push_back(joint_map_["jrhip1"]->get_deg());
+            res.push_back(joint_map_["jrknee"]->get_deg());
+            res.push_back(joint_map_["jrankle2"]->get_deg());
+            res.push_back(joint_map_["jrankle1"]->get_deg());
         }
         return res;
     }

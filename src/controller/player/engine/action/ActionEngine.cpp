@@ -16,6 +16,7 @@ ActionEngine::ActionEngine()
     step_ = CONF->get_config_value<float>("hardware.motor.period");
     poses_.clear();
     pos_times_.clear();
+    in_action_ = false;
 }
 
 ActionEngine::~ActionEngine()
@@ -62,11 +63,13 @@ void ActionEngine::run()
         if(!poses_temp.empty())
         {
             MADT->run_action_ = true;
-            WE->set_walk_state(WALK_TO_ACT);
-            
-            while (WE->get_walk_state() != WALK_STOP && is_alive_)
+            if(WE->get_walk_state() != WALK_STOP)
             {
-                usleep(500);
+                WE->set_walk_state(WALK_TO_ACT);
+                while (WE->get_walk_state() != WALK_STOP && is_alive_)
+                {
+                    usleep(500);
+                }
             }
 
             if(!is_alive_) break;
@@ -75,6 +78,7 @@ void ActionEngine::run()
 
             if (!poses_temp.empty() && !pos_times_temp.empty())
             {
+                in_action_ = true;
                 std::map<std::string, float> jdegs;
                 std::map<robot::robot_motion, robot::robot_pose> pos1, pos2;
                 robot_math::transform_matrix body_mat, leftfoot_mat, rightfoot_mat;
@@ -145,6 +149,7 @@ void ActionEngine::run()
             pos_times_.clear();
             param_mtx_.unlock();
             MADT->run_action_ = false;
+            in_action_ = false;
         }
         usleep(1000);
     }

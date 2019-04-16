@@ -378,7 +378,7 @@ namespace motion
                 }
                 if(walk_state_ == WALK_START)
                 {
-                    //LOG(LOG_INFO)<<"walk start"<<endll;
+                    LOG(LOG_INFO)<<"walk start"<<endll;
                     tempParams.stepGain = 0.0;
                     tempParams.lateralGain = 0.0;
                     tempParams.turnGain = 0.0;
@@ -397,13 +397,14 @@ namespace motion
                 }
                 else if(walk_state_ == WALK_END)
                 {
-                    //LOG(LOG_INFO)<<"walk end"<<endll;
+                    LOG(LOG_INFO)<<"walk end"<<endll;
                     tempParams.stepGain = 0.0;
                     tempParams.lateralGain = 0.0;
                     tempParams.turnGain = 0.0;
+                    tempParams.enabledGain = 1.0;
                     run_walk(tempParams, time_length_, phase_, time_);
                     tempParams.enabledGain = 0.0;
-                    run_walk(tempParams, 2*time_length_, phase_, time_);
+                    run_walk(tempParams, time_length_, phase_, time_);
                     walk_state_ = WALK_STOP;
                     last_walk_state_ = WALK_STOP;
                 }

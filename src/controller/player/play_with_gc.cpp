@@ -48,6 +48,8 @@ std::list<task_ptr> player::play_with_gc()
                 tasks.push_back(make_shared<look_task>(HEAD_STATE_LOOKAT));
                 if(WM->fall_data()==FALL_FORWARD)
                     tasks.push_back(make_shared<action_task>("front_getup"));
+                else if(WM->fall_data()==FALL_BACKWARD)
+                    tasks.push_back(make_shared<action_task>("back_getup"));
             }
             else
             {
@@ -77,7 +79,8 @@ std::list<task_ptr> player::play_with_gc()
                         int other_id = CONF->id()%2+1;
                         if(pinfos.find(other_id)!=pinfos.end())
                             f_info = pinfos[other_id];
-
+                        if(see_last_&&!ball.can_see)
+                            SE->search_ball_circle_ = false;
                         if(ball.can_see)
                         {
                             if(!f_info.my_kick&&!WM->my_info().my_kick)
@@ -128,6 +131,7 @@ std::list<task_ptr> player::play_with_gc()
                             else
                                 tasks = play_skill_search_ball();
                         }
+                        see_last_ = ball.can_see;
                     }
                 }
             }

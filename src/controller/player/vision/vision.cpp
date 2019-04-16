@@ -37,6 +37,8 @@ Vision::Vision(): timer(CONF->get_config_value<int>("vision_period"))
     min_ball_h_ = CONF->get_config_value<int>("detection_prob.ball_h");
     min_post_w_ = CONF->get_config_value<int>("detection_prob.post_w");
     min_post_h_ = CONF->get_config_value<int>("detection_prob.post_h");
+    roll_offset_ = deg2rad(CONF->get_config_value<double>(CONF->player()+".odometry.roll"));
+    theta_offset_ = deg2rad(CONF->get_config_value<double>(CONF->player()+".odometry.theta"));
 
     camK = cv::Mat::eye(3, 3, CV_32F);
 	newCamK = cv::Mat::eye(3, 3, CV_32F);
@@ -88,7 +90,8 @@ Vector2d Vision::odometry(const Vector2i &pos, const robot_math::transform_matri
     float OC = camera_matrix.p().z();
     float roll = -static_cast<float>(camera_matrix.x_rotate());
     float theta = static_cast<float>(camera_matrix.y_rotate());
-    theta = theta-0.015*(M_PI_2-theta);
+    theta = theta+theta_offset_;
+    roll = roll+roll_offset_;
     Vector2i Pos(pos.x()-params_.cx, params_.cy-pos.y());
     Vector2i calCenterPos(Pos.x()/cos(roll), Pos.y()+Pos.x()*tan(roll));
     Vector2i calPos(calCenterPos.x()+params_.cx, params_.cy-calCenterPos.y());
@@ -146,6 +149,8 @@ void Vision::run()
         if(OPTS->use_robot())
         {
             camera_matrix = camera_matrix_;
+            LOG(LOG_INFO)<<camera_matrix<<endll;
+            LOG(LOG_INFO)<<"###############################"<<endll;
             head_yaw = head_yaw_;
             head_pitch = head_pitch_;
         }
@@ -249,25 +254,25 @@ void Vision::run()
             else
             {
                 cant_see_ball_count_++;
-                if(cant_see_ball_count_*period_ms_>500)
+                if(cant_see_ball_count_*period_ms_>200)
                     WM->set_ball_pos(Vector2d(0,0), Vector2d(0,0), Vector2i(0,0), 0, 0, false);
             }
             if(WM->self_localization_)
             {
                 int post_num=0;
+                WM->can_see_post_=false;
                 vector< GoalPost > posts_;
                 for(auto &post: post_dets_)
                 {
-                    //LOG(LOG_WARN)<<post.w<<'\t'<<post.h<<endll;
+                    post_num++;
+                    if(post_num>2) break;
                     GoalPost temp;
                     Vector2i post_pix(post.x+post.w/2, post.y+post.h*0.8);
                     Vector2d odo_res = odometry(post_pix, camera_matrix);
-                    //LOG(LOG_INFO)<<"post: "<<odo_res.norm()<<endll;
                     temp._distance = odo_res.norm()*100;
+                    if(temp._distance>300) continue;
                     Vector2d post_pos = camera2self(odo_res, head_yaw);
                     temp._theta = azimuth_deg(post_pos);
-                    //LOG(LOG_INFO)<<"###########################"<<endll;
-                    //LOG(LOG_INFO)<<'\t'<<temp._distance<<'\t'<<temp._theta<<endll;
                     posts_.push_back(temp);
                     if(posts_.size()==2)
                     {
@@ -281,29 +286,31 @@ void Vision::run()
                             posts_[0]._type = GoalPost::SENSORMODEL_POST_R;
                             posts_[1]._type = GoalPost::SENSORMODEL_POST_L;
                         }
-                        //LOG(LOG_INFO)<<"###########################"<<endll;
-                        //LOG(LOG_INFO)<<posts_[0]._type<<'\t'<<posts_[0]._distance<<'\t'<<posts_[0]._theta<<endll;
-                        //LOG(LOG_INFO)<<posts_[1]._type<<'\t'<<posts_[1]._distance<<'\t'<<posts_[1]._theta<<endll;
                         break;
                     }
                 }
-                SL->update(player_info(p.global.x(), p.global.y(), p.dir), posts_);
+                if(posts_.size()>0)
+                {
+                    WM->can_see_post_=true;
+                    SL->update(player_info(p.global.x(), p.global.y(), p.dir), posts_);
+                }
             }
         }
 
         if (OPTS->use_debug())
         {
-            Mat bgr(h_, w_, CV_8UC3);
-            err = cudaMemcpy(bgr.data, dev_undis_, ori_size_, cudaMemcpyDeviceToHost);
-            check_error(err);    
+            Mat bgr(h_, w_, CV_8UC3); 
                   
             if(OPTS->image_record())
             {
+                err = cudaMemcpy(bgr.data, dev_ori_, ori_size_, cudaMemcpyDeviceToHost);
+                check_error(err);   
                 send_image(bgr);
                 is_busy_ = false;
                 return;
             }
-
+            err = cudaMemcpy(bgr.data, dev_undis_, ori_size_, cudaMemcpyDeviceToHost);
+            check_error(err); 
             if (img_sd_type_ == IMAGE_SEND_ORIGIN)
             {
                 send_image(bgr);
