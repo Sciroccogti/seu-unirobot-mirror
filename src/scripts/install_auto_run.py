@@ -30,9 +30,8 @@ if __name__ == '__main__':
 
     ip_address = common.get_ip(robot_id)
     ssh_client = ssh_connection.ssh_connection(ip_address, config.ssh_port, config.username, config.password)
-    ssh_client.upload(config.local_dir+config.compress_file_name, config.remote_dir+config.compress_file_name)
+    ssh_client.upload(config.project_dir+'/bin/'+config.compress_file_name, config.remote_dir+config.compress_file_name)
 
-    nowTime=datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    cmd = 'date -s "%s"; cd %s; tar zxvf %s; echo %s %s >> %s; poweroff'%(nowTime, config.remote_dir,\
-             config.compress_file_name, config.exec_file_name, args, config.start_up_file)
+    cmd = 'cd %s; tar zxmf %s; echo "cd %s" >> %s; echo "./%s %s &" >> %s; poweroff;'%(config.remote_dir, config.compress_file_name,\
+        config.remote_dir+config.target_dir, config.start_up_file, config.exec_file_name, args, config.start_up_file)
     ssh_client.exec_command(cmd)

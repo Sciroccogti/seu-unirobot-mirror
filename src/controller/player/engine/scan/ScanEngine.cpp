@@ -107,7 +107,7 @@ void ScanEngine::run()
         ball_block ball = WM->ball();
         if(head_state_ == HEAD_STATE_SEARCH_BALL)
         {
-            search_ball_circle_ = false;
+            WM->self_localization_ = false;
             for(int i=scan_ball-1;i>=0&&!ball.can_see;i--)
             {
                 jdmap[id_pitch] = ball_search_table[i][0];
@@ -123,16 +123,15 @@ void ScanEngine::run()
                 usleep(1000000);
                 ball = WM->ball();
             }
-            if(!ball.can_see) 
-                head_state_ = HEAD_STATE_LOOKAT;
             search_ball_circle_ = true;
         }
         else if(head_state_ == HEAD_STATE_SEARCH_POST)
         {
+            WM->self_localization_ = true;
             for(int i=1;i>=0;i--)
             {
                 jdmap[id_pitch] = post_search_table[i*2][0];
-                for(float ya=post_search_table[i*2][1]; fabs(ya)<=fabs(post_search_table[i*2+1][1])+0.1;ya+=pow(-1, i+1)*search_post_div_)
+                for(float ya=post_search_table[i*2][1]; !WM->can_see_post_ && fabs(ya)<=fabs(post_search_table[i*2+1][1])+0.1; ya+=pow(-1, i+1)*search_post_div_)
                 {
                     jdmap[id_yaw] = ya;
                     while (!MADT->head_empty())
@@ -145,9 +144,18 @@ void ScanEngine::run()
                     }
                 }
             }
+            WM->self_localization_ = false;
+            WM->in_localization_ = false;
+            LOG(LOG_INFO)<<"localization end"<<endll;
+            param_mtx_.lock();
+            yaw_ = lost_yaw_;
+            pitch_ = lost_pitch_;
+            head_state_ = HEAD_STATE_LOOKAT;
+            param_mtx_.unlock();
         }
         else
         {
+            WM->self_localization_ = false;
             if(head_state_ == HEAD_STATE_TRACK_BALL)
             {
                 std::vector<double> head_degs = ROBOT->get_head_degs();
