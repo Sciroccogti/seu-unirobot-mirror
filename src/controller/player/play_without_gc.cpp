@@ -33,12 +33,10 @@ std::list<task_ptr> player::play_without_gc()
             SE->search_ball_circle_ = false;
         if(ball.can_see)
         {
-            in_search_ball_ = false;
             tasks = play_skill_kick(self, ball);
         }
         else
         {
-            in_search_ball_ = true;
             tasks = play_skill_search_ball();
         }
         see_last_ = ball.can_see;

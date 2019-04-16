@@ -87,47 +87,30 @@ list<task_ptr> player::play_skill_kick(const self_block &self, const ball_block 
                 fisrt_lookat = false;
                 return tasks;
             }
-            if(!WM->kickoff_)
+            if(ball.alpha>-0.1)
             {
-                if(ball.alpha>-0.1)
-                {
-                    tasks.push_back(make_shared<walk_task>(0.0, -0.01, 0.0, true));
-                }
-                else if(ball.alpha<-0.25)
-                {
-                    tasks.push_back(make_shared<walk_task>(0.0, 0.01, 0.0, true));
-                }
-                else
-                {
-                    if(ball.beta<0.3)
-                        tasks.push_back(make_shared<walk_task>(0.015, 0.0, 0.0, true));
-                    else if(ball.beta>0.4)
-                        tasks.push_back(make_shared<walk_task>(-0.02, 0.0, 0.0, true));
-                    else
-                    {
-                        tasks.push_back(make_shared<action_task>("left_little_kick"));
-                        last_search_dir_ = WM->self().dir;
-                    }
-                }
+                tasks.push_back(make_shared<walk_task>(0.0, -0.01, 0.0, true));
+            }
+            else if(ball.alpha<-0.22)
+            {
+                tasks.push_back(make_shared<walk_task>(0.0, 0.01, 0.0, true));
             }
             else
             {
-                if(fabs(ball.alpha)>0.07)
-                {
-                    tasks.push_back(make_shared<walk_task>(0.0, -sign(ball.alpha)*0.01, 0.0, true));
-                }
+                if(ball.beta<0.4)
+                    tasks.push_back(make_shared<walk_task>(0.012, 0.0, 0.0, true));
+                else if(ball.beta>0.45)
+                    tasks.push_back(make_shared<walk_task>(-0.01, 0.0, 0.0, true));
                 else
                 {
-                    if(ball.beta<0.3)
-                        tasks.push_back(make_shared<walk_task>(0.01, 0.0, 0.0, true));
-                    else if(ball.beta>0.4)
-                        tasks.push_back(make_shared<walk_task>(-0.01, 0.0, 0.0, true));
+                    if(!WM->kickoff_)
+                        tasks.push_back(make_shared<action_task>("left_little_kick"));
                     else
                     {
-                        tasks.push_back(make_shared<action_task>("right_side_kick"));
-                        last_search_dir_ = WM->self().dir;
+                        tasks.push_back(make_shared<action_task>("left_side_kick"));
                         WM->kickoff_ = false;
                     }
+                    last_search_dir_ = WM->self().dir;
                 }
             }
         }
