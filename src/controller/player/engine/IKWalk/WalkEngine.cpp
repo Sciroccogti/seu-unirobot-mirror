@@ -353,6 +353,7 @@ namespace motion
                 last_walk_state_ = WALK_STOP;
                 continue;
             }
+            //LOG(LOG_INFO)<<walk_s[walk_state_]<<endll;
             if(walk_state_ == WALK_TO_ACT)
             {
                 tempParams.stepGain = 0.0;
@@ -392,8 +393,17 @@ namespace motion
                     run_walk(tempParams, time_length_, phase_, time_);
                     tempParams.enabledGain = 1.0;
                     run_walk(tempParams, 2*time_length_, phase_, time_);
-                    walk_state_ = WALK_NORMAL;
-                    last_walk_state_ = WALK_NORMAL;
+                    if(walk_state_!=WALK_TO_ACT)
+                    {
+                        walk_state_ = WALK_NORMAL;
+                        last_walk_state_ = WALK_NORMAL;
+                    }
+                    else
+                    {
+                        walk_state_ = WALK_STOP;
+                        last_walk_state_ = WALK_STOP;
+                    }
+                    
                 }
                 else if(walk_state_ == WALK_END)
                 {

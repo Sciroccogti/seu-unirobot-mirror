@@ -63,6 +63,7 @@ void ActionEngine::run()
         if(!poses_temp.empty())
         {
             MADT->run_action_ = true;
+            LOG(LOG_WARN)<<"ready to act"<<endll;
             if(WE->get_walk_state() != WALK_STOP)
             {
                 WE->set_walk_state(WALK_TO_ACT);
@@ -71,7 +72,7 @@ void ActionEngine::run()
                     usleep(500);
                 }
             }
-
+            LOG(LOG_WARN)<<"actting"<<endll;
             if(!is_alive_) break;
             int act_time;
             std::map<int, float> one_pos_deg;
