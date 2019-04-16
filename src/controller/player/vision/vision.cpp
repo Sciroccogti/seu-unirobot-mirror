@@ -149,8 +149,6 @@ void Vision::run()
         if(OPTS->use_robot())
         {
             camera_matrix = camera_matrix_;
-            LOG(LOG_INFO)<<camera_matrix<<endll;
-            LOG(LOG_INFO)<<"###############################"<<endll;
             head_yaw = head_yaw_;
             head_pitch = head_pitch_;
         }

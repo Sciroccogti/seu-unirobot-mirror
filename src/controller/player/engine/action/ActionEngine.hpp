@@ -2,6 +2,7 @@
 
 #include <thread>
 #include <mutex>
+#include <atomic>
 #include "robot/robot_define.hpp"
 #include "singleton.hpp"
 #include "math/math.hpp"
