@@ -42,11 +42,11 @@ task_ptr player::play_skill_goto(const Eigen::Vector2d &target, double dir)
     else
     {
         //LOG(LOG_INFO)<<"stop"<<endll;
+        if(CONF->get_my_role()=="keeper")
+            keeper_kicked_ = false;
         return make_shared<walk_task>(0.0, 0.0, 0.0, false);
     }
 }
-
-double lost_head_yaw, lost_head_pitch;
 
 list<task_ptr> player::play_skill_kick(const self_block &self, const ball_block &ball)
 {
@@ -69,48 +69,98 @@ list<task_ptr> player::play_skill_kick(const self_block &self, const ball_block 
     }
     else
     {
-        double self2left_dir = azimuth_deg(WM->opp_post_left-self.global);
-        double self2right_dir = azimuth_deg(WM->opp_post_right-self.global);
-        if(self.dir>self2left_dir)
+        if(self.global.x()<4.0)
         {
-            tasks.push_back(make_shared<walk_task>(0.0, 0.01, -6.0, true));
-        }
-        else if(self.dir<self2right_dir)
-        {
-            tasks.push_back(make_shared<walk_task>(0.0, -0.01, 6.0, true));
-        }
-        else
-        {
-            tasks.push_back(make_shared<look_task>(0.0, 60.0, HEAD_STATE_LOOKAT));
-            if(fisrt_lookat)
+            double self2left_dir = azimuth_deg(WM->opp_post_left-self.global);
+            double self2right_dir = azimuth_deg(WM->opp_post_right-self.global);
+            if(self.dir>self2left_dir)
             {
-                fisrt_lookat = false;
-                return tasks;
+                tasks.push_back(make_shared<walk_task>(-0.005, 0.01, -6.0, true));
             }
-            if(ball.alpha>-0.1)
+            else if(self.dir<self2right_dir)
             {
-                tasks.push_back(make_shared<walk_task>(0.0, -0.01, 0.0, true));
-            }
-            else if(ball.alpha<-0.22)
-            {
-                tasks.push_back(make_shared<walk_task>(0.0, 0.01, 0.0, true));
+                tasks.push_back(make_shared<walk_task>(-0.005, -0.01, 6.0, true));
             }
             else
             {
-                if(ball.beta<0.4)
-                    tasks.push_back(make_shared<walk_task>(0.012, 0.0, 0.0, true));
-                else if(ball.beta>0.45)
-                    tasks.push_back(make_shared<walk_task>(-0.01, 0.0, 0.0, true));
+                tasks.push_back(make_shared<look_task>(0.0, 60.0, HEAD_STATE_LOOKAT));
+                if(fisrt_lookat)
+                {
+                    fisrt_lookat = false;
+                    return tasks;
+                }
+                if(ball.alpha>-0.1)
+                {
+                    tasks.push_back(make_shared<walk_task>(0.0, -0.01, 0.0, true));
+                }
+                else if(ball.alpha<-0.22)
+                {
+                    if(ball.beta>0.45)
+                        tasks.push_back(make_shared<walk_task>(-0.012, 0.0, 0.0, true));
+                    else
+                        tasks.push_back(make_shared<walk_task>(0.0, 0.01, 0.0, true));
+                }
                 else
                 {
-                    if(!WM->kickoff_)
-                        tasks.push_back(make_shared<action_task>("left_little_kick"));
+                    if(ball.beta<0.4)
+                        tasks.push_back(make_shared<walk_task>(0.012, 0.0, 0.0, true));
+                    else if(ball.beta>0.45)
+                        tasks.push_back(make_shared<walk_task>(-0.01, 0.0, 0.0, true));
                     else
                     {
-                        tasks.push_back(make_shared<action_task>("left_side_kick"));
-                        WM->kickoff_ = false;
+                        //if(!WM->kickoff_)
+                            tasks.push_back(make_shared<action_task>("left_little_kick"));
+                            /*
+                        else
+                        {
+                            tasks.push_back(make_shared<action_task>("left_side_kick"));
+                            WM->kickoff_ = false;
+                        }
+                        */
+                        last_search_dir_ = WM->self().dir;
                     }
-                    last_search_dir_ = WM->self().dir;
+                }
+            }
+        }
+        else
+        {
+            if(fabs(self.dir)>15.0)
+            {
+                tasks.push_back(make_shared<walk_task>(-0.01, 0.0, -sign(self.dir)*6.0, true));
+            }
+            else
+            {
+                tasks.push_back(make_shared<look_task>(0.0, 60.0, HEAD_STATE_LOOKAT));
+                if(fisrt_lookat)
+                {
+                    fisrt_lookat = false;
+                    return tasks;
+                }
+                if(ball.alpha>-0.1)
+                {
+                    tasks.push_back(make_shared<walk_task>(0.0, -0.01, 0.0, true));
+                }
+                else if(ball.alpha<-0.22)
+                {
+                    tasks.push_back(make_shared<walk_task>(0.0, 0.01, 0.0, true));
+                }
+                else
+                {
+                    if(ball.beta<0.4)
+                        tasks.push_back(make_shared<walk_task>(0.012, 0.0, 0.0, true));
+                    else if(ball.beta>0.45)
+                        tasks.push_back(make_shared<walk_task>(-0.01, 0.0, 0.0, true));
+                    else
+                    {
+                        if(!WM->kickoff_)
+                            tasks.push_back(make_shared<action_task>("left_little_kick"));
+                        else
+                        {
+                            tasks.push_back(make_shared<action_task>("left_side_kick"));
+                            WM->kickoff_ = false;
+                        }
+                        last_search_dir_ = WM->self().dir;
+                    }
                 }
             }
         }

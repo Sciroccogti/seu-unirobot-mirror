@@ -21,12 +21,11 @@ WorldModel::WorldModel()
     self_block_.dir = init_pos_[2];
     coef_x_ = CONF->get_config_value<double>(CONF->player()+".nav.cx");
     coef_y_ = CONF->get_config_value<double>(CONF->player()+".nav.cy");
-    coef_d_ = CONF->get_config_value<double>(CONF->player()+".nav.cd");
     self_localization_ = false;
     in_localization_ = false;
     kickoff_ = true;
-    opp_post_left = Vector2d(SOCCERMAP->width()/200.0+0.5, SOCCERMAP->goalWidth()/200.0-0.6);
-    opp_post_right = Vector2d(SOCCERMAP->width()/200.0+0.5, -SOCCERMAP->goalWidth()/200.0+0.6);
+    opp_post_left = Vector2d(SOCCERMAP->width()/200.0, SOCCERMAP->goalWidth()/200.0-0.7);
+    opp_post_right = Vector2d(SOCCERMAP->width()/200.0, -SOCCERMAP->goalWidth()/200.0+0.7);
 }
 
 void WorldModel::updata(const pub_ptr &pub, const int &type)

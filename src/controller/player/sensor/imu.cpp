@@ -220,6 +220,8 @@ void imu::OnDataReceived(Packet_t &pkt)
                 
                 if(imu_data_.pitch<pitch_range_.x()) fall_direction_ = FALL_BACKWARD;
                 else if(imu_data_.pitch>pitch_range_.y()) fall_direction_ = FALL_FORWARD;
+                else if(imu_data_.roll<roll_range_.x()) fall_direction_ = FALL_RIGHT;
+                else if(imu_data_.roll>roll_range_.y()) fall_direction_ = FALL_LEFT;
                 else fall_direction_ = FALL_NONE;
 
                 offset += 7;
