@@ -131,7 +131,7 @@ private:
     std::atomic_int fall_direction_;
     std::atomic_int support_foot_;
 
-    double coef_x_, coef_y_, coef_d_;
+    double coef_x_, coef_y_;
     std::vector<float> init_pos_;
     mutable std::mutex imu_mtx_, gc_mtx_, info_mtx_, ball_mtx_, self_mtx_;
 };

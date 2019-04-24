@@ -195,15 +195,16 @@ void Vision::run()
                     int bx = (dets[i].bbox.x - dets[i].bbox.w / 2.0)*w_;
                     int by = (dets[i].bbox.y - dets[i].bbox.h / 2.0)*h_;
                     int bw = dets[i].bbox.w*w_, bh = dets[i].bbox.h*h_;
-                    if(bw>=min_ball_w_ && bh>=min_ball_h_)
+                    float w_h = (float)bw/(float)bh;
+                    if(bw>=min_ball_w_ && bh>=min_ball_h_ && fabs(w_h-1.0)<0.3)
                     {
-                        if(head_pitch>50.0)
+                        //if(head_pitch>50.0)
                             ball_dets_.push_back(object_det(ball_id_, dets[i].prob[ball_id_], bx, by, bw, bh));
-                        else
+                        /*else
                         {
                             if(by+bh >= fieldBorders[bx+bw/2])
                                 ball_dets_.push_back(object_det(ball_id_, dets[i].prob[ball_id_], bx, by, bw, bh));
-                        }
+                        }*/
                     }
                 }
             }
@@ -216,13 +217,13 @@ void Vision::run()
                     int pw = dets[i].bbox.w*w_, ph = dets[i].bbox.h*h_;
                     if(pw>=min_post_w_ && ph>=min_post_h_)
                     {
-                        if(head_pitch_>50.0)
+                        //if(head_pitch_>50.0)
                             post_dets_.push_back(object_det(post_id_, dets[i].prob[post_id_], px, py, pw, ph));
-                        else
+                        /*else
                         {
                             if(py+ph>fieldBorders[px+pw/2])
                                 post_dets_.push_back(object_det(post_id_, dets[i].prob[post_id_], px, py, pw, ph));
-                        }
+                        }*/
                     }
                 }
             }
@@ -252,7 +253,7 @@ void Vision::run()
             else
             {
                 cant_see_ball_count_++;
-                if(cant_see_ball_count_*period_ms_>200)
+                if(cant_see_ball_count_*period_ms_>500)
                     WM->set_ball_pos(Vector2d(0,0), Vector2d(0,0), Vector2i(0,0), 0, 0, false);
             }
             if(WM->self_localization_)
@@ -268,7 +269,7 @@ void Vision::run()
                     Vector2i post_pix(post.x+post.w/2, post.y+post.h*0.8);
                     Vector2d odo_res = odometry(post_pix, camera_matrix);
                     temp._distance = odo_res.norm()*100;
-                    if(temp._distance>300) continue;
+                    if(temp._distance>350) continue;
                     Vector2d post_pos = camera2self(odo_res, head_yaw);
                     temp._theta = azimuth_deg(post_pos);
                     posts_.push_back(temp);
@@ -301,7 +302,7 @@ void Vision::run()
                   
             if(OPTS->image_record())
             {
-                err = cudaMemcpy(bgr.data, dev_ori_, ori_size_, cudaMemcpyDeviceToHost);
+                err = cudaMemcpy(bgr.data, dev_undis_, ori_size_, cudaMemcpyDeviceToHost);
                 check_error(err);   
                 send_image(bgr);
                 is_busy_ = false;

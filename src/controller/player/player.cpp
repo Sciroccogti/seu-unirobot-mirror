@@ -26,6 +26,9 @@ player::player(): timer(CONF->get_config_value<int>("think_period"))
     last_search_dir_ = 0.0;
     in_search_ball_ = false;
     see_last_ = false;
+    played_ = false;
+    self_location_count_ = 0;
+    keeper_kicked_ = false;
 }
 
 void player::run()
@@ -82,16 +85,19 @@ list<task_ptr> player::think()
     list<task_ptr> tasks, tlists;
     if(OPTS->image_record())
     {
-        play_with_remote();
+        //play_with_remote();
+        tasks.push_back(make_shared<look_task>(HEAD_STATE_SEARCH_BALL));
+        tasks.push_back(make_shared<walk_task>(0.0, 0.0, 0.0, true));
     }
     else 
     {
         if(OPTS->kick_mode()==options::KICK_NORMAL)
         {
-            if(period_count_*period_ms_%120000==0 && period_count_ !=0 
+            if(WM->self().global.x()>1.5 && self_location_count_*period_ms_%90000==0 && self_location_count_ !=0 
                 && !in_search_ball_ && !AE->in_action_)
             {
                 LOG(LOG_INFO)<<"localization start"<<endll;
+                self_location_count_ ++;
                 tlists = play_skill_localization();
             }
             else
@@ -106,7 +112,7 @@ list<task_ptr> player::think()
                     {
                         tlists = play_without_gc();
                         //tasks.push_back(make_shared<look_task>(0.0, 40.0, HEAD_STATE_LOOKAT));
-                        //tasks.push_back(make_shared<walk_task>(0.0, 0.0, 0.0, true));
+                        //tasks.push_back(make_shared<walk_task>(0.02, 0.0, 0.0, true));
                         /*
                         if(WM->fall_data()!=FALL_NONE)
                         {

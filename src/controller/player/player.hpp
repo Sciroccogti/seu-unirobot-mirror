@@ -52,4 +52,7 @@ private:
     double last_search_dir_;
     bool in_search_ball_;
     bool see_last_;
+    unsigned int self_location_count_;
+    bool played_;
+    bool keeper_kicked_;
 };
