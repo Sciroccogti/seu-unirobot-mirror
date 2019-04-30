@@ -70,7 +70,7 @@ def get_config(key=''):
 
 
 def check_weight():
-    net_file = '%s/bin/%s/%s'%(config.project_dir, config.target_dir, get_config('net_weights_file'))
+    net_file = '%s/bin/aarch64/%s'%(config.project_dir, get_config('net_weights_file'))
     md5_file = '%s/bin/%s'%(config.project_dir, config.weights_md5_file)
     f_md5 = hashlib.md5(open(net_file, 'rb').read()).hexdigest()
     if not os.path.exists(md5_file):
@@ -89,11 +89,11 @@ def check_weight():
 
 def build_project(cross, j=2):
     if cross:
-        build_dir = '%s/%s-build'%(config.project_dir, config.target_dir)
+        build_dir = '%s/aarch64-build'%config.project_dir
         if not os.path.exists(build_dir):
             os.mkdir(build_dir)
-        cmd = 'rm -rf %s/bin/%s; cd %s; cmake -D CROSS=ON ..; make install -j%d'\
-            %(config.project_dir, config.target_dir, build_dir, j)
+        cmd = 'rm -rf %s/bin/aarch64; cd %s; cmake -D CROSS=ON ..; make install -j%d'\
+            %(config.project_dir, build_dir, j)
     else:
         build_dir = '%s/x86_64-build'%config.project_dir
         if not os.path.exists(build_dir):
@@ -104,8 +104,9 @@ def build_project(cross, j=2):
 
 def compress_files():
     if check_weight():
-        os.remove('%s/bin/%s/%s'%(config.project_dir, config.target_dir, get_config('net_weights_file')))
-    cmd = 'cd %s/bin; tar zcf %s %s'%(config.project_dir, config.compress_file_name, config.target_dir)
+        os.remove('%s/bin/aarch64/%s'%(config.project_dir, get_config('net_weights_file')))
+    cmd = 'cd %s/bin/aarch64; tar zcf %s *; cd ..; mv aarch64/%s %s'%(config.project_dir,\
+        config.compress_file_name, config.compress_file_name, config.compress_file_name)
     return run_cmd(cmd, False)
 
 

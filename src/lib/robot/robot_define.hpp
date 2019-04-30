@@ -4,6 +4,7 @@
 #include <list>
 #include <memory>
 #include <map>
+#include <vector>
 #include <eigen3/Eigen/Dense>
 
 namespace robot

@@ -3,6 +3,7 @@
 #include <thread>
 #include <mutex>
 #include <atomic>
+#include <vector>
 #include <eigen3/Eigen/Dense>
 #include "singleton.hpp"
 
