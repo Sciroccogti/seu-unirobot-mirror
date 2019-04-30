@@ -32,6 +32,6 @@ if __name__ == '__main__':
     ssh_client = ssh_connection.ssh_connection(ip_address, config.ssh_port, config.username, config.password)
     ssh_client.upload(config.project_dir+'/bin/'+config.compress_file_name, config.remote_dir+config.compress_file_name)
 
-    cmd = 'cd %s; tar zxmf %s; echo "cd %s" >> %s; echo "./%s %s &" >> %s; poweroff;'%(config.remote_dir, config.compress_file_name,\
+    cmd = "cd %s; tar zxmf %s; sed -i '$acd %s' %s; sed -i '$a./%s %s &' %s; poweroff;"%(config.remote_dir, config.compress_file_name,\
         config.remote_dir+config.target_dir, config.start_up_file, config.exec_file_name, args, config.start_up_file)
     ssh_client.exec_command(cmd)

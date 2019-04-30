@@ -26,5 +26,5 @@ if __name__ == '__main__':
     ip_address = common.get_ip(robot_id)
     ssh_client = ssh_connection.ssh_connection(ip_address, config.ssh_port, config.username, config.password)
 
-    cmd = "sed -i '1d' %s; poweroff"%config.start_up_file
+    cmd = "sed -i '/%s/d' %s; poweroff"%(config.exec_file_name, config.start_up_file)
     ssh_client.exec_command(cmd)
