@@ -136,6 +136,7 @@ private slots:
     void procButtonRunPos();
     void procButtonWalkRemote();
     void procButtonJointRevise();
+    void procButtonJointSetter();
     void updateSlider(int id);
     void procTimer();
     void procPosNameChanged(int id);
@@ -165,7 +166,7 @@ private:
     QListWidget *m_pPosListWidget, *m_pActListWidget, *m_pJDListWidget1, *m_pJDListWidget2;
     QPushButton *mButtonInsertPosFront, *mButtonInsertPosBack, *mButtonDeletePos, *mButtonSavePos;
     QPushButton *mButtonAddAction, *mButtonDeleteAction, *mButtonSaveAction;
-    QPushButton *btnrunPos, *btnWalkRemote, *btnJointRevise;
+    QPushButton *btnrunPos, *btnWalkRemote, *btnJointRevise, *btnJointSetter;
     QRadioButton *head, *body, *leftArm, *rightArm, *leftFoot, *rightFoot;
     QButtonGroup *motionBtnGroup;
     QGroupBox *mSliderGroup;

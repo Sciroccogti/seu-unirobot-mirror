@@ -308,10 +308,10 @@ namespace motion
                 jdegs[ROBOT->get_joint("jrankle2")->jid_] = rad2deg(outputs.right_ankle_pitch);
                 jdegs[ROBOT->get_joint("jrankle1")->jid_] = rad2deg(outputs.right_ankle_roll);
 
-                jdegs[ROBOT->get_joint("jlshoulder1")->jid_] = 40;
-                jdegs[ROBOT->get_joint("jlelbow")->jid_] = -90;
-                jdegs[ROBOT->get_joint("jrshoulder1")->jid_] = 40;
-                jdegs[ROBOT->get_joint("jrelbow")->jid_] = 90;
+                jdegs[ROBOT->get_joint("jlshoulder1")->jid_] = 0;
+                jdegs[ROBOT->get_joint("jlelbow")->jid_] = -170;
+                jdegs[ROBOT->get_joint("jrshoulder1")->jid_] = 0;
+                jdegs[ROBOT->get_joint("jrelbow")->jid_] = 170;
 
                 while (!MADT->body_empty())
                 {

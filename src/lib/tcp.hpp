@@ -39,6 +39,7 @@ enum remote_data_type
     ACT_DATA = 2,
     LOOKAT_DATA = 3,
     JOINT_OFFSET = 4,
+    JOINT_SET = 5,
     CAMERA_SET = 10,
     IMAGE_SEND_TYPE = 12,
 };
