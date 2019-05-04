@@ -177,7 +177,7 @@ bool player::init()
             LOG(LOG_WARN) << "waiting for motor connection, please turn on the power." << endll;
             sleep(1);
         }
-
+        
         if (!is_alive_)
         {
             return true;

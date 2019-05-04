@@ -2,6 +2,7 @@
 #include "action_debuger.hpp"
 #include "ui/walk_remote.hpp"
 #include "ui/joint_revise.hpp"
+#include "ui/joint_setter.hpp"
 #include "math/math.hpp"
 #include "configuration.hpp"
 #include "parser/action_parser.hpp"
@@ -103,6 +104,7 @@ action_debuger::action_debuger()
     btnrunPos = new QPushButton("Run Pos");
     btnWalkRemote = new QPushButton("Walk Remote");
     btnJointRevise = new QPushButton("Joint Revise");
+    btnJointSetter = new QPushButton("Joint Setter");
     QVBoxLayout *posLayout = new QVBoxLayout;
     posLayout->addWidget(m_pPosListWidget);
     posLayout->addWidget(btnrunPos);
@@ -125,6 +127,7 @@ action_debuger::action_debuger()
     bactLayout->addWidget(m_pActListWidget);
     bactLayout->addWidget(btnWalkRemote);
     bactLayout->addWidget(btnJointRevise);
+    bactLayout->addWidget(btnJointSetter);
 
     QHBoxLayout *mainLayout = new QHBoxLayout;
     mainLayout->addLayout(leftLayout);
@@ -160,6 +163,7 @@ action_debuger::action_debuger()
     connect(btnrunPos, &QPushButton::clicked, this, &action_debuger::procButtonRunPos);
     connect(btnWalkRemote, &QPushButton::clicked, this, &action_debuger::procButtonWalkRemote);
     connect(btnJointRevise, &QPushButton::clicked, this, &action_debuger::procButtonJointRevise);
+    connect(btnJointSetter, &QPushButton::clicked, this, &action_debuger::procButtonJointSetter);
     connect(motionBtnGroup, static_cast<void(QButtonGroup::*)(int)>(&QButtonGroup::buttonClicked), this, &action_debuger::updateSlider);
     connect(timer, &QTimer::timeout, this, &action_debuger::procTimer);
     client_.start();
@@ -1035,6 +1039,12 @@ void action_debuger::procButtonWalkRemote()
 void action_debuger::procButtonJointRevise()
 {
     joint_revise *window = new joint_revise(client_, net_info, this);
+    window->show();
+}
+
+void action_debuger::procButtonJointSetter()
+{
+    joint_setter *window = new joint_setter(client_, net_info, this);
     window->show();
 }
 
