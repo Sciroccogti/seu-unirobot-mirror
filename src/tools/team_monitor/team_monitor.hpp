@@ -25,6 +25,7 @@ private:
     std::thread td_;
     mutable std::mutex p_mutex_;
     std::map<int, player_info> players_;
+    std::map<int, int> states_;
     comm_packet pkt_;
     boost::asio::ip::udp::socket socket_;
     boost::asio::ip::udp::endpoint point_;

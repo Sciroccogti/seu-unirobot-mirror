@@ -28,7 +28,7 @@ StateMonitor::StateMonitor(int id): id_(id)
     QWidget *mainWidget = new QWidget();
     mainWidget->setLayout(mainLayout);
     this->setCentralWidget(mainWidget);
-    setWindowTitle(QString::number(id));
+    setWindowTitle("player: "+QString::number(id));
 }
 
 void StateMonitor::update_state(int s)

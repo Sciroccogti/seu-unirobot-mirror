@@ -99,7 +99,6 @@ std::list<task_ptr> player::play_with_gc()
             tasks.push_back(make_shared<look_task>(head_init[0], head_init[1]));
             break;
         case STATE_SET:
-            WM->kickoff_ = true;
             tasks.push_back(make_shared<walk_task>(0.0, 0.0, 0.0, false));
             tasks.push_back(make_shared<look_task>(head_init[0], head_init[1]));
             break;
@@ -126,9 +125,9 @@ std::list<task_ptr> player::play_with_gc()
                     tasks.push_back(make_shared<look_task>(HEAD_STATE_SEARCH_BALL));
                     tasks.push_back(make_shared<walk_task>(0.0, 0.0, 0.0, false));
                     if(WM->self().dir>45.0) 
-                        WM->set_my_pos(Vector2d(0.0, -3.0));
+                        WM->set_my_pos(Vector2d(-0.75, -3.0));
                     else if(WM->self().dir<-45.0)
-                        WM->set_my_pos(Vector2d(0.0, 3.0));
+                        WM->set_my_pos(Vector2d(-0.75, 3.0));
                 }
                 else
                 {

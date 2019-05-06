@@ -6,7 +6,7 @@ using namespace robot_math;
 using namespace robot;
 using namespace std;
 
-WorldModel::WorldModel()
+world_model::world_model()
 {
     fall_direction_ = FALL_NONE;
     support_foot_ = robot::DOUBLE_SUPPORT;
@@ -23,12 +23,12 @@ WorldModel::WorldModel()
     coef_y_ = CONF->get_config_value<double>(CONF->player()+".nav.cy");
     self_localization_ = false;
     in_localization_ = false;
-    kickoff_ = true;
+
     opp_post_left = Vector2d(SOCCERMAP->width()/200.0, SOCCERMAP->goalWidth()/200.0-0.7);
     opp_post_right = Vector2d(SOCCERMAP->width()/200.0, -SOCCERMAP->goalWidth()/200.0+0.7);
 }
 
-void WorldModel::updata(const pub_ptr &pub, const int &type)
+void world_model::updata(const pub_ptr &pub, const int &type)
 {
     if (type == sensor::SENSOR_IMU)
     {
@@ -74,7 +74,7 @@ void WorldModel::updata(const pub_ptr &pub, const int &type)
     }
 }
 
-void WorldModel::navigation(const Eigen::Vector3d &walk_para)
+void world_model::navigation(const Eigen::Vector3d &walk_para)
 {
     self_block blk = self();
     Vector2d currpos(blk.global.x(), blk.global.y());
@@ -84,7 +84,7 @@ void WorldModel::navigation(const Eigen::Vector3d &walk_para)
     set_my_pos(temp);
 }
 
-void WorldModel::set_ball_pos(const Eigen::Vector2d &global, const Eigen::Vector2d &my, const Eigen::Vector2i &pix,
+void world_model::set_ball_pos(const Eigen::Vector2d &global, const Eigen::Vector2d &my, const Eigen::Vector2i &pix,
     float alpha, float beta,  bool can)
 {
     info_mtx_.lock();
@@ -103,7 +103,7 @@ void WorldModel::set_ball_pos(const Eigen::Vector2d &global, const Eigen::Vector
     ball_mtx_.unlock();
 }
 
-void WorldModel::reset_hear_info()
+void world_model::reset_hear_info()
 {
     info_mtx_.lock();
     for(auto &item:player_infos_)

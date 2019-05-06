@@ -70,7 +70,7 @@ void player::run()
                 if(OPTS->use_gc())
                     tasks.push_back(make_shared<gcret_task>());
                 if(OPTS->use_comm())
-                    tasks.push_back(make_shared<say_task>());
+                    tasks.push_back(make_shared<say_task>(fsm_->get_state()));
             }
             if((period_count_*period_ms_/100)%20 == 0)
             {
@@ -119,18 +119,6 @@ list<task_ptr> player::think()
                     else
                     {
                         tlists = play_without_gc();
-                        //tasks.push_back(make_shared<look_task>(0.0, 40.0, HEAD_STATE_LOOKAT));
-                        //tasks.push_back(make_shared<walk_task>(0.02, 0.0, 0.0, true));
-                        /*
-                        if(WM->fall_data()!=FALL_NONE)
-                        {
-                            LOG(LOG_INFO)<<WM->fall_data()<<endll;
-                            if(WM->fall_data()==FALL_FORWARD)
-                                tasks.push_back(make_shared<action_task>("front_getup"));
-                            else if(WM->fall_data()==FALL_BACKWARD)
-                                tasks.push_back(make_shared<action_task>("back_getup"));
-                        }
-                        */
                     }
                 }
             }
@@ -175,7 +163,7 @@ bool player::init()
     fsm_->Register(FSM_STATE_GOTO_BALL, make_shared<FSMStateGotoBall>(fsm_));
     fsm_->Register(FSM_STATE_KICK_BALL, make_shared<FSMStateKickBall>(fsm_));
     fsm_->Register(FSM_STATE_SL, make_shared<FSMStateSL>(fsm_));
-    fsm_->Trans(FSM_STATE_READY);
+    fsm_->set_state(FSM_STATE_READY);
 
     if(OPTS->use_debug())
         SERVER->start();

@@ -14,10 +14,10 @@
 #include "robot/humanoid.hpp"
 #include "localization/SelfLocalization.h"
 
-class WorldModel: public subscriber, public singleton<WorldModel>
+class world_model: public subscriber, public singleton<world_model>
 {
 public:
-    WorldModel();
+    world_model();
     
     void updata(const pub_ptr &pub, const int &type);
     void updata_glb();
@@ -115,7 +115,6 @@ public:
 
 public:
     std::atomic_bool self_localization_, in_localization_;
-    std::atomic_bool kickoff_;
     Eigen::Vector2d opp_post_left, opp_post_right;
     std::atomic_bool can_see_post_;
     
@@ -136,5 +135,5 @@ private:
     mutable std::mutex imu_mtx_, gc_mtx_, info_mtx_, ball_mtx_, self_mtx_;
 };
 
-#define WM WorldModel::instance()
+#define WM world_model::instance()
 
