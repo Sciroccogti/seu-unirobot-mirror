@@ -26,7 +26,7 @@ namespace motion
         void stop();
         void set_params(float yaw, float pitch, Head_State state);
 
-        std::atomic_bool search_ball_circle_;
+        std::atomic_bool search_ball_end_;
         float lost_yaw_, lost_pitch_;
         
     private:

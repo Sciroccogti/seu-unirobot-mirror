@@ -4,7 +4,7 @@
 
 using namespace std;
 
-walk_remote::walk_remote(tcp_client &client, QString netinfo, QWidget *parent): range_(200), scale_d(10), scale_xy(5000),
+WalkRemote::WalkRemote(tcp_client &client, QString netinfo, QWidget *parent): range_(200), scale_d(10), scale_xy(5000),
     client_(client), netinfo_(netinfo), QMainWindow(parent)
 {
     setAttribute(Qt::WA_DeleteOnClose);
@@ -68,10 +68,10 @@ walk_remote::walk_remote(tcp_client &client, QString netinfo, QWidget *parent): 
     timer = new QTimer;
     timer->start(1000);
 
-    connect(timer, &QTimer::timeout, this, &walk_remote::procTimer);
-    connect(dirSlider, &QSlider::valueChanged, this, &walk_remote::procDSlider);
-    connect(xSlider, &QSlider::valueChanged, this, &walk_remote::procXSlider);
-    connect(ySlider, &QSlider::valueChanged, this, &walk_remote::procYSlider);
+    connect(timer, &QTimer::timeout, this, &WalkRemote::procTimer);
+    connect(dirSlider, &QSlider::valueChanged, this, &WalkRemote::procDSlider);
+    connect(xSlider, &QSlider::valueChanged, this, &WalkRemote::procXSlider);
+    connect(ySlider, &QSlider::valueChanged, this, &WalkRemote::procYSlider);
 
     first_connect = true;
     _x = 0;
@@ -82,7 +82,7 @@ walk_remote::walk_remote(tcp_client &client, QString netinfo, QWidget *parent): 
     setEnabled(false);
 }
 
-void walk_remote::procTimer()
+void WalkRemote::procTimer()
 {
     if (btnRand->isChecked())
     {
@@ -141,7 +141,7 @@ void walk_remote::procTimer()
     }
 }
 
-void walk_remote::updateLab()
+void WalkRemote::updateLab()
 {
     dirLab->setText("d: " + QString::number(_dir, 'f', 4));
     xLab->setText("x: " + QString::number(_x, 'f', 4));
@@ -149,19 +149,19 @@ void walk_remote::updateLab()
     update();
 }
 
-void walk_remote::procDSlider(int v)
+void WalkRemote::procDSlider(int v)
 {
     _dir = v / scale_d;
     updateLab();
 }
 
-void walk_remote::procXSlider(int v)
+void WalkRemote::procXSlider(int v)
 {
     _x = v / scale_xy;
     updateLab();
 }
 
-void walk_remote::procYSlider(int v)
+void WalkRemote::procYSlider(int v)
 {
     _y = v / scale_xy;
     updateLab();

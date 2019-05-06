@@ -4,7 +4,7 @@
 #include <atomic>
 #include "robot/humanoid.hpp"
 #include "tcp_client/tcp_client.hpp"
-#include "ui/ImageLabel.hpp"
+#include "ui/image_label.hpp"
 #include <opencv2/opencv.hpp>
 #include <eigen3/Eigen/Dense>
 
@@ -41,11 +41,11 @@ private:
     QPushButton *okBtn;
 };
 
-class image_monitor: public QMainWindow
+class ImageMonitor: public QMainWindow
 {
     Q_OBJECT
 public:
-    image_monitor();
+    ImageMonitor();
     void data_handler(const tcp_command cmd);
 public slots:
     void procTimer();

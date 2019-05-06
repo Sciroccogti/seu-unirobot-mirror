@@ -5,10 +5,12 @@ add_library(ui STATIC
             joint_revise.cpp
             joint_setter.cpp
             walk_remote.cpp
-            ImageLabel.cpp
-            RobotGL.cpp)
+            image_label.cpp
+            state_monitor.cpp
+            robot_gl.cpp)
 
 target_link_libraries(ui
+            robot
             opencv_core
             opencv_imgproc
             tcp_client

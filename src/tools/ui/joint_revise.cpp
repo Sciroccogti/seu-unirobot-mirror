@@ -5,7 +5,7 @@
 using namespace robot;
 using namespace std;
 
-joint_revise::joint_revise(tcp_client &client, QString netinfo, QWidget *parent)
+JointRevise::JointRevise(tcp_client &client, QString netinfo, QWidget *parent)
     : net_info(netinfo), client_(client), QMainWindow(parent)
 {
     setAttribute(Qt::WA_DeleteOnClose);
@@ -19,7 +19,7 @@ joint_revise::joint_revise(tcp_client &client, QString netinfo, QWidget *parent)
     for (auto &jo : ROBOT->get_joint_map())
     {
         slider = new JSlider(jo.second);
-        connect(slider, &JSlider::valueChanged, this, &joint_revise::procValueChanged);
+        connect(slider, &JSlider::valueChanged, this, &JointRevise::procValueChanged);
 
         if (jo.first == "jhead2" || jo.first.find("jr") != string::npos)
         {
@@ -48,13 +48,13 @@ joint_revise::joint_revise(tcp_client &client, QString netinfo, QWidget *parent)
     mainWidget->setLayout(mainLayout);
     this->setCentralWidget(mainWidget);
 
-    connect(btnReset, &QPushButton::clicked, this, &joint_revise::procBtnReset);
-    connect(btnSave, &QPushButton::clicked, this, &joint_revise::procBtnSave);
-    connect(timer, &QTimer::timeout, this, &joint_revise::procTimer);
+    connect(btnReset, &QPushButton::clicked, this, &JointRevise::procBtnReset);
+    connect(btnSave, &QPushButton::clicked, this, &JointRevise::procBtnSave);
+    connect(timer, &QTimer::timeout, this, &JointRevise::procTimer);
     setEnabled(false);
 }
 
-void joint_revise::procTimer()
+void JointRevise::procTimer()
 {
     if (client_.is_connected())
     {
@@ -75,7 +75,7 @@ void joint_revise::procTimer()
     }
 }
 
-void joint_revise::procBtnReset()
+void JointRevise::procBtnReset()
 {
     for (auto &s : j_sliders_)
     {
@@ -84,12 +84,12 @@ void joint_revise::procBtnReset()
     }
 }
 
-void joint_revise::procBtnSave()
+void JointRevise::procBtnSave()
 {
     parser::offset_parser::save(CONF->offset_file(), ROBOT->get_joint_map());
 }
 
-void joint_revise::procValueChanged(int id, float v)
+void JointRevise::procValueChanged(int id, float v)
 {
     ROBOT->get_joint(id)->offset_ = v;
     tcp_command cmd;

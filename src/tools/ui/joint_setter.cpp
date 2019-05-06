@@ -4,7 +4,7 @@
 using namespace robot;
 using namespace std;
 
-joint_setter::joint_setter(tcp_client &client, QString netinfo, QWidget *parent)
+JointSetter::JointSetter(tcp_client &client, QString netinfo, QWidget *parent)
     : net_info(netinfo), client_(client), QMainWindow(parent)
 {
     setAttribute(Qt::WA_DeleteOnClose);
@@ -18,7 +18,7 @@ joint_setter::joint_setter(tcp_client &client, QString netinfo, QWidget *parent)
     for (auto &jo : ROBOT->get_joint_map())
     {
         slider = new JSSlider(jo.second);
-        connect(slider, &JSSlider::valueChanged, this, &joint_setter::procValueChanged);
+        connect(slider, &JSSlider::valueChanged, this, &JointSetter::procValueChanged);
 
         if (jo.first == "jhead2" || jo.first.find("jr") != string::npos)
         {
@@ -43,11 +43,11 @@ joint_setter::joint_setter(tcp_client &client, QString netinfo, QWidget *parent)
     mainWidget->setLayout(mainLayout);
     this->setCentralWidget(mainWidget);
 
-    connect(timer, &QTimer::timeout, this, &joint_setter::procTimer);
+    connect(timer, &QTimer::timeout, this, &JointSetter::procTimer);
     setEnabled(false);
 }
 
-void joint_setter::procTimer()
+void JointSetter::procTimer()
 {
     if (client_.is_connected())
     {
@@ -68,7 +68,7 @@ void joint_setter::procTimer()
     }
 }
 
-void joint_setter::procValueChanged(int id, float v)
+void JointSetter::procValueChanged(int id, float v)
 {
     ROBOT->get_joint(id)->set_deg(v);
     tcp_command cmd;
@@ -90,7 +90,7 @@ void joint_setter::procValueChanged(int id, float v)
     client_.write(cmd);
 }
 
-void joint_setter::keyPressEvent(QKeyEvent *event)
+void JointSetter::keyPressEvent(QKeyEvent *event)
 {
     switch (event->key())
     {

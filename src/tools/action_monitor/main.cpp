@@ -25,7 +25,7 @@ int main(int argc, char **argv)
     ROBOT->init(CONF->robot_file(), CONF->action_file(), CONF->offset_file());
 
     QApplication app(argc, argv);
-    action_monitor foo;
+    ActionMonitor foo;
     foo.show();
     return app.exec();
 }

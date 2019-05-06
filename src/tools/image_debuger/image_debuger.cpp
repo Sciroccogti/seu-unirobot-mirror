@@ -12,7 +12,7 @@ using namespace cv;
 using namespace std;
 using namespace vision;
 
-image_debuger::image_debuger()
+ImageDebuger::ImageDebuger()
 {
     height_ = CONF->get_config_value<int>("image.height");
     width_ = CONF->get_config_value<int>("image.width");
@@ -61,13 +61,13 @@ image_debuger::image_debuger()
     this->setCentralWidget(mainWidget);
 
     timer = new QTimer;
-    connect(timer, &QTimer::timeout, this, &image_debuger::procTimer);
-    connect(btnLoad, &QPushButton::clicked, this, &image_debuger::procBtnLoad);
-    connect(btnLast, &QPushButton::clicked, this, &image_debuger::procBtnLast);
-    connect(btnNext, &QPushButton::clicked, this, &image_debuger::procBtnNext);
-    connect(boxAuto, &QCheckBox::stateChanged, this, &image_debuger::procBoxAuto);
-    connect(frmSlider, &QSlider::valueChanged, this, &image_debuger::procFrmSlider);
-    connect(srcLab, &ImageLabel::shot, this, &image_debuger::procShot);
+    connect(timer, &QTimer::timeout, this, &ImageDebuger::procTimer);
+    connect(btnLoad, &QPushButton::clicked, this, &ImageDebuger::procBtnLoad);
+    connect(btnLast, &QPushButton::clicked, this, &ImageDebuger::procBtnLast);
+    connect(btnNext, &QPushButton::clicked, this, &ImageDebuger::procBtnNext);
+    connect(boxAuto, &QCheckBox::stateChanged, this, &ImageDebuger::procBoxAuto);
+    connect(frmSlider, &QSlider::valueChanged, this, &ImageDebuger::procFrmSlider);
+    connect(srcLab, &ImageLabel::shot, this, &ImageDebuger::procShot);
     net_.gpu_index = 0;
     net_ = parse_network_cfg_custom((char *)CONF->get_config_value<string>("net_cfg_file").c_str(), 1);
     load_weights(&net_, (char *)CONF->get_config_value<string>("net_weights_file").c_str());
@@ -77,7 +77,7 @@ image_debuger::image_debuger()
     srand(2222222);
 }
 
-void image_debuger::show_src()
+void ImageDebuger::show_src()
 {
     Mat bgr = imread(String((curr_dir_+image_names_.at(curr_index_-1)).toStdString()));
     cvtColor(bgr, rgb_src_, CV_BGR2RGB);
@@ -85,7 +85,7 @@ void image_debuger::show_src()
     srcLab->set_image(srcImage);
 }
 
-void image_debuger::show_dst(Mat dst)
+void ImageDebuger::show_dst(Mat dst)
 {
     //cout<<dst.channels()<<endl;
     QImage dstImage(rgb_src_.data, rgb_src_.cols, rgb_src_.rows, QImage::Format_RGB888);
@@ -93,7 +93,7 @@ void image_debuger::show_dst(Mat dst)
     //cout<<"end"<<endl;
 }
 
-void image_debuger::proc_image(const unsigned int &index)
+void ImageDebuger::proc_image(const unsigned int &index)
 {
     if (index < 1 || index > image_names_.size())
     {
@@ -116,7 +116,7 @@ void image_debuger::proc_image(const unsigned int &index)
     }
 }
 
-void image_debuger::procBtnLast()
+void ImageDebuger::procBtnLast()
 {
     curr_index_--;
 
@@ -128,7 +128,7 @@ void image_debuger::procBtnLast()
     proc_image(curr_index_);
 }
 
-void image_debuger::procBtnNext()
+void ImageDebuger::procBtnNext()
 {
     curr_index_++;
 
@@ -140,7 +140,7 @@ void image_debuger::procBtnNext()
     proc_image(curr_index_);
 }
 
-void image_debuger::procBtnLoad()
+void ImageDebuger::procBtnLoad()
 {
     timer->stop();
     curr_dir_ = QFileDialog::getExistingDirectory(this, "Open image directory", QDir::homePath())+"/";
@@ -163,7 +163,7 @@ void image_debuger::procBtnLoad()
     }
 }
 
-void image_debuger::procBoxAuto()
+void ImageDebuger::procBoxAuto()
 {
     if (boxAuto->checkState() == Qt::Checked)
     {
@@ -182,7 +182,7 @@ void image_debuger::procBoxAuto()
     }
 }
 
-void image_debuger::procShot(QRect rect)
+void ImageDebuger::procShot(QRect rect)
 {
     if (rect.width() > 10 && rect.height() > 10)
     {
@@ -223,13 +223,13 @@ void image_debuger::procShot(QRect rect)
     }
 }
 
-void image_debuger::procFrmSlider(int v)
+void ImageDebuger::procFrmSlider(int v)
 {
     proc_image(v);
 }
 
 
-void image_debuger::procTimer()
+void ImageDebuger::procTimer()
 {
     procBtnNext();
 }

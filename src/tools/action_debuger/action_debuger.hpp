@@ -2,7 +2,7 @@
 
 #include <QtWidgets>
 #include <map>
-#include "ui/RobotGL.hpp"
+#include "ui/robot_gl.hpp"
 #include "robot/humanoid.hpp"
 #include "tcp_client/tcp_client.hpp"
 
@@ -106,11 +106,11 @@ signals:
     void valueChanged(int value);
 };
 
-class action_debuger: public QMainWindow
+class ActionDebuger: public QMainWindow
 {
     Q_OBJECT
 public:
-    action_debuger();
+    ActionDebuger();
     void initStatusBar();
 protected:
     void closeEvent(QCloseEvent *event);

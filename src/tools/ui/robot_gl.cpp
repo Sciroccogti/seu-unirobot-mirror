@@ -1,5 +1,5 @@
 #include <algorithm>
-#include "RobotGL.hpp"
+#include "robot_gl.hpp"
 
 #define NORMAL_SIZE_AXE 1.0f
 #define DRAW_LIST_AXE   10

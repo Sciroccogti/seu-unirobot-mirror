@@ -60,7 +60,7 @@ std::list<task_ptr> player::play_with_gc()
                 }
             }
             tasks.push_back(make_shared<walk_task>(0.0, 0.0, 0.0, false));
-            tasks.push_back(make_shared<look_task>(head_init[0], head_init[1], HEAD_STATE_LOOKAT));
+            tasks.push_back(make_shared<look_task>(head_init[0], head_init[1]));
             break;
         case STATE_READY:
             if(kickoff == CONF->team_number() || kickoff == DROPBALL)
@@ -96,12 +96,12 @@ std::list<task_ptr> player::play_with_gc()
                     WM->set_my_pos(Vector2d(-4.5, 0.0));
                 }
             }
-            tasks.push_back(make_shared<look_task>(head_init[0], head_init[1], HEAD_STATE_LOOKAT));
+            tasks.push_back(make_shared<look_task>(head_init[0], head_init[1]));
             break;
         case STATE_SET:
             WM->kickoff_ = true;
             tasks.push_back(make_shared<walk_task>(0.0, 0.0, 0.0, false));
-            tasks.push_back(make_shared<look_task>(head_init[0], head_init[1], HEAD_STATE_LOOKAT));
+            tasks.push_back(make_shared<look_task>(head_init[0], head_init[1]));
             break;
         case STATE_PLAYING:
             played_ = true;
@@ -177,7 +177,7 @@ std::list<task_ptr> player::play_with_gc()
                                     }
                                     else
                                     {
-                                        tasks.push_back(make_shared<look_task>(0.0, 60.0, HEAD_STATE_LOOKAT));
+                                        tasks.push_back(make_shared<look_task>(0.0, 60.0));
                                         if(my_fisrt_lookat)
                                         {
                                             my_fisrt_lookat = false;
@@ -225,7 +225,7 @@ std::list<task_ptr> player::play_with_gc()
                             if(pinfos.find(other_id)!=pinfos.end())
                                 f_info = pinfos[other_id];
                             if(see_last_&&!ball.can_see)
-                                SE->search_ball_circle_ = false;
+                                SE->search_ball_end_ = false;
                             if(ball.can_see)
                             {
                                 if(!f_info.my_kick&&!WM->my_info().my_kick)
@@ -284,11 +284,11 @@ std::list<task_ptr> player::play_with_gc()
             break;
         case STATE_FINISHED:
             tasks.push_back(make_shared<walk_task>(0.0, 0.0, 0.0, false));
-            tasks.push_back(make_shared<look_task>(head_init[0], head_init[1], HEAD_STATE_LOOKAT));
+            tasks.push_back(make_shared<look_task>(head_init[0], head_init[1]));
             break;
         default:
             tasks.push_back(make_shared<walk_task>(0.0, 0.0, 0.0, false));
-            tasks.push_back(make_shared<look_task>(head_init[0], head_init[1], HEAD_STATE_LOOKAT));
+            tasks.push_back(make_shared<look_task>(head_init[0], head_init[1]));
             break;
     }
     return tasks;

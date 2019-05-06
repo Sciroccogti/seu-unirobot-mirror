@@ -77,7 +77,7 @@ std::list<task_ptr> player::play_without_gc()
                         }
                         else
                         {
-                            tasks.push_back(make_shared<look_task>(0.0, 60.0, HEAD_STATE_LOOKAT));
+                            tasks.push_back(make_shared<look_task>(0.0, 60.0));
                             if(my_fisrt_lookat)
                             {
                                 my_fisrt_lookat = false;
@@ -116,7 +116,7 @@ std::list<task_ptr> player::play_without_gc()
             ball_block ball = WM->ball();
             self_block self = WM->self();
             if(see_last_&&!ball.can_see)
-                SE->search_ball_circle_ = false;
+                SE->search_ball_end_ = false;
             if(ball.can_see)
             {
                 tasks = play_skill_kick(self, ball);

@@ -83,7 +83,7 @@ list<task_ptr> player::play_skill_kick(const self_block &self, const ball_block 
             }
             else
             {
-                tasks.push_back(make_shared<look_task>(0.0, 60.0, HEAD_STATE_LOOKAT));
+                tasks.push_back(make_shared<look_task>(0.0, 60.0));
                 if(fisrt_lookat)
                 {
                     fisrt_lookat = false;
@@ -130,7 +130,7 @@ list<task_ptr> player::play_skill_kick(const self_block &self, const ball_block 
             }
             else
             {
-                tasks.push_back(make_shared<look_task>(0.0, 60.0, HEAD_STATE_LOOKAT));
+                tasks.push_back(make_shared<look_task>(0.0, 60.0));
                 if(fisrt_lookat)
                 {
                     fisrt_lookat = false;
@@ -186,18 +186,18 @@ list<task_ptr> player::play_skill_search_ball()
         }
     }
     */
-    if(SE->search_ball_circle_)
+    if(SE->search_ball_end_)
     {
         double target_dir = normalize_deg(last_search_dir_+90.0);
         if(fabs(normalize_deg(target_dir-WM->self().dir))>skill_goto_turn_direction)
         {
-            tasks.push_back(make_shared<look_task>(0.0, 45.0, HEAD_STATE_LOOKAT));
+            tasks.push_back(make_shared<look_task>(0.0, 45.0));
             tasks.push_back(make_shared<walk_task>(0.0, 0.0, sign(normalize_deg(target_dir-WM->self().dir))*6.0, true));
         }
         else
         {
             last_search_dir_ = WM->self().dir;
-            SE->search_ball_circle_ = false;
+            SE->search_ball_end_ = false;
             tasks.push_back(make_shared<look_task>(HEAD_STATE_SEARCH_BALL));
             tasks.push_back(make_shared<walk_task>(0.0, 0.0, 0.0, false));
         }

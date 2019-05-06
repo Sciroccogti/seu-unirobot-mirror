@@ -2,6 +2,7 @@
 
 #include <string>
 #include <map>
+#include <unordered_map>
 #include <eigen3/Eigen/Dense>
 
 struct GoalPost
@@ -98,6 +99,25 @@ struct object_det
     {
         return prob<obj.prob;
     }
+};
+
+enum fsm_state
+{
+    FSM_STATE_READY,
+    FSM_STATE_GETUP,
+    FSM_STATE_SEARCH_BALL,
+    FSM_STATE_GOTO_BALL,
+    FSM_STATE_KICK_BALL,
+    FSM_STATE_SL
+};
+
+static const std::unordered_map<int, std::string> fsm_state_infos = {
+    {FSM_STATE_READY, "ready"},
+    {FSM_STATE_GETUP, "getup"},
+    {FSM_STATE_SEARCH_BALL, "search_ball"},
+    {FSM_STATE_GOTO_BALL, "goto_ball"},
+    {FSM_STATE_KICK_BALL, "kick_ball"},
+    {FSM_STATE_SL, "localization"}
 };
 
 enum { player_info_size = sizeof(player_info)};
