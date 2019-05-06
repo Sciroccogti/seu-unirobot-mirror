@@ -10,6 +10,7 @@ struct comm_packet
     unsigned int number=0;
     bool kickoff=false;
     player_info info;
+    int state;
 };
 
 

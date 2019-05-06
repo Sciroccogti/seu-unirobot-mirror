@@ -22,7 +22,7 @@ int main(int argc, char **argv)
     }
 
     QApplication app(argc, argv);
-    image_debuger foo;
+    ImageDebuger foo;
     foo.show();
     return app.exec();
 }

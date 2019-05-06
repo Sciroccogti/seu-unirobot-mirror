@@ -21,7 +21,7 @@ enum tcp_cmd_type
     JOINT_DATA = 6,
     REMOTE_DATA = 7,
     IMG_DATA = 8,
-    END_DATA = 9
+    END_DATA = 20
 };
 
 struct tcp_command

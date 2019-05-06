@@ -50,11 +50,11 @@ private:
     int range_;
 };
 
-class joint_setter: public QMainWindow
+class JointSetter: public QMainWindow
 {
     Q_OBJECT
 public:
-    joint_setter(tcp_client &client, QString netinfo, QWidget *parent = nullptr);
+    JointSetter(tcp_client &client, QString netinfo, QWidget *parent = nullptr);
 public slots:
     void procValueChanged(int id, float v);
     void procTimer();

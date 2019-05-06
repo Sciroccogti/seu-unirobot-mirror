@@ -11,6 +11,12 @@
 #include "engine/scan/ScanEngine.hpp"
 #include "engine/action/ActionEngine.hpp"
 #include "engine/led/LedEngine.hpp"
+#include "fsm/fsm_state_getup.hpp"
+#include "fsm/fsm_state_goto_ball.hpp"
+#include "fsm/fsm_state_kick_ball.hpp"
+#include "fsm/fsm_state_ready.hpp"
+#include "fsm/fsm_state_search_ball.hpp"
+#include "fsm/fsm_state_sl.hpp"
 
 using namespace std;
 using namespace motion;
@@ -29,6 +35,8 @@ player::player(): timer(CONF->get_config_value<int>("think_period"))
     played_ = false;
     self_location_count_ = 0;
     keeper_kicked_ = false;
+
+    fsm_ = make_shared<FSM>();
 }
 
 void player::run()
@@ -132,7 +140,7 @@ list<task_ptr> player::think()
             static bool start_penalty=false;
             static bool left=true; 
             static float init_dir = 0.0;
-            tasks.push_back(make_shared<look_task>(0.0, 60.0, HEAD_STATE_LOOKAT));
+            tasks.push_back(make_shared<look_task>(0.0, 60.0));
             if(WM->button_status(1))
             {
                 start_penalty = true;
@@ -161,6 +169,14 @@ bool player::in_my_attack_range(const Eigen::Vector2d &ball)
 
 bool player::init()
 {
+    fsm_->Register(FSM_STATE_READY, make_shared<FSMStateReady>(fsm_));
+    fsm_->Register(FSM_STATE_GETUP, make_shared<FSMStateGetup>(fsm_));
+    fsm_->Register(FSM_STATE_SEARCH_BALL, make_shared<FSMStateSearchBall>(fsm_));
+    fsm_->Register(FSM_STATE_GOTO_BALL, make_shared<FSMStateGotoBall>(fsm_));
+    fsm_->Register(FSM_STATE_KICK_BALL, make_shared<FSMStateKickBall>(fsm_));
+    fsm_->Register(FSM_STATE_SL, make_shared<FSMStateSL>(fsm_));
+    fsm_->Trans(FSM_STATE_READY);
+
     if(OPTS->use_debug())
         SERVER->start();
 

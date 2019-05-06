@@ -1,4 +1,4 @@
-#include "ImageLabel.hpp"
+#include "image_label.hpp"
 #include <opencv2/opencv.hpp>
 
 using namespace cv;

@@ -14,7 +14,7 @@ int main(int argc, char **argv)
     }
 
     QApplication app(argc, argv);
-    team_monitor foo;
+    TeamMonitor foo;
     foo.show();
     return app.exec();
 }

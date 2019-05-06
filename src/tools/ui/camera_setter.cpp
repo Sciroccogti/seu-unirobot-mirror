@@ -4,7 +4,7 @@
 
 using namespace std;
 
-camera_setter::camera_setter(tcp_client &client, QString netinfo, QWidget *parent)
+CameraSetter::CameraSetter(tcp_client &client, QString netinfo, QWidget *parent)
     : client_(client), net_info(netinfo), QMainWindow(parent)
 {
     setAttribute(Qt::WA_DeleteOnClose);
@@ -20,7 +20,7 @@ camera_setter::camera_setter(tcp_client &client, QString netinfo, QWidget *paren
     for (auto it : ctrl_items_)
     {
         slider = new CtrlSlider(it.second);
-        connect(slider, &CtrlSlider::valueChanged, this, &camera_setter::procValueChanged);
+        connect(slider, &CtrlSlider::valueChanged, this, &CameraSetter::procValueChanged);
         c_sliders_.push_back(slider);
 
         if ((it.first.find("gain") != string::npos || it.first.find("sat") != string::npos)
@@ -49,13 +49,13 @@ camera_setter::camera_setter(tcp_client &client, QString netinfo, QWidget *paren
     mainWidget->setLayout(mainLayout);
     this->setCentralWidget(mainWidget);
 
-    connect(btnReset, &QPushButton::clicked, this, &camera_setter::procBtnReset);
-    connect(btnSave, &QPushButton::clicked, this, &camera_setter::procBtnSave);
-    connect(timer, &QTimer::timeout, this, &camera_setter::procTimer);
+    connect(btnReset, &QPushButton::clicked, this, &CameraSetter::procBtnReset);
+    connect(btnSave, &QPushButton::clicked, this, &CameraSetter::procBtnSave);
+    connect(timer, &QTimer::timeout, this, &CameraSetter::procTimer);
     setEnabled(false);
 }
 
-void camera_setter::procTimer()
+void CameraSetter::procTimer()
 {
     if (client_.is_connected())
     {
@@ -76,7 +76,7 @@ void camera_setter::procTimer()
     }
 }
 
-void camera_setter::procBtnReset()
+void CameraSetter::procBtnReset()
 {
     for (auto &c : ctrl_items_)
     {
@@ -90,12 +90,12 @@ void camera_setter::procBtnReset()
     }
 }
 
-void camera_setter::procBtnSave()
+void CameraSetter::procBtnSave()
 {
     parser::camera_info_parser::save(CONF->get_config_value<string>(CONF->player() + ".camera_file"), ctrl_items_);
 }
 
-void camera_setter::procValueChanged(camera_info info)
+void CameraSetter::procValueChanged(camera_info info)
 {
     for (auto &item : ctrl_items_)
     {

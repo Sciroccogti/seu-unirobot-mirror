@@ -17,7 +17,7 @@ using namespace robot;
 using namespace robot_math;
 using namespace Eigen;
 
-action_debuger::action_debuger()
+ActionDebuger::ActionDebuger()
     : client_(CONF->get_config_value<string>(CONF->player() + ".address"), CONF->get_config_value<int>("net.tcp.port"))
 {
     initStatusBar();
@@ -29,22 +29,22 @@ action_debuger::action_debuger()
     CKSlider *slider;
 
     slider = new CKSlider("X");
-    connect(slider, &CKSlider::valueChanged, this, &action_debuger::procX);
+    connect(slider, &CKSlider::valueChanged, this, &ActionDebuger::procX);
     mKsliders.push_back(slider);
     slider = new CKSlider("Y");
-    connect(slider, &CKSlider::valueChanged, this, &action_debuger::procY);
+    connect(slider, &CKSlider::valueChanged, this, &ActionDebuger::procY);
     mKsliders.push_back(slider);
     slider = new CKSlider("Z");
-    connect(slider, &CKSlider::valueChanged, this, &action_debuger::procZ);
+    connect(slider, &CKSlider::valueChanged, this, &ActionDebuger::procZ);
     mKsliders.push_back(slider);
     slider = new CKSlider("Roll");
-    connect(slider, &CKSlider::valueChanged, this, &action_debuger::procRoll);
+    connect(slider, &CKSlider::valueChanged, this, &ActionDebuger::procRoll);
     mKsliders.push_back(slider);
     slider = new CKSlider("Pitch");
-    connect(slider, &CKSlider::valueChanged, this, &action_debuger::procPitch);
+    connect(slider, &CKSlider::valueChanged, this, &ActionDebuger::procPitch);
     mKsliders.push_back(slider);
     slider = new CKSlider("Yaw");
-    connect(slider, &CKSlider::valueChanged, this, &action_debuger::procYaw);
+    connect(slider, &CKSlider::valueChanged, this, &ActionDebuger::procYaw);
     mKsliders.push_back(slider);
 
     mSliderGroup = new QGroupBox();
@@ -151,26 +151,26 @@ action_debuger::action_debuger()
     timer = new QTimer;
     timer->start(1000);
 
-    connect(m_pActListWidget, &QListWidget::itemClicked, this, &action_debuger::procActSelect);
-    connect(m_pPosListWidget, &QListWidget::itemClicked, this, &action_debuger::procPosSelect);
-    connect(mButtonAddAction, &QPushButton::clicked, this, &action_debuger::procButtonAddAction);
-    connect(mButtonDeleteAction, &QPushButton::clicked, this, &action_debuger::procButtonDeleteAction);
-    connect(mButtonSaveAction, &QPushButton::clicked, this, &action_debuger::procButtonSaveAction);
-    connect(mButtonInsertPosFront, &QPushButton::clicked, this, &action_debuger::procButtonInsertPosFront);
-    connect(mButtonInsertPosBack, &QPushButton::clicked, this, &action_debuger::procButtonInsertPosBack);
-    connect(mButtonDeletePos, &QPushButton::clicked, this, &action_debuger::procButtonDeletePos);
-    connect(mButtonSavePos, &QPushButton::clicked, this, &action_debuger::procButtonSavePos);
-    connect(btnrunPos, &QPushButton::clicked, this, &action_debuger::procButtonRunPos);
-    connect(btnWalkRemote, &QPushButton::clicked, this, &action_debuger::procButtonWalkRemote);
-    connect(btnJointRevise, &QPushButton::clicked, this, &action_debuger::procButtonJointRevise);
-    connect(btnJointSetter, &QPushButton::clicked, this, &action_debuger::procButtonJointSetter);
-    connect(motionBtnGroup, static_cast<void(QButtonGroup::*)(int)>(&QButtonGroup::buttonClicked), this, &action_debuger::updateSlider);
-    connect(timer, &QTimer::timeout, this, &action_debuger::procTimer);
+    connect(m_pActListWidget, &QListWidget::itemClicked, this, &ActionDebuger::procActSelect);
+    connect(m_pPosListWidget, &QListWidget::itemClicked, this, &ActionDebuger::procPosSelect);
+    connect(mButtonAddAction, &QPushButton::clicked, this, &ActionDebuger::procButtonAddAction);
+    connect(mButtonDeleteAction, &QPushButton::clicked, this, &ActionDebuger::procButtonDeleteAction);
+    connect(mButtonSaveAction, &QPushButton::clicked, this, &ActionDebuger::procButtonSaveAction);
+    connect(mButtonInsertPosFront, &QPushButton::clicked, this, &ActionDebuger::procButtonInsertPosFront);
+    connect(mButtonInsertPosBack, &QPushButton::clicked, this, &ActionDebuger::procButtonInsertPosBack);
+    connect(mButtonDeletePos, &QPushButton::clicked, this, &ActionDebuger::procButtonDeletePos);
+    connect(mButtonSavePos, &QPushButton::clicked, this, &ActionDebuger::procButtonSavePos);
+    connect(btnrunPos, &QPushButton::clicked, this, &ActionDebuger::procButtonRunPos);
+    connect(btnWalkRemote, &QPushButton::clicked, this, &ActionDebuger::procButtonWalkRemote);
+    connect(btnJointRevise, &QPushButton::clicked, this, &ActionDebuger::procButtonJointRevise);
+    connect(btnJointSetter, &QPushButton::clicked, this, &ActionDebuger::procButtonJointSetter);
+    connect(motionBtnGroup, static_cast<void(QButtonGroup::*)(int)>(&QButtonGroup::buttonClicked), this, &ActionDebuger::updateSlider);
+    connect(timer, &QTimer::timeout, this, &ActionDebuger::procTimer);
     client_.start();
     btnrunPos->setEnabled(false);
 }
 
-void action_debuger::procPosNameChanged(int id)
+void ActionDebuger::procPosNameChanged(int id)
 {
     CPosListWidget *pCur_PosWidget = (CPosListWidget *) m_pPosListWidget->itemWidget(m_pPosListWidget->item(id - 1));
 
@@ -204,14 +204,14 @@ void action_debuger::procPosNameChanged(int id)
     ROBOT->get_act_map()[act_name].poses[id - 1].pos_name = new_name;
 }
 
-void action_debuger::procPosTimeChanged(int id)
+void ActionDebuger::procPosTimeChanged(int id)
 {
     CPosListWidget *pCur_PosWidget = (CPosListWidget *) m_pPosListWidget->itemWidget(m_pPosListWidget->item(id - 1));
     string act_name = m_pActListWidget->currentItem()->text().toStdString();
     ROBOT->get_act_map()[act_name].poses[id - 1].act_time = pCur_PosWidget->pos_time->text().toInt();
 }
 
-void action_debuger::procTimer()
+void ActionDebuger::procTimer()
 {
     if (client_.is_connected())
     {
@@ -232,7 +232,7 @@ void action_debuger::procTimer()
     }
 }
 
-void action_debuger::initActs()
+void ActionDebuger::initActs()
 {
     m_pPosListWidget->clear();
     m_pActListWidget->clear();
@@ -245,7 +245,7 @@ void action_debuger::initActs()
     mSliderGroup->setEnabled(false);
 }
 
-void action_debuger::initPoseMap()
+void ActionDebuger::initPoseMap()
 {
     motion_ = MOTION_BODY;
     last_motion = MOTION_BODY;
@@ -262,7 +262,7 @@ void action_debuger::initPoseMap()
     }
 }
 
-void action_debuger::initStatusBar()
+void ActionDebuger::initStatusBar()
 {
     QStatusBar *bar = statusBar();
     motionlab = new QLabel;
@@ -282,7 +282,7 @@ void action_debuger::initStatusBar()
     bar->addWidget(netstatuslab);
 }
 
-void action_debuger::initJDInfo()
+void ActionDebuger::initJDInfo()
 {
     mJDInfos.clear();
     CJointDegWidget *pJDWidget;
@@ -313,7 +313,7 @@ void action_debuger::initJDInfo()
     }
 }
 
-void action_debuger::updateSlider(int id)
+void ActionDebuger::updateSlider(int id)
 {
     motion_ = static_cast<robot_motion >(id);
     motionlab->setText(QString::fromStdString(get_name_by_motion(motion_)));
@@ -381,13 +381,13 @@ void action_debuger::updateSlider(int id)
     last_motion = motion_;
 }
 
-float action_debuger::get_deg_from_pose(const float &ps)
+float ActionDebuger::get_deg_from_pose(const float &ps)
 {
     int value = (int)(ps / SCALE_K);
     return DEG_RANGE / SLIDER_RANGE * value;
 }
 
-bool action_debuger::turn_joint()
+bool ActionDebuger::turn_joint()
 {
     joint_degs_[ROBOT->get_joint("jhead2")->jid_] = get_deg_from_pose(pose_map_[MOTION_HEAD].x);
     joint_degs_[ROBOT->get_joint("jhead1")->jid_] = get_deg_from_pose(pose_map_[MOTION_HEAD].y);
@@ -458,7 +458,7 @@ bool action_debuger::turn_joint()
     return true;
 }
 
-void action_debuger::procX(int value)
+void ActionDebuger::procX(int value)
 {
     if (m_pPosListWidget->currentRow() == last_pos_id && motion_ == last_motion)
     {
@@ -496,7 +496,7 @@ void action_debuger::procX(int value)
     }
 }
 
-void action_debuger::procY(int value)
+void ActionDebuger::procY(int value)
 {
     if (m_pPosListWidget->currentRow() == last_pos_id && motion_ == last_motion)
     {
@@ -524,7 +524,7 @@ void action_debuger::procY(int value)
     }
 }
 
-void action_debuger::procZ(int value)
+void ActionDebuger::procZ(int value)
 {
     if (m_pPosListWidget->currentRow() == last_pos_id && motion_ == last_motion)
     {
@@ -562,7 +562,7 @@ void action_debuger::procZ(int value)
     }
 }
 
-void action_debuger::procRoll(int value)
+void ActionDebuger::procRoll(int value)
 {
     if (m_pPosListWidget->currentRow() == last_pos_id && motion_ == last_motion)
     {
@@ -589,7 +589,7 @@ void action_debuger::procRoll(int value)
     }
 }
 
-void action_debuger::procPitch(int value)
+void ActionDebuger::procPitch(int value)
 {
     if (m_pPosListWidget->currentRow() == last_pos_id && motion_ == last_motion)
     {
@@ -616,7 +616,7 @@ void action_debuger::procPitch(int value)
     }
 }
 
-void action_debuger::procYaw(int value)
+void ActionDebuger::procYaw(int value)
 {
     if (m_pPosListWidget->currentRow() == last_pos_id && motion_ == last_motion)
     {
@@ -643,7 +643,7 @@ void action_debuger::procYaw(int value)
     }
 }
 
-void action_debuger::updateJDInfo()
+void ActionDebuger::updateJDInfo()
 {
     for (auto &jd : joint_degs_)
     {
@@ -653,7 +653,7 @@ void action_debuger::updateJDInfo()
     update();
 }
 
-void action_debuger::updatePosList(string act_name)
+void ActionDebuger::updatePosList(string act_name)
 {
     robot_act act = ROBOT->get_act_map()[act_name];
     QListWidgetItem *pListItem;
@@ -667,15 +667,15 @@ void action_debuger::updatePosList(string act_name)
         pListItem = new QListWidgetItem;
         pPosWidget = new CPosListWidget(id, pos.pos_name, pos.act_time);
         pPosWidget->show();
-        connect(pPosWidget, &CPosListWidget::nameChanged, this, &action_debuger::procPosNameChanged);
-        connect(pPosWidget, &CPosListWidget::timeChanged, this, &action_debuger::procPosTimeChanged);
+        connect(pPosWidget, &CPosListWidget::nameChanged, this, &ActionDebuger::procPosNameChanged);
+        connect(pPosWidget, &CPosListWidget::timeChanged, this, &ActionDebuger::procPosTimeChanged);
         m_pPosListWidget->addItem(pListItem);
         m_pPosListWidget->setItemWidget(pListItem, pPosWidget);
         pListItem->setSizeHint(QSize(pPosWidget->rect().width(), pPosWidget->rect().height()));
     }
 }
 
-void action_debuger::procActSelect(QListWidgetItem *item)
+void ActionDebuger::procActSelect(QListWidgetItem *item)
 {
     if (!pos_saved)
     {
@@ -699,7 +699,7 @@ void action_debuger::procActSelect(QListWidgetItem *item)
     mSliderGroup->setEnabled(false);
 }
 
-void action_debuger::procPosSelect(QListWidgetItem *item)
+void ActionDebuger::procPosSelect(QListWidgetItem *item)
 {
     if (!pos_saved)
     {
@@ -725,7 +725,7 @@ void action_debuger::procPosSelect(QListWidgetItem *item)
     last_pos_id = m_pPosListWidget->currentRow();
 }
 
-void action_debuger::procButtonInsertPosFront()
+void ActionDebuger::procButtonInsertPosFront()
 {
     if (m_pActListWidget->currentItem() == nullptr)
     {
@@ -784,7 +784,7 @@ void action_debuger::procButtonInsertPosFront()
     updatePosList(act_name);
 }
 
-void action_debuger::procButtonInsertPosBack()
+void ActionDebuger::procButtonInsertPosBack()
 {
     if (m_pActListWidget->currentItem() == nullptr)
     {
@@ -851,7 +851,7 @@ void action_debuger::procButtonInsertPosBack()
     updatePosList(act_name);
 }
 
-void action_debuger::procButtonDeletePos()
+void ActionDebuger::procButtonDeletePos()
 {
     if (m_pPosListWidget->currentItem() == nullptr)
     {
@@ -867,7 +867,7 @@ void action_debuger::procButtonDeletePos()
     updatePosList(act_name);
 }
 
-void action_debuger::procButtonSavePos()
+void ActionDebuger::procButtonSavePos()
 {
     if (m_pPosListWidget->currentItem() == nullptr)
     {
@@ -889,7 +889,7 @@ void action_debuger::procButtonSavePos()
     pos_saved = true;
 }
 
-void action_debuger::procButtonDeleteAction()
+void ActionDebuger::procButtonDeleteAction()
 {
     if (m_pActListWidget->currentItem() == nullptr)
     {
@@ -915,7 +915,7 @@ void action_debuger::procButtonDeleteAction()
     initActs();
 }
 
-void action_debuger::procButtonSaveAction()
+void ActionDebuger::procButtonSaveAction()
 {
     QMessageBox::StandardButton reply = QMessageBox::question(this, "Warning", "all action data will be written into file, save?",
                                         QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
@@ -928,7 +928,7 @@ void action_debuger::procButtonSaveAction()
     action_parser::save(CONF->action_file(), ROBOT->get_act_map(), ROBOT->get_pos_map());
 }
 
-void action_debuger::procButtonAddAction()
+void ActionDebuger::procButtonAddAction()
 {
     bool ok;
     string name = QInputDialog::getText(this, tr("act name"), tr("input act name:"), QLineEdit::Normal, nullptr, &ok).toStdString();
@@ -953,7 +953,7 @@ void action_debuger::procButtonAddAction()
     }
 }
 
-void action_debuger::removeUnusedPos()
+void ActionDebuger::removeUnusedPos()
 {
     bool fd;
     auto p_iter = ROBOT->get_pos_map().begin();
@@ -990,7 +990,7 @@ void action_debuger::removeUnusedPos()
     }
 }
 
-void action_debuger::procButtonRunPos()
+void ActionDebuger::procButtonRunPos()
 {
     if (m_pPosListWidget->currentItem() == nullptr)
     {
@@ -1030,25 +1030,25 @@ void action_debuger::procButtonRunPos()
     client_.write(cmd);
 }
 
-void action_debuger::procButtonWalkRemote()
+void ActionDebuger::procButtonWalkRemote()
 {
-    walk_remote *window = new walk_remote(client_, net_info, this);
+    WalkRemote *window = new WalkRemote(client_, net_info, this);
     window->show();
 }
 
-void action_debuger::procButtonJointRevise()
+void ActionDebuger::procButtonJointRevise()
 {
-    joint_revise *window = new joint_revise(client_, net_info, this);
+    JointRevise *window = new JointRevise(client_, net_info, this);
     window->show();
 }
 
-void action_debuger::procButtonJointSetter()
+void ActionDebuger::procButtonJointSetter()
 {
-    joint_setter *window = new joint_setter(client_, net_info, this);
+    JointSetter *window = new JointSetter(client_, net_info, this);
     window->show();
 }
 
-void action_debuger::closeEvent(QCloseEvent *event)
+void ActionDebuger::closeEvent(QCloseEvent *event)
 {
     QMessageBox::StandardButton reply = QMessageBox::question(this, "Warning", "write action data into file?",
                                         QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);

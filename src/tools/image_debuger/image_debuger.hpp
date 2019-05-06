@@ -2,16 +2,16 @@
 
 #include <QtWidgets>
 #include "robot/humanoid.hpp"
-#include "ui/ImageLabel.hpp"
+#include "ui/image_label.hpp"
 #include <opencv2/opencv.hpp>
 #include "darknet/network.h"
 #include "model.hpp"
 
-class image_debuger: public QMainWindow
+class ImageDebuger: public QMainWindow
 {
     Q_OBJECT
 public:
-    image_debuger();
+    ImageDebuger();
 public slots:
     void procTimer();
     void procBtnLoad();

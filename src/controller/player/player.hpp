@@ -12,6 +12,7 @@
 #include "vision/vision.hpp"
 #include "common.hpp"
 #include "task/task.hpp"
+#include "fsm/fsm.hpp"
 
 class player: public timer, public std::enable_shared_from_this<player>
 {
@@ -55,4 +56,6 @@ private:
     unsigned int self_location_count_;
     bool played_;
     bool keeper_kicked_;
+
+    FSM_Ptr fsm_;
 };

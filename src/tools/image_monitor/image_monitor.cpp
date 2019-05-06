@@ -19,9 +19,9 @@ map<string, image_send_type> image_send_types =
         {"rect", IMAGE_SEND_POINT},
     };
 
-image_monitor::image_monitor()
+ImageMonitor::ImageMonitor()
     : client_(CONF->get_config_value<string>(CONF->player() + ".address"), CONF->get_config_value<int>("net.tcp.port"),
-              bind(&image_monitor::data_handler, this, placeholders::_1))
+              bind(&ImageMonitor::data_handler, this, placeholders::_1))
 {
     height_ = CONF->get_config_value<int>("image.height");
     width_ = CONF->get_config_value<int>("image.width");
@@ -97,20 +97,20 @@ image_monitor::image_monitor()
     timer->start(1000);
     image_count_=0;
 
-    connect(timer, &QTimer::timeout, this, &image_monitor::procTimer);
-    connect(yawSlider, &QSlider::valueChanged, this, &image_monitor::procYawSlider);
-    connect(pitchSlider, &QSlider::valueChanged, this, &image_monitor::procPitchSlider);
-    connect(btnWR, &QPushButton::clicked, this, &image_monitor::procBtnWR);
-    connect(btnCS, &QPushButton::clicked, this, &image_monitor::procBtnCS);
-    connect(imageLab, &ImageLabel::shot, this, &image_monitor::procShot);
-    connect(imageBox, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this, &image_monitor::procImageBox);
-    connect(this, &image_monitor::disRecved, this, &image_monitor::procDisRecved);
+    connect(timer, &QTimer::timeout, this, &ImageMonitor::procTimer);
+    connect(yawSlider, &QSlider::valueChanged, this, &ImageMonitor::procYawSlider);
+    connect(pitchSlider, &QSlider::valueChanged, this, &ImageMonitor::procPitchSlider);
+    connect(btnWR, &QPushButton::clicked, this, &ImageMonitor::procBtnWR);
+    connect(btnCS, &QPushButton::clicked, this, &ImageMonitor::procBtnCS);
+    connect(imageLab, &ImageLabel::shot, this, &ImageMonitor::procShot);
+    connect(imageBox, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this, &ImageMonitor::procImageBox);
+    connect(this, &ImageMonitor::disRecved, this, &ImageMonitor::procDisRecved);
     client_.start();
     yawSlider->setEnabled(false);
     pitchSlider->setEnabled(false);
 }
 
-void image_monitor::data_handler(const tcp_command cmd)
+void ImageMonitor::data_handler(const tcp_command cmd)
 {
     if (cmd.type == IMG_DATA)
     {
@@ -155,7 +155,7 @@ void image_monitor::data_handler(const tcp_command cmd)
     }
 }
 
-void image_monitor::procDisRecved(float x, float y)
+void ImageMonitor::procDisRecved(float x, float y)
 {
     DisDialog dlg;
     dlg.exec();
@@ -166,7 +166,7 @@ void image_monitor::procDisRecved(float x, float y)
     data.close();
 }
 
-void image_monitor::procTimer()
+void ImageMonitor::procTimer()
 {
     if (client_.is_connected())
     {
@@ -195,19 +195,19 @@ void image_monitor::procTimer()
     }
 }
 
-void image_monitor::procBtnWR()
+void ImageMonitor::procBtnWR()
 {
-    walk_remote *wr = new walk_remote(client_, net_info, this);
+    WalkRemote *wr = new WalkRemote(client_, net_info, this);
     wr->show();
 }
 
-void image_monitor::procBtnCS()
+void ImageMonitor::procBtnCS()
 {
-    camera_setter *cs = new camera_setter(client_, net_info, this);
+    CameraSetter *cs = new CameraSetter(client_, net_info, this);
     cs->show();
 }
 
-void image_monitor::procShot(QRect rect)
+void ImageMonitor::procShot(QRect rect)
 {
     if (rect.width() > 5 && rect.height() > 5)
     {
@@ -252,7 +252,7 @@ void image_monitor::procShot(QRect rect)
     }
 }
 
-void image_monitor::procImageBox(int idx)
+void ImageMonitor::procImageBox(int idx)
 {
     remote_data_type t = IMAGE_SEND_TYPE;
     tcp_command cmd;
@@ -265,7 +265,7 @@ void image_monitor::procImageBox(int idx)
     client_.write(cmd);
 }
 
-void image_monitor::procPitchSlider(int v)
+void ImageMonitor::procPitchSlider(int v)
 {
     pitchLab->setText(QString::number(v));
     float yaw = -(float)(yawSlider->value());
@@ -282,7 +282,7 @@ void image_monitor::procPitchSlider(int v)
     client_.write(cmd);
 }
 
-void image_monitor::procYawSlider(int v)
+void ImageMonitor::procYawSlider(int v)
 {
     yawLab->setText(QString::number(v));
     float yaw = -(float)v;
@@ -299,12 +299,12 @@ void image_monitor::procYawSlider(int v)
     client_.write(cmd);
 }
 
-void image_monitor::closeEvent(QCloseEvent *event)
+void ImageMonitor::closeEvent(QCloseEvent *event)
 {
     client_.stop();
 }
 
-void image_monitor::keyPressEvent(QKeyEvent *event)
+void ImageMonitor::keyPressEvent(QKeyEvent *event)
 {
     switch (event->key())
     {

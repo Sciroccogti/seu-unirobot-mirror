@@ -3,11 +3,11 @@
 #include <QtWidgets>
 #include "tcp_client/tcp_client.hpp"
 
-class walk_remote : public QMainWindow
+class WalkRemote : public QMainWindow
 {
     Q_OBJECT
 public:
-    walk_remote(tcp_client &client, QString netinfo, QWidget *parent = nullptr);
+    WalkRemote(tcp_client &client, QString netinfo, QWidget *parent = nullptr);
     void updateLab();
 public slots:
     void procTimer();

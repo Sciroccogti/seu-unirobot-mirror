@@ -7,6 +7,7 @@ add_executable(${TARGET_NAME}
         ${TARGET_NAME}.cpp)
 
 target_link_libraries(${TARGET_NAME}
+        ui
         boost_system
         pthread
         Qt5::Widgets

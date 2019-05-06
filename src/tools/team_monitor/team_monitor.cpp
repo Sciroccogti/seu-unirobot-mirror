@@ -7,7 +7,7 @@ using namespace std;
 
 boost::asio::io_service udp_service;
 
-team_monitor::team_monitor(): socket_(udp_service, udp::endpoint(udp::v4(), CONF->get_config_value<short>("net.udp.team.port")))
+TeamMonitor::TeamMonitor(): socket_(udp_service, udp::endpoint(udp::v4(), CONF->get_config_value<short>("net.udp.team.port")))
 {
     parser::field_parser::parse(CONF->field_file(), field_);
     setFixedSize(field_.field_length + 2 * field_.border_strip_width_min, field_.field_width + 2 * field_.border_strip_width_min);
@@ -19,7 +19,7 @@ team_monitor::team_monitor(): socket_(udp_service, udp::endpoint(udp::v4(), CONF
     }));
 }
 
-team_monitor::~team_monitor()
+TeamMonitor::~TeamMonitor()
 {
     if(td_.joinable())
     {
@@ -27,7 +27,7 @@ team_monitor::~team_monitor()
     }
 }
 
-void team_monitor::receive()
+void TeamMonitor::receive()
 {
     socket_.async_receive_from(boost::asio::buffer((char *)&pkt_, sizeof(comm_packet)), point_,
                                [this](boost::system::error_code ec, std::size_t bytes_recvd)
@@ -40,6 +40,15 @@ void team_monitor::receive()
             {
                 p_mutex_.lock();
                 players_[pkt_.info.id] = pkt_.info;
+                if(state_monitors_.find(pkt_.info.id) == state_monitors_.end())
+                {
+                    state_monitors_[pkt_.info.id] = new StateMonitor(pkt_.info.id);
+                    state_monitors_[pkt_.info.id]->show();
+                }
+                else
+                {
+                    state_monitors_[pkt_.info.id]->update_state(pkt_.state);
+                }
                 //cout<<pkt_.info.x<<'\t'<<pkt_.info.y<<'\t'<<pkt_.info.dir<<endll;
                 p_mutex_.unlock();
                 update();
@@ -50,13 +59,13 @@ void team_monitor::receive()
     });
 }
 
-void team_monitor::closeEvent(QCloseEvent *event)
+void TeamMonitor::closeEvent(QCloseEvent *event)
 {
     socket_.cancel();
     udp_service.stop();
 }
 
-void team_monitor::paintEvent(QPaintEvent *event)
+void TeamMonitor::paintEvent(QPaintEvent *event)
 {
     QPainter painter(this);
     painter.translate(field_.field_length / 2 + field_.border_strip_width_min, field_.field_width / 2 + field_.border_strip_width_min);
@@ -122,7 +131,7 @@ void team_monitor::paintEvent(QPaintEvent *event)
     p_mutex_.unlock();
 }
 
-void team_monitor::keyPressEvent(QKeyEvent *event)
+void TeamMonitor::keyPressEvent(QKeyEvent *event)
 {
     switch (event->key())
     {

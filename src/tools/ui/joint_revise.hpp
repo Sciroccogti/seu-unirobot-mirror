@@ -52,11 +52,11 @@ private:
     float scale_;
 };
 
-class joint_revise: public QMainWindow
+class JointRevise: public QMainWindow
 {
     Q_OBJECT
 public:
-    joint_revise(tcp_client &client, QString netinfo, QWidget *parent = nullptr);
+    JointRevise(tcp_client &client, QString netinfo, QWidget *parent = nullptr);
 public slots:
     void procBtnReset();
     void procBtnSave();

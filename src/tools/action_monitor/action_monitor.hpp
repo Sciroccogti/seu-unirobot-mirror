@@ -1,15 +1,15 @@
 #pragma once
 
 #include <QtWidgets>
-#include "ui/RobotGL.hpp"
+#include "ui/robot_gl.hpp"
 #include "robot/humanoid.hpp"
 #include "tcp_client/tcp_client.hpp"
 
-class action_monitor: public QMainWindow
+class ActionMonitor: public QMainWindow
 {
     Q_OBJECT
 public:
-    action_monitor();
+    ActionMonitor();
     void data_handler(const tcp_command cmd);
 public slots:
     void procTimer();

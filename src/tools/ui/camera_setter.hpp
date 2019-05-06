@@ -58,11 +58,11 @@ private:
     QLabel *nameLab, *dataLab;
 };
 
-class camera_setter: public QMainWindow
+class CameraSetter: public QMainWindow
 {
     Q_OBJECT
 public:
-    camera_setter(tcp_client &client, QString netinfo, QWidget *parent = nullptr);
+    CameraSetter(tcp_client &client, QString netinfo, QWidget *parent = nullptr);
 public slots:
     void procBtnReset();
     void procBtnSave();

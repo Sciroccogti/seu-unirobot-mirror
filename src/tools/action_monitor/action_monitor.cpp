@@ -4,9 +4,9 @@
 using namespace std;
 using namespace robot;
 
-action_monitor::action_monitor()
+ActionMonitor::ActionMonitor()
     : client_(CONF->get_config_value<string>(CONF->player() + ".address"), CONF->get_config_value<int>("net.tcp.port"),
-              bind(&action_monitor::data_handler, this, placeholders::_1))
+              bind(&ActionMonitor::data_handler, this, placeholders::_1))
 {
     rgl = new RobotGL(ROBOT->get_main_bone(), ROBOT->get_joint_map());
     setCentralWidget(rgl);
@@ -19,11 +19,11 @@ action_monitor::action_monitor()
     timer = new QTimer;
     timer->start(1000);
 
-    connect(timer, &QTimer::timeout, this, &action_monitor::procTimer);
+    connect(timer, &QTimer::timeout, this, &ActionMonitor::procTimer);
     client_.start();
 }
 
-void action_monitor::data_handler(const tcp_command cmd)
+void ActionMonitor::data_handler(const tcp_command cmd)
 {
     unsigned int size = cmd.size;
 
@@ -43,7 +43,7 @@ void action_monitor::data_handler(const tcp_command cmd)
     }
 }
 
-void action_monitor::procTimer()
+void ActionMonitor::procTimer()
 {
     if (client_.is_connected())
     {
@@ -62,7 +62,7 @@ void action_monitor::procTimer()
     }
 }
 
-void action_monitor::closeEvent(QCloseEvent *event)
+void ActionMonitor::closeEvent(QCloseEvent *event)
 {
     client_.stop();
 }
