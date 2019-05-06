@@ -40,15 +40,7 @@ void TeamMonitor::receive()
             {
                 p_mutex_.lock();
                 players_[pkt_.info.id] = pkt_.info;
-                if(state_monitors_.find(pkt_.info.id) == state_monitors_.end())
-                {
-                    state_monitors_[pkt_.info.id] = new StateMonitor(pkt_.info.id);
-                    state_monitors_[pkt_.info.id]->show();
-                }
-                else
-                {
-                    state_monitors_[pkt_.info.id]->update_state(pkt_.state);
-                }
+                states_[pkt_.info.id] = pkt_.state;
                 //cout<<pkt_.info.x<<'\t'<<pkt_.info.y<<'\t'<<pkt_.info.dir<<endll;
                 p_mutex_.unlock();
                 update();
@@ -126,6 +118,15 @@ void TeamMonitor::paintEvent(QPaintEvent *event)
         {
             painter.drawEllipse(p.second.ball_x * 100 - ballsize / 2, -p.second.ball_y * 100 - ballsize / 2, ballsize, ballsize);
             painter.drawText(p.second.ball_x * 100 - ballsize / 2, -p.second.ball_y * 100 - ballsize / 2, QString::number(p.second.id));
+        }
+        if(state_monitors_.find(p.second.id) == state_monitors_.end())
+        {
+            state_monitors_[p.second.id] = new StateMonitor(p.second.id);
+            state_monitors_[p.second.id]->show();
+        }
+        else
+        {
+            state_monitors_[p.second.id]->update_state(states_[p.second.id]);
         }
     }
     p_mutex_.unlock();

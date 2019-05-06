@@ -7,7 +7,19 @@ class FSMStateGetup: public FSMState
 public:
     FSMStateGetup(FSM_Ptr fsm): FSMState(fsm){}
 
-    virtual task_list OnStateTick()
+    task_list OnStateEnter()
+    {
+        task_list tasks;
+        return tasks;
+    }
+
+    task_list OnStateExit()
+    {
+        task_list tasks;
+        return tasks;
+    }
+
+    task_list OnStateTick()
     {
         task_list tasks;
         if(WM->fall_data()!=FALL_NONE)
@@ -23,7 +35,7 @@ public:
         }
         else
         {
-            fsm_->Trans(FSM_STATE_READY);
+            tasks = fsm_->Trans(FSM_STATE_READY);
         }
         return tasks;
     }

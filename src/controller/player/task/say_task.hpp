@@ -10,9 +10,8 @@
 class say_task: public task
 {
 public:
-    say_task(): task("say")
+    say_task(int state): task("say"), state_(state)
     {
-
     }
     
     bool perform()
@@ -23,8 +22,9 @@ public:
         for(unsigned int i = 0; i < sizeof(pkt.header); ++i)
             pkt.header[i] = init[i];
         pkt.number = pkt_num++;
-        pkt.kickoff = WM->kickoff_;
+        pkt.kickoff = true;
         pkt.info = WM->my_info();
+        pkt.state = state_;
         //LOG(LOG_INFO)<<pkt.info.x<<'\t'<<pkt.info.y<<endll;
 
         try
@@ -43,4 +43,6 @@ public:
             return false;
         }
     }
+private:
+    int state_;
 };

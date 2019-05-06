@@ -3,6 +3,7 @@
 #include "basic_parser.hpp"
 #include "robot/robot_define.hpp"
 #include "class_exception.hpp"
+#include <sstream>
 
 namespace parser
 {
@@ -45,7 +46,7 @@ namespace parser
 
                 for (auto &info : pos.second)
                 {
-                    t_pos.pose_info[robot::get_motion_by_name(info.first)] = get_pose_from_tree(info.second);
+                    t_pos.pose_info[robot::get_motion_by_name(info.first)] = get_pose_from_string(info.second.data());
                 }
 
                 poses[t_pos.name] = t_pos;
@@ -108,7 +109,7 @@ namespace parser
 
                 for (auto &p_info : pos.second.pose_info)
                 {
-                    pos_info_child.add_child(robot::get_name_by_motion(p_info.first), get_tree_from_pose(p_info.second));
+                    pos_info_child.add(robot::get_name_by_motion(p_info.first), get_string_from_pose(p_info.second));
                 }
 
                 pos_pt.add_child(pos.second.name, pos_info_child);
@@ -119,28 +120,30 @@ namespace parser
         }
 
     private:
-        static robot::robot_pose get_pose_from_tree(const bpt::ptree &pt)
+        static robot::robot_pose get_pose_from_string(const std::string &str)
         {
+            std::stringstream ss;
+            ss<<str;
             robot::robot_pose pose;
-            pose.x = pt.get<float>("x");
-            pose.y = pt.get<float>("y");
-            pose.z = pt.get<float>("z");
-            pose.pitch = pt.get<float>("pitch");
-            pose.roll = pt.get<float>("roll");
-            pose.yaw = pt.get<float>("yaw");
+            ss>>pose.x;
+            ss>>pose.y;
+            ss>>pose.z;
+            ss>>pose.pitch;
+            ss>>pose.roll;
+            ss>>pose.yaw;
             return pose;
         }
 
-        static bpt::ptree get_tree_from_pose(const robot::robot_pose &pose)
+        static std::string get_string_from_pose(const robot::robot_pose &pose)
         {
-            bpt::ptree pt;
-            pt.add("x", pose.x);
-            pt.add("y", pose.y);
-            pt.add("z", pose.z);
-            pt.add("pitch", pose.pitch);
-            pt.add("roll", pose.roll);
-            pt.add("yaw", pose.yaw);
-            return pt;
+            std::string str="";
+            str += (std::to_string(pose.x)+" ");
+            str += (std::to_string(pose.y)+" ");
+            str += (std::to_string(pose.z)+" ");
+            str += (std::to_string(pose.pitch)+" ");
+            str += (std::to_string(pose.roll)+" ");
+            str += (std::to_string(pose.yaw));;
+            return str;
         }
 
         static bool pos_exist(const std::string &name, const std::map<std::string, robot::robot_pos> &poses)

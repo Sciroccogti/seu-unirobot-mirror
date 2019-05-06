@@ -10,62 +10,45 @@ class FSMStateSearchBall: public FSMState
 public:
     FSMStateSearchBall(FSM_Ptr fsm): FSMState(fsm)
     {
-        last_search_dir_ = 0.0;
-        head_pitch_min_angle_ = 0.0;
-        head_pitch_mid_angle_ = 30.0;
-        head_pitch_max_angle_ = 60.0;
-        
-        ball_search_table_.push_back(Eigen::Vector2f(head_pitch_min_angle_, 100.0));
-        ball_search_table_.push_back(Eigen::Vector2f(head_pitch_min_angle_, 50.0));
-        ball_search_table_.push_back(Eigen::Vector2f(head_pitch_min_angle_, 0.0));
-        ball_search_table_.push_back(Eigen::Vector2f(head_pitch_min_angle_, -50.0));
-        ball_search_table_.push_back(Eigen::Vector2f(head_pitch_min_angle_, -100.0));
-        
-        ball_search_table_.push_back(Eigen::Vector2f(head_pitch_mid_angle_, -85.0));
-        ball_search_table_.push_back(Eigen::Vector2f(head_pitch_mid_angle_, -27.5));
-        ball_search_table_.push_back(Eigen::Vector2f(head_pitch_mid_angle_, 27.5));
-        ball_search_table_.push_back(Eigen::Vector2f(head_pitch_mid_angle_, 85.0));
-        
-        ball_search_table_.push_back(Eigen::Vector2f(head_pitch_max_angle_, 50.0));
-        ball_search_table_.push_back(Eigen::Vector2f(head_pitch_max_angle_, 0.0));
-        ball_search_table_.push_back(Eigen::Vector2f(head_pitch_max_angle_, -50.0));
     }
     
-    virtual void OnStateEnter()
+    task_list OnStateEnter()
     {
+        task_list tasks;
         init_search_dir_ = WM->self().dir;
         last_search_dir_ = init_search_dir_;
         first_in_ = true;
+        return tasks;
     }
-    
-    virtual void OnStateExit()
+
+    task_list OnStateExit()
     {
-        //last_search_dir_
+        task_list tasks;
+        return tasks;
     }
     
-    virtual task_list OnStateTick()
+    task_list OnStateTick()
     {
         task_list tasks;
         if(WM->fall_data()!=FALL_NONE)
         {
-            fsm_->Trans(FSM_STATE_GETUP);
-            return tasks;
+            return fsm_->Trans(FSM_STATE_GETUP);
         }
         
         if(WM->ball().can_see)
         {
-            fsm_->Trans(FSM_STATE_GOTO_BALL);
-            return tasks;
+            return fsm_->Trans(FSM_STATE_GOTO_BALL);
         }
         
         if(first_in_)
         {
             first_in_ = false;
-            tasks.push_back(std::make_shared<look_task>(ball_search_table_, motion::HEAD_STATE_SEARCH_BALL));
+            tasks.push_back(std::make_shared<look_task>(motion::HEAD_STATE_SEARCH_BALL));
             tasks.push_back(std::make_shared<walk_task>(0.0, 0.0, 0.0, false));
         }
         else
         {
+            /*
             if(motion::SE->search_ball_end_)
             {
                 float my_dir = WM->self().dir;
@@ -84,6 +67,9 @@ public:
             {
                 tasks.push_back(std::make_shared<walk_task>(0.0, 0.0, 0.0, false));
             }
+            */
+            tasks.push_back(std::make_shared<look_task>(motion::HEAD_STATE_SEARCH_BALL));
+            tasks.push_back(std::make_shared<walk_task>(0.0, 0.0, 10.0, true));
         }
         return tasks;
     }
@@ -93,10 +79,5 @@ private:
     float init_search_dir_;
     
     bool first_in_;
-    
-    std::vector<Eigen::Vector2f> ball_search_table_;
-    float head_pitch_min_angle_;
-    float head_pitch_mid_angle_;
-    float head_pitch_max_angle_;
 };
 

@@ -1,7 +1,6 @@
 #pragma once
 
 #include <iostream>
-#include "singleton.hpp"
 
 enum log_level
 {

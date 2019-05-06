@@ -11,26 +11,22 @@ public:
     look_task(float yaw, float pitch)
         :s_(motion::HEAD_STATE_LOOKAT), task("look")
     {
-        angles_.push_back(Eigen::Vector2f(yaw, pitch));
-    }
-    
-    look_task(const std::vector<Eigen::Vector2f> &angles, motion::Head_State state)
-    {
-        angles_ = angles;
-        s_ = state;
+        pitch_ = pitch;
+        yaw_ = yaw;
     }
 
     look_task(motion::Head_State state): s_(state), task("look")
     {
-
+        pitch_ = 0.0;
+        yaw_ = 0.0;
     }
 
     bool perform()
     {
-        //motion::SE->set_params(yaw_, pitch_, s_);
+        motion::SE->set_params(yaw_, pitch_, s_);
         return true;
     }
 private:
-    std::vector<Eigen::Vector2f> angles_;
+    float pitch_, yaw_;
     motion::Head_State s_;
 };

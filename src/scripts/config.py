@@ -15,6 +15,6 @@ password = 'nvidia'
 ssh_port = 22
 remote_dir = '/opt/'
 start_up_file = '/etc/rc.local'
-wan_file = '/etc/NetworkManager/system-connections/SEU-RoboCup'
+wan_file = '/etc/NetworkManager/system-connections/robocup'
 lan_file = '/etc/NetworkManager/system-connections/static'
 weights_md5_file = 'weights_md5.txt'

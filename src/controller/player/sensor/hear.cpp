@@ -44,8 +44,6 @@ void hear::receive()
             if(recv_header==COMM_DATA_HEADER && pkt_.info.id != CONF->id())
             {
                 //LOG<<pkt_.info.id<<'\t'<<pkt_.info.y<<endll;
-                if(WM->kickoff_) 
-                    WM->kickoff_ = pkt_.kickoff;
                 notify(SENSOR_HEAR);
             }
         }

@@ -19,8 +19,8 @@ class FSMState
 public:
     FSMState(FSM_Ptr fsm): fsm_(fsm){}
 
-    virtual void OnStateEnter(){};
-    virtual void OnStateExit(){};
+    virtual task_list OnStateEnter() = 0;
+    virtual task_list OnStateExit() = 0;
     virtual task_list OnStateTick() = 0;
 
 protected:
@@ -32,12 +32,14 @@ typedef std::shared_ptr<FSMState> FSMState_Ptr;
 class FSM
 {
 public:
-    bool Trans(fsm_state state)
+    task_list Trans(fsm_state state)
     {
-        states_[current_state_]->OnStateExit();
-        states_[state]->OnStateEnter();
+        task_list tasks, tlist;
+        tasks = states_[current_state_]->OnStateExit();
+        tlist = states_[state]->OnStateEnter();
         current_state_ = state;
-        return true;
+        tasks.insert(tasks.end(), tlist.begin(), tlist.end());
+        return tasks;
     }
 
     task_list Tick()
@@ -51,9 +53,14 @@ public:
         return true;
     }
 
-    fsm_state State()
+    fsm_state get_state()
     {
         return current_state_;
+    }
+
+    void set_state(fsm_state s)
+    {
+        current_state_ = s;
     }
 
 private:

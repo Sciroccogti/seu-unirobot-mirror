@@ -152,13 +152,7 @@ list<task_ptr> player::play_skill_kick(const self_block &self, const ball_block 
                         tasks.push_back(make_shared<walk_task>(-0.01, 0.0, 0.0, true));
                     else
                     {
-                        if(!WM->kickoff_)
-                            tasks.push_back(make_shared<action_task>("left_little_kick"));
-                        else
-                        {
-                            tasks.push_back(make_shared<action_task>("left_side_kick"));
-                            WM->kickoff_ = false;
-                        }
+                        tasks.push_back(make_shared<action_task>("left_little_kick"));
                         last_search_dir_ = WM->self().dir;
                     }
                 }
