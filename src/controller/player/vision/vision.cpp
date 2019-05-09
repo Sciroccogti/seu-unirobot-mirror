@@ -31,21 +31,22 @@ Vision::Vision(): timer(CONF->get_config_value<int>("vision_period"))
     LOG(LOG_INFO) << setw(12) << "algorithm:" << setw(18) << "[vision]" << " started!" << endll;
     ball_id_=0;
     post_id_=1;
-    ball_prob_ = CONF->get_config_value<float>("detection_prob.ball");
-    post_prob_ = CONF->get_config_value<float>("detection_prob.post");
-    min_ball_w_ = CONF->get_config_value<int>("detection_prob.ball_w");
-    min_ball_h_ = CONF->get_config_value<int>("detection_prob.ball_h");
-    min_post_w_ = CONF->get_config_value<int>("detection_prob.post_w");
-    min_post_h_ = CONF->get_config_value<int>("detection_prob.post_h");
-    roll_offset_ = deg2rad(CONF->get_config_value<double>(CONF->player()+".odometry.roll"));
-    theta_offset_ = deg2rad(CONF->get_config_value<double>(CONF->player()+".odometry.theta"));
+    ball_prob_ = CONF->get_config_value<float>("detection.ball");
+    post_prob_ = CONF->get_config_value<float>("detection.post");
+    min_ball_w_ = CONF->get_config_value<int>("detectionb.ball_w");
+    min_ball_h_ = CONF->get_config_value<int>("detection.ball_h");
+    min_post_w_ = CONF->get_config_value<int>("detection.post_w");
+    min_post_h_ = CONF->get_config_value<int>("detection.post_h");
+    odometry_offset_ = CONF->get_config_vector<double, 2>(CONF->player()+".odometry_offset");
+    odometry_offset_.x() = deg2rad(odometry_offset_.x());
+    odometry_offset_.y() = deg2rad(odometry_offset_.y());
 
     camK = cv::Mat::eye(3, 3, CV_32F);
 	newCamK = cv::Mat::eye(3, 3, CV_32F);
 	invCamK = cv::Mat::eye(3, 3, CV_32F);
     float rotation_mat[9] = { 0.999956, 0.00837928, 0.00423897,
-		- 0.00839916, 0.999954, 0.00469485, 
-		- 0.00419943, - 0.00473025, 0.99998 };
+		-0.00839916, 0.999954, 0.00469485, 
+		-0.00419943, -0.00473025, 0.99998 };
 	R = cv::Mat(3, 3, CV_32F, rotation_mat);
 
 	D = cv::Mat::zeros(4, 1, CV_32F);
@@ -67,6 +68,9 @@ Vision::Vision(): timer(CONF->get_config_value<int>("vision_period"))
 	invCamK = (newCamK*R.t()).inv(cv::DECOMP_LU);
 
     detect_filed_ = false;
+    d_w_h_ = 0.3;
+    localization_ = false;
+    can_see_post_ = false;
 }
 
 Vision::~Vision()
@@ -95,8 +99,9 @@ Vector2d Vision::odometry(const Vector2i &pos, const robot_math::transform_matri
     float theta = static_cast<float>(camera_matrix.y_rotate());
 
     //LOG(LOG_INFO)<<OC<<' '<<rad2deg(roll)<<' '<<rad2deg(theta)<<endll;
-    theta = theta+theta_offset_;
-    roll = roll+roll_offset_;
+    roll = roll+odometry_offset_.x();;
+    theta = theta+odometry_offset_.y();
+    
     Vector2i Pos(pos.x()-params_.cx, params_.cy-pos.y());
     Vector2i calCenterPos(Pos.x()/cos(roll), Pos.y()+Pos.x()*tan(roll));
     Vector2i calPos(calCenterPos.x()+params_.cx, params_.cy-calCenterPos.y());
@@ -138,10 +143,8 @@ void Vision::run()
 {
     if (is_alive_)
     {
-        if (camera_src_ == nullptr)
-            return;
-        if (is_busy_)
-            return;
+        if (camera_src_ == nullptr) return;
+        if (is_busy_) return;
         is_busy_ = true;
         p_count_ ++;
         robot_math::transform_matrix camera_matrix;
@@ -161,14 +164,10 @@ void Vision::run()
 
         double t1 = clock();
         if (use_mv_)
-        {
             cudaBayer2BGR(dev_src_, dev_bgr_,  camera_w_,  camera_h_, camera_infos_["saturation"].value,
                         camera_infos_["red_gain"].value, camera_infos_["green_gain"].value, camera_infos_["blue_gain"].value);
-        }
         else
-        {
             cudaYUYV2BGR(dev_src_,  dev_bgr_,  camera_w_,  camera_h_);
-        }
         cudaResizePacked(dev_bgr_, camera_w_,  camera_h_,  dev_ori_, w_,  h_);
         if(use_mv_)
             cudaUndistored(dev_ori_, dev_undis_, pCamKData, pDistortData, pInvNewCamKData, pMapxData, pMapyData, w_, h_, 3);
@@ -205,7 +204,7 @@ void Vision::run()
                     int by = (dets[i].bbox.y - dets[i].bbox.h / 2.0)*h_;
                     int bw = dets[i].bbox.w*w_, bh = dets[i].bbox.h*h_;
                     float w_h = (float)bw/(float)bh;
-                    if(bw>=min_ball_w_ && bh>=min_ball_h_ && fabs(w_h-1.0)<0.3)
+                    if(bw>=min_ball_w_ && bh>=min_ball_h_ && fabs(w_h-1.0)<d_w_h_)
                     {
                         ball_dets_.push_back(object_det(ball_id_, dets[i].prob[ball_id_], bx, by, bw, bh));
                     }
@@ -253,11 +252,11 @@ void Vision::run()
                 if(cant_see_ball_count_*period_ms_>500)
                     WM->set_ball_pos(Vector2d(0,0), Vector2d(0,0), Vector2i(0,0), 0, 0, false);
             }
-            /*
-            if(WM->self_localization_)
+            
+            if(localization_)
             {
                 int post_num=0;
-                WM->can_see_post_=false;
+                can_see_post_=false;
                 vector< GoalPost > posts_;
                 for(auto &post: post_dets_)
                 {
@@ -288,11 +287,10 @@ void Vision::run()
                 }
                 if(posts_.size()>0)
                 {
-                    WM->can_see_post_=true;
+                    can_see_post_=true;
                     SL->update(player_info(p.global.x(), p.global.y(), p.dir), posts_);
                 }
             }
-            */
         }
 
         if (OPTS->use_debug())

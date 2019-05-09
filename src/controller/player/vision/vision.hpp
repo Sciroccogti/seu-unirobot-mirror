@@ -1,5 +1,6 @@
 #pragma once
 
+#include <atomic>
 #include <mutex>
 #include <string>
 #include <fstream>
@@ -30,14 +31,17 @@ public:
     void updata(const pub_ptr &pub, const int &type);
     bool start();
     void stop();
+    void set_camera_info(const camera_info &para);
+    void get_point_dis(int x, int y);
+
     void set_img_send_type(image_send_type t)
     {
         img_sd_type_ = t;
     }
 
-    void set_camera_info(const camera_info &para);
-    void get_point_dis(int x, int y);
-
+public:
+    std::atomic_bool localization_;
+    std::atomic_bool can_see_post_;
 private:
     Eigen::Vector2d odometry(const Eigen::Vector2i &pos, const robot_math::transform_matrix &camera_matrix);
     Eigen::Vector2d camera2self(const Eigen::Vector2d &pos, double head_yaw);
@@ -48,7 +52,7 @@ private:
     imu::imu_data imu_data_;
     float head_yaw_, head_pitch_;
 
-    double roll_offset_, theta_offset_;
+    Eigen::Vector2d odometry_offset_;
 
     bool detect_filed_;
     bool use_mv_;
@@ -60,10 +64,12 @@ private:
     robot_math::transform_matrix camera_matrix_;
     
     std::vector<object_det> ball_dets_, post_dets_; 
+    float d_w_h_;
     int ball_id_, post_id_;
     float ball_prob_, post_prob_;
     int min_ball_w_, min_ball_h_;
     int min_post_w_, min_post_h_;
+
     int cant_see_ball_count_;
 
     bool is_busy_;

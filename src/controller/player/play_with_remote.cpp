@@ -5,7 +5,7 @@
 #include "tcp.hpp"
 #include "server/server.hpp"
 #include "engine/action/ActionEngine.hpp"
-#include "engine/IKWalk/WalkEngine.hpp"
+#include "engine/walk/WalkEngine.hpp"
 #include "engine/scan/ScanEngine.hpp"
 
 using namespace robot;

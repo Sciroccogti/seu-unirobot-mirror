@@ -19,7 +19,7 @@ std::list<task_ptr> player::play_with_gc()
 {
     list<task_ptr> tasks;
     RoboCupGameControlData gc_data = WM->gc_data();
-    vector<float> head_init = CONF->get_config_vector<float>("scan.init");
+    Vector2f head_init = SE->head_init_deg_;
     int secondT = (int)gc_data.secondaryTime;
     int kickoff = (int)gc_data.kickOffTeam;
     int team_index = gc_data.teams[0].teamNumber == CONF->team_number()?0:1;
@@ -31,34 +31,29 @@ std::list<task_ptr> player::play_with_gc()
             {
                 if(CONF->get_my_role()=="front")
                 {
-                    WM->set_my_pos(Vector2d(-0.6, 0.0));
+                    if(kickoff == CONF->team_number())
+                        WM->set_my_pos(kickoff_pos_);
+                    else
+                        WM->set_my_pos(init_pos_);
                 }
                 else if(CONF->get_my_role()=="guard")
                 {
                     if(WM->self().dir>45.0) 
-                    {
-                        WM->set_my_pos(Vector2d(-0.75, -3.0));
-                    }
+                        WM->set_my_pos(Vector2d(start_pos_.x(), -start_pos_.y()));
                     else
-                    {
-                        WM->set_my_pos(Vector2d(-0.75, 3.0));
-                    }
+                        WM->set_my_pos(start_pos_);
                 }
                 else if(CONF->get_my_role()=="keeper")
                 {
-                    WM->set_my_pos(Vector2d(-4.5, 0.0));
+                    WM->set_my_pos(init_pos_);
                 }
             }
             else
             {
                 if(WM->self().dir>45.0) 
-                {
-                    WM->set_my_pos(Vector2d(-0.75, -3.0));
-                }
+                    WM->set_my_pos(Vector2d(start_pos_.x(), -start_pos_.y()));
                 else
-                {
-                    WM->set_my_pos(Vector2d(-0.75, 3.0));
-                }
+                    WM->set_my_pos(start_pos_);
             }
             tasks.push_back(make_shared<walk_task>(0.0, 0.0, 0.0, false));
             tasks.push_back(make_shared<look_task>(head_init[0], head_init[1]));
@@ -69,32 +64,37 @@ std::list<task_ptr> player::play_with_gc()
                 if(CONF->get_my_role()=="front")
                 {
                     if(!played_)
-                        WM->set_my_pos(Vector2d(-0.6, 0.0));
+                    {
+                       if(kickoff == CONF->team_number())
+                            WM->set_my_pos(kickoff_pos_);
+                        else
+                            WM->set_my_pos(init_pos_);
+                    }
                     else
-                        tasks.push_back(skill_goto(WM->self(), Vector2d(-1.25, 0.0), 0.0));
+                        tasks.push_back(skill_goto(WM->self(), init_pos_, 0.0));
                 }
                 else if(CONF->get_my_role()=="guard")
                 {
-                    tasks.push_back(skill_goto(WM->self(), Vector2d(-2.5, 0.0), 0.0));
+                    tasks.push_back(skill_goto(WM->self(), init_pos_, 0.0));
                 }
                 else if(CONF->get_my_role()=="keeper")
                 {
-                    WM->set_my_pos(Vector2d(-4.5, 0.0));
+                    WM->set_my_pos(init_pos_);
                 }
             }
             else
             {
                 if(CONF->get_my_role()=="front")
                 {
-                    tasks.push_back(skill_goto(WM->self(), Vector2d(-1.25, 0.0), 0.0));
+                    tasks.push_back(skill_goto(WM->self(), init_pos_, 0.0));
                 }
                 else if(CONF->get_my_role()=="guard")
                 {
-                    tasks.push_back(skill_goto(WM->self(), Vector2d(-2.5, 0.0), 0.0));
+                    tasks.push_back(skill_goto(WM->self(), init_pos_, 0.0));
                 }
                 else if(CONF->get_my_role()=="keeper")
                 {
-                    WM->set_my_pos(Vector2d(-4.5, 0.0));
+                    WM->set_my_pos(init_pos_);
                 }
             }
             tasks.push_back(make_shared<look_task>(head_init[0], head_init[1]));
@@ -113,9 +113,9 @@ std::list<task_ptr> player::play_with_gc()
                 tasks.push_back(make_shared<look_task>(HEAD_STATE_SEARCH_BALL));
                 tasks.push_back(make_shared<walk_task>(0.0, 0.0, 0.0, false));
                 if(WM->self().dir>45.0) 
-                    WM->set_my_pos(Vector2d(-0.75, -3.0));
+                    WM->set_my_pos(Vector2d(start_pos_.x(), -start_pos_.y()));
                 else if(WM->self().dir<-45.0)
-                    WM->set_my_pos(Vector2d(-0.75, 3.0));
+                    WM->set_my_pos(start_pos_);
             }
             else
             {

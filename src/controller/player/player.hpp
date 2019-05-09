@@ -43,5 +43,6 @@ private:
     unsigned int self_location_count_;
     bool played_;
 
+    Eigen::Vector2d init_pos_, start_pos_, kickoff_pos_;
     FSM_Ptr fsm_;
 };

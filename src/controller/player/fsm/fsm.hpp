@@ -1,7 +1,7 @@
 #pragma once
 
 #include <memory>
-#include <unordered_map>
+#include <map>
 #include "model.hpp"
 #include "task/task.hpp"
 #include "task/walk_task.hpp"
@@ -68,6 +68,6 @@ public:
     }
 
 private:
-    std::unordered_map<int, FSMState_Ptr> states_;
+    std::map<int, FSMState_Ptr> states_;
     fsm_state current_state_;
 };

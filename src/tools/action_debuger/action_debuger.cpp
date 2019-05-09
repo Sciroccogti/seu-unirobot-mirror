@@ -18,7 +18,7 @@ using namespace robot_math;
 using namespace Eigen;
 
 ActionDebuger::ActionDebuger()
-    : client_(CONF->get_config_value<string>(CONF->player() + ".address"), CONF->get_config_value<int>("net.tcp.port"))
+    : client_(CONF->get_config_value<string>(CONF->player() + ".address"), CONF->get_config_value<int>("net.tcp"))
 {
     initStatusBar();
     robot_gl_ = new RobotGL(ROBOT->get_main_bone(), ROBOT->get_joint_map());
@@ -145,7 +145,7 @@ ActionDebuger::ActionDebuger()
     initPoseMap();
     initJDInfo();
     net_info = QString::fromStdString(CONF->get_config_value<string>(CONF->player() + ".address"))
-               + ":" + QString::number(CONF->get_config_value<int>("net.tcp.port"));
+               + ":" + QString::number(CONF->get_config_value<int>("net.tcp"));
     setWindowTitle(net_info);
 
     timer = new QTimer;

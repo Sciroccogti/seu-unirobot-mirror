@@ -22,19 +22,14 @@ namespace motion
     WalkEngine::WalkEngine()
     {
         string part=CONF->player()+".walk";
+        nav_coef_ = CONF->get_config_vector<double, 2>(part+".nav");
         XOffset_ = CONF->get_config_value<double>(part+".XOffset");
         YOffset_ = CONF->get_config_value<double>(part+".YOffset");
         DOffset_ = CONF->get_config_value<double>(part+".DOffset");
         
-        std::vector<double> range = CONF->get_config_vector<double>(part+".x");
-        xrange[0] = range[0];
-        xrange[1] = range[1];
-        range = CONF->get_config_vector<double>(part+".y");
-        yrange[0] = range[0];
-        yrange[1] = range[1];
-        range = CONF->get_config_vector<double>(part+".dir");
-        drange[0] = range[0];
-        drange[1] = range[1];
+        xrange_ = CONF->get_config_vector<double, 2>(part+".x");
+        yrange_ = CONF->get_config_vector<double, 2>(part+".y");
+        drange_ = CONF->get_config_vector<double, 2>(part+".dir");
         /**
          * Model leg typical length between
          * each rotation axis
@@ -270,9 +265,9 @@ namespace motion
         params_.turnGain = d;
         params_.enabledGain = enable?1.0:0.0;
         walk_state_ = enable?WALK_NORMAL:WALK_STOP;
-        bound(xrange[0], xrange[1], params_.stepGain);
-        bound(yrange[0], yrange[1], params_.lateralGain);
-        bound(drange[0], drange[1], params_.turnGain);
+        bound(xrange_[0], xrange_[1], params_.stepGain);
+        bound(yrange_[0], yrange_[1], params_.lateralGain);
+        bound(drange_[0], drange_[1], params_.turnGain);
         params_.stepGain += XOffset_;
         params_.lateralGain += YOffset_;
         params_.turnGain = deg2rad(params_.turnGain)-deg2rad(DOffset_);
@@ -324,7 +319,14 @@ namespace motion
             }
         }
         float rate = timeLength/time_length_;
-        WM->navigation(Vector3d((params.stepGain-XOffset_)*rate, (params.lateralGain-YOffset_)*rate, params.turnGain*rate));
+
+        self_block blk = WM->self();
+        Vector2d currpos(blk.global.x(), blk.global.y());
+        double dir = blk.dir;
+        dir = normalize_deg(dir);
+        Vector2d temp=currpos+rotation_mat_2d(-dir)*Vector2d((params.stepGain-XOffset_)*rate*nav_coef_.x(), 
+                            (params.lateralGain-YOffset_)*rate*nav_coef_.y());
+        WM->set_my_pos(temp);
     }
 
     void WalkEngine::run()

@@ -2,7 +2,7 @@
 
 #include <string>
 #include <map>
-#include <unordered_map>
+#include <map>
 #include <eigen3/Eigen/Dense>
 
 struct GoalPost
@@ -128,7 +128,7 @@ enum fsm_state
     FSM_STATE_SL
 };
 
-static const std::unordered_map<int, std::string> fsm_state_infos = {
+static const std::map<int, std::string> fsm_state_infos = {
     {FSM_STATE_READY, "ready"},
     {FSM_STATE_GETUP, "getup"},
     {FSM_STATE_SEARCH_BALL, "search_ball"},

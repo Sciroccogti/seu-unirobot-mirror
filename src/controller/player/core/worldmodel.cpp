@@ -11,18 +11,6 @@ world_model::world_model()
     fall_direction_ = FALL_NONE;
     support_foot_ = robot::DOUBLE_SUPPORT;
     player_infos_[CONF->id()].id = CONF->id();
-    init_pos_ = CONF->get_config_vector<float>("strategy."+CONF->get_my_role()+".init_pos");
-    player_infos_[CONF->id()].x = init_pos_[0];
-    player_infos_[CONF->id()].y = init_pos_[1];
-    player_infos_[CONF->id()].dir = init_pos_[2];
-    player_infos_[CONF->id()].ball_x = 0.0;
-    player_infos_[CONF->id()].ball_y = 0.0;
-    self_block_.global = Vector2d(init_pos_[0], init_pos_[1]);
-    self_block_.dir = init_pos_[2];
-    coef_x_ = CONF->get_config_value<double>(CONF->player()+".nav.cx");
-    coef_y_ = CONF->get_config_value<double>(CONF->player()+".nav.cy");
-    self_localization_ = false;
-
     opp_post_left = Vector2d(SOCCERMAP->width()/200.0, SOCCERMAP->goalWidth()/200.0-0.7);
     opp_post_right = Vector2d(SOCCERMAP->width()/200.0, -SOCCERMAP->goalWidth()/200.0+0.7);
 }
@@ -73,14 +61,15 @@ void world_model::updata(const pub_ptr &pub, const int &type)
     }
 }
 
-void world_model::navigation(const Eigen::Vector3d &walk_para)
+void world_model::set_my_pos(const Eigen::Vector2d &my)
 {
-    self_block blk = self();
-    Vector2d currpos(blk.global.x(), blk.global.y());
-    double dir = blk.dir;
-    dir = normalize_deg(dir);
-    Vector2d temp=currpos+rotation_mat_2d(-dir)*Vector2d(walk_para[0]*coef_x_, walk_para[1]*coef_y_);
-    set_my_pos(temp);
+    info_mtx_.lock();
+    player_infos_[CONF->id()].x = my.x();
+    player_infos_[CONF->id()].y = my.y();
+    info_mtx_.unlock();
+    self_mtx_.lock();
+    self_block_.global = my;
+    self_mtx_.unlock();
 }
 
 void world_model::set_ball_pos(const Eigen::Vector2d &global, const Eigen::Vector2d &my, const Eigen::Vector2i &pix,

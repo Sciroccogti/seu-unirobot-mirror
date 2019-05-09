@@ -2,6 +2,7 @@
 
 #include "parser/config_parser.hpp"
 #include "singleton.hpp"
+#include <eigen3/Eigen/Dense>
 
 class configuration: public singleton<configuration>
 {
@@ -33,18 +34,20 @@ public:
         }
     }
 
-    template<typename T>
-    inline std::vector<T> get_config_vector(const std::string &keyword) const
+    template<typename T, int size>
+    inline Eigen::Matrix<T, size, 1> get_config_vector(const std::string &keyword) const
     {
-        std::vector<T> v;
+        Eigen::Matrix<T, size, 1> res = Eigen::Matrix<T, size, 1>::Zero(size, 1);
+        int i=0;
         try
         {
             parser::bpt::ptree tpt = config_tree_.get_child(keyword);
             for(auto &t:tpt)
             {
-                v.push_back(t.second.get_value<T>());
+                if(i>=size) break;
+                res[i++] = t.second.get_value<T>();
             }
-            return v;
+            return res;
         }
         catch (parser::bpt::ptree_error &e)
         {

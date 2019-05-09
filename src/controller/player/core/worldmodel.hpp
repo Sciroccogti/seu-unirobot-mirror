@@ -20,7 +20,6 @@ public:
     world_model();
     
     void updata(const pub_ptr &pub, const int &type);
-    void updata_glb();
 
     int support_foot()
     {
@@ -55,20 +54,6 @@ public:
         return player_infos_;
     }
 
-    void set_ball_pos(const Eigen::Vector2d &global, const Eigen::Vector2d &my, const Eigen::Vector2i &pix,
-        float alpha, float beta, bool can=true);
-
-    void set_my_pos(const Eigen::Vector2d &my)
-    {
-        info_mtx_.lock();
-        player_infos_[CONF->id()].x = my.x();
-        player_infos_[CONF->id()].y = my.y();
-        info_mtx_.unlock();
-        self_mtx_.lock();
-        self_block_.global = my;
-        self_mtx_.unlock();
-    }
-
     void set_my_kick(bool kick)
     {
         info_mtx_.lock();
@@ -100,23 +85,12 @@ public:
         return player_infos_[CONF->id()];
     }
 
-    void reset_my_pos()
-    {
-        std::lock_guard<std::mutex> lk(info_mtx_);
-        player_infos_[CONF->id()].x = init_pos_[0];
-        player_infos_[CONF->id()].y = init_pos_[1];
-        player_infos_[CONF->id()].ball_x = 0.0;
-        player_infos_[CONF->id()].ball_y = 0.0;
-        self_block_.global = Eigen::Vector2d(init_pos_[0], init_pos_[1]);
-    }
-
-    void navigation(const Eigen::Vector3d &walk_para);
+    void set_ball_pos(const Eigen::Vector2d &global, const Eigen::Vector2d &my, const Eigen::Vector2i &pix, float alpha, float beta, bool can=true);
+    void set_my_pos(const Eigen::Vector2d &my);
     void reset_hear_info();
 
 public:
-    std::atomic_bool self_localization_;
     Eigen::Vector2d opp_post_left, opp_post_right;
-    std::atomic_bool can_see_post_;
     
 private:
     imu::imu_data imu_data_;
@@ -130,8 +104,6 @@ private:
     std::atomic_int fall_direction_;
     std::atomic_int support_foot_;
 
-    double coef_x_, coef_y_;
-    std::vector<float> init_pos_;
     mutable std::mutex imu_mtx_, gc_mtx_, info_mtx_, ball_mtx_, self_mtx_;
 };
 

@@ -7,7 +7,7 @@ using namespace std;
 
 boost::asio::io_service udp_service;
 
-TeamMonitor::TeamMonitor(): socket_(udp_service, udp::endpoint(udp::v4(), CONF->get_config_value<short>("net.udp.team.port")))
+TeamMonitor::TeamMonitor(): socket_(udp_service, udp::endpoint(udp::v4(), CONF->get_config_value<short>("net.udp")))
 {
     parser::field_parser::parse(CONF->field_file(), field_);
     field_.scale_field(0.5);
