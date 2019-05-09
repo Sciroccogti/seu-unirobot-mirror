@@ -17,22 +17,15 @@ namespace robot_math
     }
 
     template <typename T>
-    inline void bound(const T min, const T max, T &x)
+    inline T bound(const T min, const T max, T &x)
     {
         if (max < min)
-        {
-            return;
-        }
-
+            return x;
         if (x < min)
-        {
             x = min;
-        }
-
-        if (x > max)
-        {
+        else if (x > max)
             x = max;
-        }
+        return x;
     }
 
     inline Eigen::Matrix3d RotX(const double &rad)

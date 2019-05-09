@@ -7,6 +7,7 @@
 #include "task/say_task.hpp"
 #include "server/server.hpp"
 #include "core/adapter.hpp"
+#include "skill/skill.hpp"
 #include "engine/IKWalk/WalkEngine.hpp"
 #include "engine/scan/ScanEngine.hpp"
 #include "engine/action/ActionEngine.hpp"
@@ -28,14 +29,9 @@ player::player(): timer(CONF->get_config_value<int>("think_period"))
     period_count_ = 0;
     btn_count_ = 0;
     role_ = CONF->get_my_role();
-    attack_range_ = CONF->get_config_vector<float>("strategy."+role_+".attack_range");
-    last_search_dir_ = 0.0;
-    in_search_ball_ = false;
-    see_last_ = false;
-    played_ = false;
-    self_location_count_ = 0;
-    keeper_kicked_ = false;
 
+    self_location_count_ = 0;
+    played_ = false;
     fsm_ = make_shared<FSM>();
 }
 
@@ -93,7 +89,6 @@ list<task_ptr> player::think()
     list<task_ptr> tasks, tlists;
     if(OPTS->image_record())
     {
-        //play_with_remote();
         tasks.push_back(make_shared<look_task>(HEAD_STATE_SEARCH_BALL));
         tasks.push_back(make_shared<walk_task>(0.0, 0.0, 0.0, true));
     }
@@ -101,26 +96,13 @@ list<task_ptr> player::think()
     {
         if(OPTS->kick_mode()==options::KICK_NORMAL)
         {
-            if(WM->self().global.x()>1.5 && self_location_count_*period_ms_%90000==0 && self_location_count_ !=0 
-                && !in_search_ball_ && !AE->in_action_)
+            if(OPTS->use_gc())
             {
-                LOG(LOG_INFO)<<"localization start"<<endll;
-                self_location_count_ ++;
-                tlists = play_skill_localization();
+                tlists = play_with_gc();
             }
             else
             {
-                if(!WM->in_localization_)
-                {
-                    if(OPTS->use_gc())
-                    {
-                        tlists = play_with_gc();
-                    }
-                    else
-                    {
-                        tlists = play_without_gc();
-                    }
-                }
+                tlists = play_without_gc();
             }
         }
         else if(OPTS->kick_mode()==options::KICK_PENALTY)
@@ -142,17 +124,12 @@ list<task_ptr> player::think()
                 init_dir = WM->self().dir;
             }
             if(start_penalty)
-                tasks.push_back(play_skill_penalty_kick(left, init_dir));
+                tasks.push_back(skill_penalty_kick(WM->ball()));
         }
     }
 
     tasks.insert(tasks.end(), tlists.begin(), tlists.end());
     return tasks;
-}
-
-bool player::in_my_attack_range(const Eigen::Vector2d &ball)
-{
-    return ball.x()>=attack_range_[0]&&ball.x()<=attack_range_[1];
 }
 
 bool player::init()

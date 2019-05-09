@@ -63,6 +63,7 @@ ScanEngine::ScanEngine()
     yaw_ = head_init[0];
     pitch_ = head_init[1];
     search_ball_end_ = false;
+    search_post_end_ = true;
 }
 
 ScanEngine::~ScanEngine()
@@ -121,7 +122,7 @@ void ScanEngine::run()
                 {
                     break;
                 }
-                usleep(250000);
+                usleep(500000);
                 ball = WM->ball();
             }
             search_ball_end_ = true;
@@ -151,6 +152,8 @@ void ScanEngine::run()
                 if(WM->can_see_post_)
                     break;
             }
+            search_ball_end_ = true;
+            head_state_ = HEAD_STATE_LOOKAT;
         }
         else if(head_state_ == HEAD_STATE_TRACK_BALL)
         {
