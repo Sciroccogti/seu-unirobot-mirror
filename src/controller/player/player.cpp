@@ -8,7 +8,7 @@
 #include "server/server.hpp"
 #include "core/adapter.hpp"
 #include "skill/skill.hpp"
-#include "engine/IKWalk/WalkEngine.hpp"
+#include "engine/walk/WalkEngine.hpp"
 #include "engine/scan/ScanEngine.hpp"
 #include "engine/action/ActionEngine.hpp"
 #include "engine/led/LedEngine.hpp"
@@ -29,7 +29,11 @@ player::player(): timer(CONF->get_config_value<int>("think_period"))
     period_count_ = 0;
     btn_count_ = 0;
     role_ = CONF->get_my_role();
-
+    init_pos_ = CONF->get_config_vector<double, 2>("strategy."+role_+".init_pos");
+    start_pos_ = CONF->get_config_vector<double, 2>("strategy."+role_+".start_pos");
+    if(role_ == "front")
+        kickoff_pos_ = CONF->get_config_vector<double, 2>("strategy."+role_+".kickoff_pos");
+    
     self_location_count_ = 0;
     played_ = false;
     fsm_ = make_shared<FSM>();
@@ -141,6 +145,8 @@ bool player::init()
     fsm_->Register(FSM_STATE_KICK_BALL, make_shared<FSMStateKickBall>(fsm_));
     fsm_->Register(FSM_STATE_SL, make_shared<FSMStateSL>(fsm_));
     fsm_->set_state(FSM_STATE_READY);
+
+    WM->set_my_pos(init_pos_);
 
     if(OPTS->use_debug())
         SERVER->start();

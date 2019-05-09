@@ -179,7 +179,7 @@ void tcp_session::deliver(const tcp_command &cmd)
 
 boost::asio::io_service tcp_service;
 
-tcp_server::tcp_server(): acceptor_(tcp_service, tcp::endpoint(tcp::v4(), CONF->get_config_value<int>("net.tcp.port"))), socket_(tcp_service)
+tcp_server::tcp_server(): acceptor_(tcp_service, tcp::endpoint(tcp::v4(), CONF->get_config_value<int>("net.tcp"))), socket_(tcp_service)
 {
     rmt_data_.type = NON_DATA;
     rmt_data_.size = 0;
@@ -193,8 +193,7 @@ void tcp_server::accept()
     {
         if (!ec)
         {
-            std::make_shared<tcp_session>(std::move(socket_), pool_,
-                                          bind(&tcp_server::data_handler, this, placeholders::_1))->start();
+            std::make_shared<tcp_session>(std::move(socket_), pool_, bind(&tcp_server::data_handler, this, placeholders::_1))->start();
         }
 
         accept();

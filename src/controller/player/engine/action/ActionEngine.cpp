@@ -3,7 +3,7 @@
 #include "logger.hpp"
 #include "robot/humanoid.hpp"
 #include "core/adapter.hpp"
-#include "engine/IKWalk/WalkEngine.hpp"
+#include "engine/walk/WalkEngine.hpp"
 #include <unistd.h>
 
 namespace motion

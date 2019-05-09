@@ -60,7 +60,8 @@ namespace motion
         Rhoban::IKWalkParameters params_;
         std::thread td_;
         bool is_alive_;
-        Eigen::Vector2d xrange, yrange, drange;
+        
+        Eigen::Vector2d xrange_, yrange_, drange_, nav_coef_;
         imu::imu_data imu_data_;
         mutable std::mutex para_mutex_, imu_mtx_, dxl_mtx_;
     };

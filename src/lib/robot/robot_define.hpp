@@ -95,7 +95,7 @@ namespace robot
         RIGHT_SUPPORT = 2
     };
 
-    static const std::map<std::string, robot_motion> name_motion_map = {{"none", MOTION_NONE},
+    const std::map<std::string, robot_motion> name_motion_map = {{"none", MOTION_NONE},
         {"right_hand", MOTION_RIGHT_HAND},
         {"left_hand", MOTION_LEFT_HAND},
         {"body", MOTION_BODY},

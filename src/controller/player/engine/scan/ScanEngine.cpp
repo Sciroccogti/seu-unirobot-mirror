@@ -6,6 +6,7 @@
 #include <cmath>
 #include "logger.hpp"
 #include "core/worldmodel.hpp"
+#include "vision/vision.hpp"
 
 using namespace std;
 using namespace robot;
@@ -47,10 +48,10 @@ const float post_search_table[][2] =
 
 ScanEngine::ScanEngine()
 {
-    std::vector<float> range = CONF->get_config_vector<float>("scan.pitch");
+    Vector2f range = CONF->get_config_vector<float, 2>("scan.pitch");
     pitch_range_[0] = range[0];
     pitch_range_[1] = range[1];
-    range = CONF->get_config_vector<float>("scan.yaw");
+    range = CONF->get_config_vector<float, 2>("scan.yaw");
     yaw_ranges_.push_back(Vector2f(range[0], range[1]));
     yaw_ranges_.push_back(Vector2f(range[0]+30.0, range[1]-30.0));
     yaw_ranges_.push_back(Vector2f(range[0]+60.0, range[1]-60.0));
@@ -58,10 +59,10 @@ ScanEngine::ScanEngine()
     pitches_[1] = pitch_range_[0]+(pitch_range_[1]-pitch_range_[0])/2.0f;
     pitches_[2] = pitch_range_[1];
     head_state_ = HEAD_STATE_LOOKAT;
-    vector<float> head_init = CONF->get_config_vector<float>("scan.init");
+    head_init_deg_ = CONF->get_config_vector<float, 2>("scan.init");
 
-    yaw_ = head_init[0];
-    pitch_ = head_init[1];
+    yaw_ = head_init_deg_[0];
+    pitch_ = head_init_deg_[1];
     search_ball_end_ = false;
     search_post_end_ = true;
 }
@@ -136,7 +137,7 @@ void ScanEngine::run()
             for(int i=1;i>=0;i--)
             {
                 jdmap[id_pitch] = post_search_table[i*2][0];
-                for(float ya=post_search_table[i*2][1]; !WM->can_see_post_ && fabs(ya)<=fabs(post_search_table[i*2+1][1])+0.1; 
+                for(float ya=post_search_table[i*2][1]; !VISION->can_see_post_ && fabs(ya)<=fabs(post_search_table[i*2+1][1])+0.1; 
                         ya+=pow(-1, i+1)*search_post_div_)
                 {
                     jdmap[id_yaw] = ya;
@@ -149,7 +150,7 @@ void ScanEngine::run()
                         break;
                     }
                 }
-                if(WM->can_see_post_)
+                if(VISION->can_see_post_)
                     break;
             }
             search_ball_end_ = true;

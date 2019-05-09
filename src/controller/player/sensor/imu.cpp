@@ -19,10 +19,10 @@ const float g_ = 9.8;
 imu::imu(): sensor("imu"), serial_(imu_service)
 {
     record_ = true;
-    std::vector<float> range = CONF->get_config_vector<float>("not_fall_range.pitch");
+    Vector2f range = CONF->get_config_vector<float, 2>("not_fall_range.pitch");
     pitch_range_.x() = range[0];
     pitch_range_.y() = range[1];
-    range = CONF->get_config_vector<float>("not_fall_range.roll");
+    range = CONF->get_config_vector<float, 2>("not_fall_range.roll");
     roll_range_.x() = range[0];
     roll_range_.y() = range[1];
     fall_direction_ = FALL_NONE;

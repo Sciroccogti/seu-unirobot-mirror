@@ -7,7 +7,7 @@
 #include <mutex>
 #include "udp_data/CommData.h"
 #include "ui/state_monitor.hpp"
-#include <unordered_map>
+#include <map>
 
 class TeamMonitor: public QMainWindow
 {
@@ -29,5 +29,5 @@ private:
     comm_packet pkt_;
     boost::asio::ip::udp::socket socket_;
     boost::asio::ip::udp::endpoint point_;
-    std::unordered_map<int, StateMonitor*> state_monitors_;
+    std::map<int, StateMonitor*> state_monitors_;
 };

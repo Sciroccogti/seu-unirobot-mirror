@@ -1,7 +1,7 @@
 #pragma once
 
 #include <QtWidgets>
-#include <unordered_map>
+#include <map>
 #include <string>
 #include "model.hpp"
 
@@ -12,7 +12,7 @@ public:
     StateMonitor(int id);
     void update_state(int s);
 private:
-    std::unordered_map<int, QLabel*> state_labels_;
+    std::map<int, QLabel*> state_labels_;
     int state_;
     int id_;
 };

@@ -1,4 +1,4 @@
 add_subdirectory(scan)
 add_subdirectory(action)
 add_subdirectory(led)
-add_subdirectory(IKWalk)
+add_subdirectory(walk)

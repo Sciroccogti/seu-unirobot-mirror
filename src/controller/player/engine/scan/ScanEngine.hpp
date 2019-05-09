@@ -28,6 +28,7 @@ namespace motion
 
         std::atomic_bool search_ball_end_, search_post_end_;
         float lost_yaw_, lost_pitch_;
+        Eigen::Vector2f head_init_deg_;
         
     private:
         void run();

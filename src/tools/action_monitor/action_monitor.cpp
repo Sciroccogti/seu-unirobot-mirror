@@ -5,7 +5,7 @@ using namespace std;
 using namespace robot;
 
 ActionMonitor::ActionMonitor()
-    : client_(CONF->get_config_value<string>(CONF->player() + ".address"), CONF->get_config_value<int>("net.tcp.port"),
+    : client_(CONF->get_config_value<string>(CONF->player() + ".address"), CONF->get_config_value<int>("net.tcp"),
               bind(&ActionMonitor::data_handler, this, placeholders::_1))
 {
     rgl = new RobotGL(ROBOT->get_main_bone(), ROBOT->get_joint_map());
@@ -13,7 +13,7 @@ ActionMonitor::ActionMonitor()
 
     first_connect = true;
     net_info = QString::fromStdString(CONF->get_config_value<string>(CONF->player() + ".address"))
-               + ":" + QString::number(CONF->get_config_value<int>("net.tcp.port"));
+               + ":" + QString::number(CONF->get_config_value<int>("net.tcp"));
     setWindowTitle(net_info);
 
     timer = new QTimer;

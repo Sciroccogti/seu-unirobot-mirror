@@ -20,7 +20,7 @@ map<string, image_send_type> image_send_types =
     };
 
 ImageMonitor::ImageMonitor()
-    : client_(CONF->get_config_value<string>(CONF->player() + ".address"), CONF->get_config_value<int>("net.tcp.port"),
+    : client_(CONF->get_config_value<string>(CONF->player() + ".address"), CONF->get_config_value<int>("net.tcp"),
               bind(&ImageMonitor::data_handler, this, placeholders::_1))
 {
     height_ = CONF->get_config_value<int>("image.height");
@@ -90,7 +90,7 @@ ImageMonitor::ImageMonitor()
     statusBar()->addWidget(netLab);
 
     net_info = QString::fromStdString(CONF->get_config_value<string>(CONF->player() + ".address"))
-               + ":" + QString::number(CONF->get_config_value<int>("net.tcp.port"));
+               + ":" + QString::number(CONF->get_config_value<int>("net.tcp"));
     setWindowTitle(net_info);
 
     timer = new QTimer;
