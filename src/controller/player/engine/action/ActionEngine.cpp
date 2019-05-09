@@ -72,7 +72,7 @@ void ActionEngine::run()
                     usleep(500);
                 }
             }
-            LOG(LOG_WARN)<<"actting"<<endll;
+            LOG(LOG_WARN)<<"action"<<endll;
             if(!is_alive_) break;
             int act_time;
             std::map<int, float> one_pos_deg;
@@ -145,6 +145,7 @@ void ActionEngine::run()
                     }
                 }
             }
+            LOG(LOG_WARN)<<"action end"<<endll;
             param_mtx_.lock();
             poses_.clear();
             pos_times_.clear();

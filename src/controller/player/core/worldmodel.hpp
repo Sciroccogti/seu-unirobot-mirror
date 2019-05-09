@@ -114,7 +114,7 @@ public:
     void reset_hear_info();
 
 public:
-    std::atomic_bool self_localization_, in_localization_;
+    std::atomic_bool self_localization_;
     Eigen::Vector2d opp_post_left, opp_post_right;
     std::atomic_bool can_see_post_;
     

@@ -50,6 +50,7 @@ private:
 
     double roll_offset_, theta_offset_;
 
+    bool detect_filed_;
     bool use_mv_;
     int p_count_;
     int w_, h_;

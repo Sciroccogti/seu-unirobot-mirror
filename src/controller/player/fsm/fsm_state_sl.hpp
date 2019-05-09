@@ -13,6 +13,7 @@ public:
     task_list OnStateEnter()
     {
         task_list tasks;
+        motion::SE->search_post_end_ = false;
         return tasks;
     }
 
@@ -22,14 +23,6 @@ public:
         return tasks;
     }
 
-    task_list OnStateTick()
-    {
-        task_list tasks;
-        if(WM->fall_data()!=FALL_NONE)
-        {
-            return fsm_->Trans(FSM_STATE_GETUP);
-        }
-        return tasks;
-    }
+    task_list OnStateTick();
 };
 

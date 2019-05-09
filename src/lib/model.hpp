@@ -39,6 +39,23 @@ struct filed_info
     int penalty_mark_distance;
     int center_circle_diameter;
     int border_strip_width_min;
+
+    float scale=1.0;
+
+    void scale_field(float s=1.0)
+    {
+        scale *= s;
+        field_length *= s;
+        field_width *= s;
+        goal_depth *= s;
+        goal_width *= s;
+        goal_height *= s;;
+        goal_area_length *= s;
+        goal_area_width *= s;
+        penalty_mark_distance *= s;
+        center_circle_diameter *= s;
+        border_strip_width_min *= s;
+    }
 };
 
 struct player_info

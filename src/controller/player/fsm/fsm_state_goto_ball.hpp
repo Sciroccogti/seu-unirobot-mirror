@@ -8,7 +8,9 @@ class FSMStateGotoBall: public FSMState
 public:
     FSMStateGotoBall(FSM_Ptr fsm): FSMState(fsm)
     {
-        
+        enter_kick_dis_ = 0.25;
+        retreat_x_dis_ = 0.15;
+        retreat_y_dis_ = 0.15;
     }
     
     task_list OnStateEnter()
@@ -23,25 +25,10 @@ public:
         return tasks;
     }
 
-    task_list OnStateTick()
-    {
-        task_list tasks;
-        if(WM->fall_data()!=FALL_NONE)
-        {
-            return fsm_->Trans(FSM_STATE_GETUP);
-        }
-        
-        ball_block ball = WM->ball();
-        if(!ball.can_see)
-        {
-            return fsm_->Trans(FSM_STATE_SEARCH_BALL);
-        }
+    task_list OnStateTick();
 
-        if(ball.self.norm()<0.2)
-        {
-            return fsm_->Trans(FSM_STATE_KICK_BALL);
-        }
-        
-        return tasks;
-    }
+private:
+    float enter_kick_dis_;
+    float retreat_x_dis_;
+    float retreat_y_dis_;
 };

@@ -22,7 +22,6 @@ world_model::world_model()
     coef_x_ = CONF->get_config_value<double>(CONF->player()+".nav.cx");
     coef_y_ = CONF->get_config_value<double>(CONF->player()+".nav.cy");
     self_localization_ = false;
-    in_localization_ = false;
 
     opp_post_left = Vector2d(SOCCERMAP->width()/200.0, SOCCERMAP->goalWidth()/200.0-0.7);
     opp_post_right = Vector2d(SOCCERMAP->width()/200.0, -SOCCERMAP->goalWidth()/200.0+0.7);

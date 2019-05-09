@@ -4,6 +4,7 @@
 #include "robot/robot_define.hpp"
 #include "class_exception.hpp"
 #include <sstream>
+#include <unordered_set>
 
 namespace parser
 {
@@ -85,36 +86,36 @@ namespace parser
         {
             bpt::ptree pt;
             bpt::ptree act_pt, pos_pt;
+            
+            std::unordered_set<std::string> saved_poses;
 
             bpt::ptree act_info_child;
-
+            bpt::ptree pos_info_child;
+            
             for (auto &act : acts)
             {
                 act_info_child.clear();
 
                 for (size_t i = 0; i < act.second.poses.size(); i++)
                 {
-                    act_info_child.add<int>(act.second.poses[i].pos_name, act.second.poses[i].act_time);
+                    std::string pos_name = act.second.poses[i].pos_name;
+                    act_info_child.add<int>(pos_name, act.second.poses[i].act_time);
+                    if(saved_poses.find(pos_name)!=saved_poses.end()) 
+                        continue;
+                    pos_info_child.clear();
+                    auto pos_iter = poses.find(pos_name);
+                    for (auto &p_info : pos_iter->second.pose_info)
+                    {
+                        pos_info_child.add(robot::get_name_by_motion(p_info.first), get_string_from_pose(p_info.second));
+                    }
+                    pos_pt.add_child(pos_name, pos_info_child);
+                    saved_poses.insert(pos_name);
                 }
 
                 act_pt.add_child(act.second.name, act_info_child);
             }
 
             pt.add_child(acts_key_, act_pt);
-            bpt::ptree pos_info_child;
-
-            for (auto &pos : poses)
-            {
-                pos_info_child.clear();
-
-                for (auto &p_info : pos.second.pose_info)
-                {
-                    pos_info_child.add(robot::get_name_by_motion(p_info.first), get_string_from_pose(p_info.second));
-                }
-
-                pos_pt.add_child(pos.second.name, pos_info_child);
-            }
-
             pt.add_child(poses_key_, pos_pt);
             write_tree_to_file(act_file, pt);
         }

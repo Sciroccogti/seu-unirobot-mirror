@@ -65,6 +65,8 @@ Vision::Vision(): timer(CONF->get_config_value<int>("vision_period"))
 	camK.at<float>(2, 2) = 1;
 	newCamK = camK.clone();
 	invCamK = (newCamK*R.t()).inv(cv::DECOMP_LU);
+
+    detect_filed_ = false;
 }
 
 Vision::~Vision()
@@ -88,8 +90,11 @@ Vector2d Vision::odometry(const Vector2i &pos, const robot_math::transform_matri
 {
     float Xw, Yw;
     float OC = camera_matrix.p().z();
+    
     float roll = -static_cast<float>(camera_matrix.x_rotate());
     float theta = static_cast<float>(camera_matrix.y_rotate());
+
+    //LOG(LOG_INFO)<<OC<<' '<<rad2deg(roll)<<' '<<rad2deg(theta)<<endll;
     theta = theta+theta_offset_;
     roll = roll+roll_offset_;
     Vector2i Pos(pos.x()-params_.cx, params_.cy-pos.y());
@@ -166,16 +171,20 @@ void Vision::run()
         }
         cudaResizePacked(dev_bgr_, camera_w_,  camera_h_,  dev_ori_, w_,  h_);
         if(use_mv_)
-            cudaUndistored(dev_ori_, dev_undis_, pCamKData, pDistortData, pInvNewCamKData,
-                    pMapxData, pMapyData, w_, h_, 3);
+            cudaUndistored(dev_ori_, dev_undis_, pCamKData, pDistortData, pInvNewCamKData, pMapxData, pMapyData, w_, h_, 3);
         else
             cudaMemcpy(dev_undis_, dev_ori_, ori_size_, cudaMemcpyDeviceToDevice);
         cudaBGR2YUV422(dev_undis_, dev_yuyv_, w_, h_);
         cudaResizePacked(dev_undis_, w_, h_, dev_sized_, net_.w, net_.h);
         cudaBGR2RGBfp(dev_sized_, dev_rgbfp_, net_.w, net_.h);
 
-        detector_->process(dev_yuyv_);
-        const int *fieldBorders = detector_->getBorder();
+        const int *fieldBorders;
+        if(detect_filed_)
+        {
+            detector_->process(dev_yuyv_);
+            fieldBorders = detector_->getBorder();
+        }
+        
         layer l = net_.layers[net_.n - 1];
         network_predict(net_, dev_rgbfp_, 0);
         int nboxes = 0;
@@ -198,13 +207,7 @@ void Vision::run()
                     float w_h = (float)bw/(float)bh;
                     if(bw>=min_ball_w_ && bh>=min_ball_h_ && fabs(w_h-1.0)<0.3)
                     {
-                        //if(head_pitch>50.0)
-                            ball_dets_.push_back(object_det(ball_id_, dets[i].prob[ball_id_], bx, by, bw, bh));
-                        /*else
-                        {
-                            if(by+bh >= fieldBorders[bx+bw/2])
-                                ball_dets_.push_back(object_det(ball_id_, dets[i].prob[ball_id_], bx, by, bw, bh));
-                        }*/
+                        ball_dets_.push_back(object_det(ball_id_, dets[i].prob[ball_id_], bx, by, bw, bh));
                     }
                 }
             }
@@ -217,13 +220,7 @@ void Vision::run()
                     int pw = dets[i].bbox.w*w_, ph = dets[i].bbox.h*h_;
                     if(pw>=min_post_w_ && ph>=min_post_h_)
                     {
-                        //if(head_pitch_>50.0)
-                            post_dets_.push_back(object_det(post_id_, dets[i].prob[post_id_], px, py, pw, ph));
-                        /*else
-                        {
-                            if(py+ph>fieldBorders[px+pw/2])
-                                post_dets_.push_back(object_det(post_id_, dets[i].prob[post_id_], px, py, pw, ph));
-                        }*/
+                        post_dets_.push_back(object_det(post_id_, dets[i].prob[post_id_], px, py, pw, ph));
                     }
                 }
             }
@@ -256,6 +253,7 @@ void Vision::run()
                 if(cant_see_ball_count_*period_ms_>500)
                     WM->set_ball_pos(Vector2d(0,0), Vector2d(0,0), Vector2i(0,0), 0, 0, false);
             }
+            /*
             if(WM->self_localization_)
             {
                 int post_num=0;
@@ -294,6 +292,7 @@ void Vision::run()
                     SL->update(player_info(p.global.x(), p.global.y(), p.dir), posts_);
                 }
             }
+            */
         }
 
         if (OPTS->use_debug())
@@ -316,8 +315,11 @@ void Vision::run()
             }
             else if (img_sd_type_ == IMAGE_SEND_RESULT)
             {   
-                for(int i=0;i<w_;i++)
-                    bgr.at<Vec3b>(fieldBorders[i], i) = Vec3b(0, 255, 255);
+                if(detect_filed_)
+                {
+                    for(int i=0;i<w_;i++)
+                        bgr.at<Vec3b>(fieldBorders[i], i) = Vec3b(0, 255, 255);
+                }
                 if(!ball_dets_.empty())
                 {
                     Vector2i ball_pix(ball_dets_[0].x+ball_dets_[0].w/2, ball_dets_[0].y+ball_dets_[0].h*0.95);

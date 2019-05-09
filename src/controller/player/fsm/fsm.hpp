@@ -32,6 +32,10 @@ typedef std::shared_ptr<FSMState> FSMState_Ptr;
 class FSM
 {
 public:
+    FSM()
+    {
+    }
+
     task_list Trans(fsm_state state)
     {
         task_list tasks, tlist;

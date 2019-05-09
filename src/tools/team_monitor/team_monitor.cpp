@@ -10,6 +10,7 @@ boost::asio::io_service udp_service;
 TeamMonitor::TeamMonitor(): socket_(udp_service, udp::endpoint(udp::v4(), CONF->get_config_value<short>("net.udp.team.port")))
 {
     parser::field_parser::parse(CONF->field_file(), field_);
+    field_.scale_field(0.5);
     setFixedSize(field_.field_length + 2 * field_.border_strip_width_min, field_.field_width + 2 * field_.border_strip_width_min);
     setStyleSheet("background:green");
     td_ = std::move(std::thread([this]()
@@ -61,7 +62,7 @@ void TeamMonitor::paintEvent(QPaintEvent *event)
 {
     QPainter painter(this);
     painter.translate(field_.field_length / 2 + field_.border_strip_width_min, field_.field_width / 2 + field_.border_strip_width_min);
-    painter.setPen(QPen(Qt::white, 4, Qt::SolidLine, Qt::FlatCap));
+    painter.setPen(QPen(Qt::white, 2, Qt::SolidLine, Qt::FlatCap));
     painter.drawEllipse(-field_.center_circle_diameter / 2, -field_.center_circle_diameter / 2, field_.center_circle_diameter, field_.center_circle_diameter);
     painter.drawLine(0, -field_.field_width / 2, 0, field_.field_width / 2);
     painter.drawLine(-field_.field_length / 2, -field_.field_width / 2, field_.field_length / 2, -field_.field_width / 2);
@@ -91,7 +92,7 @@ void TeamMonitor::paintEvent(QPaintEvent *event)
     painter.drawRect((field_.field_length / 2 - field_.penalty_mark_distance) - 4, -4, 8, 8);
     painter.drawRect(-(field_.field_length / 2 - field_.penalty_mark_distance) + 4, -4, 8, 8);
 
-    int ballsize = 20;
+    int ballsize = 10;
     painter.setBrush(QBrush(Qt::black, Qt::SolidPattern));
     p_mutex_.lock();
 
@@ -108,7 +109,8 @@ void TeamMonitor::paintEvent(QPaintEvent *event)
             painter.setBrush(QBrush(Qt::black, Qt::SolidPattern));
         }
         painter.save();
-        painter.translate(p.second.x * 100, -p.second.y * 100);
+        float s=field_.scale;
+        painter.translate(p.second.x * 100*s, -p.second.y * 100*s);
         painter.drawEllipse(-ballsize / 2, -ballsize / 2, ballsize, ballsize);
         painter.drawText(-ballsize / 2, -ballsize / 2, QString::number(p.second.id));
         painter.rotate(-p.second.dir);
@@ -116,8 +118,8 @@ void TeamMonitor::paintEvent(QPaintEvent *event)
         painter.restore();
         if(p.second.can_see)
         {
-            painter.drawEllipse(p.second.ball_x * 100 - ballsize / 2, -p.second.ball_y * 100 - ballsize / 2, ballsize, ballsize);
-            painter.drawText(p.second.ball_x * 100 - ballsize / 2, -p.second.ball_y * 100 - ballsize / 2, QString::number(p.second.id));
+            painter.drawEllipse(p.second.ball_x * 100*s - ballsize / 2, -p.second.ball_y * 100*s - ballsize / 2, ballsize, ballsize);
+            painter.drawText(p.second.ball_x*s * 100 - ballsize / 2, -p.second.ball_y*s * 100 - ballsize / 2, QString::number(p.second.id));
         }
         if(state_monitors_.find(p.second.id) == state_monitors_.end())
         {

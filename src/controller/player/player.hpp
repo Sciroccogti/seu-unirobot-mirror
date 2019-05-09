@@ -14,7 +14,7 @@
 #include "task/task.hpp"
 #include "fsm/fsm.hpp"
 
-class player: public timer, public std::enable_shared_from_this<player>
+class player: public timer
 {
 public:
     player();
@@ -32,15 +32,6 @@ private:
     std::list<task_ptr> play_without_gc();
     std::list<task_ptr> think();
 
-    task_ptr play_skill_goto(const Eigen::Vector2d &target, double dir);
-    task_ptr play_skill_penalty_kick(bool left, float init_dir);
-    std::list<task_ptr> play_skill_kick(const self_block &self, const ball_block &ball);
-
-    std::list<task_ptr> play_skill_search_ball();
-
-    std::list<task_ptr> play_skill_localization();
-
-    bool in_my_attack_range(const Eigen::Vector2d &ball);
     bool regist();
     void unregist();
     sensor_ptr get_sensor(const std::string &name);
@@ -49,13 +40,8 @@ private:
     std::map<std::string, sensor_ptr> sensors_;
     unsigned int btn_count_;
     std::string role_;
-    std::vector<float> attack_range_;
-    double last_search_dir_;
-    bool in_search_ball_;
-    bool see_last_;
     unsigned int self_location_count_;
     bool played_;
-    bool keeper_kicked_;
 
     FSM_Ptr fsm_;
 };

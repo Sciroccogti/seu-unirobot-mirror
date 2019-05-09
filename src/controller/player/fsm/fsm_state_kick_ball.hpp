@@ -7,7 +7,9 @@ class FSMStateKickBall: public FSMState
 public:
     FSMStateKickBall(FSM_Ptr fsm): FSMState(fsm)
     {
-        
+        exit_kick_dis_ = 0.4;
+        retreat_alpha_ = 0.4;
+        retreat_beta_ = 0.47;
     }
     
     task_list OnStateEnter()
@@ -23,40 +25,10 @@ public:
         return tasks;
     }
 
-    task_list OnStateTick()
-    {
-        task_list tasks;
-        if(WM->fall_data()!=FALL_NONE)
-        {
-            return fsm_->Trans(FSM_STATE_GETUP);
-        }
-        
-        ball_block ball = WM->ball();
-        if(!ball.can_see)
-        {
-            return fsm_->Trans(FSM_STATE_SEARCH_BALL);
-        }
-        
-        if(ball.alpha>-0.1)
-        {
-            tasks.push_back(std::make_shared<walk_task>(0.0, -0.01, 0.0, true));
-        }
-        else if(ball.alpha<-0.22)
-        {
-            tasks.push_back(std::make_shared<walk_task>(0.0, 0.01, 0.0, true));
-        }
-        else
-        {
-            if(ball.beta<0.4)
-                tasks.push_back(std::make_shared<walk_task>(0.012, 0.0, 0.0, true));
-            else if(ball.beta>0.45)
-                tasks.push_back(std::make_shared<walk_task>(-0.01, 0.0, 0.0, true));
-            else
-            {
-                tasks.push_back(std::make_shared<action_task>("penalty_kick"));
-            }
-        }
+    task_list OnStateTick();
 
-        return tasks;
-    }
+private:
+    float exit_kick_dis_;
+    float retreat_alpha_;
+    float retreat_beta_;
 };
