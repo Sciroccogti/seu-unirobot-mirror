@@ -128,13 +128,4 @@ enum fsm_state
     FSM_STATE_SL
 };
 
-static const std::map<int, std::string> fsm_state_infos = {
-    {FSM_STATE_READY, "ready"},
-    {FSM_STATE_GETUP, "getup"},
-    {FSM_STATE_SEARCH_BALL, "search_ball"},
-    {FSM_STATE_GOTO_BALL, "goto_ball"},
-    {FSM_STATE_KICK_BALL, "kick_ball"},
-    {FSM_STATE_SL, "localization"}
-};
-
 enum { player_info_size = sizeof(player_info)};

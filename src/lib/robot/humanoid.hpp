@@ -25,8 +25,6 @@ namespace robot
         bool leg_inverse_kinematics_walk(const robot_math::transform_matrix &body, const robot_math::transform_matrix &foot,
                                     std::vector<double> &deg, const bool &left = false);
 
-        void ComputationForComAndFootpose(Eigen::Vector3d &Com, Eigen::Vector3d &footleft, Eigen::Vector3d &footright);
-
         void init(const std::string &robot_file, const std::string &action_file, const std::string &offset_file);
 
         void set_degs(const std::map<int, float> &jdmap);
@@ -39,30 +37,9 @@ namespace robot
             std::vector<double> res = {joint_map_["jhead1"]->get_deg(), joint_map_["jhead2"]->get_deg()};
             return res;
         }
-
-        robot_math::transform_matrix body_mat;                   //init in walkEngine, used for ComputationForComAndFootpose 
-        bool finished_one_step_flag;
-
-        void print_joint_map();
         
         joint_ptr get_real_joint(const int &id);                 //for real joints
         joint_ptr get_real_joint(const std::string &name);       //for real joints
-        
-        struct{
-            bool update_flag; 
-            bool isValidData;                                    //=1: read success,data is valid   
-            Eigen::Vector3d Com;                                 //center of mass
-            Eigen::Vector3d leftfoot_pose;                       //the real pose in the end of step
-            Eigen::Vector3d rightfoot_pose;
-
-            Eigen::Vector3d leftfoot_pose_maxh;                  //the real pose when foot lift height is max
-            Eigen::Vector3d rightfoot_pose_maxh;
-        }conveyFeedbackParams;
-
-        void empty_real_joint();
-        void print_real_joint_map();
-        void up_finished_one_step_flag();
-        void down_finished_one_step_flag();
 
         joint_ptr get_joint(const int &id);
         joint_ptr get_joint(const std::string &name);
@@ -170,20 +147,6 @@ namespace robot
 
         double D_, A_, B_, C_;
         double E_, F_;
-
-        enum Pose{
-            hip,
-            keen,
-            ankle,
-            leftHip,
-            leftKeen,
-            leftAnkle,
-            rightHip,
-            rightKeen,
-            rightAnkle,
-            num
-        };
-        robot_math::transform_matrix pose[num];
     };
 
 #define ROBOT humanoid::instance()

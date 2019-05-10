@@ -10,6 +10,7 @@ class FSMStateSearchBall: public FSMState
 public:
     FSMStateSearchBall(FSM_Ptr fsm): FSMState(fsm)
     {
+        can_goto_dir_ = 90.0;
     }
     
     task_list OnStateEnter()
@@ -36,7 +37,7 @@ public:
 private:
     float last_search_dir_;
     float init_search_dir_;
-    
+    float can_goto_dir_;
     bool first_in_;
 };
 

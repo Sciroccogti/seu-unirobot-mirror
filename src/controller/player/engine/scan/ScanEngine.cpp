@@ -18,26 +18,7 @@ namespace motion
 const float head_pitch_min_angle = 0.0f;
 const float head_pitch_mid_angle = 30.0f;
 const float head_pitch_max_angle = 60.0f;
-
-const int scan_ball =12;
 const int scan_post = 8;
-const float ball_search_table[][2] =
-{
-    {head_pitch_min_angle, 100.0}, 
-    {head_pitch_min_angle, 50.0},
-    {head_pitch_min_angle, 0.0},
-    {head_pitch_min_angle, -50.0}, 
-    {head_pitch_min_angle, -100.0},
-
-    {head_pitch_mid_angle, -85.0},
-    {head_pitch_mid_angle, -27.5},
-    {head_pitch_mid_angle, 27.5},
-    {head_pitch_mid_angle, 85.0},
-    
-    {head_pitch_max_angle, 50.0}, 
-    {head_pitch_max_angle, 0.0},
-    {head_pitch_max_angle, -50.0}
-};
 const float post_search_table[][2] = 
 {
     {head_pitch_min_angle, 90.0},
@@ -48,16 +29,8 @@ const float post_search_table[][2] =
 
 ScanEngine::ScanEngine()
 {
-    Vector2f range = CONF->get_config_vector<float, 2>("scan.pitch");
-    pitch_range_[0] = range[0];
-    pitch_range_[1] = range[1];
-    range = CONF->get_config_vector<float, 2>("scan.yaw");
-    yaw_ranges_.push_back(Vector2f(range[0], range[1]));
-    yaw_ranges_.push_back(Vector2f(range[0]+30.0, range[1]-30.0));
-    yaw_ranges_.push_back(Vector2f(range[0]+60.0, range[1]-60.0));
-    pitches_[0] = pitch_range_[0];
-    pitches_[1] = pitch_range_[0]+(pitch_range_[1]-pitch_range_[0])/2.0f;
-    pitches_[2] = pitch_range_[1];
+    pitch_range_ = CONF->get_config_vector<float, 2>("scan.pitch");
+    yaw_range_ = CONF->get_config_vector<float, 2>("scan.yaw");
     head_state_ = HEAD_STATE_LOOKAT;
     head_init_deg_ = CONF->get_config_vector<float, 2>("scan.init");
 
@@ -65,6 +38,20 @@ ScanEngine::ScanEngine()
     pitch_ = head_init_deg_[1];
     search_ball_end_ = false;
     search_post_end_ = true;
+
+    vector<float> head_pitch_table = {pitch_range_[1], (pitch_range_[0]+pitch_range_[1])/2.0f, pitch_range_[0]};
+    const float bottom_yaw = 50.0f;
+    vector<float> head_yaw_range = {bottom_yaw, (yaw_range_[1]+bottom_yaw)/2.0f, yaw_range_[1]};
+    vector<int> div_counts = {3, 4, 5};
+    float flag = 1.0;
+    for(int i=0; i<3; i++)
+    {
+        float yaw_div = 2*head_yaw_range[i]/(div_counts[i]-1);
+        for(int j=0; j<div_counts[i]; j++)
+            ball_search_table_.push_back(Vector2f(head_pitch_table[i], flag*(head_yaw_range[i]-j*yaw_div)));
+            //LOG(LOG_INFO)<<Vector2f(head_pitch_table[i], flag*(head_yaw_range[i]-j*yaw_div)).transpose()<<endll;
+        flag *= -1.0;
+    }
 }
 
 ScanEngine::~ScanEngine()
@@ -111,10 +98,10 @@ void ScanEngine::run()
         {
             ball_block ball = WM->ball();
             search_ball_end_ = false;
-            for(int i=scan_ball-1;i>=0&&!ball.can_see;i--)
+            for(int i=0; i<ball_search_table_.size()&&!ball.can_see; i++)
             {
-                jdmap[id_pitch] = ball_search_table[i][0];
-                jdmap[id_yaw] = ball_search_table[i][1];
+                jdmap[id_pitch] = ball_search_table_[i][0];
+                jdmap[id_yaw] = ball_search_table_[i][1];
                 while (!MADT->head_empty())
                 {
                     usleep(1000);
@@ -171,7 +158,7 @@ void ScanEngine::run()
                 pitch += sign(ball.beta)*1.0f;
             }
 
-            bound(yaw_ranges_[1][0], yaw_ranges_[1][1], yaw);
+            bound(yaw_range_[0], yaw_range_[1], yaw);
             bound(pitch_range_[0], pitch_range_[1], pitch);
             jdmap[id_yaw] = yaw;
             jdmap[id_pitch] = pitch;

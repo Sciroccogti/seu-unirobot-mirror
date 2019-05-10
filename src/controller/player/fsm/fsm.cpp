@@ -15,8 +15,19 @@ task_list FSMStateSearchBall::OnStateTick()
     task_list tasks;
     if(WM->fall_data()!=FALL_NONE)
         return fsm_->Trans(FSM_STATE_GETUP);
-    if(WM->ball().can_see)
-        return fsm_->Trans(FSM_STATE_GOTO_BALL);
+    
+    ball_block ball = WM->ball();
+    if(ball.can_see)
+    {
+        float dir = azimuth_deg(ball.self);
+        if(fabs(dir)<can_goto_dir_)
+            return fsm_->Trans(FSM_STATE_GOTO_BALL);
+        else
+        {
+            tasks.push_back(make_shared<walk_task>(0.0, 0.0, dir, true));
+            return tasks;
+        }
+    }
     
     if(first_in_)
     {

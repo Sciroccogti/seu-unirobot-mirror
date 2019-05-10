@@ -56,6 +56,8 @@ void TeamMonitor::closeEvent(QCloseEvent *event)
 {
     socket_.cancel();
     udp_service.stop();
+    for(auto &m:state_monitors_)
+        m.second->close();
 }
 
 void TeamMonitor::paintEvent(QPaintEvent *event)

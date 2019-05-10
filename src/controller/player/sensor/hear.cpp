@@ -8,7 +8,7 @@ using namespace std;
 boost::asio::io_service sh_service;
 
 hear::hear() : sensor("hear"),
-    socket_(sh_service, udp::endpoint(udp::v4(), CONF->get_config_value<short>("net.udp.team.port")))
+    socket_(sh_service, udp::endpoint(udp::v4(), CONF->get_config_value<short>("net.udp")))
 {
 }
 

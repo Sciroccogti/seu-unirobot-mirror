@@ -45,10 +45,10 @@ if __name__ == '__main__':
     
     def signal_handler(sig,frame):
         if sig == signal.SIGINT:
-            ssh_client.exec_command('kill -2 $(pidof controller)', False)
+            ssh_client.exec_command('kill -2 $(pidof %s)'%(config.exec_file_name), False)
 
     signal.signal(signal.SIGINT,signal_handler)
     
-    cmd = 'cd %s; tar zxmf %s; cd %s; ./%s %s'\
-          %(config.remote_dir, config.compress_file_name, config.target_dir, config.exec_file_name, args)
+    cmd = 'cd %s; tar zxmf %s -C %s; cd %s; ./%s %s'\
+          %(config.remote_dir, config.compress_file_name, config.target_dir, config.target_dir, config.exec_file_name, args)
     ssh_client.exec_command(cmd)

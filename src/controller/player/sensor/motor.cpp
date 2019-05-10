@@ -69,8 +69,6 @@ bool motor::start()
     sensor::is_alive_ = true;
     timer::is_alive_ = true;
     start_timer();
-    ROBOT->conveyFeedbackParams.update_flag = false;
-    clearMotorFeedbackParams();
     return true;
 }
 
@@ -137,18 +135,6 @@ void motor::real_act()
     else
     {
         set_gpos();
-        /*feed back loop*/ 
-        /* if(ROBOT->finished_one_step_flag == true)
-        {  
-            ROBOT->conveyFeedbackParams.isValidData = false;
-            if(read_legs_pos()) {
-                ROBOT->conveyFeedbackParams.isValidData = true;
-            }
-            updateMotorFeedbackParams();
-            updateConveyFeedbackParams();
-            clearMotorFeedbackParams();
-            ROBOT->down_finished_one_step_flag();
-        }*/
         if ((p_count_ * period_ms_ % 1000) == 0)
         {
             led_status_ = 1 - led_status_;
@@ -378,38 +364,4 @@ void motor::set_gpos()
         }
     }
     gposWrite_->txPacket();
-}
-
-void motor::updateMotorFeedbackParams()
-{   
-    ROBOT->ComputationForComAndFootpose(motorFeedbackParams.Com, motorFeedbackParams.leftfoot_pose_pre, 
-                                        motorFeedbackParams.rightfoot_pose_pre);
-
-    //cout<<"footleft       "<<motorFeedbackParams.leftfoot_pose_pre<<endl;
-    /*
-    if(motorFeedbackParams.leftfoot_pose_maxh.z() < motorFeedbackParams.leftfoot_pose_pre.z()){
-        motorFeedbackParams.leftfoot_pose_maxh = motorFeedbackParams.leftfoot_pose_pre;
-    }
-
-    if(motorFeedbackParams.rightfoot_pose_maxh.z() < motorFeedbackParams.rightfoot_pose_pre.z()){
-        motorFeedbackParams.rightfoot_pose_maxh = motorFeedbackParams.rightfoot_pose_pre;
-    }*/
-}
-
-void motor::updateConveyFeedbackParams()
-{
-    ROBOT->conveyFeedbackParams.Com = motorFeedbackParams.Com;
-    ROBOT->conveyFeedbackParams.leftfoot_pose = motorFeedbackParams.leftfoot_pose_pre;
-    ROBOT->conveyFeedbackParams.rightfoot_pose = motorFeedbackParams.rightfoot_pose_pre;
-
-    //ROBOT->conveyFeedbackParams.leftfoot_pose_maxh = motorFeedbackParams.leftfoot_pose_maxh;
-    //ROBOT->conveyFeedbackParams.rightfoot_pose_maxh = motorFeedbackParams.rightfoot_pose_maxh;
-    ROBOT->conveyFeedbackParams.update_flag = true;
-    
-}
-
-void motor::clearMotorFeedbackParams()
-{
-    motorFeedbackParams.leftfoot_pose_maxh = Eigen::Vector3d(0.0, 0.0, 0.0);
-    motorFeedbackParams.rightfoot_pose_maxh = Eigen::Vector3d(0.0, 0.0, 0.0);
 }
