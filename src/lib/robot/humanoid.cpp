@@ -199,52 +199,12 @@ namespace robot
   
     }
 
-    void humanoid::ComputationForComAndFootpose(Eigen::Vector3d &Com, Eigen::Vector3d &footleft, Eigen::Vector3d &footright)
-    {
-        for(int sg=0; sg < 2; sg++)
-        {   
-            //descriped by deg with real_joint_map
-            double jhip3 = real_joint_map_[(sg==0?"jlhip3":"jrhip3")]->get_deg();
-
-            double jhip2 = real_joint_map_[(sg==0?"jlhip2":"jrhip2")]->get_deg();
-   
-            double jhip1 = real_joint_map_[(sg==0?"jlhip1":"jrhip1")]->get_deg();
-
-            double jkeen = real_joint_map_[(sg==0?"jlknee":"jrknee")]->get_deg();
-  
-            double jankle2 = real_joint_map_[(sg==0?"jlankle2":"jrankle2")]->get_deg();
-
-            double jankle1 = real_joint_map_[(sg==0?"jlankle1":"jrankle1")]->get_deg();
-
-            double sign = (sg==0 ? 1.0 : -1.0);
-            transform_matrix tempM = body_mat;
-            tempM.set_p(Vector3d(0, sign * D_/2, A_ + B_));
-            pose[(sg==0?leftHip:rightHip)] = tempM * transform_matrix(jhip3, 'z') * transform_matrix(jhip2, 'x') 
-                                           * transform_matrix(jhip1, 'y');
-
-            tempM = pose[(sg==0?leftHip:rightHip)] * transform_matrix(0.0, 0.0, -A_);    
-            pose[(sg==0?leftKeen:rightKeen)] = tempM.rotationY(jkeen);
-
-            pose[(sg==0?leftAnkle:rightAnkle)] = pose[(sg==0?leftKeen:rightKeen)] * transform_matrix(0.0, 0.0, -B_) 
-                                               * transform_matrix(jankle2, 'y') * transform_matrix(jankle1, 'x'); 
-            //cout<<"pose[ankle]"<<endl<<pose[ankle]<<endl;
-        }
-        
-        footleft = pose[leftAnkle].p();
-        footright = pose[rightAnkle].p();
-
-        Com = Vector3d(0.0, 0.0, 0.0);
-    }
-
     void humanoid::init(const std::string &robot_file, const std::string &action_file,
                         const std::string &offset_file)
     {
         main_bone_ = parser::robot_parser::parse(robot_file, bone_map_, joint_map_);
 
         real_joint_map_ = joint_map_;              //for real joints
-        conveyFeedbackParams.update_flag = false;
-        
-        finished_one_step_flag = false;
 
         parser::action_parser::parse(action_file, act_map_, pos_map_);
         parser::offset_parser::parse(offset_file, joint_map_);
@@ -267,15 +227,7 @@ namespace robot
     void humanoid::set_degs(const std::map<int, float> &jdmap)
     {
         std::lock_guard<std::mutex> lk(robot_mtx_);
-        std::map<int, float> map = jdmap;
-        std::map<int, float>::iterator iter = map.find(0); 
-        if(iter != map.end())
-        {
-            map.erase(iter);
-            up_finished_one_step_flag();
-            //cout<<"remove the jdmap[0] flag  "<<endl;
-        } 
-        for (auto &j : map)
+        for (auto &j : jdmap)
         {
             get_joint(j.first)->set_deg(j.second);
         }
@@ -308,7 +260,6 @@ namespace robot
 
     joint_ptr humanoid::get_joint(const int &id)
     {
-        //std::lock_guard<std::mutex> lk(robot_mtx_);
         for (auto &j : joint_map_)
             if (j.second->jid_ == id)
             {
@@ -320,7 +271,6 @@ namespace robot
 
     joint_ptr humanoid::get_joint(const std::string &name)
     {
-        //std::lock_guard<std::mutex> lk(robot_mtx_);
         for (auto &j : joint_map_)
             if (j.second->name_ == name)
             {
@@ -351,37 +301,4 @@ namespace robot
 
         throw class_exception<humanoid>("cannot find real joint by name: " + name);
     }
-
-    void humanoid::empty_real_joint(){
-        //real_joint_map_.clear();  // clear all data!
-    }
-
-    void humanoid::print_real_joint_map(){
-        joint_map jmap = real_joint_map_;
-   
-        LOG(LOG_INFO)<<"real_joint_map:"<<endll;
-        for (auto &j : jmap)
-        {      
-            LOG(LOG_INFO)<<j.first<<":  "<<j.second->get_deg()<<endll;
-        }
-    }
-
-    void humanoid::print_joint_map(){
-        joint_map jmap = joint_map_;
-        
-        LOG(LOG_INFO)<<"joint_map:"<<endll;
-        for (auto &j : jmap)
-        {       
-            LOG(LOG_INFO)<<j.first<<":  "<<j.second->get_deg()<<endll;
-        }
-    }
-
-    void humanoid::up_finished_one_step_flag(){
-        finished_one_step_flag = true;
-    }
-
-    void humanoid::down_finished_one_step_flag(){
-        finished_one_step_flag = false;
-    }
-
 }

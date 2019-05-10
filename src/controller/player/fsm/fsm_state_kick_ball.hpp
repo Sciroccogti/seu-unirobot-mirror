@@ -1,6 +1,7 @@
 #pragma once
 
 #include "fsm.hpp"
+#include "engine/scan/ScanEngine.hpp"
 
 class FSMStateKickBall: public FSMState
 {
@@ -15,7 +16,7 @@ public:
     task_list OnStateEnter()
     {
         task_list tasks;
-        tasks.push_back(std::make_shared<look_task>(0.0, 60.0));
+        tasks.push_back(std::make_shared<look_task>(0.0, motion::SE->pitch_range_[1]));
         return tasks;
     }
 

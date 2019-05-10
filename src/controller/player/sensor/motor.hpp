@@ -31,16 +31,6 @@ public:
         return is_connected_;
     }
 
-    struct
-    {
-        Eigen::Vector3d Com;                   //center of mass
-        Eigen::Vector3d leftfoot_pose_pre;     //the real pose in the present
-        Eigen::Vector3d rightfoot_pose_pre;
-
-        Eigen::Vector3d leftfoot_pose_maxh;    //the real pose when foot lift height is max
-        Eigen::Vector3d rightfoot_pose_maxh;
-    }motorFeedbackParams;
-
 private:
     bool open();
     void close();
@@ -54,9 +44,6 @@ private:
 
     void virtul_act();
     void real_act();
-    void updateMotorFeedbackParams();
-    void updateConveyFeedbackParams();
-    void clearMotorFeedbackParams();
 private:
     unsigned long p_count_;
     uint16_t voltage_;

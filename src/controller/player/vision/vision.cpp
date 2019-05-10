@@ -33,7 +33,7 @@ Vision::Vision(): timer(CONF->get_config_value<int>("vision_period"))
     post_id_=1;
     ball_prob_ = CONF->get_config_value<float>("detection.ball");
     post_prob_ = CONF->get_config_value<float>("detection.post");
-    min_ball_w_ = CONF->get_config_value<int>("detectionb.ball_w");
+    min_ball_w_ = CONF->get_config_value<int>("detection.ball_w");
     min_ball_h_ = CONF->get_config_value<int>("detection.ball_h");
     min_post_w_ = CONF->get_config_value<int>("detection.post_w");
     min_post_h_ = CONF->get_config_value<int>("detection.post_h");
@@ -92,14 +92,14 @@ void Vision::set_camera_info(const camera_info &para)
 
 Vector2d Vision::odometry(const Vector2i &pos, const robot_math::transform_matrix &camera_matrix)
 {
-    float Xw, Yw;
+    float Xw=0.0, Yw=0.0;
     float OC = camera_matrix.p().z();
     
     float roll = -static_cast<float>(camera_matrix.x_rotate());
     float theta = static_cast<float>(camera_matrix.y_rotate());
 
     //LOG(LOG_INFO)<<OC<<' '<<rad2deg(roll)<<' '<<rad2deg(theta)<<endll;
-    roll = roll+odometry_offset_.x();;
+    roll = roll+odometry_offset_.x();
     theta = theta+odometry_offset_.y();
     
     Vector2i Pos(pos.x()-params_.cx, params_.cy-pos.y());
@@ -107,8 +107,11 @@ Vector2d Vision::odometry(const Vector2i &pos, const robot_math::transform_matri
     Vector2i calPos(calCenterPos.x()+params_.cx, params_.cy-calCenterPos.y());
     double gama = atan((params_.cy-calPos.y())/params_.fy);
     double O_C_P = M_PI_2-theta+gama;
-    Yw = OC*tan(O_C_P);
-    Xw = (calPos.x()-params_.cx)*OC*cos(gama)/(cos(O_C_P)*params_.fx);
+    if(!float_equals(O_C_P, M_PI_2))
+    {
+        Yw = OC*tan(O_C_P);
+        Xw = (calPos.x()-params_.cx)*OC*cos(gama)/(cos(O_C_P)*params_.fx);
+    }
     return Vector2d(Xw, Yw);
 }
 
@@ -202,7 +205,7 @@ void Vision::run()
                 {
                     int bx = (dets[i].bbox.x - dets[i].bbox.w / 2.0)*w_;
                     int by = (dets[i].bbox.y - dets[i].bbox.h / 2.0)*h_;
-                    int bw = dets[i].bbox.w*w_, bh = dets[i].bbox.h*h_;
+                    int bw = dets[i].bbox.w*w_, bh = dets[i].bbox.h*h_+1;
                     float w_h = (float)bw/(float)bh;
                     if(bw>=min_ball_w_ && bh>=min_ball_h_ && fabs(w_h-1.0)<d_w_h_)
                     {

@@ -2,6 +2,15 @@
 
 using namespace std;
 
+const std::map<int, std::string> fsm_state_infos = {
+    {FSM_STATE_READY, "ready"},
+    {FSM_STATE_GETUP, "getup"},
+    {FSM_STATE_SEARCH_BALL, "search_ball"},
+    {FSM_STATE_GOTO_BALL, "goto_ball"},
+    {FSM_STATE_KICK_BALL, "kick_ball"},
+    {FSM_STATE_SL, "localization"}
+};
+
 StateMonitor::StateMonitor(int id): id_(id)
 {
     int s_count = fsm_state_infos.size();
@@ -20,7 +29,7 @@ StateMonitor::StateMonitor(int id): id_(id)
         label->setFrameShape (QFrame::Box);
         label->setMinimumHeight(30);
         label->setAlignment(Qt::AlignCenter);
-        label->setStyleSheet("border-width: 1px;border-style: solid;  background-color: #FF6633; color: rgb(255, 255, 255)");
+        label->setStyleSheet("border-width: 1px; border-style: solid; background-color: #FF6633; color: rgb(255, 255, 255); font-size: 24px;");
         state_labels_[f.first] = label;
         stateLayout->addWidget(label);
         i++;

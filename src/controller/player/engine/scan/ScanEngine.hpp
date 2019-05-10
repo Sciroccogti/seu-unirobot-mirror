@@ -29,6 +29,7 @@ namespace motion
         std::atomic_bool search_ball_end_, search_post_end_;
         float lost_yaw_, lost_pitch_;
         Eigen::Vector2f head_init_deg_;
+        Eigen::Vector2f pitch_range_, yaw_range_;
         
     private:
         void run();
@@ -37,11 +38,8 @@ namespace motion
         float yaw_, pitch_;
 
         std::atomic_int head_state_;
-        const float search_ball_div_ = 3.0;
         const float search_post_div_ = 0.8;
-        Eigen::Vector2f pitch_range_;
-        std::vector<Eigen::Vector2f> yaw_ranges_;
-        Eigen::Vector3f pitches_;
+        std::vector<Eigen::Vector2f> ball_search_table_;
         mutable std::mutex param_mtx_;
     };
 
