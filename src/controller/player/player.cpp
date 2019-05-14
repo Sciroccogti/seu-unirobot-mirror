@@ -100,6 +100,13 @@ list<task_ptr> player::think()
     {
         if(OPTS->kick_mode()==options::KICK_NORMAL)
         {
+            if(played_)
+                self_location_count_++;
+            if(self_location_count_ == 900)
+            {
+                WM->localization_time_ = true;
+                self_location_count_ = 0;
+            }
             if(OPTS->use_gc())
             {
                 tlists = play_with_gc();

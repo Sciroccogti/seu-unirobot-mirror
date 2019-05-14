@@ -71,6 +71,7 @@ private:
     int min_post_w_, min_post_h_;
 
     int cant_see_ball_count_;
+    int can_see_post_count_;
 
     bool is_busy_;
     image_send_type img_sd_type_;

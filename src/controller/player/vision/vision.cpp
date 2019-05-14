@@ -20,6 +20,7 @@ Vision::Vision(): timer(CONF->get_config_value<int>("vision_period"))
 {
     p_count_ = 0;
     cant_see_ball_count_ = 0;
+    can_see_post_count_ = 0;
     is_busy_ = false;
     w_ = CONF->get_config_value<int>("image.width");
     h_ = CONF->get_config_value<int>("image.height");
@@ -228,9 +229,9 @@ void Vision::run()
             }
         }
         std::sort(ball_dets_.rbegin(), ball_dets_.rend());
-        std::sort(post_dets_.begin(), post_dets_.end());
+        std::sort(post_dets_.rbegin(), post_dets_.rend());
         free_detections(dets, nboxes);
-        double t2 = clock();
+        //double t2 = clock();
         //LOG(LOG_INFO)<<(t2-t1)/CLOCKS_PER_SEC<<endll;
 
         if(OPTS->use_robot())
@@ -259,7 +260,6 @@ void Vision::run()
             if(localization_)
             {
                 int post_num=0;
-                can_see_post_=false;
                 vector< GoalPost > posts_;
                 for(auto &post: post_dets_)
                 {
@@ -290,10 +290,21 @@ void Vision::run()
                 }
                 if(posts_.size()>0)
                 {
-                    can_see_post_=true;
+                    can_see_post_count_ ++;
                     SL->update(player_info(p.global.x(), p.global.y(), p.dir), posts_);
+                    if(can_see_post_count_>10)
+                    {
+                        can_see_post_ = true;
+                        localization_ = false;
+                    }
                 }
             }
+            else
+            {
+                can_see_post_ = false;
+                can_see_post_count_ = 0;
+            }
+            
         }
 
         if (OPTS->use_debug())
@@ -318,6 +329,15 @@ void Vision::run()
             {   
                 if(detect_filed_)
                 {
+                    /*
+                    for(int j=0; j<h_; j++)
+                    {
+                        for(int i=0; i<w_; i++)
+                        {
+                            if(detector_->isGreen(i, j))
+                                bgr.at<Vec3b>(j, i) = Vec3b(0, 255, 0);
+                        }
+                    }*/
                     for(int i=0;i<w_;i++)
                         bgr.at<Vec3b>(fieldBorders[i], i) = Vec3b(0, 255, 255);
                 }
@@ -327,8 +347,8 @@ void Vision::run()
                     Vector2d odo_res = odometry(ball_pix, camera_matrix);
                     rectangle(bgr, Point(ball_dets_[0].x, ball_dets_[0].y), Point(ball_dets_[0].x + ball_dets_[0].w,
                         ball_dets_[0].y + ball_dets_[0].h), Scalar(255, 0, 0), 2);
-                    putText(bgr, to_string(odo_res.norm()).substr(0,4), Point(ball_dets_[0].x, ball_dets_[0].y+ball_dets_[0].h),
-                        FONT_HERSHEY_SIMPLEX, 1, Scalar(255, 0, 0), 2, 8);
+                    //putText(bgr, to_string(odo_res.norm()).substr(0,4), Point(ball_dets_[0].x, ball_dets_[0].y+ball_dets_[0].h),
+                    //    FONT_HERSHEY_SIMPLEX, 1, Scalar(255, 0, 0), 2, 8);
                 }
                 int i=0;
                 for(auto &dd: post_dets_)
@@ -338,8 +358,8 @@ void Vision::run()
                     Vector2d odo_res = odometry(post_pix, camera_matrix);
                     rectangle(bgr, Point(post_dets_[i].x, post_dets_[i].y), Point(post_dets_[i].x + post_dets_[i].w,
                         post_dets_[i].y + post_dets_[i].h), Scalar(0, 0, 255), 2);
-                    putText(bgr, to_string(odo_res.norm()).substr(0,4), Point(post_dets_[i].x, post_dets_[i].y+post_dets_[i].h),
-                        FONT_HERSHEY_SIMPLEX, 1, Scalar(0, 0, 255), 2, 8);
+                    //putText(bgr, to_string(odo_res.norm()).substr(0,4), Point(post_dets_[i].x, post_dets_[i].y+post_dets_[i].h),
+                    //    FONT_HERSHEY_SIMPLEX, 1, Scalar(0, 0, 255), 2, 8);
                     i++;
                 }
                 send_image(bgr);
