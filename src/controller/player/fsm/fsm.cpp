@@ -4,6 +4,7 @@
 #include "fsm_state_goto_ball.hpp"
 #include "fsm_state_kick_ball.hpp"
 #include "fsm_state_sl.hpp"
+#include "core/worldmodel.hpp"
 
 using namespace std;
 using namespace Eigen;
@@ -15,11 +16,14 @@ task_list FSMStateSearchBall::OnStateTick()
     task_list tasks;
     if(WM->fall_data()!=FALL_NONE)
         return fsm_->Trans(FSM_STATE_GETUP);
+    if(WM->localization_time_)
+        return fsm_->Trans(FSM_STATE_SL);
     
     ball_block ball = WM->ball();
     if(ball.can_see)
     {
         float dir = azimuth_deg(ball.self);
+        //LOG(LOG_INFO)<<dir<<endll;
         if(fabs(dir)<can_goto_dir_)
             return fsm_->Trans(FSM_STATE_GOTO_BALL);
         else
@@ -56,7 +60,9 @@ task_list FSMStateGotoBall::OnStateTick()
 
     if(!ball.can_see)
         return fsm_->Trans(FSM_STATE_SEARCH_BALL);
-
+    if(WM->localization_time_)
+        return fsm_->Trans(FSM_STATE_SL);
+    
     float ball_dir = azimuth_deg(ball.self);
     float ball_dis = ball.self.norm();
     double self2left_dir = azimuth_deg(WM->opp_post_left-self.global);
@@ -72,17 +78,17 @@ task_list FSMStateGotoBall::OnStateTick()
     }
     else if(self.dir>self2left_dir)
     {
-        tasks.push_back(make_shared<walk_task>(-0.01, 0.01, -6.0, true));
+        tasks.push_back(make_shared<walk_task>(-0.005, 0.005, -5.0, true));
     }
-    else
+    else if(self.dir<self2right_dir)
     {
-        tasks.push_back(make_shared<walk_task>(-0.01, -0.01, 6.0, true));
+        tasks.push_back(make_shared<walk_task>(-0.005, -0.005, 5.0, true));
     }
 
     if(ball.self.x()<retreat_x_dis_ && fabs(ball.self.y())>retreat_y_dis_)
     {
         tasks.clear();
-        tasks.push_back(make_shared<walk_task>(-0.02, 0.0, 0.0, true));
+        tasks.push_back(make_shared<walk_task>(-0.015, 0.0, 0.0, true));
     }
     return tasks;
 }
@@ -107,17 +113,16 @@ task_list FSMStateKickBall::OnStateTick()
     {
         if(ball.alpha>-0.1)
             tasks.push_back(std::make_shared<walk_task>(0.0, -0.01, 0.0, true));
-        else if(ball.alpha<-0.22)
+        else if(ball.alpha<-0.2)
             tasks.push_back(std::make_shared<walk_task>(0.0, 0.01, 0.0, true));
         else
         {
             if(ball.beta<0.42)
-                tasks.push_back(std::make_shared<walk_task>(0.012, 0.0, 0.0, true));
+                tasks.push_back(std::make_shared<walk_task>(0.01, 0.0, 0.0, true));
             else
                 tasks.push_back(std::make_shared<action_task>("left_kick"));
         }
     }
-
     return tasks;
 }
 

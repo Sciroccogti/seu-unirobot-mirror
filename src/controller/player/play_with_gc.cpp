@@ -105,7 +105,6 @@ std::list<task_ptr> player::play_with_gc()
             break;
         case STATE_PLAYING:
             played_ = true;
-            self_location_count_++;
 
             if(gc_data.teams[team_index].players[CONF->id()-1].penalty == HL_PICKUP_OR_INCAPABLE
                 || gc_data.teams[team_index].players[CONF->id()-1].penalty == HL_SERVICE)

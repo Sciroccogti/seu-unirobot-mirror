@@ -13,6 +13,7 @@ world_model::world_model()
     player_infos_[CONF->id()].id = CONF->id();
     opp_post_left = Vector2d(SOCCERMAP->width()/200.0, SOCCERMAP->goalWidth()/200.0-0.7);
     opp_post_right = Vector2d(SOCCERMAP->width()/200.0, -SOCCERMAP->goalWidth()/200.0+0.7);
+    localization_time_ = false;
 }
 
 void world_model::updata(const pub_ptr &pub, const int &type)

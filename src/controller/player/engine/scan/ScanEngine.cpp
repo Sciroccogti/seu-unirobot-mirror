@@ -97,7 +97,6 @@ void ScanEngine::run()
         if(head_state_ == HEAD_STATE_SEARCH_BALL)
         {
             ball_block ball = WM->ball();
-            search_ball_end_ = false;
             for(int i=0; i<ball_search_table_.size()&&!ball.can_see; i++)
             {
                 jdmap[id_pitch] = ball_search_table_[i][0];
@@ -116,8 +115,6 @@ void ScanEngine::run()
             search_ball_end_ = true;
             if(ball.can_see)
                 head_state_ = HEAD_STATE_TRACK_BALL;
-            else
-                head_state_ = HEAD_STATE_LOOKAT;
         }
         else if(head_state_ == HEAD_STATE_SEARCH_POST)
         {
@@ -140,7 +137,7 @@ void ScanEngine::run()
                 if(VISION->can_see_post_)
                     break;
             }
-            search_ball_end_ = true;
+            search_post_end_ = true;
             head_state_ = HEAD_STATE_LOOKAT;
         }
         else if(head_state_ == HEAD_STATE_TRACK_BALL)

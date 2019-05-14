@@ -18,7 +18,8 @@ using namespace motion;
 std::list<task_ptr> player::play_without_gc()
 {
     list<task_ptr> tasks;
-    self_location_count_++;
+    if(!played_)
+        played_ = true;
     tasks = fsm_->Tick();
     return tasks;
 }
