@@ -14,6 +14,7 @@ public:
     
     task_list OnStateEnter()
     {
+        LOG(LOG_INFO)<<"Enter SL"<<endll;
         task_list tasks;
         motion::SE->search_post_end_ = false;
         VISION->localization_ = true;
@@ -23,6 +24,7 @@ public:
 
     task_list OnStateExit()
     {
+        LOG(LOG_INFO)<<"Exit SL"<<endll;
         task_list tasks;
         VISION->localization_ = false;
         return tasks;

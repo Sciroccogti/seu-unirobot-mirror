@@ -9,12 +9,14 @@ public:
 
     task_list OnStateEnter()
     {
+        LOG(LOG_INFO)<<"Enter ready"<<endll;
         task_list tasks;
         return tasks;
     }
 
     task_list OnStateExit()
     {
+        LOG(LOG_INFO)<<"Exit ready"<<endll;
         task_list tasks;
         return tasks;
     }
