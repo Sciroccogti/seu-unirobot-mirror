@@ -279,6 +279,7 @@ namespace motion
         //LOG(LOG_WARN)<<walk_state_<<endll;
         struct Rhoban::IKWalkOutputs outputs;
         std::map<int, float> jdegs;
+        float init_dir = WM->self().dir;
         for (double t=0.0;t<=timeLength;t+=1.0/engine_frequency_) 
         {
             time += 1.0/engine_frequency_;
@@ -322,7 +323,7 @@ namespace motion
 
         self_block blk = WM->self();
         Vector2d currpos(blk.global.x(), blk.global.y());
-        double dir = blk.dir;
+        double dir = (init_dir+blk.dir)/2;
         dir = normalize_deg(dir);
         Vector2d temp=currpos+rotation_mat_2d(-dir)*Vector2d((params.stepGain-XOffset_)*rate*nav_coef_.x(), 
                             (params.lateralGain-YOffset_)*rate*nav_coef_.y());
@@ -385,12 +386,15 @@ namespace motion
                     tempParams.stepGain = 0.0;
                     tempParams.lateralGain = 0.0;
                     tempParams.turnGain = 0.0;
-                    double rise = tempParams.riseGain;
-                    tempParams.riseGain = 0.012;
+                    double offset = tempParams.footYOffset;
+                    tempParams.footYOffset = 0.025;
+                    tempParams.riseGain = 0.02;
                     run_walk(tempParams, time_length_, phase_, time_);
-                    tempParams.riseGain = 0.024;
+                    tempParams.footYOffset = 0.0325;
+                    tempParams.riseGain = 0.03;
                     run_walk(tempParams, time_length_, phase_, time_);
-                    tempParams.riseGain = rise;
+                    tempParams.footYOffset = offset;
+                    tempParams.riseGain = 0.04;
                     run_walk(tempParams, 2*time_length_, phase_, time_);
                     if(walk_state_!=WALK_TO_ACT)
                     {
@@ -411,9 +415,13 @@ namespace motion
                     tempParams.lateralGain = 0.0;
                     tempParams.turnGain = 0.0;
                     tempParams.enabledGain = 1.0;
-                    run_walk(tempParams, time_length_, phase_, time_);
+                    //run_walk(tempParams, 2*time_length_, phase_, time_);
+                    //tempParams.footYOffset = 0.0325;
+                    //run_walk(tempParams, time_length_, phase_, time_);
+                    tempParams.footYOffset = 0.025;
+                    run_walk(tempParams, 2*time_length_, phase_, time_);
                     tempParams.enabledGain = 0.0;
-                    run_walk(tempParams, time_length_, phase_, time_);
+                    run_walk(tempParams, 2*time_length_, phase_, time_);
                     walk_state_ = WALK_STOP;
                     last_walk_state_ = WALK_STOP;
                 }

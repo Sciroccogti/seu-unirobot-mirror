@@ -18,6 +18,7 @@
 #include "fsm/fsm_state_ready.hpp"
 #include "fsm/fsm_state_search_ball.hpp"
 #include "fsm/fsm_state_sl.hpp"
+#include "fsm/fsm_state_dribble.hpp"
 
 using namespace std;
 using namespace motion;
@@ -102,7 +103,7 @@ list<task_ptr> player::think()
         {
             if(played_)
                 self_location_count_++;
-            if(self_location_count_ == 900)
+            if(self_location_count_ == 600)
             {
                 WM->localization_time_ = true;
                 self_location_count_ = 0;
@@ -149,7 +150,7 @@ bool player::init()
     fsm_->Register(FSM_STATE_GETUP, make_shared<FSMStateGetup>(fsm_));
     fsm_->Register(FSM_STATE_SEARCH_BALL, make_shared<FSMStateSearchBall>(fsm_));
     fsm_->Register(FSM_STATE_GOTO_BALL, make_shared<FSMStateGotoBall>(fsm_));
-    fsm_->Register(FSM_STATE_KICK_BALL, make_shared<FSMStateKickBall>(fsm_));
+    fsm_->Register(FSM_STATE_DRIBBLE, make_shared<FSMStateDribble>(fsm_));
     fsm_->Register(FSM_STATE_SL, make_shared<FSMStateSL>(fsm_));
     fsm_->set_state(FSM_STATE_READY);
 

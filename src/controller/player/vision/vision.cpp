@@ -166,28 +166,32 @@ void Vision::run()
         }
         frame_mtx_.unlock();
 
-        double t1 = clock();
+        //double t1 = clock();
         if (use_mv_)
+        {
             cudaBayer2BGR(dev_src_, dev_bgr_,  camera_w_,  camera_h_, camera_infos_["saturation"].value,
                         camera_infos_["red_gain"].value, camera_infos_["green_gain"].value, camera_infos_["blue_gain"].value);
+        }
         else
+        {
             cudaYUYV2BGR(dev_src_,  dev_bgr_,  camera_w_,  camera_h_);
+        }
         cudaResizePacked(dev_bgr_, camera_w_,  camera_h_,  dev_ori_, w_,  h_);
         if(use_mv_)
             cudaUndistored(dev_ori_, dev_undis_, pCamKData, pDistortData, pInvNewCamKData, pMapxData, pMapyData, w_, h_, 3);
         else
             cudaMemcpy(dev_undis_, dev_ori_, ori_size_, cudaMemcpyDeviceToDevice);
-        cudaBGR2YUV422(dev_undis_, dev_yuyv_, w_, h_);
+        //cudaBGR2YUV422(dev_undis_, dev_yuyv_, w_, h_);
         cudaResizePacked(dev_undis_, w_, h_, dev_sized_, net_.w, net_.h);
         cudaBGR2RGBfp(dev_sized_, dev_rgbfp_, net_.w, net_.h);
-
+        /*
         const int *fieldBorders;
         if(detect_filed_)
         {
             detector_->process(dev_yuyv_);
             fieldBorders = detector_->getBorder();
         }
-        
+        */
         layer l = net_.layers[net_.n - 1];
         network_predict(net_, dev_rgbfp_, 0);
         int nboxes = 0;
@@ -269,7 +273,7 @@ void Vision::run()
                     Vector2i post_pix(post.x+post.w/2, post.y+post.h*0.8);
                     Vector2d odo_res = odometry(post_pix, camera_matrix);
                     temp._distance = odo_res.norm()*100;
-                    if(temp._distance>350) continue;
+                    if(temp._distance>450) continue;
                     Vector2d post_pos = camera2self(odo_res, head_yaw);
                     temp._theta = azimuth_deg(post_pos);
                     posts_.push_back(temp);
@@ -338,8 +342,10 @@ void Vision::run()
                                 bgr.at<Vec3b>(j, i) = Vec3b(0, 255, 0);
                         }
                     }*/
+                    /*
                     for(int i=0;i<w_;i++)
                         bgr.at<Vec3b>(fieldBorders[i], i) = Vec3b(0, 255, 255);
+                        */
                 }
                 if(!ball_dets_.empty())
                 {

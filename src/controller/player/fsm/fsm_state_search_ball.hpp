@@ -15,7 +15,7 @@ public:
     
     task_list OnStateEnter()
     {
-        //LOG(LOG_INFO)<< "Enter serach ball"<<endll;
+        LOG(LOG_INFO)<< "Enter serach ball"<<endll;
         task_list tasks;
         init_search_dir_ = WM->self().dir;
         last_search_dir_ = init_search_dir_;
@@ -27,7 +27,7 @@ public:
 
     task_list OnStateExit()
     {
-        //LOG(LOG_INFO)<< "Exit serach ball"<<endll;
+        LOG(LOG_INFO)<< "Exit serach ball"<<endll;
         task_list tasks;
         return tasks;
     }

@@ -8,7 +8,7 @@ using namespace std;
 using namespace Eigen;
 using namespace robot_math;
 
-const double skill_goto_max_speed = 0.03;
+const double skill_goto_max_speed = 0.035;
 const double skill_goto_stop_distance = 0.2;
 const double skill_goto_stop_direction = 10.0;
 const double skill_goto_turn_direction = 10.0;
