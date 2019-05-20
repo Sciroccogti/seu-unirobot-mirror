@@ -12,21 +12,21 @@
 #define POLL_TIMEOUT (3 * 1000)
 #define MAX_BUF 64
 
-std::map<std::string, gpio::pin_number> gpio::gpio_map = {
-    {"GPIO0", gpio::PIN_GPIO0},
-    {"GPIO1", gpio::PIN_GPIO1},
-    {"GPIO2", gpio::PIN_GPIO2},
-    {"GPIO3", gpio::PIN_GPIO3}
+std::map<std::string, Gpio::pin_number> Gpio::gpio_map = {
+    {"GPIO0", Gpio::PIN_GPIO0},
+    {"GPIO1", Gpio::PIN_GPIO1},
+    {"GPIO2", Gpio::PIN_GPIO2},
+    {"GPIO3", Gpio::PIN_GPIO3}
 };
 
 
-gpio::gpio(pin_number gpio)
+Gpio::Gpio(pin_number gpio)
     : io_(gpio)
 {
     opened_ = gpio_export();
 }
 
-bool gpio::gpio_export()
+bool Gpio::gpio_export()
 {
     int fileDescriptor, length;
     char commandBuffer[MAX_BUF];
@@ -54,7 +54,7 @@ bool gpio::gpio_export()
     return true;
 }
 
-bool gpio::gpio_unexport()
+bool Gpio::gpio_unexport()
 {
     if(!opened_) return false;
     int fileDescriptor, length;
@@ -77,7 +77,7 @@ bool gpio::gpio_unexport()
     return true;
 }
 
-bool gpio::set_direction(pin_direction dir)
+bool Gpio::set_direction(pin_direction dir)
 {
     if(!opened_) return false;
     int fileDescriptor;
@@ -111,7 +111,7 @@ bool gpio::set_direction(pin_direction dir)
     return true;
 }
 
-bool gpio::set_value(pin_value v)
+bool Gpio::set_value(pin_value v)
 {
     if(!opened_) return false;
     int fileDescriptor;
@@ -146,7 +146,7 @@ bool gpio::set_value(pin_value v)
     return 0;
 }
 
-bool gpio::set_edge(char *edge)
+bool Gpio::set_edge(char *edge)
 {
     if(!opened_) return false;
     int fileDescriptor;
@@ -170,7 +170,7 @@ bool gpio::set_edge(char *edge)
     return true;
 }
 
-int gpio::get_value()
+int Gpio::get_value()
 {
     if(!opened_) return -1;
     int fileDescriptor;

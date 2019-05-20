@@ -1,21 +1,22 @@
-#pragma once
+#ifndef __OBSERVER_HPP
+#define __OBSERVER_HPP
 
 #include <memory>
 #include <vector>
 
-class subscriber;
-class publisher;
+class Subscriber;
+class Publisher;
 
-typedef std::shared_ptr<subscriber> sub_ptr;
-typedef std::shared_ptr<publisher> pub_ptr;
+typedef std::shared_ptr<Subscriber> sub_ptr;
+typedef std::shared_ptr<Publisher> pub_ptr;
 
-class subscriber: public std::enable_shared_from_this<subscriber>
+class Subscriber: public std::enable_shared_from_this<Subscriber>
 {
 public:
     virtual void updata(const pub_ptr &pub, const int &type) = 0;
 };
 
-class publisher: public std::enable_shared_from_this<publisher>
+class Publisher: public std::enable_shared_from_this<Publisher>
 {
 public:
     virtual void attach(const sub_ptr &s)
@@ -49,3 +50,5 @@ public:
 protected:
     std::vector<sub_ptr> subs_;
 };
+
+#endif

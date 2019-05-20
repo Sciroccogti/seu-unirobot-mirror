@@ -1,6 +1,6 @@
 add_library(SL STATIC
-	SelfLocalization.cpp
+	localization.cpp
 	kalman.cpp
-	SoccerMap.cpp
+	soccermap.cpp
 )
 

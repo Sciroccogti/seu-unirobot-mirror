@@ -1,17 +1,18 @@
-#pragma once
+#ifndef __CONFIGURATION_HPP
+#define __CONFIGURATION_HPP
 
-#include "parser/config_parser.hpp"
+#include "parser/parser.hpp"
 #include "singleton.hpp"
 #include <eigen3/Eigen/Dense>
 
-class configuration: public singleton<configuration>
+class Configuration: public Singleton<Configuration>
 {
 public:
     bool init(const int &id = 0)
     {
         id_ = id;
 
-        if (!parser::config_parser::parse("data/config.conf", config_tree_))
+        if (!parser::parse("data/config.conf", config_tree_))
         {
             return false;
         }
@@ -30,7 +31,7 @@ public:
         }
         catch (parser::bpt::ptree_error &e)
         {
-            throw class_exception<configuration>("No such keyword: " + keyword);
+            throw ClassException<Configuration>("No such keyword: " + keyword);
         }
     }
 
@@ -51,7 +52,7 @@ public:
         }
         catch (parser::bpt::ptree_error &e)
         {
-            throw class_exception<configuration>("No such keyword: " + keyword);
+            throw ClassException<Configuration>("No such keyword: " + keyword);
         }
     }
 
@@ -108,5 +109,6 @@ private:
     int id_, team_number_;;
 };
 
-#define CONF configuration::instance()
+#define CONF Configuration::instance()
 
+#endif

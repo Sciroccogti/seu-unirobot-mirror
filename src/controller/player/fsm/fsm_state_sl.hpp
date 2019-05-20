@@ -1,4 +1,5 @@
-#pragma once
+#ifndef __FSM_STATE_SL_HPP
+#define __FSM_STATE_SL_HPP
 
 #include "fsm.hpp"
 #include "vision/vision.hpp"
@@ -33,3 +34,4 @@ public:
     task_list OnStateTick();
 };
 
+#endif

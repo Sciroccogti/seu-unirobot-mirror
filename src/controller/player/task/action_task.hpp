@@ -1,14 +1,15 @@
-#pragma once
+#ifndef __ACTION_TASK_HPP
+#define __ACTION_TASK_HPP
 
 #include "task.hpp"
-#include "robot/humanoid.hpp"
-#include "engine/action/ActionEngine.hpp"
+#include "robot/robot.hpp"
+#include "engine/action/action_engine.hpp"
 
-class action_task: public task
+class ActionTask: public Task
 {
 public:
-    action_task(const std::string &name)
-        : act_name_(name), task("action")
+    ActionTask(const std::string &name)
+        : act_name_(name), Task("action")
     {
         
     }
@@ -40,3 +41,5 @@ public:
 private:
     std::string act_name_;
 };
+
+#endif

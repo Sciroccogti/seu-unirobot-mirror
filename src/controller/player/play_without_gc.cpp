@@ -15,7 +15,7 @@ using namespace robot_math;
 using namespace motion;
 
 
-std::list<task_ptr> player::play_without_gc()
+std::list<task_ptr> Player::play_without_gc()
 {
     list<task_ptr> tasks;
     if(!played_)

@@ -1,7 +1,8 @@
-#pragma once
+#ifndef __JOINT_SETTER_HPP
+#define __JOINT_SETTER_HPP
 
 #include <QtWidgets>
-#include "robot/humanoid.hpp"
+#include "robot/robot.hpp"
 #include "tcp_client/tcp_client.hpp"
 
 class JSSlider: public QWidget
@@ -68,3 +69,5 @@ private:
     QString net_info;
     bool first_connect;
 };
+
+#endif

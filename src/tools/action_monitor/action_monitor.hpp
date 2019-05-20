@@ -1,8 +1,9 @@
-#pragma once
+#ifndef __ACTION_MONITOR_HPP
+#define __ACTION_MONITOR_HPP
 
 #include <QtWidgets>
 #include "ui/robot_gl.hpp"
-#include "robot/humanoid.hpp"
+#include "robot/robot.hpp"
 #include "tcp_client/tcp_client.hpp"
 
 class ActionMonitor: public QMainWindow
@@ -23,3 +24,5 @@ private:
     QString net_info;
     bool first_connect;
 };
+
+#endif

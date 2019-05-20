@@ -2,7 +2,7 @@
 #include "action_monitor.hpp"
 #include "configuration.hpp"
 #include "options/options.hpp"
-#include "robot/humanoid.hpp"
+#include "robot/robot.hpp"
 #include "common.hpp"
 
 using namespace std;

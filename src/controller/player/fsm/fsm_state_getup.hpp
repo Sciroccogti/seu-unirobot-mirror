@@ -1,4 +1,5 @@
-#pragma once
+#ifndef __FSM_STATE_GETUP_HPP
+#define __FSM_STATE_GETUP_HPP
 
 #include "fsm.hpp"
 
@@ -23,3 +24,5 @@ public:
 
     task_list OnStateTick();
 };
+
+#endif

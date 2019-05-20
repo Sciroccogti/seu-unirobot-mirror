@@ -1,4 +1,4 @@
 add_subdirectory(darknet)
 add_subdirectory(imageproc)
 add_subdirectory(robot)
-add_subdirectory(cuda)
+add_subdirectory(parser)

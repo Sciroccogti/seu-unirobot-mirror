@@ -1,15 +1,16 @@
-#pragma once
+#ifndef __WALK_TASK_HPP
+#define __WALK_TASK_HPP
 
 #include <eigen3/Eigen/Dense>
 #include "task.hpp"
-#include "engine/walk/WalkEngine.hpp"
+#include "engine/walk/walk_engine.hpp"
 #include "core/adapter.hpp"
 
-class walk_task: public task
+class WalkTask: public Task
 {
 public:
-    walk_task(float x, float y, float dir, bool enable)
-        : x_(x), y_(y), d_(dir), e_(enable), task("walk")
+    WalkTask(float x, float y, float dir, bool enable)
+        : x_(x), y_(y), d_(dir), e_(enable), Task("walk")
     {
 
     }
@@ -24,3 +25,5 @@ private:
     float x_, y_, d_;
     bool e_;
 };
+
+#endif

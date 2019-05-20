@@ -1,4 +1,4 @@
-#include "LedEngine.hpp"
+#include "led_engine.hpp"
 #include <unistd.h>
 #include "logger.hpp"
 #include "configuration.hpp"
@@ -7,13 +7,13 @@ using namespace std;
 
 LedEngine::LedEngine()
 {
-    led1_ = make_shared<gpio>(gpio::gpio_map[CONF->get_config_value<string>("hardware.gpio.led.1")]);
-    led2_ = make_shared<gpio>(gpio::gpio_map[CONF->get_config_value<string>("hardware.gpio.led.2")]);
+    led1_ = make_shared<Gpio>(Gpio::gpio_map[CONF->get_config_value<string>("hardware.gpio.led.1")]);
+    led2_ = make_shared<Gpio>(Gpio::gpio_map[CONF->get_config_value<string>("hardware.gpio.led.2")]);
     can_use_ = (led1_->opened() && led2_->opened());
     if(can_use_)
     {
-        led1_->set_direction(gpio::PIN_OUTPUT);
-        led2_->set_direction(gpio::PIN_OUTPUT);
+        led1_->set_direction(Gpio::PIN_OUTPUT);
+        led2_->set_direction(Gpio::PIN_OUTPUT);
     }
     led1_status_ = false;
     led2_status_ = false;
@@ -74,8 +74,8 @@ void LedEngine::run()
             {
                 if(can_use_)
                 {
-                    led1_->set_value(gpio::PIN_LOW);
-                    led2_->set_value(gpio::PIN_LOW);
+                    led1_->set_value(Gpio::PIN_LOW);
+                    led2_->set_value(Gpio::PIN_LOW);
                 }
                 break;
             }
@@ -101,8 +101,8 @@ void LedEngine::run()
 
 void LedEngine::set_led()
 {
-    led1_->set_value(led1_status_?gpio::PIN_LOW:gpio::PIN_HIGH);
-    led2_->set_value(led2_status_?gpio::PIN_LOW:gpio::PIN_HIGH);
+    led1_->set_value(led1_status_?Gpio::PIN_LOW:Gpio::PIN_HIGH);
+    led2_->set_value(led2_status_?Gpio::PIN_LOW:Gpio::PIN_HIGH);
 }
 
 bool LedEngine::set_led(int idx, bool status)

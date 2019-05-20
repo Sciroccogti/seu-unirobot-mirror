@@ -7,10 +7,12 @@
 #include <cuda_runtime.h>
 #include "darknet/network.h"
 #include "darknet/parser.h"
-#include "cuda/cudaproc.h"
+#include "imageproc/imageproc.hpp"
 
 using namespace cv;
 using namespace std;
+using namespace imgproc;
+
 namespace bfs = boost::filesystem;
 
 vector<string> get_filenames(const string& dir)

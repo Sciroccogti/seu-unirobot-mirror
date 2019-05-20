@@ -1,4 +1,5 @@
-#pragma once
+#ifndef __TCP_HPP
+#define __TCP_HPP
 
 #include <functional>
 #include <string>
@@ -69,3 +70,4 @@ enum {max_data_size = MAX_CMD_LEN - data_offset};
 
 typedef std::function<void (const tcp_command)> tcp_callback;
 
+#endif

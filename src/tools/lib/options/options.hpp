@@ -1,13 +1,14 @@
-#pragma once
+#ifndef __OPTIONS_HPP
+#define __OPTIONS_HPP
 
 #include <boost/program_options.hpp>
 #include "singleton.hpp"
 #include "class_exception.hpp"
 
-class options: public singleton<options>
+class Options: public Singleton<Options>
 {
 public:
-    options();
+    Options();
     bool init(int argc, char *argv[]);
     int id() const
     {
@@ -25,5 +26,6 @@ private:
     int id_;
 };
 
-#define OPTS options::instance()
+#define OPTS Options::instance()
 
+#endif

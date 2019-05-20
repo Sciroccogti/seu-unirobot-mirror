@@ -1,9 +1,8 @@
-#pragma once
+#ifndef __ROBOT_HPP
+#define __ROBOT_HPP
 
 #include <string>
 #include <mutex>
-#include <boost/property_tree/ptree.hpp>
-#include <boost/property_tree/json_parser.hpp>
 #include "robot_define.hpp"
 #include "singleton.hpp"
 #include "math/math.hpp"
@@ -11,18 +10,18 @@
 namespace robot
 {
 
-    class humanoid: public singleton<humanoid>
+    class Robot: public Singleton<Robot>
     {
     public:
-        robot_math::transform_matrix get_foot_mat_from_pose(const robot_pose &pose, bool left);
-        robot_math::transform_matrix get_body_mat_from_pose(const robot_pose &pose);
+        robot_math::TransformMatrix get_foot_mat_from_pose(const robot_pose &pose, bool left);
+        robot_math::TransformMatrix get_body_mat_from_pose(const robot_pose &pose);
 
         bool arm_inverse_kinematics(const Eigen::Vector3d &hand, std::vector<double> &deg);
 
-        robot_math::transform_matrix leg_forward_kinematics(std::vector<double> degs, bool left);
-        bool leg_inverse_kinematics(const robot_math::transform_matrix &body, const robot_math::transform_matrix &foot,
+        robot_math::TransformMatrix leg_forward_kinematics(std::vector<double> degs, bool left);
+        bool leg_inverse_kinematics(const robot_math::TransformMatrix &body, const robot_math::TransformMatrix &foot,
                                     std::vector<double> &deg, const bool &left = false);
-        bool leg_inverse_kinematics_walk(const robot_math::transform_matrix &body, const robot_math::transform_matrix &foot,
+        bool leg_inverse_kinematics_walk(const robot_math::TransformMatrix &body, const robot_math::TransformMatrix &foot,
                                     std::vector<double> &deg, const bool &left = false);
 
         void init(const std::string &robot_file, const std::string &action_file, const std::string &offset_file);
@@ -149,5 +148,7 @@ namespace robot
         double E_, F_;
     };
 
-#define ROBOT humanoid::instance()
+#define ROBOT Robot::instance()
 }
+
+#endif

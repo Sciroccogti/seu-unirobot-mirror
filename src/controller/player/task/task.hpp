@@ -1,4 +1,5 @@
-#pragma once
+#ifndef __TASK_HPP
+#define __TASK_HPP
 
 #include <memory>
 #include <string>
@@ -6,11 +7,11 @@
 #include <vector>
 #include <list>
 
-class task
+class Task
 {
 public:
-    task()=default;
-    task(const std::string &name): name_(name){}
+    Task()=default;
+    Task(const std::string &name): name_(name){}
 
     std::string name() const
     {
@@ -26,5 +27,7 @@ private:
     std::string name_;
 };
 
-typedef std::shared_ptr<task> task_ptr;
+typedef std::shared_ptr<Task> task_ptr;
 typedef std::list<task_ptr> task_list;
+
+#endif

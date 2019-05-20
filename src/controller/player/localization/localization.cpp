@@ -1,14 +1,14 @@
 #include <ctime>
 #include <stdlib.h>
 #include <limits.h>
-#include "SelfLocalization.h"
+#include "localization.h"
 #include "configuration.hpp"
 #include "core/worldmodel.hpp"
 
 using namespace std;
 
 int flag;
-SelfLocalization::SelfLocalization(): _haslocated(false)
+Localization::Localization(): _haslocated(false)
 {
     srand(time(0));
 
@@ -18,13 +18,13 @@ SelfLocalization::SelfLocalization(): _haslocated(false)
     _kalman.init();
 }
 
-SelfLocalization::~SelfLocalization()
+Localization::~Localization()
 {
 
 }
 
 
-bool SelfLocalization::update(const player_info &player_info_,const vector< GoalPost > & posts_)
+bool Localization::update(const player_info &player_info_,const vector< goal_post > & posts_)
 {
     clock_t start = clock();  
     _kalman.forecast(player_info_);

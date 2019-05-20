@@ -1,5 +1,5 @@
-#ifndef __SELF_LOCALIZATION_H
-#define __SELF_LOCALIZATION_H
+#ifndef __LOCALIZATION_H
+#define __LOCALIZATION_H
 
 #include <iostream>
 #include <limits.h>
@@ -8,7 +8,7 @@
 #include "math/math.hpp"
 #include "singleton.hpp"
 
-class SelfLocalization: public singleton<SelfLocalization>
+class Localization: public Singleton<Localization>
 {
 public:
     struct SLF_conf
@@ -24,10 +24,10 @@ private:
     SLF_conf _conf;
     bool _haslocated;
 public:
-    SelfLocalization();
-    ~SelfLocalization();
+    Localization();
+    ~Localization();
 
-    bool update(const player_info &player_info_,const std::vector< GoalPost > & posts_);
+    bool update(const player_info &player_info_,const std::vector< goal_post > & posts_);
     //bool update1(const SensorModel &sensormodel,const Vector3f &moveVec,SoccerMap::PlayerData *player);
 
     SLF_conf getConfig() const
@@ -36,7 +36,7 @@ public:
     }
 };
 
-#define SL SelfLocalization::instance()
+#define SL Localization::instance()
 
 
 #endif

@@ -2,7 +2,7 @@
 #include <errno.h>
 #include <functional>
 #include "camera.hpp"
-#include "parser/camera_parser.hpp"
+#include "parser/parser.hpp"
 #include "configuration.hpp"
 #include "class_exception.hpp"
 #include <sstream>
@@ -12,24 +12,24 @@
 
 using namespace std;
 
-camera::camera(): sensor("camera")
+Camera::Camera(): Sensor("camera")
 {
-    parser::camera_info_parser::parse(CONF->get_config_value<string>(CONF->player() + ".camera_info_file"), camera_infos_);
+    parser::parse(CONF->get_config_value<string>(CONF->player() + ".camera_info_file"), camera_infos_);
 }
 
-bool camera::start()
+bool Camera::start()
 {
     if (!this->open())
     {
         return false;
     }
 
-    td_ = std::move(thread(bind(&camera::run, this)));
+    td_ = std::move(thread(bind(&Camera::run, this)));
 
     return true;
 }
 
-void camera::set_camera_info(const camera_info &para)
+void Camera::set_camera_info(const camera_info &para)
 {
     if (!use_mv_)
     {
@@ -61,7 +61,7 @@ void camera::set_camera_info(const camera_info &para)
     }
 }
 
-void camera::run()
+void Camera::run()
 {
     is_alive_ = true;
 
@@ -110,7 +110,7 @@ void camera::run()
     }
 }
 
-void camera::stop()
+void Camera::stop()
 {
     is_alive_ = false;
     sleep(1);
@@ -118,7 +118,7 @@ void camera::stop()
     is_open_ = false;
 }
 
-void camera::close()
+void Camera::close()
 {
     if (use_mv_)
     {
@@ -153,7 +153,7 @@ void camera::close()
     }
 }
 
-bool camera::open()
+bool Camera::open()
 {
     int                     iCameraCounts = 1;
     int                     iStatus = -1;
@@ -276,7 +276,7 @@ bool camera::open()
 }
 
 
-camera::~camera()
+Camera::~Camera()
 {
     if (td_.joinable())
     {

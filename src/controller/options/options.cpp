@@ -5,7 +5,7 @@
 using namespace std;
 using namespace boost::program_options;
 
-options::options(): opts_desc_("  Options description")
+Options::Options(): opts_desc_("  Options description")
 {
     opts_desc_.add_options()
     ("help,h", "Print this message and exit.")
@@ -29,7 +29,7 @@ options::options(): opts_desc_("  Options description")
      "If you want to record image.");
 }
 
-bool options::init(int argc, char **argv)
+bool Options::init(int argc, char **argv)
 {
     try
     {

@@ -1,4 +1,5 @@
-#pragma once
+#ifndef __ROBOT_DEFINE_HPP
+#define __ROBOT_DEFINE_HPP
 
 #include <string>
 #include <list>
@@ -9,15 +10,15 @@
 
 namespace robot
 {
-    class bone;
-    class joint;
+    class Bone;
+    class Joint;
 
-    typedef std::shared_ptr<joint> joint_ptr;
-    typedef std::shared_ptr<bone> bone_ptr;
+    typedef std::shared_ptr<Joint> joint_ptr;
+    typedef std::shared_ptr<Bone> bone_ptr;
     typedef std::map<std::string, joint_ptr> joint_map;
     typedef std::map<std::string, bone_ptr> bone_map;
 
-    class bone
+    class Bone
     {
     public:
         std::string name_;
@@ -27,10 +28,10 @@ namespace robot
         std::list<joint_ptr> joints_;
     };
 
-    class joint
+    class Joint
     {
     public:
-        joint()
+        Joint()
         {
             jid_ = 0;
             can_turn_ = true;
@@ -51,7 +52,7 @@ namespace robot
             return current_deg_;
         }
 
-        joint &operator = (const joint &j)
+        Joint &operator = (const Joint &j)
         {
             jid_ = j.jid_;
             name_ = j.name_;
@@ -163,3 +164,5 @@ namespace robot
     typedef std::map<std::string, robot_act> act_map;
     typedef std::map<std::string, robot_pos> pos_map;
 }
+
+#endif

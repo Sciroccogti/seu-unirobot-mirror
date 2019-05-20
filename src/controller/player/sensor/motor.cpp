@@ -32,7 +32,7 @@ using namespace robot;
 using namespace dynamixel;
 using namespace robot_math;
 
-motor::motor(): sensor("motor"), timer(CONF->get_config_value<int>("hardware.motor.period"))
+Motor::Motor(): Sensor("Motor"), Timer(CONF->get_config_value<int>("hardware.motor.period"))
 {
     p_count_ = 0;
     portHandler_ = PortHandler::getPortHandler(CONF->get_config_value<string>("hardware.motor.dev_name").c_str());
@@ -59,24 +59,24 @@ inline float pos2float(const uint32_t &pos)
     return (float)((int)pos - ZERO_POS) * (360.0f / (float)(MAX_POS - MIN_POS));
 }
 
-bool motor::start()
+bool Motor::start()
 {
     if (!open())
     {
         return false;
     }
 
-    sensor::is_alive_ = true;
-    timer::is_alive_ = true;
+    Sensor::is_alive_ = true;
+    Timer::is_alive_ = true;
     start_timer();
     return true;
 }
 
-void motor::run()
+void Motor::run()
 {
     std::map<int, float> jdmap;
 
-    if (timer::is_alive_)
+    if (Timer::is_alive_)
     {
         ROBOT->set_degs(MADT->get_degs());
          
@@ -90,7 +90,7 @@ void motor::run()
     }
 }
 
-void motor::virtul_act()
+void Motor::virtul_act()
 {
     tcp_command cmd;
     cmd.type = JOINT_DATA;
@@ -111,7 +111,7 @@ void motor::virtul_act()
     SERVER->write(cmd);
 }
 
-void motor::real_act()
+void Motor::real_act()
 {
     uint8_t dxl_error = 0;
     int not_alert_error = 0;
@@ -144,7 +144,7 @@ void motor::real_act()
     }
 }
 
-bool motor::read_all_pos()
+bool Motor::read_all_pos()
 {
     int dxl_comm_result = COMM_TX_FAIL;
     uint8_t id = 0;
@@ -186,7 +186,7 @@ bool motor::read_all_pos()
     return true;
 }
 
-bool motor::read_legs_pos()
+bool Motor::read_legs_pos()
 {
     int dxl_comm_result = COMM_TX_FAIL;
     uint8_t id = 0;
@@ -228,7 +228,7 @@ bool motor::read_legs_pos()
     return true;
 }
 
-bool motor::read_head_pos()
+bool Motor::read_head_pos()
 {
     int dxl_comm_result = COMM_TX_FAIL;
     uint8_t id = 0;
@@ -270,7 +270,7 @@ bool motor::read_head_pos()
     return true;
 }
 
-bool motor::open()
+bool Motor::open()
 {
     if (OPTS->use_robot())
     {
@@ -279,7 +279,7 @@ bool motor::open()
             return false;
         }
 
-        if (!portHandler_->setBaudRate(CONF->get_config_value<int>("hardware.motor.baudrate")))
+        if (!portHandler_->setBaudRate(CONF->get_config_value<int>("hardware.Motor.baudrate")))
         {
             return false;
         }
@@ -290,7 +290,7 @@ bool motor::open()
     return true;
 }
 
-void motor::close()
+void Motor::close()
 {
     if (is_open_)
     {
@@ -299,22 +299,22 @@ void motor::close()
     }
 }
 
-void motor::stop()
+void Motor::stop()
 {
-    sensor::is_alive_ = false;
-    timer::is_alive_ = false;
+    Sensor::is_alive_ = false;
+    Timer::is_alive_ = false;
     close();
     delete_timer();
 }
 
-void motor::read_voltage()
+void Motor::read_voltage()
 {
     uint8_t dxl_error = 0;
     int dxl_comm_result = COMM_TX_FAIL;
     dxl_comm_result = packetHandler_->read2ByteTxRx(portHandler_, ping_id_, ADDR_VOLT, (uint16_t *)&voltage_, &dxl_error);
 }
 
-void motor::set_torq(uint8_t e)
+void Motor::set_torq(uint8_t e)
 {
     torqWrite_->clearParam();
     uint8_t torq_data;
@@ -328,7 +328,7 @@ void motor::set_torq(uint8_t e)
     torqWrite_->txPacket();
 }
 
-void motor::set_led(uint8_t s)
+void Motor::set_led(uint8_t s)
 {
     ledWrite_->clearParam();
     uint8_t led_data;
@@ -342,7 +342,7 @@ void motor::set_led(uint8_t s)
     ledWrite_->txPacket();
 }
 
-void motor::set_gpos()
+void Motor::set_gpos()
 {
     gposWrite_->clearParam();
     uint8_t gpos_data[4];

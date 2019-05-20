@@ -29,7 +29,7 @@ task_list FSMStateSearchBall::OnStateTick()
             return fsm_->Trans(FSM_STATE_GOTO_BALL);
         else
         {
-            tasks.push_back(make_shared<walk_task>(0.0, 0.0, dir, true));
+            tasks.push_back(make_shared<WalkTask>(0.0, 0.0, dir, true));
             return tasks;
         }
     }
@@ -37,15 +37,15 @@ task_list FSMStateSearchBall::OnStateTick()
     if(first_in_)
     {
         first_in_ = false;
-        tasks.push_back(std::make_shared<look_task>(motion::HEAD_STATE_SEARCH_BALL));
-        tasks.push_back(std::make_shared<walk_task>(0.0, 0.0, 0.0, false));
+        tasks.push_back(std::make_shared<LookTask>(motion::HEAD_STATE_SEARCH_BALL));
+        tasks.push_back(std::make_shared<WalkTask>(0.0, 0.0, 0.0, false));
     }
     else
     {
         if(motion::SE->search_ball_end_)
         {
-            tasks.push_back(std::make_shared<look_task>(motion::HEAD_STATE_SEARCH_BALL));
-            tasks.push_back(std::make_shared<walk_task>(0.0, 0.0, 10.0, true));
+            tasks.push_back(std::make_shared<LookTask>(motion::HEAD_STATE_SEARCH_BALL));
+            tasks.push_back(std::make_shared<WalkTask>(0.0, 0.0, 10.0, true));
         }
     }
     return tasks;
@@ -69,27 +69,27 @@ task_list FSMStateGotoBall::OnStateTick()
     double self2left_dir = azimuth_deg(WM->opp_post_left-self.global);
     double self2right_dir = azimuth_deg(WM->opp_post_right-self.global);
     if(ball_dis<=enter_kick_dis_ && self.dir>=self2right_dir && self.dir<=self2left_dir)
-        return fsm_->Trans(FSM_STATE_DRIBBLE);
+        return fsm_->Trans(FSM_STATE_KICK_BALL);
     else if(ball_dis>enter_kick_dis_)
     {
         if(fabs(ball_dir)>10.0)
-            tasks.push_back(make_shared<walk_task>(0.0, 0.0, ball_dir, true));
+            tasks.push_back(make_shared<WalkTask>(0.0, 0.0, ball_dir, true));
         else
-            tasks.push_back(make_shared<walk_task>(0.035, 0.0, 0.0, true));
+            tasks.push_back(make_shared<WalkTask>(0.035, 0.0, 0.0, true));
     }
     else if(self.dir>self2left_dir)
     {
-        tasks.push_back(make_shared<walk_task>(-0.01, 0.01, -8.0, true));
+        tasks.push_back(make_shared<WalkTask>(-0.01, 0.01, -8.0, true));
     }
     else if(self.dir<self2right_dir)
     {
-        tasks.push_back(make_shared<walk_task>(-0.01, -0.01, 8.0, true));
+        tasks.push_back(make_shared<WalkTask>(-0.01, -0.01, 8.0, true));
     }
 
     if(ball.self.x()<retreat_x_dis_ && fabs(ball.self.y())>retreat_y_dis_)
     {
         tasks.clear();
-        tasks.push_back(make_shared<walk_task>(-0.02, 0.0, 0.0, true));
+        tasks.push_back(make_shared<WalkTask>(-0.02, 0.0, 0.0, true));
     }
     return tasks;
 }
@@ -109,19 +109,19 @@ task_list FSMStateKickBall::OnStateTick()
         return fsm_->Trans(FSM_STATE_GOTO_BALL);
 
     if(ball.beta>retreat_beta_ && fabs(ball.alpha)>retreat_alpha_)
-        tasks.push_back(make_shared<walk_task>(-0.015, 0.0, 0.0, true));
+        tasks.push_back(make_shared<WalkTask>(-0.015, 0.0, 0.0, true));
     else
     {
         if(ball.alpha>-0.1)
-            tasks.push_back(std::make_shared<walk_task>(0.0, -0.01, 0.0, true));
+            tasks.push_back(std::make_shared<WalkTask>(-0.01, -0.01, 0.0, true));
         else if(ball.alpha<-0.2)
-            tasks.push_back(std::make_shared<walk_task>(0.0, 0.01, 0.0, true));
+            tasks.push_back(std::make_shared<WalkTask>(-0.01, 0.01, 0.0, true));
         else
         {
-            if(ball.beta<0.42)
-                tasks.push_back(std::make_shared<walk_task>(0.01, 0.0, 0.0, true));
+            if(ball.beta<0.3)
+                tasks.push_back(std::make_shared<WalkTask>(0.01, 0.0, 0.0, true));
             else
-                tasks.push_back(std::make_shared<action_task>("left_little_kick"));
+                tasks.push_back(std::make_shared<ActionTask>("left_little_kick"));
         }
     }
     return tasks;
@@ -144,21 +144,21 @@ task_list FSMStateDribble::OnStateTick()
         return fsm_->Trans(FSM_STATE_GOTO_BALL);
 
     if(ball.beta>retreat_beta_ && fabs(ball.alpha)>retreat_alpha_)
-        tasks.push_back(make_shared<walk_task>(-0.02, 0.0, 0.0, true));
+        tasks.push_back(make_shared<WalkTask>(-0.02, 0.0, 0.0, true));
     else
     {
         if(ball.alpha>0.1)
-            tasks.push_back(std::make_shared<walk_task>(0.0, -0.01, 0.0, true));
+            tasks.push_back(std::make_shared<WalkTask>(0.0, -0.01, 0.0, true));
         else if(ball.alpha<-0.1)
-            tasks.push_back(std::make_shared<walk_task>(0.0, 0.01, 0.0, true));
+            tasks.push_back(std::make_shared<WalkTask>(0.0, 0.01, 0.0, true));
         else
         {
             float target_dir = azimuth_deg(target_pos_-WM->self().global);
             float deg = normalize_deg(WM->self().dir-target_dir);
             if(fabs(deg)>15.0)
-                tasks.push_back(std::make_shared<walk_task>(0.0, 0.0, -deg, true));
+                tasks.push_back(std::make_shared<WalkTask>(0.0, 0.0, -deg, true));
             else
-                tasks.push_back(std::make_shared<walk_task>(0.035, 0.0, 0.0, true));
+                tasks.push_back(std::make_shared<WalkTask>(0.035, 0.0, 0.0, true));
         }
     }
     return tasks;
@@ -172,8 +172,8 @@ task_list FSMStateSL::OnStateTick()
     if(motion::SE->search_post_end_)
         return fsm_->Trans(FSM_STATE_SEARCH_BALL);
 
-    tasks.push_back(std::make_shared<look_task>(motion::HEAD_STATE_SEARCH_POST));
-    tasks.push_back(std::make_shared<walk_task>(0.0, 0.0, 0.0, false));
+    tasks.push_back(std::make_shared<LookTask>(motion::HEAD_STATE_SEARCH_POST));
+    tasks.push_back(std::make_shared<WalkTask>(0.0, 0.0, 0.0, false));
     return tasks;
 }
 
@@ -183,13 +183,13 @@ task_list FSMStateGetup::OnStateTick()
     if(WM->fall_data()!=FALL_NONE)
     {
         if(WM->fall_data()==FALL_FORWARD)
-            tasks.push_back(std::make_shared<action_task>("front_getup"));
+            tasks.push_back(std::make_shared<ActionTask>("front_getup"));
         else if(WM->fall_data()==FALL_BACKWARD)
-            tasks.push_back(std::make_shared<action_task>("back_getup"));
+            tasks.push_back(std::make_shared<ActionTask>("back_getup"));
         else if(WM->fall_data()==FALL_LEFT)
-            tasks.push_back(std::make_shared<action_task>("right_arm"));
+            tasks.push_back(std::make_shared<ActionTask>("right_arm"));
         else
-            tasks.push_back(std::make_shared<action_task>("left_arm"));
+            tasks.push_back(std::make_shared<ActionTask>("left_arm"));
     }
     else
     {
@@ -203,8 +203,8 @@ task_list FSMStateReady::OnStateTick()
     task_list tasks, tlist;
     if(WM->fall_data()!=FALL_NONE)
         return fsm_->Trans(FSM_STATE_GETUP);
-    tasks.push_back(std::make_shared<action_task>("ready"));
-    tasks.push_back(std::make_shared<look_task>(0.0, 40.0));
+    tasks.push_back(std::make_shared<WalkTask>(0.0, 0.0, 0.0, false));
+    tasks.push_back(std::make_shared<LookTask>(0.0, 40.0));
     tlist = fsm_->Trans(FSM_STATE_SEARCH_BALL);
     tasks.insert(tasks.end(), tlist.begin(), tlist.end());
     return tasks;

@@ -1,26 +1,26 @@
 #include "worldmodel.hpp"
-#include "localization/SoccerMap.h"
+#include "localization/soccermap.h"
 
 using namespace Eigen;
 using namespace robot_math;
 using namespace robot;
 using namespace std;
 
-world_model::world_model()
+WorldModel::WorldModel()
 {
     fall_direction_ = FALL_NONE;
     support_foot_ = robot::DOUBLE_SUPPORT;
     player_infos_[CONF->id()].id = CONF->id();
-    opp_post_left = Vector2d(SOCCERMAP->width()/200.0, SOCCERMAP->goalWidth()/200.0-0.7);
-    opp_post_right = Vector2d(SOCCERMAP->width()/200.0, -SOCCERMAP->goalWidth()/200.0+0.7);
+    opp_post_left = Vector2d(SOCCERMAP->width()/200.0, SOCCERMAP->goalWidth()/200.0);
+    opp_post_right = Vector2d(SOCCERMAP->width()/200.0, -SOCCERMAP->goalWidth()/200.0);
     localization_time_ = false;
 }
 
-void world_model::updata(const pub_ptr &pub, const int &type)
+void WorldModel::updata(const pub_ptr &pub, const int &type)
 {
-    if (type == sensor::SENSOR_IMU)
+    if (type == Sensor::SENSOR_IMU)
     {
-        std::shared_ptr<imu> sptr = std::dynamic_pointer_cast<imu>(pub);
+        std::shared_ptr<Imu> sptr = std::dynamic_pointer_cast<Imu>(pub);
         imu_mtx_.lock();
         imu_data_ = sptr->data();
         fall_direction_ = sptr->fall_direction();
@@ -34,26 +34,26 @@ void world_model::updata(const pub_ptr &pub, const int &type)
         return;
     }
 
-    if(type == sensor::SENSOR_BUTTON)
+    if(type == Sensor::SENSOR_BUTTON)
     {
-        std::shared_ptr<button> sptr = std::dynamic_pointer_cast<button>(pub);
+        std::shared_ptr<Button> sptr = std::dynamic_pointer_cast<Button>(pub);
         bt1_status_ = sptr->button_1();
         bt2_status_ = sptr->button_2();
         return;
     }
 
-    if(type == sensor::SENSOR_GC)
+    if(type == Sensor::SENSOR_GC)
     {
-        std::shared_ptr<gamectrl> sptr = std::dynamic_pointer_cast<gamectrl>(pub);
+        std::shared_ptr<GameCtrl> sptr = std::dynamic_pointer_cast<GameCtrl>(pub);
         gc_mtx_.lock();
         gc_data_ = sptr->data();
         gc_mtx_.unlock();
         return;
     }
 
-    if(type == sensor::SENSOR_HEAR)
+    if(type == Sensor::SENSOR_HEAR)
     {
-        std::shared_ptr<hear> sptr = std::dynamic_pointer_cast<hear>(pub);
+        std::shared_ptr<Hear> sptr = std::dynamic_pointer_cast<Hear>(pub);
         info_mtx_.lock();
         player_info info = sptr->info();
         player_infos_[info.id] = info;
@@ -62,7 +62,7 @@ void world_model::updata(const pub_ptr &pub, const int &type)
     }
 }
 
-void world_model::set_my_pos(const Eigen::Vector2d &my)
+void WorldModel::set_my_pos(const Eigen::Vector2d &my)
 {
     info_mtx_.lock();
     player_infos_[CONF->id()].x = my.x();
@@ -73,7 +73,7 @@ void world_model::set_my_pos(const Eigen::Vector2d &my)
     self_mtx_.unlock();
 }
 
-void world_model::set_ball_pos(const Eigen::Vector2d &global, const Eigen::Vector2d &my, const Eigen::Vector2i &pix,
+void WorldModel::set_ball_pos(const Eigen::Vector2d &global, const Eigen::Vector2d &my, const Eigen::Vector2i &pix,
     float alpha, float beta,  bool can)
 {
     info_mtx_.lock();
@@ -92,7 +92,7 @@ void world_model::set_ball_pos(const Eigen::Vector2d &global, const Eigen::Vecto
     ball_mtx_.unlock();
 }
 
-void world_model::reset_hear_info()
+void WorldModel::reset_hear_info()
 {
     info_mtx_.lock();
     for(auto &item:player_infos_)

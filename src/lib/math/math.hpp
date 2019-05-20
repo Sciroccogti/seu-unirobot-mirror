@@ -1,4 +1,5 @@
-#pragma once
+#ifndef __MATH_HPP
+#define __MATH_HPP
 
 #include "matrix.hpp"
 
@@ -19,3 +20,5 @@ namespace robot_math
         return fabs(v1-v2)<1E-5;
     }
 }
+
+#endif

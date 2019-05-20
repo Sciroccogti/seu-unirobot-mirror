@@ -5,7 +5,7 @@
 #include "ui/joint_setter.hpp"
 #include "math/math.hpp"
 #include "configuration.hpp"
-#include "parser/action_parser.hpp"
+#include "parser/parser.hpp"
 
 #define SCALE_K  0.001f
 #define DEG_RANGE 180.0f
@@ -398,7 +398,7 @@ bool ActionDebuger::turn_joint()
     lefthand[0] = pose_map_[MOTION_LEFT_HAND].x;
     lefthand[2] = pose_map_[MOTION_LEFT_HAND].z;
 
-    transform_matrix body_mat, leftfoot_mat, rightfoot_mat;
+    TransformMatrix body_mat, leftfoot_mat, rightfoot_mat;
     body_mat = ROBOT->get_body_mat_from_pose(pose_map_[MOTION_BODY]);
     leftfoot_mat = ROBOT->get_foot_mat_from_pose(pose_map_[MOTION_LEFT_FOOT], true);
     rightfoot_mat = ROBOT->get_foot_mat_from_pose(pose_map_[MOTION_RIGHT_FOOT], false);
@@ -925,7 +925,7 @@ void ActionDebuger::procButtonSaveAction()
         return;
     }
 
-    action_parser::save(CONF->action_file(), ROBOT->get_act_map(), ROBOT->get_pos_map());
+    save(CONF->action_file(), ROBOT->get_act_map(), ROBOT->get_pos_map());
 }
 
 void ActionDebuger::procButtonAddAction()
@@ -1055,7 +1055,7 @@ void ActionDebuger::closeEvent(QCloseEvent *event)
 
     if (reply == QMessageBox::StandardButton::Yes)
     {
-        action_parser::save(CONF->action_file(), ROBOT->get_act_map(), ROBOT->get_pos_map());
+        save(CONF->action_file(), ROBOT->get_act_map(), ROBOT->get_pos_map());
     }
 
     client_.stop();

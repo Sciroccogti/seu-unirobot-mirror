@@ -1,4 +1,5 @@
-#pragma once
+#ifndef __SERVER_HPP
+#define __SERVER_HPP
 
 #include <boost/asio.hpp>
 #include <vector>
@@ -52,7 +53,7 @@ private:
     unsigned int recv_size_;
 };
 
-class tcp_server: public singleton<tcp_server>
+class tcp_server: public Singleton<tcp_server>
 {
 public:
     tcp_server();
@@ -91,3 +92,5 @@ private:
 };
 
 #define SERVER tcp_server::instance()
+
+#endif

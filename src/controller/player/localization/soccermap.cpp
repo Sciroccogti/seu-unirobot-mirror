@@ -1,5 +1,5 @@
-#include "SoccerMap.h"
-#include "parser/field_parser.hpp"
+#include "soccermap.h"
+#include "parser/parser.hpp"
 
 using namespace std;
 using namespace robot_math;
@@ -21,7 +21,7 @@ SoccerMap::SoccerMap()
 
 bool SoccerMap::getConfigInfo()
 {
-    if(!parser::field_parser::parse(CONF->field_file(), filed_info_))
+    if(!parser::parse(CONF->field_file(), filed_info_))
     {
         return false;
     }

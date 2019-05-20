@@ -1,4 +1,5 @@
-#pragma once
+#ifndef __IMAGE_LABEL_HPP
+#define __IMAGE_LABEL_HPP
 
 #include <QtWidgets>
 
@@ -23,3 +24,5 @@ private:
     QRect shotRect;
     QImage image;
 };
+
+#endif

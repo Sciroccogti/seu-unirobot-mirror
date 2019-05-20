@@ -1,4 +1,5 @@
-#pragma once
+#ifndef __TEAM_MONITOR_HPP
+#define __TEAM_MONITOR_HPP
 
 #include <QtWidgets>
 #include <boost/asio.hpp>
@@ -31,3 +32,5 @@ private:
     boost::asio::ip::udp::endpoint point_;
     std::map<int, StateMonitor*> state_monitors_;
 };
+
+#endif

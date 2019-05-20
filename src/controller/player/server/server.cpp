@@ -1,6 +1,6 @@
 #include "server.hpp"
 #include "configuration.hpp"
-#include "robot/humanoid.hpp"
+#include "robot/robot.hpp"
 #include <string>
 #include <iostream>
 #include "logger.hpp"

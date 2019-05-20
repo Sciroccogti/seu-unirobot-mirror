@@ -2,14 +2,14 @@
 
 using namespace boost::program_options;
 
-options::options(): opts_desc_("  Options description")
+Options::Options(): opts_desc_("  Options description")
 {
     opts_desc_.add_options()
     ("help,h", "Print this message and exit.")
     ("player,p", value<int>()->default_value(0), "Player ID number.");
 }
 
-bool options::init(int argc, char *argv[])
+bool Options::init(int argc, char *argv[])
 {
     try
     {

@@ -4,15 +4,15 @@
 #include "task/walk_task.hpp"
 #include "tcp.hpp"
 #include "server/server.hpp"
-#include "engine/action/ActionEngine.hpp"
-#include "engine/walk/WalkEngine.hpp"
-#include "engine/scan/ScanEngine.hpp"
+#include "engine/action/action_engine.hpp"
+#include "engine/walk/walk_engine.hpp"
+#include "engine/scan/scan_engine.hpp"
 
 using namespace robot;
 using namespace std;
 using namespace motion;
 
-void player::play_with_remote()
+void Player::play_with_remote()
 {
     remote_data rdata = SERVER->rmt_data();
     if (rdata.type == WALK_DATA)
@@ -80,7 +80,7 @@ void player::play_with_remote()
         memcpy(&(info.id), rdata.data.c_str(), int_size);
         memcpy(&(info.value), rdata.data.c_str() + int_size, float_size);
         VISION->set_camera_info(info);
-        shared_ptr<camera> cm = dynamic_pointer_cast<camera>(get_sensor("camera"));
+        shared_ptr<Camera> cm = dynamic_pointer_cast<Camera>(get_sensor("camera"));
         cm->set_camera_info(info);
     }
     else if (rdata.type == IMAGE_SEND_TYPE)

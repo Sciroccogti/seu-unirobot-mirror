@@ -1,6 +1,6 @@
 #include "team_monitor.hpp"
 #include "configuration.hpp"
-#include "parser/field_parser.hpp"
+#include "parser/parser.hpp"
 
 using boost::asio::ip::udp;
 using namespace std;
@@ -9,7 +9,7 @@ boost::asio::io_service udp_service;
 
 TeamMonitor::TeamMonitor(): socket_(udp_service, udp::endpoint(udp::v4(), CONF->get_config_value<short>("net.udp")))
 {
-    parser::field_parser::parse(CONF->field_file(), field_);
+    parser::parse(CONF->field_file(), field_);
     field_.scale_field(0.5);
     setFixedSize(field_.field_length + 2 * field_.border_strip_width_min, field_.field_width + 2 * field_.border_strip_width_min);
     setStyleSheet("background:green");

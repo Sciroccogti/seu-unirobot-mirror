@@ -2,7 +2,7 @@
 #include "image_monitor.hpp"
 #include "configuration.hpp"
 #include "options/options.hpp"
-#include "robot/humanoid.hpp"
+#include "robot/robot.hpp"
 
 using namespace std;
 using namespace robot;

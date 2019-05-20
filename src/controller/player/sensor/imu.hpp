@@ -1,4 +1,5 @@
-#pragma once
+#ifndef __IMU_HPP
+#define __IMU_HPP
 
 #include <boost/asio.hpp>
 #include <memory>
@@ -19,7 +20,7 @@ enum FallDirection
     FALL_RIGHT = -2
 };
 
-class imu: public sensor
+class Imu: public Sensor
 {
 public:
     struct imu_data
@@ -64,8 +65,8 @@ public:
         uint8_t type;
     };
 
-    imu();
-    ~imu();
+    Imu();
+    ~Imu();
 
     bool start();
     void stop();
@@ -112,3 +113,5 @@ private:
 
     float init_dir_;
 };
+
+#endif

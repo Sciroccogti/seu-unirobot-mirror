@@ -1,4 +1,5 @@
-#pragma once
+#ifndef __TIMER_HPP
+#define __TIMER_HPP
 
 #include <stdio.h>
 #include <time.h>
@@ -8,10 +9,10 @@
 #include <unistd.h>
 #include "class_exception.hpp"
 
-class timer
+class Timer
 {
 public:
-    timer(const int &ms)
+    Timer(const int &ms)
     {
         is_alive_ = false;
         period_ms_ = ms;
@@ -24,7 +25,7 @@ public:
 
     static void timer_thread(union sigval v)
     {
-        timer *t = (timer *) v.sival_ptr;
+        Timer *t = (Timer *) v.sival_ptr;
 
         if (t->is_alive_)
         {
@@ -53,12 +54,12 @@ public:
 
             if (timer_create(CLOCK_REALTIME, &se_, &t_) < 0)
             {
-                throw class_exception<timer>("Timer create failed.");
+                throw ClassException<Timer>("Timer create failed.");
             }
 
             if (timer_settime(t_, 0, &it_, 0) < 0)
             {
-                throw class_exception<timer>("Timer setting failed.");
+                throw ClassException<Timer>("Timer setting failed.");
             }
         }
     }
@@ -72,7 +73,7 @@ public:
         }
     }
 
-    ~timer()
+    ~Timer()
     {
         if (is_alive_)
         {
@@ -88,3 +89,5 @@ protected:
     bool is_alive_;
     int period_ms_;
 };
+
+#endif

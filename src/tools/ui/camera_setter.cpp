@@ -1,6 +1,6 @@
 #include "camera_setter.hpp"
 #include "configuration.hpp"
-#include "parser/camera_parser.hpp"
+#include "parser/parser.hpp"
 
 using namespace std;
 
@@ -15,7 +15,7 @@ CameraSetter::CameraSetter(tcp_client &client, QString netinfo, QWidget *parent)
     first_connect = true;
     CtrlSlider *slider;
 
-    parser::camera_info_parser::parse(CONF->get_config_value<string>(CONF->player() + ".camera_info_file"), ctrl_items_);
+    parser::parse(CONF->get_config_value<string>(CONF->player() + ".camera_info_file"), ctrl_items_);
 
     for (auto it : ctrl_items_)
     {
@@ -92,7 +92,7 @@ void CameraSetter::procBtnReset()
 
 void CameraSetter::procBtnSave()
 {
-    parser::camera_info_parser::save(CONF->get_config_value<string>(CONF->player() + ".camera_file"), ctrl_items_);
+    parser::save(CONF->get_config_value<string>(CONF->player() + ".camera_file"), ctrl_items_);
 }
 
 void CameraSetter::procValueChanged(camera_info info)
