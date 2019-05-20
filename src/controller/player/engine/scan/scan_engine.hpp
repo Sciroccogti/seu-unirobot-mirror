@@ -1,4 +1,5 @@
-#pragma once
+#ifndef __SCAN_ENGINE_HPP
+#define __SCAN_ENGINE_HPP
 
 #include <thread>
 #include <mutex>
@@ -17,7 +18,7 @@ namespace motion
         HEAD_STATE_TRACK_BALL
     };
 
-    class ScanEngine: public singleton<ScanEngine>
+    class ScanEngine: public Singleton<ScanEngine>
     {
     public:
         ScanEngine();
@@ -45,3 +46,5 @@ namespace motion
 
     #define SE ScanEngine::instance()
 }
+
+#endif

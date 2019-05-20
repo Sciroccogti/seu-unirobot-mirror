@@ -1,7 +1,8 @@
-#pragma once
+#ifndef __FSM_STATE_DRIBBLE_HPP
+#define __FSM_STATE_DRIBBLE_HPP
 
 #include "fsm.hpp"
-#include "engine/scan/ScanEngine.hpp"
+#include "engine/scan/scan_engine.hpp"
 
 class FSMStateDribble: public FSMState
 {
@@ -18,7 +19,7 @@ public:
     {
         LOG(LOG_INFO)<<"Enter dribble"<<endll;
         task_list tasks;
-        tasks.push_back(std::make_shared<look_task>(0.0, motion::SE->pitch_range_[1]));
+        tasks.push_back(std::make_shared<LookTask>(0.0, motion::SE->pitch_range_[1]));
         return tasks;
     }
 
@@ -38,3 +39,5 @@ private:
 
     Eigen::Vector2d target_pos_;
 };
+
+#endif

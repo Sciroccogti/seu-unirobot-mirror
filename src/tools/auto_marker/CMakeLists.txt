@@ -4,7 +4,7 @@ target_link_libraries(auto_marker
     boost_system 
     boost_filesystem 
     darknet
-    cudaproc
+    imageproc
     opencv_core
     opencv_imgcodecs
     opencv_imgproc)

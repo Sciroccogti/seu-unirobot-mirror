@@ -1,12 +1,13 @@
-#pragma once
+#ifndef __OPTIONS_HPP
+#define __OPTIONS_HPP
 
 #include <boost/program_options.hpp>
 #include "singleton.hpp"
 
-class options: public singleton<options>
+class Options: public Singleton<Options>
 {
 public:
-    options();
+    Options();
 
     enum Kick_Mode
     {
@@ -70,5 +71,6 @@ private:
     bool image_record_;
 };
 
-#define OPTS options::instance()
+#define OPTS Options::instance()
 
+#endif

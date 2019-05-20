@@ -10,13 +10,13 @@ using namespace boost::asio;
 using namespace robot_math;
 using namespace Eigen;
 
-boost::asio::io_service imu_service;
+boost::asio::io_service Imu_service;
 
 const char RST_CMD[] = "AT+RST";
 
 const float g_ = 9.8;
 
-imu::imu(): sensor("imu"), serial_(imu_service)
+Imu::Imu(): Sensor("imu"), serial_(Imu_service)
 {
     record_ = true;
     Vector2f range = CONF->get_config_vector<float, 2>("not_fall_range.pitch");
@@ -29,7 +29,7 @@ imu::imu(): sensor("imu"), serial_(imu_service)
     init_dir_ = 0.0;
 }
 
-bool imu::open()
+bool Imu::open()
 {
     try
     {
@@ -86,7 +86,7 @@ enum
  * @param  c 串口数据
  * @retval CH_OK
  */
-bool imu::Packet_Decode(uint8_t c)
+bool Imu::Packet_Decode(uint8_t c)
 {
     static uint16_t CRCReceived = 0;            /* CRC value received from a frame */
     static uint16_t CRCCalculated = 0;          /* CRC value caluated from a frame */
@@ -171,7 +171,7 @@ bool imu::Packet_Decode(uint8_t c)
     return true;
 }
 
-void imu::OnDataReceived(Packet_t &pkt)
+void Imu::OnDataReceived(Packet_t &pkt)
 {
 
 	if(pkt.type != 0xA5)
@@ -251,11 +251,11 @@ void imu::OnDataReceived(Packet_t &pkt)
         record_ = false;
     }
     imu_data_.yaw = normalize_deg(imu_data_.yaw-init_dir_);
-    //LOG(LOG_INFO)<<imu_data_.pitch<<endll;
+    //LOG(LOG_INFO)<<Imu_data_.pitch<<endll;
     notify(SENSOR_IMU);
 }
 
-void imu::read_data()
+void Imu::read_data()
 {
     auto self(shared_from_this());
     boost::asio::async_read(serial_, boost::asio::buffer(buff_, 1),
@@ -269,7 +269,7 @@ void imu::read_data()
     });
 }
 
-bool imu::start()
+bool Imu::start()
 {
     if (!this->open())
     {
@@ -281,20 +281,20 @@ bool imu::start()
     td_ = std::move(thread([this]()
     {
         this->read_data();
-        imu_service.run();
+        Imu_service.run();
     }));
     return true;
 }
 
-void imu::stop()
+void Imu::stop()
 {
     serial_.close();
-    imu_service.stop();
+    Imu_service.stop();
     is_alive_ = false;
     is_open_ = false;
 }
 
-imu::~imu()
+Imu::~Imu()
 {
     if (td_.joinable())
     {

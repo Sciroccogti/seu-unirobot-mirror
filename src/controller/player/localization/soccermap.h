@@ -9,7 +9,7 @@
 
 #define SIMULATION_HEIGHT    0.7f
 
-class SoccerMap : public singleton<SoccerMap>
+class SoccerMap : public Singleton<SoccerMap>
 {
 public:
     enum GoalPostType

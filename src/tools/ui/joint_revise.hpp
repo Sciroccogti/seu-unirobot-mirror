@@ -1,7 +1,8 @@
-#pragma once
+#ifndef __JOINT_REVISE_HPP
+#define __JOINT_REVISE_HPP
 
 #include <QtWidgets>
-#include "robot/humanoid.hpp"
+#include "robot/robot.hpp"
 #include "tcp_client/tcp_client.hpp"
 
 class JSlider: public QWidget
@@ -71,3 +72,5 @@ private:
     QString net_info;
     bool first_connect;
 };
+
+#endif

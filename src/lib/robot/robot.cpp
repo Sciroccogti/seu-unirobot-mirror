@@ -1,7 +1,5 @@
-#include "humanoid.hpp"
-#include "parser/robot_parser.hpp"
-#include "parser/action_parser.hpp"
-#include "parser/offset_parser.hpp"
+#include "robot.hpp"
+#include "parser/parser.hpp"
 
 namespace robot
 {
@@ -9,10 +7,10 @@ namespace robot
     using namespace Eigen;
     using namespace robot_math;
 
-    transform_matrix humanoid::get_foot_mat_from_pose(const robot_pose &pose, bool left)
+    TransformMatrix Robot::get_foot_mat_from_pose(const robot_pose &pose, bool left)
     {
         double sg = (left ? 1.0 : -1.0);
-        transform_matrix foot_mat;
+        TransformMatrix foot_mat;
         Quaternion<double> quat;
         AngleAxisd yawRot, pitchRot, rollRot;
 
@@ -25,9 +23,9 @@ namespace robot
         return foot_mat;
     }
 
-    transform_matrix humanoid::get_body_mat_from_pose(const robot_pose &pose)
+    TransformMatrix Robot::get_body_mat_from_pose(const robot_pose &pose)
     {
-        transform_matrix body_mat;
+        TransformMatrix body_mat;
         Quaternion<double> quat;
         AngleAxisd yawRot, pitchRot, rollRot;
 
@@ -40,7 +38,7 @@ namespace robot
         return body_mat;
     }
 
-    bool humanoid::arm_inverse_kinematics(const Vector3d &hand, vector<double> &deg)
+    bool Robot::arm_inverse_kinematics(const Vector3d &hand, vector<double> &deg)
     {
         double x = hand[0];
         double z = hand[2] - (E_ + F_);
@@ -81,25 +79,25 @@ namespace robot
         return true;
     }
 
-    transform_matrix humanoid::leg_forward_kinematics(vector<double> degs, bool left)
+    TransformMatrix Robot::leg_forward_kinematics(vector<double> degs, bool left)
     {
         double sg = (left ? 1.0 : -1.0);
 
         if (degs.size() < 6)
         {
-            return transform_matrix();
+            return TransformMatrix();
         }
-        transform_matrix foot;
-        transform_matrix body;
-        body = foot*transform_matrix(0, 0, C_)*transform_matrix(-degs[5], 'x')*transform_matrix(-degs[4], 'y')
-                *transform_matrix(0, 0, B_)*transform_matrix(-degs[3], 'y')*transform_matrix(0, 0, A_)
-                *transform_matrix(-degs[2], 'y')*transform_matrix(-degs[1], 'x')*transform_matrix(-degs[0], 'z')
-                *transform_matrix(0, -sg*D_ / 2.0, bone_map_["rhip2"]->length_);
+        TransformMatrix foot;
+        TransformMatrix body;
+        body = foot*TransformMatrix(0, 0, C_)*TransformMatrix(-degs[5], 'x')*TransformMatrix(-degs[4], 'y')
+                *TransformMatrix(0, 0, B_)*TransformMatrix(-degs[3], 'y')*TransformMatrix(0, 0, A_)
+                *TransformMatrix(-degs[2], 'y')*TransformMatrix(-degs[1], 'x')*TransformMatrix(-degs[0], 'z')
+                *TransformMatrix(0, -sg*D_ / 2.0, bone_map_["rhip2"]->length_);
         return body;
     }
 
-    bool humanoid::leg_inverse_kinematics(const transform_matrix &body,
-                                          const transform_matrix &foot,
+    bool Robot::leg_inverse_kinematics(const TransformMatrix &body,
+                                          const TransformMatrix &foot,
                                           vector<double> &deg, const bool &left)
     {
         double sg = (left ? 1.0 : -1.0);
@@ -146,7 +144,7 @@ namespace robot
         return true;
     }
 
-    bool humanoid::leg_inverse_kinematics_walk(const transform_matrix &body, const transform_matrix &foot,
+    bool Robot::leg_inverse_kinematics_walk(const TransformMatrix &body, const TransformMatrix &foot,
                                           vector<double> &deg, const bool &left)
     {   
         double sg = (left ? 1.0 : -1.0);
@@ -199,15 +197,15 @@ namespace robot
   
     }
 
-    void humanoid::init(const std::string &robot_file, const std::string &action_file,
+    void Robot::init(const std::string &robot_file, const std::string &action_file,
                         const std::string &offset_file)
     {
-        main_bone_ = parser::robot_parser::parse(robot_file, bone_map_, joint_map_);
+        main_bone_ = parser::parse(robot_file, bone_map_, joint_map_);
 
         real_joint_map_ = joint_map_;              //for real joints
 
-        parser::action_parser::parse(action_file, act_map_, pos_map_);
-        parser::offset_parser::parse(offset_file, joint_map_);
+        parser::parse(action_file, act_map_, pos_map_);
+        parser::parse(offset_file, joint_map_);
         D_ = bone_map_["hip"]->length_;
         A_ = bone_map_["rthigh"]->length_;
         B_ = bone_map_["rshank"]->length_;
@@ -216,7 +214,7 @@ namespace robot
         F_ = bone_map_["rlowarm"]->length_;
     }
 
-    void humanoid::set_real_degs(const std::map<int, float> &jdmap)
+    void Robot::set_real_degs(const std::map<int, float> &jdmap)
     {
         for (auto &j : jdmap)
         {
@@ -224,7 +222,7 @@ namespace robot
         }
     }
 
-    void humanoid::set_degs(const std::map<int, float> &jdmap)
+    void Robot::set_degs(const std::map<int, float> &jdmap)
     {
         std::lock_guard<std::mutex> lk(robot_mtx_);
         for (auto &j : jdmap)
@@ -233,7 +231,7 @@ namespace robot
         }
     }
 
-    std::vector<double> humanoid::get_foot_degs(int support)
+    std::vector<double> Robot::get_foot_degs(int support)
     {
         std::lock_guard<std::mutex> lk(robot_mtx_);
         std::vector<double> res;
@@ -258,7 +256,7 @@ namespace robot
         return res;
     }
 
-    joint_ptr humanoid::get_joint(const int &id)
+    joint_ptr Robot::get_joint(const int &id)
     {
         for (auto &j : joint_map_)
             if (j.second->jid_ == id)
@@ -266,10 +264,10 @@ namespace robot
                 return j.second;
             }
 
-        throw class_exception<humanoid>("cannot find joint by id: " + std::to_string(id));
+        throw ClassException<Robot>("cannot find joint by id: " + std::to_string(id));
     }
 
-    joint_ptr humanoid::get_joint(const std::string &name)
+    joint_ptr Robot::get_joint(const std::string &name)
     {
         for (auto &j : joint_map_)
             if (j.second->name_ == name)
@@ -277,10 +275,10 @@ namespace robot
                 return j.second;
             }
 
-        throw class_exception<humanoid>("cannot find joint by name: " + name);
+        throw ClassException<Robot>("cannot find joint by name: " + name);
     }
 
-    joint_ptr humanoid::get_real_joint(const int &id)
+    joint_ptr Robot::get_real_joint(const int &id)
     {
         for (auto &j : real_joint_map_)
             if (j.second->jid_ == id)
@@ -288,10 +286,10 @@ namespace robot
                 return j.second;
             }
 
-        throw class_exception<humanoid>("cannot find real joint by id: " + std::to_string(id));
+        throw ClassException<Robot>("cannot find real joint by id: " + std::to_string(id));
     }
 
-    joint_ptr humanoid::get_real_joint(const std::string &name)
+    joint_ptr Robot::get_real_joint(const std::string &name)
     {
         for (auto &j : real_joint_map_)
             if (j.second->name_ == name)
@@ -299,6 +297,6 @@ namespace robot
                 return j.second;
             }
 
-        throw class_exception<humanoid>("cannot find real joint by name: " + name);
+        throw ClassException<Robot>("cannot find real joint by name: " + name);
     }
 }

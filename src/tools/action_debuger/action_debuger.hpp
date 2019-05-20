@@ -1,9 +1,10 @@
-#pragma once
+#ifndef __ACTION_DEBUGER_HPP
+#define __ACTION_DEBUGER_HPP
 
 #include <QtWidgets>
 #include <map>
 #include "ui/robot_gl.hpp"
-#include "robot/humanoid.hpp"
+#include "robot/robot.hpp"
 #include "tcp_client/tcp_client.hpp"
 
 #define SLIDER_RANGE 1000
@@ -174,3 +175,5 @@ private:
     std::vector<CKSlider *> mKsliders;
     std::map<std::string, CJointDegWidget *> mJDInfos;
 };
+
+#endif

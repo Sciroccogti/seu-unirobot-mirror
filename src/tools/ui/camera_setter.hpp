@@ -1,4 +1,5 @@
-#pragma once
+#ifndef __CAMERA_SETTER_HPP
+#define __CAMERA_SETTER_HPP
 
 #include <QtWidgets>
 #include "model.hpp"
@@ -78,3 +79,5 @@ private:
     QString net_info;
     bool first_connect;
 };
+
+#endif

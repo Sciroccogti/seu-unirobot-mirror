@@ -1,4 +1,5 @@
-#pragma once
+#ifndef __SAY_TASK_HPP
+#define __SAY_TASK_HPP
 
 #include <boost/asio.hpp>
 #include <exception>
@@ -7,10 +8,10 @@
 #include "configuration.hpp"
 #include "udp_data/CommData.h"
 
-class say_task: public task
+class SayTask: public Task
 {
 public:
-    say_task(int state): task("say"), state_(state)
+    SayTask(int state): Task("say"), state_(state)
     {
     }
     
@@ -46,3 +47,5 @@ public:
 private:
     int state_;
 };
+
+#endif

@@ -1,4 +1,5 @@
-#pragma once
+#ifndef __WALK_REMOTE_HPP
+#define __WALK_REMOTE_HPP
 
 #include <QtWidgets>
 #include "tcp_client/tcp_client.hpp"
@@ -30,3 +31,5 @@ private:
     tcp_client &client_;
     bool first_connect;
 };
+
+#endif

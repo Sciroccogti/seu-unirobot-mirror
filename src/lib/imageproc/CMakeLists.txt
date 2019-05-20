@@ -1,7 +1,10 @@
-add_subdirectory(detector)
-add_library(imageproc
-        imageproc.cpp)
+add_library(imageproc STATIC
+        imageproc.cpp
+        imageproc.cu)
 
 target_link_libraries(imageproc
-        darknet
-        ${OpenCV_LIBS})
+        cudart
+        opencv_core
+        opencv_imgcodecs
+        opencv_imgproc
+        opencv_highgui)

@@ -1,4 +1,5 @@
-#pragma once
+#ifndef __LED_ENGINE_HPP
+#define __LED_ENGINE_HPP
 
 #include <thread>
 #include <memory>
@@ -14,7 +15,7 @@ enum led_state
     LED_ERROR = 3
 };
 
-class LedEngine: public singleton<LedEngine>
+class LedEngine: public Singleton<LedEngine>
 {
 public:
     LedEngine();
@@ -42,8 +43,10 @@ private:
     std::atomic_bool led1_status_;
     std::atomic_bool led2_status_;
 
-    std::shared_ptr<gpio> led1_;
-    std::shared_ptr<gpio> led2_;
+    std::shared_ptr<Gpio> led1_;
+    std::shared_ptr<Gpio> led2_;
 };
 
 #define LE LedEngine::instance()
+
+#endif

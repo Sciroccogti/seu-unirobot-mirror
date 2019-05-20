@@ -1,28 +1,29 @@
-#pragma once
+#ifndef __MODEL_HPP
+#define __MODEL_HPP
 
 #include <string>
 #include <map>
 #include <map>
 #include <eigen3/Eigen/Dense>
 
-struct GoalPost
+struct goal_post
 {
-    enum TYPE
+    enum post_type
     {
         SENSORMODEL_POST_UNKNOWN,
         SENSORMODEL_POST_L, //left post
         SENSORMODEL_POST_R, //right post
     };
 
-    enum SIDE
+    enum post_side
     {
         SENSORMODEL_SIDE_OUR,
         SENSORMODEL_SIDE_OPP,
         SENSORMODEL_SIDE_UNKNOW,
     };
 
-    TYPE _type = SENSORMODEL_POST_UNKNOWN;
-    SIDE _side = SENSORMODEL_SIDE_UNKNOW;
+    post_type type = SENSORMODEL_POST_UNKNOWN;
+    post_side side = SENSORMODEL_SIDE_UNKNOW;
     float _theta = 0.0f;
     float _distance = 1000.0f;
 };
@@ -130,3 +131,5 @@ enum fsm_state
 };
 
 enum { player_info_size = sizeof(player_info)};
+
+#endif

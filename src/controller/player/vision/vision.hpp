@@ -1,4 +1,5 @@
-#pragma once
+#ifndef __VISION_HPP
+#define __VISION_HPP
 
 #include <atomic>
 #include <mutex>
@@ -18,10 +19,9 @@
 #include "math/math.hpp"
 #include "sensor/imu.hpp"
 #include "sensor/motor.hpp"
-#include "imageproc/detector/detector.h"
-#include "localization/SelfLocalization.h"
+#include "localization/localization.h"
 
-class Vision: public timer, public subscriber, public singleton<Vision>
+class Vision: public Timer, public Subscriber, public Singleton<Vision>
 {
 public:
     Vision();
@@ -43,13 +43,13 @@ public:
     std::atomic_bool localization_;
     std::atomic_bool can_see_post_;
 private:
-    Eigen::Vector2d odometry(const Eigen::Vector2i &pos, const robot_math::transform_matrix &camera_matrix);
+    Eigen::Vector2d odometry(const Eigen::Vector2i &pos, const robot_math::TransformMatrix &camera_matrix);
     Eigen::Vector2d camera2self(const Eigen::Vector2d &pos, double head_yaw);
 private:
     void run();
     void send_image(const cv::Mat &src);
     
-    imu::imu_data imu_data_;
+    Imu::imu_data imu_data_;
     float head_yaw_, head_pitch_;
 
     Eigen::Vector2d odometry_offset_;
@@ -61,7 +61,7 @@ private:
     int camera_w_,  camera_h_, camera_size_;
     std::map<std::string, camera_info> camera_infos_;
     camera_param params_;
-    robot_math::transform_matrix camera_matrix_;
+    robot_math::TransformMatrix camera_matrix_;
     
     std::vector<object_det> ball_dets_, post_dets_; 
     float d_w_h_;
@@ -77,9 +77,6 @@ private:
     image_send_type img_sd_type_;
 
     network net_;
-    std::vector<std::string> names_;
-
-    std::shared_ptr<vision::Detector> detector_;
 
     unsigned char *dev_src_;
     unsigned char *dev_bgr_;
@@ -116,3 +113,4 @@ private:
 
 #define VISION Vision::instance()
 
+#endif

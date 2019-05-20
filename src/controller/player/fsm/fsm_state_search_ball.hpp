@@ -1,4 +1,5 @@
-#pragma once
+#ifndef __FSM_STATE_SEARCH_BALL_HPP
+#define __FSM_STATE_SEARCH_BALL_HPP
 
 #include "fsm.hpp"
 #include <vector>
@@ -41,3 +42,4 @@ private:
     bool first_in_;
 };
 
+#endif

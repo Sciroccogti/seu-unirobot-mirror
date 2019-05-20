@@ -1,4 +1,5 @@
-#pragma once
+#ifndef __WORLD_MODEL_HPP
+#define __WORLD_MODEL_HPP
 
 #include <mutex>
 #include <atomic>
@@ -11,13 +12,13 @@
 #include "singleton.hpp"
 #include "model.hpp"
 #include "math/math.hpp"
-#include "robot/humanoid.hpp"
-#include "localization/SelfLocalization.h"
+#include "robot/robot.hpp"
+#include "localization/localization.h"
 
-class world_model: public subscriber, public singleton<world_model>
+class WorldModel: public Subscriber, public Singleton<WorldModel>
 {
 public:
-    world_model();
+    WorldModel();
     
     void updata(const pub_ptr &pub, const int &type);
 
@@ -31,7 +32,7 @@ public:
         support_foot_ = sf;
     }
 
-    imu::imu_data imu_data()
+    Imu::imu_data imu_data()
     {
         std::lock_guard<std::mutex> lk(imu_mtx_);
         return imu_data_;
@@ -94,7 +95,7 @@ public:
     std::atomic_bool localization_time_;
     
 private:
-    imu::imu_data imu_data_;
+    Imu::imu_data imu_data_;
     RoboCupGameControlData gc_data_;
     std::map< int, player_info > player_infos_;
     ball_block ball_block_;
@@ -108,5 +109,6 @@ private:
     mutable std::mutex imu_mtx_, gc_mtx_, info_mtx_, ball_mtx_, self_mtx_;
 };
 
-#define WM world_model::instance()
+#define WM WorldModel::instance()
 
+#endif

@@ -1,9 +1,9 @@
-#include "ActionEngine.hpp"
+#include "action_engine.hpp"
 #include "configuration.hpp"
 #include "logger.hpp"
-#include "robot/humanoid.hpp"
+#include "robot/robot.hpp"
 #include "core/adapter.hpp"
-#include "engine/walk/WalkEngine.hpp"
+#include "engine/walk/walk_engine.hpp"
 #include <unistd.h>
 
 namespace motion
@@ -82,7 +82,7 @@ void ActionEngine::run()
                 in_action_ = true;
                 std::map<std::string, float> jdegs;
                 std::map<robot::robot_motion, robot::robot_pose> pos1, pos2;
-                robot_math::transform_matrix body_mat, leftfoot_mat, rightfoot_mat;
+                robot_math::TransformMatrix body_mat, leftfoot_mat, rightfoot_mat;
                 Eigen::Vector3d lefthand, righthand;
 
                 act_time = pos_times_temp[0];
@@ -235,8 +235,8 @@ std::vector< std::map<robot::robot_motion, robot::robot_pose> > ActionEngine::ge
     return act_poses;
 }
 
-bool ActionEngine::get_degs(const robot_math::transform_matrix &body_mat, const robot_math::transform_matrix &leftfoot_mat,
-                const robot_math::transform_matrix &rightfoot_mat, const Eigen::Vector3d &lefthand, const Eigen::Vector3d &righthand,
+bool ActionEngine::get_degs(const robot_math::TransformMatrix &body_mat, const robot_math::TransformMatrix &leftfoot_mat,
+                const robot_math::TransformMatrix &rightfoot_mat, const Eigen::Vector3d &lefthand, const Eigen::Vector3d &righthand,
                 std::map<int, float> &degs_map)
 {
     std::vector<double> degs;

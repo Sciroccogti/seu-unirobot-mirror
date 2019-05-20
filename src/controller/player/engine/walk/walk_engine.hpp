@@ -1,4 +1,5 @@
-#pragma once
+#ifndef __WALK_ENGINE_HPP
+#define __WALK_ENGINE_HPP
 
 #include <map>
 #include <thread>
@@ -22,7 +23,7 @@ namespace motion
         WALK_NORMAL
     };
 
-    class WalkEngine: public subscriber, public singleton<WalkEngine>
+    class WalkEngine: public Subscriber, public Singleton<WalkEngine>
     {
     public:
         WalkEngine();
@@ -62,10 +63,11 @@ namespace motion
         bool is_alive_;
         
         Eigen::Vector2d xrange_, yrange_, drange_, nav_coef_;
-        imu::imu_data imu_data_;
+        Imu::imu_data imu_data_;
         mutable std::mutex para_mutex_, imu_mtx_, dxl_mtx_;
     };
 
 #define WE WalkEngine::instance()
 }
 
+#endif

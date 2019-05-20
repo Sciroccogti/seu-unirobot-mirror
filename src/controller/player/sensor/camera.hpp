@@ -1,4 +1,5 @@
-#pragma once
+#ifndef __CAMERA_HPP
+#define __CAMERA_HPP
 
 #include <map>
 #include <thread>
@@ -8,11 +9,11 @@
 #include "model.hpp"
 #include "configuration.hpp"
 
-class camera: public sensor
+class Camera: public Sensor
 {
 public:
-    camera();
-    ~camera();
+    Camera();
+    ~Camera();
 
     bool start();
     void run();
@@ -81,3 +82,5 @@ private:
     tSdkFrameHead           sFrameInfo_;
     std::map<std::string, camera_info> camera_infos_;
 };
+
+#endif

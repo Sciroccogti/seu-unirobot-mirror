@@ -1,4 +1,5 @@
-#pragma once
+#ifndef __STATE_MONITOR_HPP
+#define __STATE_MONITOR_HPP
 
 #include <QtWidgets>
 #include <map>
@@ -16,3 +17,5 @@ private:
     int state_;
     int id_;
 };
+
+#endif

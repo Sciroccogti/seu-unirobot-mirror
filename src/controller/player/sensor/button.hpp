@@ -1,4 +1,5 @@
-#pragma once
+#ifndef __BUTTON_HPP
+#define __BUTTON_HPP
 
 #include <thread>
 #include <memory>
@@ -6,11 +7,11 @@
 #include "sensor.hpp"
 #include "drivers/gpio/gpio.hpp"
 
-class button: public sensor
+class Button: public Sensor
 {
 public:
-    button();
-    ~button();
+    Button();
+    ~Button();
     bool start();
     void stop();
 
@@ -30,6 +31,8 @@ private:
     bool can_use_;
     std::atomic_bool bt1_status_;
     std::atomic_bool bt2_status_;
-    std::shared_ptr<gpio> button1_;
-    std::shared_ptr<gpio> button2_;
+    std::shared_ptr<Gpio> button1_;
+    std::shared_ptr<Gpio> button2_;
 };
+
+#endif

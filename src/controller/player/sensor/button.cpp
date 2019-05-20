@@ -1,25 +1,25 @@
 #include "button.hpp"
 #include "configuration.hpp"
 #include <unistd.h>
-#include "engine/led/LedEngine.hpp"
+#include "engine/led/led_engine.hpp"
 
 using namespace std;
 
-button::button(): sensor("button")
+Button::Button(): Sensor("button")
 {
-    button1_ = make_shared<gpio>(gpio::gpio_map[CONF->get_config_value<string>("hardware.gpio.button.1")]);
-    button2_ = make_shared<gpio>(gpio::gpio_map[CONF->get_config_value<string>("hardware.gpio.button.2")]);
+    button1_ = make_shared<Gpio>(Gpio::gpio_map[CONF->get_config_value<string>("hardware.gpio.button.1")]);
+    button2_ = make_shared<Gpio>(Gpio::gpio_map[CONF->get_config_value<string>("hardware.gpio.button.2")]);
     can_use_ = (button1_->opened()&&button2_->opened());
     if(can_use_)
     {
-        button1_->set_direction(gpio::PIN_INPUT);
-        button2_->set_direction(gpio::PIN_INPUT);
+        button1_->set_direction(Gpio::PIN_INPUT);
+        button2_->set_direction(Gpio::PIN_INPUT);
     }
     bt1_status_ = false;
     bt2_status_ = false;
 }
 
-button::~button()
+Button::~Button()
 {
     if(td_.joinable())
     {
@@ -27,19 +27,19 @@ button::~button()
     }
 }
 
-bool button::start()
+bool Button::start()
 {
     is_alive_ = true;
-    td_ = std::move(std::thread(&button::run, this));
+    td_ = std::move(std::thread(&Button::run, this));
     return true;
 }
 
-void button::stop()
+void Button::stop()
 {
     is_alive_ = false;
 }
 
-void button::run()
+void Button::run()
 {
     while(is_alive_)
     {

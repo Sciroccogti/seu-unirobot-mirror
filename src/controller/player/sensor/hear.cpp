@@ -7,12 +7,12 @@ using namespace std;
 
 boost::asio::io_service sh_service;
 
-hear::hear() : sensor("hear"),
+Hear::Hear() : Sensor("hear"),
     socket_(sh_service, udp::endpoint(udp::v4(), CONF->get_config_value<short>("net.udp")))
 {
 }
 
-bool hear::start()
+bool Hear::start()
 {
     is_open_ = true;
     is_alive_ = true;
@@ -24,7 +24,7 @@ bool hear::start()
     return true;
 }
 
-void hear::stop()
+void Hear::stop()
 {
     is_open_ = false;
     is_alive_ = false;
@@ -32,7 +32,7 @@ void hear::stop()
     sh_service.stop();
 }
 
-void hear::receive()
+void Hear::receive()
 {
     socket_.async_receive_from(boost::asio::buffer((char *)&pkt_, sizeof(comm_packet)), point_,
                                [this](boost::system::error_code ec, std::size_t bytes_recvd)
@@ -52,7 +52,7 @@ void hear::receive()
     });
 }
 
-hear::~hear()
+Hear::~Hear()
 {
     if (td_.joinable())
     {

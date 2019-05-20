@@ -1,4 +1,4 @@
 add_library(scan STATIC
-        ScanEngine.cpp)
+        scan_engine.cpp)
 
 target_link_libraries(scan pthread)  

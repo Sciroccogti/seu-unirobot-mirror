@@ -280,6 +280,8 @@ __global__ void remap_kernal(unsigned char* pSrcImg, unsigned char* pDstImg, flo
 	}
 }
 
+namespace imgproc
+{
 void cudaYUYV2YUV(unsigned char *in, unsigned char *out, int w, int h)
 {
     yuyv2yuv_kernal<<<w, h>>>(in,out,w,h);
@@ -326,4 +328,4 @@ void cudaUndistored(unsigned char *in, unsigned char *out, float *pCamK, float *
 	remap_kernal <<<grid, block >>> (in, out, pMapx, pMapy, w, h, w, h, c);
 	cudaThreadSynchronize();
 }
-
+};

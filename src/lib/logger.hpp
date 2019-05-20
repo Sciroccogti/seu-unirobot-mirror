@@ -1,4 +1,5 @@
-#pragma once
+#ifndef __LOGGER_HPP
+#define __LOGGER_HPP
 
 #include <iostream>
 
@@ -31,3 +32,5 @@ inline std::ostream& logger(log_level l)
 }
 
 #define LOG(l) logger(l)
+
+#endif

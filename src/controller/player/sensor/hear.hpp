@@ -1,15 +1,16 @@
-#pragma once
+#ifndef __HEAR_HPP
+#define __HEAR_HPP
 
 #include <boost/asio.hpp>
 #include <thread>
 #include "sensor.hpp"
 #include "udp_data/CommData.h"
 
-class hear: public sensor
+class Hear: public Sensor
 {
 public:
-    hear();
-    ~hear();
+    Hear();
+    ~Hear();
 
     bool start();
     void stop();
@@ -27,3 +28,4 @@ private:
     comm_packet pkt_;
 };
 
+#endif

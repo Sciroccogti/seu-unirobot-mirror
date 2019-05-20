@@ -4,13 +4,13 @@
 #include "ui/camera_setter.hpp"
 #include <opencv2/opencv.hpp>
 #include <cuda_runtime.h>
-#include "cuda/cudaproc.h"
+#include "imageproc/imageproc.hpp"
 #include "darknet/parser.h"
 #include "imageproc/imageproc.hpp"
 
 using namespace cv;
 using namespace std;
-using namespace vision;
+using namespace imgproc;
 
 ImageDebuger::ImageDebuger()
 {
@@ -110,8 +110,6 @@ void ImageDebuger::proc_image(const unsigned int &index)
         Mat rgb;
         cv::resize(rgb_src_, rgb, Size(net_.w, net_.h));
         Mat rgb_c = rgb_src_.clone();
-        float *rgbpf = rgb2rgbpf(rgb);
-        delete []rgbpf;
         show_dst(rgb_c);
     }
 }

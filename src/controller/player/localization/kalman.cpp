@@ -38,20 +38,20 @@ void KA::forecast(const player_info &player_info_)
 
 
 
-int KA::goalPostUpdate(const vector< GoalPost > & posts_)
+int KA::goalPostUpdate(const vector< goal_post > & posts_)
 {
      int size=posts_.size();
      int flag=0;  
-     for(const GoalPost & post: posts_)
+     for(const goal_post & post: posts_)
     {
         vector<Vector2f> postPosL, postPosR; 
 
-        if (post._side == GoalPost::SENSORMODEL_SIDE_OUR)
+        if (post.side == goal_post::SENSORMODEL_SIDE_OUR)
         {
             postPosL.push_back(SOCCERMAP->flagPos().at(SoccerMap::FLAG_DOOR_OUR_N));
             postPosR.push_back(SOCCERMAP->flagPos().at(SoccerMap::FLAG_DOOR_OUR_P));
         }
-        else if (post._side == GoalPost::SENSORMODEL_SIDE_OPP)
+        else if (post.side == goal_post::SENSORMODEL_SIDE_OPP)
         {
             postPosL.push_back(SOCCERMAP->flagPos().at(SoccerMap::FLAG_DOOR_OPP_P));
             postPosR.push_back(SOCCERMAP->flagPos().at(SoccerMap::FLAG_DOOR_OPP_N));
@@ -67,11 +67,11 @@ int KA::goalPostUpdate(const vector< GoalPost > & posts_)
         float maxWeight = 0.0f;
         vector<Vector2f> postPos;
 
-        if (post._type == GoalPost::SENSORMODEL_POST_L)
+        if (post.type == goal_post::SENSORMODEL_POST_L)
         {
           postPos.insert(postPos.end(), postPosL.begin(), postPosL.end());
         }
-        else if (post._type == GoalPost::SENSORMODEL_POST_R)
+        else if (post.type == goal_post::SENSORMODEL_POST_R)
         {
           postPos.insert(postPos.end(), postPosR.begin(), postPosR.end());
         }

@@ -1,4 +1,5 @@
-#pragma once
+#ifndef __NUMBER_HPP
+#define __NUMBER_HPP
 
 #include <eigen3/Eigen/Dense>
 #include <cmath>
@@ -47,3 +48,4 @@ namespace robot_math
     }
 }
 
+#endif

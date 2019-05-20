@@ -1,7 +1,8 @@
-#pragma once
+#ifndef __IMAGE_DEBUGER_HPP
+#define __IMAGE_DEBUGER_HPP
 
 #include <QtWidgets>
-#include "robot/humanoid.hpp"
+#include "robot/robot.hpp"
 #include "ui/image_label.hpp"
 #include <opencv2/opencv.hpp>
 #include "darknet/network.h"
@@ -42,3 +43,5 @@ private:
     int height_;
     network net_;
 };
+
+#endif

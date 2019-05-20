@@ -1,4 +1,5 @@
-#pragma once
+#ifndef __FSM_HPP
+#define __FSM_HPP
 
 #include <memory>
 #include <map>
@@ -8,7 +9,7 @@
 #include "task/action_task.hpp"
 #include "task/look_task.hpp"
 #include "core/worldmodel.hpp"
-#include "engine/scan/ScanEngine.hpp"
+#include "engine/scan/scan_engine.hpp"
 
 class FSM;
 
@@ -71,3 +72,5 @@ private:
     std::map<int, FSMState_Ptr> states_;
     fsm_state current_state_;
 };
+
+#endif

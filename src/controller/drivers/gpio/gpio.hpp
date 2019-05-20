@@ -1,9 +1,10 @@
-#pragma once
+#ifndef __GPIO_HPP
+#define __GPIO_HPP
 
 #include <map>
 #include <string>
 
-class gpio
+class Gpio
 {
 public:
     enum pin_direction
@@ -37,7 +38,7 @@ public:
     }
     
 public:
-    gpio(pin_number pin);
+    Gpio(pin_number pin);
 
     bool set_direction(pin_direction dir);
     bool set_value(pin_value v);
@@ -56,3 +57,5 @@ private:
     bool opened_;
     pin_number io_;
 };
+
+#endif

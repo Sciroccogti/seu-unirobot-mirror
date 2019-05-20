@@ -1,4 +1,5 @@
-#pragma once
+#ifndef __FSM_STATE_GOTO_BALL_HPP
+#define __FSM_STATE_GOTO_BALL_HPP
 
 #include "fsm.hpp"
 
@@ -34,3 +35,5 @@ private:
     float retreat_x_dis_;
     float retreat_y_dis_;
 };
+
+#endif

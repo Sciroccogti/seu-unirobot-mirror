@@ -1,6 +1,6 @@
 #include "joint_revise.hpp"
 #include "configuration.hpp"
-#include "parser/offset_parser.hpp"
+#include "parser/parser.hpp"
 
 using namespace robot;
 using namespace std;
@@ -86,7 +86,7 @@ void JointRevise::procBtnReset()
 
 void JointRevise::procBtnSave()
 {
-    parser::offset_parser::save(CONF->offset_file(), ROBOT->get_joint_map());
+    parser::save(CONF->offset_file(), ROBOT->get_joint_map());
 }
 
 void JointRevise::procValueChanged(int id, float v)

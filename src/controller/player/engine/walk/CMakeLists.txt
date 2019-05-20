@@ -1,5 +1,5 @@
 add_library(walk STATIC
-        WalkEngine.cpp
+        walk_engine.cpp
         CubicSpline.cpp
         SmoothSpline.cpp
         HumanoidModel.cpp

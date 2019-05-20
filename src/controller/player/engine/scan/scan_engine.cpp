@@ -1,6 +1,6 @@
-#include "ScanEngine.hpp"
+#include "scan_engine.hpp"
 #include "configuration.hpp"
-#include "robot/humanoid.hpp"
+#include "robot/robot.hpp"
 #include "core/adapter.hpp"
 #include "math/math.hpp"
 #include <cmath>

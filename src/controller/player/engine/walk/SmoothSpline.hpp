@@ -1,4 +1,5 @@
-#pragma once
+#ifndef LEPH_SMOOTHSPLINE_HPP
+#define LEPH_SMOOTHSPLINE_HPP
 
 #include "Spline.hpp"
 
@@ -69,3 +70,5 @@ namespace Leph
     };
 
 }
+
+#endif

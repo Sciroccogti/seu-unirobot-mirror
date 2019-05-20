@@ -1,12 +1,13 @@
-#pragma once
+#ifndef __LED_TASK_HPP
+#define __LED_TASK_HPP
 
 #include "task.hpp"
-#include "engine/led/LedEngine.hpp"
+#include "engine/led/led_engine.hpp"
 
-class led_task: public task
+class LedTask: public Task
 {
 public:
-    led_task(bool led1, bool led2): led1_(led1), led2_(led2), task("led")
+    LedTask(bool led1, bool led2): led1_(led1), led2_(led2), Task("led")
     {
 
     }
@@ -23,3 +24,5 @@ private:
     bool led1_;
     bool led2_;
 };
+
+#endif

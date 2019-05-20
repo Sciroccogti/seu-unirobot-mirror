@@ -15,7 +15,7 @@ using namespace Eigen;
 using namespace robot_math;
 using namespace motion;
 
-std::list<task_ptr> player::play_with_gc()
+std::list<task_ptr> Player::play_with_gc()
 {
     list<task_ptr> tasks;
     RoboCupGameControlData gc_data = WM->gc_data();
@@ -55,8 +55,8 @@ std::list<task_ptr> player::play_with_gc()
                 else
                     WM->set_my_pos(start_pos_);
             }
-            tasks.push_back(make_shared<walk_task>(0.0, 0.0, 0.0, false));
-            tasks.push_back(make_shared<look_task>(head_init[0], head_init[1]));
+            tasks.push_back(make_shared<WalkTask>(0.0, 0.0, 0.0, false));
+            tasks.push_back(make_shared<LookTask>(head_init[0], head_init[1]));
             break;
         case STATE_READY:
             if(kickoff == CONF->team_number() || kickoff == DROPBALL)
@@ -97,11 +97,11 @@ std::list<task_ptr> player::play_with_gc()
                     WM->set_my_pos(init_pos_);
                 }
             }
-            tasks.push_back(make_shared<look_task>(head_init[0], head_init[1]));
+            tasks.push_back(make_shared<LookTask>(head_init[0], head_init[1]));
             break;
         case STATE_SET:
-            tasks.push_back(make_shared<walk_task>(0.0, 0.0, 0.0, false));
-            tasks.push_back(make_shared<look_task>(head_init[0], head_init[1]));
+            tasks.push_back(make_shared<WalkTask>(0.0, 0.0, 0.0, false));
+            tasks.push_back(make_shared<LookTask>(head_init[0], head_init[1]));
             break;
         case STATE_PLAYING:
             played_ = true;
@@ -109,8 +109,8 @@ std::list<task_ptr> player::play_with_gc()
             if(gc_data.teams[team_index].players[CONF->id()-1].penalty == HL_PICKUP_OR_INCAPABLE
                 || gc_data.teams[team_index].players[CONF->id()-1].penalty == HL_SERVICE)
             {
-                tasks.push_back(make_shared<look_task>(HEAD_STATE_SEARCH_BALL));
-                tasks.push_back(make_shared<walk_task>(0.0, 0.0, 0.0, false));
+                tasks.push_back(make_shared<LookTask>(HEAD_STATE_SEARCH_BALL));
+                tasks.push_back(make_shared<WalkTask>(0.0, 0.0, 0.0, false));
                 if(WM->self().dir>45.0) 
                     WM->set_my_pos(Vector2d(start_pos_.x(), -start_pos_.y()));
                 else if(WM->self().dir<-45.0)
@@ -119,7 +119,7 @@ std::list<task_ptr> player::play_with_gc()
             else
             {
                 if(kickoff != DROPBALL && kickoff!=CONF->team_number() && secondT!=0)
-                    tasks.push_back(make_shared<look_task>(HEAD_STATE_SEARCH_BALL));
+                    tasks.push_back(make_shared<LookTask>(HEAD_STATE_SEARCH_BALL));
                 else
                 {
                     task_list tlist = fsm_->Tick();
@@ -128,12 +128,12 @@ std::list<task_ptr> player::play_with_gc()
             }
             break;
         case STATE_FINISHED:
-            tasks.push_back(make_shared<walk_task>(0.0, 0.0, 0.0, false));
-            tasks.push_back(make_shared<look_task>(head_init[0], head_init[1]));
+            tasks.push_back(make_shared<WalkTask>(0.0, 0.0, 0.0, false));
+            tasks.push_back(make_shared<LookTask>(head_init[0], head_init[1]));
             break;
         default:
-            tasks.push_back(make_shared<walk_task>(0.0, 0.0, 0.0, false));
-            tasks.push_back(make_shared<look_task>(head_init[0], head_init[1]));
+            tasks.push_back(make_shared<WalkTask>(0.0, 0.0, 0.0, false));
+            tasks.push_back(make_shared<LookTask>(head_init[0], head_init[1]));
             break;
     }
     return tasks;

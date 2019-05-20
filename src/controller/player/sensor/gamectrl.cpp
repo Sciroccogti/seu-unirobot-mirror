@@ -6,13 +6,13 @@ using boost::asio::ip::udp;
 
 boost::asio::io_service gc_service;
 
-gamectrl::gamectrl(): sensor("gamectrl"),
+GameCtrl::GameCtrl(): Sensor("gamectrl"),
     recv_socket_ (gc_service, udp::endpoint(udp::v4(), GAMECONTROLLER_DATA_PORT))
 {
 
 }
 
-bool gamectrl::start()
+bool GameCtrl::start()
 {
     is_open_ = true;
     is_alive_ = true;
@@ -24,7 +24,7 @@ bool gamectrl::start()
     return true;
 }
 
-void gamectrl::receive()
+void GameCtrl::receive()
 {
     recv_socket_.async_receive_from(boost::asio::buffer((char *)&data_, gc_data_size), recv_point_,
                                     [this](boost::system::error_code ec, std::size_t bytes_recvd)
@@ -44,7 +44,7 @@ void gamectrl::receive()
     });
 }
 
-void gamectrl::stop()
+void GameCtrl::stop()
 {
     recv_socket_.close();
     gc_service.stop();
@@ -52,7 +52,7 @@ void gamectrl::stop()
     is_open_ = false;
 }
 
-gamectrl::~gamectrl()
+GameCtrl::~GameCtrl()
 {
     if (td_.joinable())
     {

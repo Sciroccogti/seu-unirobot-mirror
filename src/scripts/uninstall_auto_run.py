@@ -17,10 +17,6 @@ if __name__ == '__main__':
         common.print_error('please check the robot id')
         exit(3)
 
-    if not common.build_project():
-        common.print_error('build error, please check code')
-        exit(4)
-
     args = common.parse_argv(sys.argv)
 
     ip_address = common.get_ip(robot_id)

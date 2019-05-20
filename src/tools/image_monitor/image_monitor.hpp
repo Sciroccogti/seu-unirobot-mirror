@@ -1,8 +1,9 @@
-#pragma once
+#ifndef __IMAGE_MONITOR_HPP
+#define __IMAGE_MONITOR_HPP
 
 #include <QtWidgets>
 #include <atomic>
-#include "robot/humanoid.hpp"
+#include "robot/robot.hpp"
 #include "tcp_client/tcp_client.hpp"
 #include "ui/image_label.hpp"
 #include <opencv2/opencv.hpp>
@@ -80,3 +81,5 @@ private:
     unsigned int image_count_;
     std::atomic_bool save_;
 };
+
+#endif

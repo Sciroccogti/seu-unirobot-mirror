@@ -11,6 +11,7 @@ add_executable(${TARGET_NAME}
 
 target_link_libraries(${TARGET_NAME}
                 robot
+                parser
                 controller_options
                 player)
 

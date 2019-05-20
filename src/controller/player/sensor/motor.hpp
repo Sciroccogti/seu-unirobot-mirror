@@ -1,4 +1,5 @@
-#pragma once
+#ifndef __MOTOR_HPP
+#define __MOTOR_HPP
 
 #include <memory>
 #include <list>
@@ -7,14 +8,14 @@
 #include <map>
 #include "timer.hpp"
 #include "sensor.hpp"
-#include "robot/humanoid.hpp"
+#include "robot/robot.hpp"
 #include "drivers/dynamixel/dynamixel_sdk.h"
 
 
-class motor: public sensor, public timer
+class Motor: public Sensor, public Timer
 {
 public:
-    motor();
+    Motor();
     void stop();
     bool start();
     void run();
@@ -61,3 +62,4 @@ private:
     std::shared_ptr<dynamixel::GroupSyncRead> pposRead_;
 };
 
+#endif

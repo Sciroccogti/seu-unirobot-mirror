@@ -8,10 +8,10 @@
 #include "server/server.hpp"
 #include "core/adapter.hpp"
 #include "skill/skill.hpp"
-#include "engine/walk/WalkEngine.hpp"
-#include "engine/scan/ScanEngine.hpp"
-#include "engine/action/ActionEngine.hpp"
-#include "engine/led/LedEngine.hpp"
+#include "engine/walk/walk_engine.hpp"
+#include "engine/scan/scan_engine.hpp"
+#include "engine/action/action_engine.hpp"
+#include "engine/led/led_engine.hpp"
 #include "fsm/fsm_state_getup.hpp"
 #include "fsm/fsm_state_goto_ball.hpp"
 #include "fsm/fsm_state_kick_ball.hpp"
@@ -24,7 +24,7 @@ using namespace std;
 using namespace motion;
 using namespace Eigen;
 
-player::player(): timer(CONF->get_config_value<int>("think_period"))
+Player::Player(): Timer(CONF->get_config_value<int>("think_period"))
 {
     is_alive_ = false;
     period_count_ = 0;
@@ -40,7 +40,7 @@ player::player(): timer(CONF->get_config_value<int>("think_period"))
     fsm_ = make_shared<FSM>();
 }
 
-void player::run()
+void Player::run()
 {
     if (is_alive_)
     {
@@ -69,9 +69,9 @@ void player::run()
             if((period_count_*period_ms_/100)%5 == 0)
             {
                 if(OPTS->use_gc())
-                    tasks.push_back(make_shared<gcret_task>());
+                    tasks.push_back(make_shared<GcretTask>());
                 if(OPTS->use_comm())
-                    tasks.push_back(make_shared<say_task>(fsm_->get_state()));
+                    tasks.push_back(make_shared<SayTask>(fsm_->get_state()));
             }
             if((period_count_*period_ms_/100)%20 == 0)
             {
@@ -89,17 +89,17 @@ void player::run()
     }
 }
 
-list<task_ptr> player::think()
+list<task_ptr> Player::think()
 {
     list<task_ptr> tasks, tlists;
     if(OPTS->image_record())
     {
-        tasks.push_back(make_shared<look_task>(HEAD_STATE_SEARCH_BALL));
-        tasks.push_back(make_shared<walk_task>(0.0, 0.0, 0.0, true));
+        tasks.push_back(make_shared<LookTask>(HEAD_STATE_SEARCH_BALL));
+        tasks.push_back(make_shared<WalkTask>(0.0, 0.0, 0.0, true));
     }
     else 
     {
-        if(OPTS->kick_mode()==options::KICK_NORMAL)
+        if(OPTS->kick_mode()==Options::KICK_NORMAL)
         {
             if(played_)
                 self_location_count_++;
@@ -117,12 +117,12 @@ list<task_ptr> player::think()
                 tlists = play_without_gc();
             }
         }
-        else if(OPTS->kick_mode()==options::KICK_PENALTY)
+        else if(OPTS->kick_mode()==Options::KICK_PENALTY)
         {
             static bool start_penalty=false;
             static bool left=true; 
             static float init_dir = 0.0;
-            tasks.push_back(make_shared<look_task>(0.0, 60.0));
+            tasks.push_back(make_shared<LookTask>(0.0, 60.0));
             if(WM->button_status(1))
             {
                 start_penalty = true;
@@ -144,13 +144,13 @@ list<task_ptr> player::think()
     return tasks;
 }
 
-bool player::init()
+bool Player::init()
 {
     fsm_->Register(FSM_STATE_READY, make_shared<FSMStateReady>(fsm_));
     fsm_->Register(FSM_STATE_GETUP, make_shared<FSMStateGetup>(fsm_));
     fsm_->Register(FSM_STATE_SEARCH_BALL, make_shared<FSMStateSearchBall>(fsm_));
     fsm_->Register(FSM_STATE_GOTO_BALL, make_shared<FSMStateGotoBall>(fsm_));
-    fsm_->Register(FSM_STATE_DRIBBLE, make_shared<FSMStateDribble>(fsm_));
+    fsm_->Register(FSM_STATE_KICK_BALL, make_shared<FSMStateKickBall>(fsm_));
     fsm_->Register(FSM_STATE_SL, make_shared<FSMStateSL>(fsm_));
     fsm_->set_state(FSM_STATE_READY);
 
@@ -167,7 +167,7 @@ bool player::init()
 
     if (OPTS->use_robot())
     {
-        while (!dynamic_pointer_cast<motor>(sensors_["motor"])->is_connected() && is_alive_)
+        while (!dynamic_pointer_cast<Motor>(sensors_["motor"])->is_connected() && is_alive_)
         {
             LOG(LOG_WARN) << "waiting for motor connection, please turn on the power." << endll;
             sleep(1);
@@ -187,13 +187,13 @@ bool player::init()
     {
         LE->start();
     }
-    action_task p("ready");
+    ActionTask p("ready");
     p.perform();
     start_timer();
     return true;
 }
 
-void player::stop()
+void Player::stop()
 {
     is_alive_ = false;
     WE->stop();
@@ -217,13 +217,13 @@ void player::stop()
         SERVER->stop();
 }
 
-bool player::regist()
+bool Player::regist()
 {
     sensors_.clear();
 
     if (OPTS->use_camera())
     {
-        sensors_["camera"] = std::make_shared<camera>();
+        sensors_["camera"] = std::make_shared<Camera>();
         sensors_["camera"]->attach(VISION);
         sensors_["camera"]->start();
 
@@ -233,7 +233,7 @@ bool player::regist()
         }
     }
 
-    sensors_["motor"] = std::make_shared<motor>();
+    sensors_["motor"] = std::make_shared<Motor>();
     sensors_["motor"]->attach(WE);
 
     if (!sensors_["motor"]->start())
@@ -243,27 +243,27 @@ bool player::regist()
 
     if (OPTS->use_robot())
     {
-        sensors_["imu"] = std::make_shared<imu>();
+        sensors_["imu"] = std::make_shared<Imu>();
         sensors_["imu"]->attach(WM);
         sensors_["imu"]->attach(VISION);
         sensors_["imu"]->attach(WE);
         sensors_["imu"]->start();
         
-        sensors_["button"] = std::make_shared<button>();
+        sensors_["button"] = std::make_shared<Button>();
         sensors_["button"]->attach(WM);
         sensors_["button"]->start();
     }
 
     if (OPTS->use_gc())
     {
-        sensors_["gamectrl"] = std::make_shared<gamectrl>();
+        sensors_["gamectrl"] = std::make_shared<GameCtrl>();
         sensors_["gamectrl"]->attach(WM);
         sensors_["gamectrl"]->start();
     }
 
     if (OPTS->use_comm())
     {
-        sensors_["hear"] = std::make_shared<hear>();
+        sensors_["hear"] = std::make_shared<Hear>();
         sensors_["hear"]->attach(WM);
         sensors_["hear"]->start();
     }
@@ -271,7 +271,7 @@ bool player::regist()
     return true;
 }
 
-void player::unregist()
+void Player::unregist()
 {
     if (sensors_.find("button") != sensors_.end())
     {
@@ -308,7 +308,7 @@ void player::unregist()
     }
 }
 
-sensor_ptr player::get_sensor(const std::string &name)
+sensor_ptr Player::get_sensor(const std::string &name)
 {
     auto iter = sensors_.find(name);
 

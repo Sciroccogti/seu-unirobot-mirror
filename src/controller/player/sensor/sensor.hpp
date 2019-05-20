@@ -1,4 +1,5 @@
-#pragma once
+#ifndef __SENSOR_HPP
+#define __SENSOR_HPP
 
 #include <iomanip>
 #include <memory>
@@ -6,7 +7,7 @@
 #include <iostream>
 #include "logger.hpp"
 
-class sensor: public publisher
+class Sensor: public Publisher
 {
 public:
     enum sensor_type
@@ -21,12 +22,12 @@ public:
         
         SENSOR_END = 10
     };
-    sensor(const std::string &name): name_(name)
+    Sensor(const std::string &name): name_(name)
     {
         LOG(LOG_INFO) << std::setw(12) << "sensor:" << std::setw(18) << "[" + name_ + "]" << " started!" << endll;
     }
 
-    ~sensor()
+    ~Sensor()
     {
         LOG(LOG_INFO) << std::setw(12) << "sensor:" << std::setw(18) << "[" + name_ + "]" << " ended!" << endll;
     }
@@ -45,5 +46,6 @@ protected:
     std::string name_;
 };
 
-typedef std::shared_ptr<sensor> sensor_ptr;
+typedef std::shared_ptr<Sensor> sensor_ptr;
 
+#endif

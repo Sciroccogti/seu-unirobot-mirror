@@ -1,4 +1,5 @@
-#pragma once
+#ifndef __ANGLE_HPP
+#define __ANGLE_HPP
 
 #include <eigen3/Eigen/Dense>
 #include <cmath>
@@ -62,3 +63,5 @@ namespace robot_math
         return rad;
     }
 }
+
+#endif

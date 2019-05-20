@@ -1,4 +1,5 @@
-#pragma once
+#ifndef __COMMON_HPP
+#define __COMMON_HPP
 
 #include <ctime>
 #include <cstdio>
@@ -14,3 +15,4 @@ inline std::string get_time()
     return std::string(tmp);
 }
 
+#endif

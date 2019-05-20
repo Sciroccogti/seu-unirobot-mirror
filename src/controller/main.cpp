@@ -2,7 +2,7 @@
 #include <cstdlib>
 #include <iomanip>
 #include "configuration.hpp"
-#include "robot/humanoid.hpp"
+#include "robot/robot.hpp"
 #include "options/options.hpp"
 #include "player/player.hpp"
 #include "logger.hpp"
@@ -10,7 +10,7 @@
 using namespace std;
 using namespace robot;
 
-shared_ptr<player> maxwell;
+shared_ptr<Player> maxwell;
 
 void exit_handler(int sig)
 {
@@ -71,7 +71,7 @@ int main(int argc, char *argv[])
 
     ROBOT->init(CONF->robot_file(), CONF->action_file(), CONF->offset_file());
 
-    maxwell = make_shared<player>();
+    maxwell = make_shared<Player>();
 
     if (!maxwell->init())
     {

@@ -1,9 +1,10 @@
-#pragma once
+#ifndef __PLAYER_HPP
+#define __PLAYER_HPP
 
 #include <list>
 #include "timer.hpp"
 #include "core/worldmodel.hpp"
-#include "robot/humanoid.hpp"
+#include "robot/robot.hpp"
 #include "options/options.hpp"
 #include "sensor/imu.hpp"
 #include "sensor/motor.hpp"
@@ -14,10 +15,10 @@
 #include "task/task.hpp"
 #include "fsm/fsm.hpp"
 
-class player: public timer
+class Player: public Timer
 {
 public:
-    player();
+    Player();
     bool init();
     void stop();
     bool is_alive() const
@@ -46,3 +47,5 @@ private:
     Eigen::Vector2d init_pos_, start_pos_, kickoff_pos_;
     FSM_Ptr fsm_;
 };
+
+#endif

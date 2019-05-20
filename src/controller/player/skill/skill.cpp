@@ -23,17 +23,17 @@ task_ptr skill_goto(const self_block &self, const Eigen::Vector2d &target, doubl
         double azi_deg = azimuth_deg(target_in_self);
         double temp = normalize_deg(azi_deg-self.dir);
         bound(-skill_goto_turn_direction, skill_goto_turn_direction, temp);
-        return make_shared<walk_task>(skill_goto_max_speed, 0.0, temp, true);
+        return make_shared<WalkTask>(skill_goto_max_speed, 0.0, temp, true);
     }
     else if(fabs(self.dir-dir)>skill_goto_stop_direction)
     {
         double temp_dir = normalize_deg(dir-self.dir);
         bound(-skill_goto_turn_direction, skill_goto_turn_direction, temp_dir);
-        return make_shared<walk_task>(0.0, 0.0, temp_dir, true);
+        return make_shared<WalkTask>(0.0, 0.0, temp_dir, true);
     }
     else
     {
-        return make_shared<walk_task>(0.0, 0.0, 0.0, false);
+        return make_shared<WalkTask>(0.0, 0.0, 0.0, false);
     }
 }
 
@@ -41,19 +41,19 @@ task_ptr skill_penalty_kick(const ball_block &ball)
 {
     if(ball.alpha>-0.05)
     {
-        return make_shared<walk_task>(0.0, -0.01, 0.0, true);
+        return make_shared<WalkTask>(0.0, -0.01, 0.0, true);
     }
     else if(ball.alpha<-0.15)
     {
-        return make_shared<walk_task>(0.0, 0.01, 0.0, true);
+        return make_shared<WalkTask>(0.0, 0.01, 0.0, true);
     }
     else
     {
         if(ball.beta<0.32)
-            return make_shared<walk_task>(0.01, 0.0, 0.0, true);
+            return make_shared<WalkTask>(0.01, 0.0, 0.0, true);
         else if(ball.beta>0.4)
-            return make_shared<walk_task>(-0.01, 0.0, 0.0, true);
+            return make_shared<WalkTask>(-0.01, 0.0, 0.0, true);
         else
-            return make_shared<action_task>("left_kick");
+            return make_shared<ActionTask>("left_little_kick");
     }
 }

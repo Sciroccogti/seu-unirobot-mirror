@@ -1,8 +1,7 @@
 #include "vision.hpp"
-#include "parser/camera_parser.hpp"
+#include "parser/parser.hpp"
 #include "darknet/parser.h"
 #include <cuda_runtime.h>
-#include "cuda/cudaproc.h"
 #include "server/server.hpp"
 #include <algorithm>
 #include "core/worldmodel.hpp"
@@ -13,10 +12,10 @@ using namespace std;
 using namespace cv;
 using namespace robot_math;
 using namespace Eigen;
-using namespace vision;
 using namespace robot;
+using namespace imgproc;
 
-Vision::Vision(): timer(CONF->get_config_value<int>("vision_period"))
+Vision::Vision(): Timer(CONF->get_config_value<int>("vision_period"))
 {
     p_count_ = 0;
     cant_see_ball_count_ = 0;
@@ -26,9 +25,9 @@ Vision::Vision(): timer(CONF->get_config_value<int>("vision_period"))
     h_ = CONF->get_config_value<int>("image.height");
     img_sd_type_ = IMAGE_SEND_RESULT;
     camera_src_ = nullptr;
-    detector_ = make_shared<Detector>(w_, h_);
-    parser::camera_info_parser::parse(CONF->get_config_value<string>(CONF->player() + ".camera_info_file"), camera_infos_);
-    parser::camera_param_parser::parse(CONF->get_config_value<string>(CONF->player() + ".camera_params_file"), params_);
+
+    parser::parse(CONF->get_config_value<string>(CONF->player() + ".camera_info_file"), camera_infos_);
+    parser::parse(CONF->get_config_value<string>(CONF->player() + ".camera_params_file"), params_);
     LOG(LOG_INFO) << setw(12) << "algorithm:" << setw(18) << "[vision]" << " started!" << endll;
     ball_id_=0;
     post_id_=1;
@@ -91,7 +90,7 @@ void Vision::set_camera_info(const camera_info &para)
     }
 }
 
-Vector2d Vision::odometry(const Vector2i &pos, const robot_math::transform_matrix &camera_matrix)
+Vector2d Vision::odometry(const Vector2i &pos, const robot_math::TransformMatrix &camera_matrix)
 {
     float Xw=0.0, Yw=0.0;
     float OC = camera_matrix.p().z();
@@ -123,7 +122,7 @@ Vector2d Vision::camera2self(const Vector2d &pos, double head_yaw)
 
 void Vision::get_point_dis(int x, int y)
 {
-    transform_matrix camera_matrix;
+    TransformMatrix camera_matrix;
     frame_mtx_.lock();
     camera_matrix = camera_matrix_;
     frame_mtx_.unlock();
@@ -151,7 +150,7 @@ void Vision::run()
         if (is_busy_) return;
         is_busy_ = true;
         p_count_ ++;
-        robot_math::transform_matrix camera_matrix;
+        robot_math::TransformMatrix camera_matrix;
         float head_yaw, head_pitch;
         
         cudaError_t err;
@@ -264,12 +263,12 @@ void Vision::run()
             if(localization_)
             {
                 int post_num=0;
-                vector< GoalPost > posts_;
+                vector< goal_post > posts_;
                 for(auto &post: post_dets_)
                 {
                     post_num++;
                     if(post_num>2) break;
-                    GoalPost temp;
+                    goal_post temp;
                     Vector2i post_pix(post.x+post.w/2, post.y+post.h*0.8);
                     Vector2d odo_res = odometry(post_pix, camera_matrix);
                     temp._distance = odo_res.norm()*100;
@@ -281,13 +280,13 @@ void Vision::run()
                     {
                         if(post_dets_[0].x<post_dets_[1].x)
                         {
-                            posts_[0]._type = GoalPost::SENSORMODEL_POST_L;
-                            posts_[1]._type = GoalPost::SENSORMODEL_POST_R;
+                            posts_[0].type = goal_post::SENSORMODEL_POST_L;
+                            posts_[1].type = goal_post::SENSORMODEL_POST_R;
                         }
                         else
                         {
-                            posts_[0]._type = GoalPost::SENSORMODEL_POST_R;
-                            posts_[1]._type = GoalPost::SENSORMODEL_POST_L;
+                            posts_[0].type = goal_post::SENSORMODEL_POST_R;
+                            posts_[1].type = goal_post::SENSORMODEL_POST_L;
                         }
                         break;
                     }
@@ -396,9 +395,9 @@ void Vision::updata(const pub_ptr &pub, const int &type)
     {
         return;
     }
-    if (type == sensor::SENSOR_CAMERA)
+    if (type == Sensor::SENSOR_CAMERA)
     {
-        shared_ptr<camera> sptr = dynamic_pointer_cast<camera>(pub);
+        shared_ptr<Camera> sptr = dynamic_pointer_cast<Camera>(pub);
         if (camera_src_ ==  nullptr)
         {
             camera_w_ = sptr->camera_w();
@@ -427,18 +426,18 @@ void Vision::updata(const pub_ptr &pub, const int &type)
             std::vector<double> head_degs = ROBOT->get_head_degs();
             head_yaw_  = -head_degs[0];
             head_pitch_ = head_degs[1];
-            transform_matrix body = ROBOT->leg_forward_kinematics(foot_degs, spf);
+            TransformMatrix body = ROBOT->leg_forward_kinematics(foot_degs, spf);
             body.set_R(quat.matrix());
-            camera_matrix_ = body*transform_matrix(0,0,ROBOT->trunk_length())*transform_matrix(head_degs[0],'z')
-                            *transform_matrix(0, 0, ROBOT->neck_length())*transform_matrix(head_degs[1], 'y')
-                            *transform_matrix(-0.02, 0, ROBOT->head_length());
+            camera_matrix_ = body*TransformMatrix(0,0,ROBOT->trunk_length())*TransformMatrix(head_degs[0],'z')
+                            *TransformMatrix(0, 0, ROBOT->neck_length())*TransformMatrix(head_degs[1], 'y')
+                            *TransformMatrix(-0.02, 0, ROBOT->head_length());
         }
         frame_mtx_.unlock();
         return;
     }
-    if(type == sensor::SENSOR_IMU)
+    if(type == Sensor::SENSOR_IMU)
     {
-        shared_ptr<imu> sptr = dynamic_pointer_cast<imu>(pub);
+        shared_ptr<Imu> sptr = dynamic_pointer_cast<Imu>(pub);
         imu_mtx_.lock();
         imu_data_ = sptr->data();
         imu_mtx_.unlock();
@@ -448,17 +447,6 @@ void Vision::updata(const pub_ptr &pub, const int &type)
 
 bool Vision::start()
 {
-    names_.clear();
-    ifstream ifs(CONF->get_config_value<string>("net_names_file"));
-
-    while (!ifs.eof())
-    {
-        string s;
-        ifs >> s;
-        names_.push_back(s);
-    }
-
-    ifs.close();
     net_.gpu_index = 0;
     net_ = parse_network_cfg_custom((char *)CONF->get_config_value<string>("net_cfg_file").c_str(), 1);
     load_weights(&net_, (char *)CONF->get_config_value<string>("net_weights_file").c_str());

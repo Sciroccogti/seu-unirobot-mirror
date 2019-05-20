@@ -1,4 +1,5 @@
-#pragma once
+#ifndef __GAME_CTRL_HPP
+#define __GAME_CTRL_HPP
 
 #include <boost/asio.hpp>
 #include <memory>
@@ -6,7 +7,7 @@
 #include "udp_data/RoboCupGameControlData.h"
 #include "sensor.hpp"
 
-class gamectrl: public sensor
+class GameCtrl: public Sensor
 {
 public:
     enum RobocupGameState
@@ -48,8 +49,8 @@ public:
         FK_EXECUTE
     };
 
-    gamectrl();
-    ~gamectrl();
+    GameCtrl();
+    ~GameCtrl();
 
     bool start();
     void stop();
@@ -67,3 +68,5 @@ private:
     boost::asio::ip::udp::socket recv_socket_;
     boost::asio::ip::udp::endpoint recv_point_;
 };
+
+#endif

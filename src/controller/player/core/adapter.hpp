@@ -1,17 +1,18 @@
-#pragma once
+#ifndef __ADAPTER_HPP
+#define __ADAPTER_HPP
 
 #include <mutex>
 #include <list>
 #include <map>
 #include <atomic>
-#include "robot/humanoid.hpp"
+#include "robot/robot.hpp"
 #include "singleton.hpp"
 #include "worldmodel.hpp"
 
-class adapter: public singleton<adapter>
+class Adapter: public Singleton<Adapter>
 {
 public:
-    adapter()
+    Adapter()
     {
     }
     inline std::map<int, float> get_degs()
@@ -132,5 +133,6 @@ private:
     bool is_alive_;
 };
 
-#define MADT adapter::instance()
+#define MADT Adapter::instance()
 
+#endif

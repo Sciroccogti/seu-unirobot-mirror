@@ -1,4 +1,5 @@
-#pragma once
+#ifndef __GCRET_TASK_HPP
+#define __GCRET_TASK_HPP
 
 #include <boost/asio.hpp>
 #include <exception>
@@ -6,10 +7,10 @@
 #include "udp_data/RoboCupGameControlData.h"
 #include "configuration.hpp"
 
-class gcret_task: public task
+class GcretTask: public Task
 {
 public:
-    gcret_task(): task("gcret")
+    GcretTask(): Task("gcret")
     {
     }
 
@@ -37,3 +38,5 @@ public:
         }
     }
 };
+
+#endif

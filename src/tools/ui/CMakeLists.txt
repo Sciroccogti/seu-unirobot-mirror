@@ -11,6 +11,7 @@ add_library(ui STATIC
 
 target_link_libraries(ui
             robot
+            parser
             opencv_core
             opencv_imgproc
             tcp_client

@@ -1,9 +1,10 @@
-#pragma once
+#ifndef __SINGLETON_HPP
+#define __SINGLETON_HPP
 
 #include <memory>
 
 template<class T>
-class singleton
+class Singleton
 {
 public:
     static std::shared_ptr<T> instance()
@@ -16,9 +17,11 @@ public:
         return instance_;
     }
 protected:
-    singleton() {}
+    Singleton() {}
     T &operator=(const T &) {}
     static std::shared_ptr<T> instance_;
 };
 
-template<class T> std::shared_ptr<T> singleton<T>::instance_ = nullptr;
+template<class T> std::shared_ptr<T> Singleton<T>::instance_ = nullptr;
+
+#endif

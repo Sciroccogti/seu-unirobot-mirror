@@ -1,4 +1,5 @@
-#pragma once
+#ifndef __ROBOT_GL_HPP
+#define __ROBOT_GL_HPP
 
 #include <QtWidgets>
 #include <QOpenGLWidget>
@@ -6,7 +7,7 @@
 #include <GL/glut.h>
 #include <list>
 #include <map>
-#include "robot/humanoid.hpp"
+#include "robot/robot.hpp"
 
 class RobotGL: public QOpenGLWidget, protected QOpenGLFunctions
 {
@@ -46,3 +47,4 @@ private:
     GLUquadricObj   *quad_obj;
 };
 
+#endif

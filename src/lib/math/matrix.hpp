@@ -1,4 +1,5 @@
-#pragma once
+#ifndef __MATRIX_HPP
+#define __MATRIX_HPP
 
 #include <cmath>
 #include <eigen3/Eigen/Dense>
@@ -7,31 +8,31 @@
 
 namespace robot_math
 {
-    class transform_matrix: public Eigen::Matrix4d
+    class TransformMatrix: public Eigen::Matrix4d
     {
     public:
-        transform_matrix()
+        TransformMatrix()
         {
             *this = Eigen::Matrix4d::Identity(4, 4);
         }
 
-        transform_matrix(const transform_matrix &m)
+        TransformMatrix(const TransformMatrix &m)
         {
             this->block<4, 4>(0, 0) = m;
         }
 
-        transform_matrix(const Eigen::Matrix4d &m)
+        TransformMatrix(const Eigen::Matrix4d &m)
         {
             this->block<4, 4>(0, 0) = m;
         }
 
-        transform_matrix(const double &x, const double &y, const double &z)
+        TransformMatrix(const double &x, const double &y, const double &z)
         {
             *this = Eigen::Matrix4d::Identity(4, 4);
             set_p(Eigen::Vector3d(x, y, z));
         }
 
-        transform_matrix(const double &deg, const char &c = 'x')
+        TransformMatrix(const double &deg, const char &c = 'x')
         {
             *this = Eigen::Matrix4d::Identity(4, 4);
             Eigen::Vector3d temp = Eigen::Vector3d::UnitX();
@@ -60,27 +61,27 @@ namespace robot_math
             set_R(rotv.toRotationMatrix());
         }
 
-        transform_matrix rotationX(const double &deg)
+        TransformMatrix rotationX(const double &deg)
         {
-            *this = (*this)*transform_matrix(deg, 'x');
+            *this = (*this)*TransformMatrix(deg, 'x');
             return *this;
         }
 
-        transform_matrix rotationY(const double &deg)
+        TransformMatrix rotationY(const double &deg)
         {
-            *this = (*this)*transform_matrix(deg, 'y');
+            *this = (*this)*TransformMatrix(deg, 'y');
             return *this;
         }
 
-        transform_matrix rotationZ(const double &deg)
+        TransformMatrix rotationZ(const double &deg)
         {
-            *this = (*this)*transform_matrix(deg, 'z');
+            *this = (*this)*TransformMatrix(deg, 'z');
             return *this;
         }
 
-        transform_matrix translation(const double &x, const double &y, const double &z)
+        TransformMatrix translation(const double &x, const double &y, const double &z)
         {
-            *this = (*this)*transform_matrix(x, y, z);
+            *this = (*this)*TransformMatrix(x, y, z);
             return *this;
         }
 
@@ -137,10 +138,12 @@ namespace robot_math
             this->block<3, 3>(0, 0) = r;
         }
 
-        transform_matrix &operator=(const Eigen::Matrix4d &m)
+        TransformMatrix &operator=(const Eigen::Matrix4d &m)
         {
             this->block<4, 4>(0, 0) = m;
             return *this;
         }
     };
 }
+
+#endif

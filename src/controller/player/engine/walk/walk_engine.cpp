@@ -1,8 +1,8 @@
-#include "WalkEngine.hpp"
+#include "walk_engine.hpp"
 #include "CubicSpline.hpp"
 #include "SmoothSpline.hpp"
 #include "Polynom.hpp"
-#include "robot/humanoid.hpp"
+#include "robot/robot.hpp"
 #include "math/math.hpp"
 #include "configuration.hpp"
 #include <cmath>
@@ -220,18 +220,18 @@ namespace motion
 
     void WalkEngine::updata(const pub_ptr &pub, const int &type)
     {
-        if (type == sensor::SENSOR_IMU)
+        if (type == Sensor::SENSOR_IMU)
         {
-            std::shared_ptr<imu> sptr = std::dynamic_pointer_cast<imu>(pub);
+            std::shared_ptr<Imu> sptr = std::dynamic_pointer_cast<Imu>(pub);
             imu_mtx_.lock();
             imu_data_ = sptr->data();
             imu_mtx_.unlock();
             return;
         }
 
-        if (type == sensor::SENSOR_MOTOR)
+        if (type == Sensor::SENSOR_MOTOR)
         {
-            std::shared_ptr<motor> sptr = std::dynamic_pointer_cast<motor>(pub);
+            std::shared_ptr<Motor> sptr = std::dynamic_pointer_cast<Motor>(pub);
             dxl_mtx_.lock();
             
             dxl_mtx_.unlock();
