@@ -4,6 +4,7 @@
 #include <string>
 #include <iostream>
 #include "logger.hpp"
+#include "core/clock.hpp"
 
 using namespace std;
 using namespace robot;
@@ -63,9 +64,9 @@ void tcp_session::read_head()
     {
         if (!ec)
         {
-            memcpy(&recv_type_, buff_, enum_size);
-            memcpy(&recv_end_, buff_ + enum_size, bool_size);
-            memcpy(&recv_size_, buff_ + enum_size + bool_size, int_size);
+            memcpy(&recv_type_, buff_ + int_size, enum_size);
+            memcpy(&recv_end_, buff_ + int_size + enum_size, bool_size);
+            memcpy(&recv_size_, buff_ + int_size + enum_size + bool_size, int_size);
             read_data();
         }
         else
@@ -124,7 +125,7 @@ void tcp_session::read_data()
                     tcb_(recv_cmd_);
                 }
             }
-
+            recv_cmd_.timestamp = CLOCK->get_timestamp();
             read_head();
         }
         else
@@ -133,7 +134,6 @@ void tcp_session::read_data()
         }
     });
 }
-
 
 void tcp_session::stop()
 {
@@ -156,7 +156,7 @@ void tcp_session::deliver(const tcp_command &cmd)
     unsigned int data_size = cmd.size;
     unsigned int total_size = data_size + data_offset;
     char buf[MAX_CMD_LEN];
-    unsigned int offset = 0;
+    unsigned int offset = int_size;
     memcpy(buf + offset, &(cmd.type), enum_size);
     offset += enum_size;
     memcpy(buf + offset, &(cmd.end), bool_size);
@@ -243,7 +243,7 @@ void tcp_server::write(const tcp_command &cmd)
     }
 
     unsigned int t_size = cmd.size;
-    unsigned max_data_size = MAX_CMD_LEN - int_size - enum_size - bool_size;
+    unsigned max_data_size = MAX_CMD_LEN - int_size - enum_size - bool_size - int_size;
     int i = 0;
     tcp_command temp;
     temp.type = cmd.type;

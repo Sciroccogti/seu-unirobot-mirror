@@ -28,6 +28,7 @@ public:
         float pitch=0.0, roll=0.0, yaw=0.0;
         float ax=0.0, ay=0.0, az=0.0;
         float wx=0.0, wy=0.0, wz=0.0;
+        int timestamp=0;
     };
 
     enum {MAX_PACKET_LEN=128};
@@ -75,10 +76,7 @@ public:
     {
         return imu_data_;
     }
-    void set_zero()
-    {
-        record_ = true;
-    }
+
     int fall_direction() const
     {
         return fall_direction_;
@@ -97,7 +95,6 @@ private:
     std::thread td_;
 
     boost::asio::serial_port serial_;
-    std::atomic_bool record_;
     std::atomic_int fall_direction_;
 
     Eigen::Vector2f pitch_range_;

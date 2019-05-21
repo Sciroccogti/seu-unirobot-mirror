@@ -4,6 +4,7 @@
 #include "math/math.hpp"
 #include "core/worldmodel.hpp"
 #include "logger.hpp"
+#include "core/clock.hpp"
 
 using namespace std;
 using namespace boost::asio;
@@ -18,7 +19,6 @@ const float g_ = 9.8;
 
 Imu::Imu(): Sensor("imu"), serial_(Imu_service)
 {
-    record_ = true;
     Vector2f range = CONF->get_config_vector<float, 2>("not_fall_range.pitch");
     pitch_range_.x() = range[0];
     pitch_range_.y() = range[1];
@@ -245,11 +245,12 @@ void Imu::OnDataReceived(Packet_t &pkt)
                 break;
         }
     }
-    if(record_)
+    if(WM->no_power_)
     {
         init_dir_=imu_data_.yaw;
-        record_ = false;
+        WM->no_power_ = false;
     }
+    imu_data_.timestamp = CLOCK->get_timestamp();
     imu_data_.yaw = normalize_deg(imu_data_.yaw-init_dir_);
     //LOG(LOG_INFO)<<Imu_data_.pitch<<endll;
     notify(SENSOR_IMU);

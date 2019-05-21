@@ -7,6 +7,7 @@
 #include "task/say_task.hpp"
 #include "server/server.hpp"
 #include "core/adapter.hpp"
+#include "core/clock.hpp"
 #include "skill/skill.hpp"
 #include "engine/walk/walk_engine.hpp"
 #include "engine/scan/scan_engine.hpp"
@@ -48,16 +49,10 @@ void Player::run()
 
         if (OPTS->use_robot())
         {
-            if(WM->button_status(1)&&WM->button_status(2))
-            {
-                btn_count_++;
-                if(btn_count_%20==0)
-                    raise(SIGINT);
-            }
-            else
-            {
-                btn_count_=0;
-            }
+            if(CLOCK->get_timestamp()-WM->imu_data().timestamp>200)
+                WM->no_power_ = true;
+            if(CLOCK->get_timestamp()-WM->imu_data().timestamp>3000)
+                raise(SIGINT);
         }
         if(OPTS->use_remote())
         {
@@ -158,6 +153,7 @@ bool Player::init()
 
     if(OPTS->use_debug())
         SERVER->start();
+    CLOCK->start();
 
     if (!regist())
     {
@@ -215,6 +211,7 @@ void Player::stop()
     sleep(1);
     if(OPTS->use_debug())
         SERVER->stop();
+    CLOCK->stop();
 }
 
 bool Player::regist()

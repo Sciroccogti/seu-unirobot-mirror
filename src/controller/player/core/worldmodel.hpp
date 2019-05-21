@@ -93,6 +93,7 @@ public:
 public:
     Eigen::Vector2d opp_post_left, opp_post_right;
     std::atomic_bool localization_time_;
+    std::atomic_bool no_power_;
     
 private:
     Imu::imu_data imu_data_;

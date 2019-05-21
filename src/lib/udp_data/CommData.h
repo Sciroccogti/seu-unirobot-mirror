@@ -7,10 +7,9 @@
 struct comm_packet
 {
     char header[3];
-    unsigned int number=0;
-    bool kickoff=false;
     player_info info;
     int state;
+    int timestamp;
 };
 
 
