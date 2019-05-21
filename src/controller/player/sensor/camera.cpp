@@ -9,6 +9,7 @@
 #include <fcntl.h>
 #include <sys/ioctl.h>
 #include "logger.hpp"
+#include "core/clock.hpp"
 
 using namespace std;
 
@@ -69,10 +70,14 @@ void Camera::run()
     {
         while (is_alive_)
         {
-            if (CameraGetImageBuffer(fd_, &sFrameInfo_, &buffer_, 1000) == CAMERA_STATUS_SUCCESS)
+            timestamp_begin = CLOCK->get_timestamp();
+            int t1 = sFrameInfo_.uiTimeStamp;
+            CameraSdkStatus status = CameraGetImageBuffer(fd_, &sFrameInfo_, &buffer_, 1000);
+            timestamp_end = CLOCK->get_timestamp();
+            time_used = (sFrameInfo_.uiTimeStamp-t1)*0.1;
+            if (status == CAMERA_STATUS_SUCCESS)
             {
                 notify(SENSOR_CAMERA);
-                usleep(10000);
                 CameraReleaseImageBuffer(fd_, buffer_);
             }
         }

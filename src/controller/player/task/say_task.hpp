@@ -13,21 +13,15 @@ class SayTask: public Task
 public:
     SayTask(int state): Task("say"), state_(state)
     {
+        const char* init = COMM_DATA_HEADER;
+        for(unsigned int i = 0; i < sizeof(pkt.header); ++i)
+            pkt.header[i] = init[i];
+        pkt.state = state_;
     }
     
     bool perform()
     {
-        static unsigned int pkt_num = 0;
-        comm_packet pkt;
-        const char* init = COMM_DATA_HEADER;
-        for(unsigned int i = 0; i < sizeof(pkt.header); ++i)
-            pkt.header[i] = init[i];
-        pkt.number = pkt_num++;
-        pkt.kickoff = true;
         pkt.info = WM->my_info();
-        pkt.state = state_;
-        //LOG(LOG_INFO)<<pkt.info.x<<'\t'<<pkt.info.y<<endll;
-
         try
         {
             boost::asio::io_service say_service;
@@ -46,6 +40,7 @@ public:
     }
 private:
     int state_;
+    comm_packet pkt;
 };
 
 #endif

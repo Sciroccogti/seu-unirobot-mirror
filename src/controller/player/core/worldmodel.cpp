@@ -14,6 +14,7 @@ WorldModel::WorldModel()
     opp_post_left = Vector2d(SOCCERMAP->width()/200.0, SOCCERMAP->goalWidth()/200.0);
     opp_post_right = Vector2d(SOCCERMAP->width()/200.0, -SOCCERMAP->goalWidth()/200.0);
     localization_time_ = false;
+    no_power_ = true;
 }
 
 void WorldModel::updata(const pub_ptr &pub, const int &type)

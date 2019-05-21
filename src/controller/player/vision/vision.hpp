@@ -1,6 +1,7 @@
 #ifndef __VISION_HPP
 #define __VISION_HPP
 
+#include <queue>
 #include <atomic>
 #include <mutex>
 #include <string>
@@ -49,7 +50,10 @@ private:
     void run();
     void send_image(const cv::Mat &src);
     
-    Imu::imu_data imu_data_;
+    std::queue<Imu::imu_data> imu_datas_;
+    std::queue< std::vector<double> > foot_degs_, head_degs_;
+    std::queue<int> spfs_;
+    
     float head_yaw_, head_pitch_;
 
     Eigen::Vector2d odometry_offset_;

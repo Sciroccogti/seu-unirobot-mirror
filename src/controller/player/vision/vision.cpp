@@ -417,13 +417,17 @@ void Vision::updata(const pub_ptr &pub, const int &type)
         memcpy(camera_src_, sptr->buffer(), src_size_);
         if(OPTS->use_robot())
         {
+            imu_mtx_.lock();
+            Imu::imu_data imu_data_ = imu_datas_.front(); 
+            int spf = spfs_.front();
+            std::vector<double> foot_degs = foot_degs_.front();
+            std::vector<double> head_degs = head_degs_.front();
+            imu_mtx_.unlock();
             AngleAxisd roll, pitch;
             pitch = AngleAxisd(deg2rad(imu_data_.pitch), Vector3d::UnitY());
             roll = AngleAxisd(deg2rad(imu_data_.roll), Vector3d::UnitX());
             Quaternion<double> quat = roll * pitch;
-            int spf = WM->support_foot();
-            std::vector<double> foot_degs = ROBOT->get_foot_degs(spf);
-            std::vector<double> head_degs = ROBOT->get_head_degs();
+            
             head_yaw_  = -head_degs[0];
             head_pitch_ = head_degs[1];
             TransformMatrix body = ROBOT->leg_forward_kinematics(foot_degs, spf);
@@ -439,7 +443,19 @@ void Vision::updata(const pub_ptr &pub, const int &type)
     {
         shared_ptr<Imu> sptr = dynamic_pointer_cast<Imu>(pub);
         imu_mtx_.lock();
-        imu_data_ = sptr->data();
+        imu_datas_.push(sptr->data());
+        if(imu_datas_.size()>4)
+            imu_datas_.pop();
+        int spf = WM->support_foot();
+        foot_degs_.push(ROBOT->get_foot_degs(spf));
+        head_degs_.push(ROBOT->get_head_degs());
+        spfs_.push(spf);
+        if(foot_degs_.size()>4)
+            foot_degs_.pop();
+        if(head_degs_.size()>4)
+            head_degs_.pop();
+        if(spfs_.size()>4)
+            spfs_.pop();
         imu_mtx_.unlock();
         return;
     }

@@ -32,7 +32,7 @@ using namespace robot;
 using namespace dynamixel;
 using namespace robot_math;
 
-Motor::Motor(): Sensor("Motor"), Timer(CONF->get_config_value<int>("hardware.motor.period"))
+Motor::Motor(): Sensor("motor"), Timer(CONF->get_config_value<int>("hardware.motor.period"))
 {
     p_count_ = 0;
     portHandler_ = PortHandler::getPortHandler(CONF->get_config_value<string>("hardware.motor.dev_name").c_str());
@@ -113,6 +113,8 @@ void Motor::virtul_act()
 
 void Motor::real_act()
 {
+    if(WM->no_power_)
+        is_connected_ = false;
     uint8_t dxl_error = 0;
     int not_alert_error = 0;
     int dxl_comm_result = COMM_TX_FAIL;

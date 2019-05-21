@@ -2,6 +2,7 @@
 #include <string>
 #include <iostream>
 #include <functional>
+#include "logger.hpp"
 
 using boost::asio::ip::tcp;
 using namespace std;
@@ -61,7 +62,7 @@ void tcp_client::deliver(const tcp_command &cmd)
     unsigned int data_size = cmd.size;
     unsigned int total_size = data_size + data_offset;
     char buf[MAX_CMD_LEN];
-    unsigned int offset = 0;
+    unsigned int offset = int_size;
     memcpy(buf + offset, &(cmd.type), enum_size);
     offset += enum_size;
     memcpy(buf + offset, &(cmd.end), bool_size);
@@ -83,17 +84,24 @@ void tcp_client::deliver(const tcp_command &cmd)
 
 void tcp_client::connect()
 {
-    timer_.expires_from_now(boost::posix_time::seconds(1));
-    boost::asio::async_connect(socket_, tcp::resolver(tcp_service).resolve({addr_.c_str(), to_string(port_).c_str()}),
-                               [this](boost::system::error_code ec, tcp::resolver::iterator)
+    try
     {
-        if (!ec)
+        timer_.expires_from_now(boost::posix_time::seconds(1));
+        boost::asio::async_connect(socket_, tcp::resolver(tcp_service).resolve({addr_.c_str(), to_string(port_).c_str()}),
+                                [this](boost::system::error_code ec, tcp::resolver::iterator)
         {
-            is_connect_ = true;
-            read_head();
-        }
-    });
-    timer_.async_wait(std::bind(&tcp_client::connect_timeout, this));
+            if (!ec)
+            {
+                is_connect_ = true;
+                read_head();
+            }
+        });
+        timer_.async_wait(std::bind(&tcp_client::connect_timeout, this));
+    }
+    catch(const std::exception& e)
+    {
+        LOG(LOG_WARN) << e.what() << endll;
+    }
 }
 
 void tcp_client::connect_timeout()
@@ -113,9 +121,9 @@ void tcp_client::read_head()
     {
         if (!ec)
         {
-            memcpy(&recv_type_, buff_, enum_size);
-            memcpy(&recv_end_, buff_ + enum_size, bool_size);
-            memcpy(&recv_size_, buff_ + enum_size + bool_size, int_size);
+            memcpy(&recv_type_, buff_ + int_size, enum_size);
+            memcpy(&recv_end_, buff_ + int_size + enum_size, bool_size);
+            memcpy(&recv_size_, buff_ + int_size + enum_size + bool_size, int_size);
             read_data();
         }
         else

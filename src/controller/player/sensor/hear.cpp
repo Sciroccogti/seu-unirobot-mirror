@@ -1,6 +1,7 @@
 #include "hear.hpp"
 #include "configuration.hpp"
 #include "core/worldmodel.hpp"
+#include "core/clock.hpp"
 
 using boost::asio::ip::udp;
 using namespace std;
@@ -43,7 +44,7 @@ void Hear::receive()
             recv_header.append(pkt_.header, sizeof(comm_packet::header));
             if(recv_header==COMM_DATA_HEADER && pkt_.info.id != CONF->id())
             {
-                //LOG<<pkt_.info.id<<'\t'<<pkt_.info.y<<endll;
+                pkt_.timestamp = CLOCK->get_timestamp();
                 notify(SENSOR_HEAR);
             }
         }

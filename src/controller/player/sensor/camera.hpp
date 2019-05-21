@@ -60,6 +60,8 @@ public:
             return w_ * h_ * 2;
         }
     }
+
+    int timestamp_begin, timestamp_end, time_used;
 private:
     struct VideoBuffer
     {
