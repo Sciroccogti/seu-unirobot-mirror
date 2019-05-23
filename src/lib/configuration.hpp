@@ -8,20 +8,35 @@
 class Configuration: public Singleton<Configuration>
 {
 public:
+    Configuration()
+    {
+        if (!parser::parse("data/config.conf", config_tree_))
+        {
+            LOG(LOG_ERROR)<<"Configuration parser error"<<endll;
+            exit(1);
+        }
+        team_number_ = config_tree_.get<int>("team_number");
+    }
+    
     bool init(const int &id = 0)
     {
         id_ = id;
-
-        if (!parser::parse("data/config.conf", config_tree_))
-        {
-            return false;
-        }
-
         player_ = "players." + std::to_string(id_);
-        team_number_ = config_tree_.get<int>("team_number");
         return true;
     }
 
+    std::vector<int> players()
+    {
+        parser::bpt::ptree pt = config_tree_.get_child("players");
+        std::vector<int> res;
+        for(auto &t:pt)
+        {
+            std::string id = t.first;
+            res.push_back(std::atoi(id.c_str()));
+        }
+        return res;
+    }
+    
     template<typename T>
     inline T get_config_value(const std::string &keyword) const
     {

@@ -18,6 +18,42 @@ __device__ T min(T v1, T v2)
     return v1<v2?v1:v2;
 }
 
+__device__ void bgr2hsv(float bb, float gg, float rr, float *hsv)
+{
+    float r=rr/255.0, g=gg/255.0, b=bb/255.0;
+    float rgbMax = max(max(r,g), b);
+    float rgbMin = min(min(r,g), b);
+    float delta = rgbMax-rgbMin;
+
+    float hue, sat, val;
+
+    val = rgbMax;
+    if(rgbMax == 0) sat = 0;
+    else sat = delta/rgbMax;
+
+    if(delta == 0) hue = 0;
+    else
+    {
+        if(rgbMax == r)
+        {
+            if(g>=b) hue = 60*(g-b)/delta;
+            else hue = 60*(g-b)/delta+360;
+        }
+        else if(rgbMax == g)
+        {
+            hue = 60*(b-r)/delta+120;
+        }
+        else
+        {
+            hue = 60*(r-g)/delta+240;
+        }
+    }
+
+    hsv[0] = hue;
+    hsv[1] = sat;
+    hsv[2] = val;
+}
+
 __global__ void yuyv2yuv_kernal(unsigned char *in, unsigned char *out, int w, int h)
 {
     int x=blockIdx.x;
@@ -90,6 +126,22 @@ __global__ void bgr2yuv422_kernal(unsigned char *in, unsigned char *out, int w, 
     out[out_tmp+dst_offset+3] = (unsigned char)(int)(0.498*r2-0.419*g2-0.0813*b2+128);
 }
 
+__global__ void bgr2hsv_kernal(unsigned char *bgr, unsigned char *hsv, int w, int h)
+{
+    int x = blockIdx.x;
+    int y = threadIdx.x;
+    int offset = y*w*3+x*3;
+    float r,g,b;
+    r = bgr[offset+2];
+    g = bgr[offset+1];
+    b = bgr[offset+0];
+    float hsv_t[3];
+    bgr2hsv(b, g, r, hsv_t);
+    hsv[offset+0] = rgb_bound(hsv[0]*255/360);
+    hsv[offset+1] = rgb_bound(hsv[1]*255);
+    hsv[offset+2] = rgb_bound(hsv[2]*255);
+}
+
 __global__ void baygr2bgr_kernal(unsigned char *bayergr, unsigned char *bgr, int w, int h,
     float ds, float rgain, float ggain, float bgain)
 {
@@ -105,31 +157,11 @@ __global__ void baygr2bgr_kernal(unsigned char *bayergr, unsigned char *bgr, int
     g = bayergr[y*w+x-(x&1)+(y&1)]*ggain;
     r = bayergr[(y-(y&1))*w+x+((x+1)&1)]*rgain;
 
-    float rgbMax = max(max(r,g), b);
-    float rgbMin = min(min(r,g), b);
-    float delta = rgbMax-rgbMin;
-
-    val = rgbMax;
-    if(rgbMax == 0) sat = 0;
-    else sat = delta/rgbMax;
-
-    if(delta == 0) hue = 0;
-    else
-    {
-        if(rgbMax == r)
-        {
-            if(g>=b) hue = 60*(g-b)/delta;
-            else hue = 60*(g-b)/delta+360;
-        }
-        else if(rgbMax == g)
-        {
-            hue = 60*(b-r)/delta+120;
-        }
-        else
-        {
-            hue = 60*(r-g)/delta+240;
-        }
-    }
+    float hsv[3];
+    bgr2hsv(b,g,r, hsv);
+    hue = hsv[0];
+    sat = hsv[1];
+    val = hsv[2];
     if(ds>=0) sat = sat+(1-sat)*ds;
     else sat = sat+sat*ds;
 
@@ -282,50 +314,55 @@ __global__ void remap_kernal(unsigned char* pSrcImg, unsigned char* pDstImg, flo
 
 namespace imgproc
 {
-void cudaYUYV2YUV(unsigned char *in, unsigned char *out, int w, int h)
-{
-    yuyv2yuv_kernal<<<w, h>>>(in,out,w,h);
-}
+    void cudaYUYV2YUV(unsigned char *in, unsigned char *out, int w, int h)
+    {
+        yuyv2yuv_kernal<<<w, h>>>(in,out,w,h);
+    }
 
-void cudaYUYV2BGR(unsigned char *in, unsigned char *out, int w, int h)
-{
-    yuyv2bgr_kernal<<<w, h>>>(in,out,w,h);
-}
+    void cudaYUYV2BGR(unsigned char *in, unsigned char *out, int w, int h)
+    {
+        yuyv2bgr_kernal<<<w, h>>>(in,out,w,h);
+    }
 
-void cudaBayer2BGR(unsigned char *bayer, unsigned char *bgr, int w, int h, 
-    float sat, float rgain, float ggain, float bgain)
-{
-    baygr2bgr_kernal<<<w,h>>>(bayer, bgr, w, h, sat, rgain, ggain, bgain);
-}
+    void cudaBayer2BGR(unsigned char *bayer, unsigned char *bgr, int w, int h, 
+        float sat, float rgain, float ggain, float bgain)
+    {
+        baygr2bgr_kernal<<<w,h>>>(bayer, bgr, w, h, sat, rgain, ggain, bgain);
+    }
 
-void cudaBGR2RGBfp(unsigned char *bgr, float *rgbfp, int w, int h)
-{
-    bgr2rgbfp_kernal<<<w,h>>>(bgr, rgbfp, w, h);
-}
+    void cudaBGR2RGBfp(unsigned char *bgr, float *rgbfp, int w, int h)
+    {
+        bgr2rgbfp_kernal<<<w,h>>>(bgr, rgbfp, w, h);
+    }
 
-void cudaBGR2YUV422(unsigned char *bgr, unsigned char *yuv422, int w, int h)
-{
-    bgr2yuv422_kernal<<<w/2, h>>>(bgr, yuv422, w, h);
-}
+    void cudaBGR2YUV422(unsigned char *bgr, unsigned char *yuv422, int w, int h)
+    {
+        bgr2yuv422_kernal<<<w/2, h>>>(bgr, yuv422, w, h);
+    }
+    
+    void cudaBGR2HSV(unsigned char *bgr, unsigned char *hsv, int w, int h)
+    {
+        bgr2hsv_kernal<<<w, h>>>(bgr, hsv, w, h);
+    }
 
-void cudaResizePacked(float *in, int iw, int ih, float *sized, int ow, int oh)
-{
-    resize_packed_kernal<<<ow, oh>>>(in, iw, ih, sized, ow, oh);
-}
+    void cudaResizePacked(float *in, int iw, int ih, float *sized, int ow, int oh)
+    {
+        resize_packed_kernal<<<ow, oh>>>(in, iw, ih, sized, ow, oh);
+    }
 
-void cudaResizePacked(unsigned char *in, int iw, int ih, unsigned char *sized, int ow, int oh)
-{
-    resize_packed_kernal<<<ow, oh>>>(in, iw, ih, sized, ow, oh);
-}
+    void cudaResizePacked(unsigned char *in, int iw, int ih, unsigned char *sized, int ow, int oh)
+    {
+        resize_packed_kernal<<<ow, oh>>>(in, iw, ih, sized, ow, oh);
+    }
 
-void cudaUndistored(unsigned char *in, unsigned char *out, float *pCamK, float *pDistort, float *pInvNewCamK, 
-    float* pMapx, float* pMapy, int w, int h, int c)
-{
-    dim3 block(16, 16);
-	dim3 grid((w + block.x - 1) / block.x, (h + block.y - 1) / block.y);
-	build_map_kernal <<<grid, block >>> (pCamK, pDistort, pInvNewCamK, pMapx, pMapy, w, h);
-	cudaThreadSynchronize();
-	remap_kernal <<<grid, block >>> (in, out, pMapx, pMapy, w, h, w, h, c);
-	cudaThreadSynchronize();
-}
+    void cudaUndistored(unsigned char *in, unsigned char *out, float *pCamK, float *pDistort, float *pInvNewCamK, 
+        float* pMapx, float* pMapy, int w, int h, int c)
+    {
+        dim3 block(16, 16);
+        dim3 grid((w + block.x - 1) / block.x, (h + block.y - 1) / block.y);
+        build_map_kernal <<<grid, block >>> (pCamK, pDistort, pInvNewCamK, pMapx, pMapy, w, h);
+        cudaThreadSynchronize();
+        remap_kernal <<<grid, block >>> (in, out, pMapx, pMapy, w, h, w, h, c);
+        cudaThreadSynchronize();
+    }
 };
