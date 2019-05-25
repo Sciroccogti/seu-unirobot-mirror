@@ -6,5 +6,4 @@ target_link_libraries(imageproc
         cudart
         opencv_core
         opencv_imgcodecs
-        opencv_imgproc
-        opencv_highgui)
+        opencv_imgproc)

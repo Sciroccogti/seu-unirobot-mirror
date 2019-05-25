@@ -35,6 +35,7 @@ using namespace robot_math;
 Motor::Motor(): Sensor("motor"), Timer(CONF->get_config_value<int>("hardware.motor.period"))
 {
     p_count_ = 0;
+    voltage_read_ = true;
     portHandler_ = PortHandler::getPortHandler(CONF->get_config_value<string>("hardware.motor.dev_name").c_str());
     packetHandler_ = PacketHandler::getPacketHandler(CONF->get_config_value<float>("hardware.motor.version"));
     ledWrite_ = make_shared<GroupSyncWrite>(portHandler_, packetHandler_, ADDR_LED, SIZE_LED);
@@ -127,8 +128,12 @@ void Motor::real_act()
 
         if (dxl_comm_result == COMM_SUCCESS && not_alert_error == 0)
         {
-            read_voltage();
-            LOG(LOG_INFO) << "Voltage: " << voltage_ / 10.0f << "V !" << endll;
+            if(voltage_read_)
+            {
+                read_voltage();
+                LOG(LOG_INFO) << "Voltage: " << voltage_ / 10.0f << "V !" << endll;
+                voltage_read_ = false;
+            }
 
             set_torq(1);
             is_connected_ = true;
@@ -281,7 +286,7 @@ bool Motor::open()
             return false;
         }
 
-        if (!portHandler_->setBaudRate(CONF->get_config_value<int>("hardware.Motor.baudrate")))
+        if (!portHandler_->setBaudRate(CONF->get_config_value<int>("hardware.motor.baudrate")))
         {
             return false;
         }

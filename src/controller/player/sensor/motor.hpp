@@ -46,6 +46,7 @@ private:
     void virtul_act();
     void real_act();
 private:
+    bool voltage_read_;
     unsigned long p_count_;
     uint16_t voltage_;
     uint8_t ping_id_;

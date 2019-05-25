@@ -418,23 +418,26 @@ void Vision::updata(const pub_ptr &pub, const int &type)
         if(OPTS->use_robot())
         {
             imu_mtx_.lock();
-            Imu::imu_data imu_data_ = imu_datas_.front(); 
-            int spf = spfs_.front();
-            std::vector<double> foot_degs = foot_degs_.front();
-            std::vector<double> head_degs = head_degs_.front();
+            if(!imu_datas_.empty())
+            {
+                Imu::imu_data imu_data_ = imu_datas_.front(); 
+                int spf = spfs_.front();
+                std::vector<double> foot_degs = foot_degs_.front();
+                std::vector<double> head_degs = head_degs_.front();
+                AngleAxisd roll, pitch;
+                pitch = AngleAxisd(deg2rad(imu_data_.pitch), Vector3d::UnitY());
+                roll = AngleAxisd(deg2rad(imu_data_.roll), Vector3d::UnitX());
+                Quaternion<double> quat = roll * pitch;
+                
+                head_yaw_  = -head_degs[0];
+                head_pitch_ = head_degs[1];
+                TransformMatrix body = ROBOT->leg_forward_kinematics(foot_degs, spf);
+                body.set_R(quat.matrix());
+                camera_matrix_ = body*TransformMatrix(0,0,ROBOT->trunk_length())*TransformMatrix(head_degs[0],'z')
+                                *TransformMatrix(0, 0, ROBOT->neck_length())*TransformMatrix(head_degs[1], 'y')
+                                *TransformMatrix(-0.02, 0, ROBOT->head_length());
+            }
             imu_mtx_.unlock();
-            AngleAxisd roll, pitch;
-            pitch = AngleAxisd(deg2rad(imu_data_.pitch), Vector3d::UnitY());
-            roll = AngleAxisd(deg2rad(imu_data_.roll), Vector3d::UnitX());
-            Quaternion<double> quat = roll * pitch;
-            
-            head_yaw_  = -head_degs[0];
-            head_pitch_ = head_degs[1];
-            TransformMatrix body = ROBOT->leg_forward_kinematics(foot_degs, spf);
-            body.set_R(quat.matrix());
-            camera_matrix_ = body*TransformMatrix(0,0,ROBOT->trunk_length())*TransformMatrix(head_degs[0],'z')
-                            *TransformMatrix(0, 0, ROBOT->neck_length())*TransformMatrix(head_degs[1], 'y')
-                            *TransformMatrix(-0.02, 0, ROBOT->head_length());
         }
         frame_mtx_.unlock();
         return;
