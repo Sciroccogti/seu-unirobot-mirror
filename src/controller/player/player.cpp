@@ -49,10 +49,13 @@ void Player::run()
 
         if (OPTS->use_robot())
         {
-            if(CLOCK->get_timestamp()-WM->imu_data().timestamp>200)
+            if(CLOCK->get_timestamp()-WM->imu_data().timestamp>500)
                 WM->no_power_ = true;
-            if(CLOCK->get_timestamp()-WM->imu_data().timestamp>3000)
+            if(CLOCK->get_timestamp()-WM->imu_data().timestamp>3000 && WM->imu_data().timestamp!=0)
+            {
+                LOG(LOG_ERROR)<<"motor power has been turned off!"<<endll;
                 raise(SIGINT);
+            }
         }
         if(OPTS->use_remote())
         {
@@ -223,7 +226,6 @@ bool Player::regist()
         sensors_["camera"] = std::make_shared<Camera>();
         sensors_["camera"]->attach(VISION);
         sensors_["camera"]->start();
-
         if (!VISION->start())
         {
             return false;

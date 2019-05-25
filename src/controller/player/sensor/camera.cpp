@@ -80,6 +80,7 @@ void Camera::run()
                 notify(SENSOR_CAMERA);
                 CameraReleaseImageBuffer(fd_, buffer_);
             }
+            usleep(1000);
         }
     }
     else
