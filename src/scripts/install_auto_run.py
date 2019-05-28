@@ -22,14 +22,19 @@ if __name__ == '__main__':
         common.print_error('build error, please check code')
         exit(4)
 
-    if not common.compress_files():
+    args = common.parse_argv(sys.argv)
+    ip_address = common.get_ip(robot_id)
+
+    if not common.check_net(ip_address):
+        common.print_error('can not connect to host, please check network')
+        exit(6)
+        
+    ssh_client = ssh_connection.ssh_connection(ip_address, config.ssh_port, config.username, config.password)
+
+    if not common.compress_files(ssh_client):
         common.print_error('compress files error, please check')
         exit(5)
         
-    args = common.parse_argv(sys.argv)
-
-    ip_address = common.get_ip(robot_id)
-    ssh_client = ssh_connection.ssh_connection(ip_address, config.ssh_port, config.username, config.password)
     ssh_client.upload(config.project_dir+'/bin/'+config.compress_file_name, config.remote_dir+config.compress_file_name)
 
     cmd = "cd %s; tar zxmf %s; sed -i '$acd %s' %s; sed -i '$a./%s %s &' %s; poweroff;"%(config.remote_dir, config.compress_file_name,\
