@@ -8,6 +8,15 @@ import os
 import hashlib
 
 
+
+def print_error(err):
+    print('\033[1;31m %s \033[0m'%err)
+
+
+def print_info(info):
+    print('\033[1;32m %s \033[0m'%info)
+
+
 def get_json_from_conf(confname=''):
     json_data = ''
     for line in open(confname): 
@@ -69,22 +78,18 @@ def get_config(key=''):
         return None
 
 
-def check_weight():
-    net_file = '%s/bin/aarch64/%s'%(config.project_dir, get_config('net_weights_file'))
-    md5_file = '%s/bin/%s'%(config.project_dir, config.weights_md5_file)
-    f_md5 = hashlib.md5(open(net_file, 'rb').read()).hexdigest()
-    if not os.path.exists(md5_file):
-        f = open(md5_file, 'w')
-        f.write(f_md5)
-        f.close()
+def check_weight(ssh):
+    cmd = "md5sum {} | cut -d ' ' -f1"
+    local_file = '%s/bin/aarch64/%s'%(config.project_dir, get_config('net_weights_file'))
+    remote_file = config.remote_dir+config.target_dir+get_config('net_weights_file')
+    md5_local = os.popen(cmd.format(local_file)).read().strip()
+    md5_remote = ssh.exec_command(cmd.format(remote_file), True, True).strip()
+    if md5_local != md5_remote:
+        print_info('Need to copy weights file!')
         return False
-    with open(md5_file, 'r') as md5f:
-        md5_code = md5f.read().strip()
-    if md5_code != f_md5:
-        with open(md5_file, 'w') as md5f:
-            md5f.write(f_md5)
-        return False
-    return True
+    else:
+        print_info('No need to copy weights file!')
+        return True
 
 
 def build_project(cross, j=2):
@@ -102,8 +107,8 @@ def build_project(cross, j=2):
     return run_cmd(cmd)
 
 
-def compress_files():
-    if check_weight():
+def compress_files(ssh):
+    if check_weight(ssh):
         os.remove('%s/bin/aarch64/%s'%(config.project_dir, get_config('net_weights_file')))
     cmd = 'cd %s/bin/aarch64; tar zcf %s *; cd ..; mv aarch64/%s %s'%(config.project_dir,\
         config.compress_file_name, config.compress_file_name, config.compress_file_name)
@@ -124,11 +129,3 @@ def check_argv(argv=[], num=2):
         return False
     else:
         return True
-
-
-def print_error(err):
-    print('\033[1;31m %s \033[0m'%err)
-
-
-def print_info(info):
-    print('\033[1;32m %s \033[0m'%info)
