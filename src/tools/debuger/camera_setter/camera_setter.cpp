@@ -1,6 +1,7 @@
 #include "camera_setter.hpp"
 #include "configuration.hpp"
 #include "parser/parser.hpp"
+#include "common.hpp"
 
 using namespace std;
 
@@ -96,6 +97,7 @@ void CameraSetter::procBtnReset()
 void CameraSetter::procBtnSave()
 {
     parser::save(CONF->get_config_value<string>(CONF->player() + ".camera_file"), ctrl_items_);
+    parser::save(get_source_dir()+CONF->get_config_value<string>(CONF->player() + ".camera_file"), ctrl_items_);
 }
 
 void CameraSetter::procValueChanged(camera_info info)
