@@ -3,6 +3,7 @@
 #include "math/math.hpp"
 #include "configuration.hpp"
 #include "parser/parser.hpp"
+#include "common.hpp"
 
 #define SCALE_K  0.001f
 #define DEG_RANGE 180.0f
@@ -876,6 +877,7 @@ void ActionDebuger::procButtonSavePos()
 
     ROBOT->get_pos_map()[pos_name].pose_info = pose_map_;
     pos_saved = true;
+    parser::save(CONF->action_file(), ROBOT->get_act_map(), ROBOT->get_pos_map());
 }
 
 void ActionDebuger::procButtonDeleteAction()
@@ -913,8 +915,8 @@ void ActionDebuger::procButtonSaveAction()
     {
         return;
     }
-
     save(CONF->action_file(), ROBOT->get_act_map(), ROBOT->get_pos_map());
+    save(get_source_dir()+CONF->action_file(), ROBOT->get_act_map(), ROBOT->get_pos_map());
 }
 
 void ActionDebuger::procButtonAddAction()
