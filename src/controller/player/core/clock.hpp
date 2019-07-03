@@ -14,6 +14,7 @@ public:
         timestamp_ = 0;
     }
 
+    // 初始化计时器
     void start()
     {
         start_timer();
@@ -23,7 +24,8 @@ public:
     {
         delete_timer();
     }
-
+    
+    // 开始计时
     void run()
     {
         timestamp_ += period_ms_;
