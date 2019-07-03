@@ -13,6 +13,8 @@ Comments start with a '?' mean that I'm not sure if my understanding is correct.
 
 ## `> controller`
 
+*maxwell* responds to "止于至善"🙃.
+
 ### `>> drivers`
 
 #### `>>> dynamixel`
@@ -32,6 +34,8 @@ Files here realize **program_options**. For example, in `./a.out -help`, `-help`
 ### `>> player`
 
 Most of this part are quite literally.
+
+>   *gc* stands for *gamecontrol*. Gamecontrol, provided by the organizing committee, sends signals to robots telling them if they are about to be leave the game, they have goaled, or nothing happend.
 
 #### `>>> core`
 
@@ -73,6 +77,22 @@ Tasks are also combinations of serial actions, but skills tend to be mechanical 
 
 ***
 
-#### `> data`
+## `> data`
 
 Files here store configurations of the robot.
+
+## `> lib`
+
+### `>> darknet`
+
+Lib for recognition.
+
+### `>> imageproc`
+
+### `>> math`
+
+### `>> parser`
+
+### `>> robot`
+
+### `>> udp_data`
