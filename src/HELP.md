@@ -96,3 +96,7 @@ Lib for recognition.
 ### `>> robot`
 
 ### `>> udp_data`
+
+## `> scripts`
+
+[What does if __name__ == “__main__”: do?](https://stackoverflow.com/questions/419163/what-does-if-name-main-do) This make sure that the file is run as the main file, which means that it's run directly instead of being called.
