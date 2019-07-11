@@ -1,3 +1,4 @@
+// 缓冲队列
 #ifndef __ADAPTER_HPP
 #define __ADAPTER_HPP
 
