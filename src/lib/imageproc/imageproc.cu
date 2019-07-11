@@ -18,9 +18,13 @@ __device__ T min(T v1, T v2)
     return v1<v2?v1:v2;
 }
 
-__device__ void bgr2hsv(float bb, float gg, float rr, float *hsv)
+__device__ bool is_equal(float v1, float v2)
 {
-    float r=rr/255.0, g=gg/255.0, b=bb/255.0;
+    return abs(v1-v2)<1E-6;
+}
+
+__device__ void bgr2hsv(float b, float g, float r, float *hsv)
+{
     float rgbMax = max(max(r,g), b);
     float rgbMin = min(min(r,g), b);
     float delta = rgbMax-rgbMin;
@@ -28,18 +32,18 @@ __device__ void bgr2hsv(float bb, float gg, float rr, float *hsv)
     float hue, sat, val;
 
     val = rgbMax;
-    if(rgbMax == 0) sat = 0;
+    if(is_equal(rgbMax, 0)) sat = 0;
     else sat = delta/rgbMax;
 
-    if(delta == 0) hue = 0;
+    if(is_equal(delta, 0)) hue = 0;
     else
     {
-        if(rgbMax == r)
+        if(is_equal(rgbMax, r))
         {
             if(g>=b) hue = 60*(g-b)/delta;
             else hue = 60*(g-b)/delta+360;
         }
-        else if(rgbMax == g)
+        else if(is_equal(rgbMax, g))
         {
             hue = 60*(b-r)/delta+120;
         }
